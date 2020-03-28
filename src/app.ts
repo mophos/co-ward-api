@@ -26,6 +26,8 @@ import userMinMaxAdminRoute from './routes/admin/supplies_min_max';
 import hospitalAdminRoute from './routes/admin/hospital';
 
 import suppliesStaffRoute from './routes/staff/supplies';
+import balanceStaffRoute from './routes/staff/balance';
+import payStaffRoute from './routes/staff/pay';
 
 // Assign router to the express.Router() instance
 const app: express.Application = express();
@@ -174,6 +176,8 @@ api.use('/manager', checkAuth, managerAuth, manager)
 //staff
 api.use('/staff', checkAuth, staffAuth, staff)
 staff.use('/supplies', suppliesStaffRoute)
+staff.use('/balance', balanceStaffRoute)
+staff.use('/pay', payStaffRoute)
 
 //index
 app.use('/', indexRoute);
