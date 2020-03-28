@@ -161,14 +161,14 @@ app.use('/v1', api);
 
 //admin
 api.use('/admin', admin)
-admin.use('/supplies', suppliesAdminRoute)
+admin.use('/supplies', checkAuth, adminAuth, suppliesAdminRoute)
 
 //manager
-api.use('/manager', manager)
+api.use('/manager', checkAuth, managerAuth, manager)
 
 //staff
 api.use('/staff', staff)
-staff.use('/supplies', suppliesStaffRoute)
+staff.use('/supplies', checkAuth, staffAuth, suppliesStaffRoute)
 
 //index
 app.use('/', indexRoute);
