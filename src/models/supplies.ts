@@ -2,19 +2,35 @@ import * as Knex from 'knex';
 
 export class SuppliesModel {
 
-  getSupplies(db: Knex) {
-    return db('supplies');
+  getSupplies(db: Knex, limit = 100, offset = 0, q = '') {
+    return db('supplies')
+      .where((v)=>{
+        v.where('name', 'like', '%' + q + '%')
+        v.orWhere('code', 'like', '%' + q + '%')
+      })
+      .limit(limit)
+      .offset(offset)
+
   }
 
+  getSuppliesTotal(db: Knex, q = '') {
+    return db('supplies')
+      .where((v)=>{
+        v.where('name', 'like', '%' + q + '%')
+        v.orWhere('code', 'like', '%' + q + '%')
+      });
+  }
+
+  
   getSuppliesById(db: Knex, id: number) {
     return db('supplies')
-      .where(id);
+      .where('id', id);
   }
 
   updateSupplies(db: Knex, id: number, data = {}) {
     return db('supplies')
       .update(data)
-      .where(id);
+      .where('id', id);
   }
 
   insertSupplies(db: Knex, data = {}) {
@@ -25,7 +41,7 @@ export class SuppliesModel {
   deleteSupplies(db: Knex, id: number) {
     return db('supplies')
       .delete()
-      .where(id);
+      .where('id', id);
   }
 
 }

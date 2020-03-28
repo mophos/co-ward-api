@@ -12,9 +12,9 @@ const router: Router = Router();
 
 
 router.get('/', async (req: Request, res: Response) => {
-  const hopscode = req.decoded.hopscode
+  const hospcode = req.decoded.hospcode
   try {
-    let rs: any = await suppliesMinMaxModel.getSuppliesMinMax(req.db, hopscode);
+    let rs: any = await suppliesMinMaxModel.getSuppliesMinMax(req.db, hospcode);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -29,12 +29,8 @@ router.put('/:id', async (req: Request, res: Response) => {
   try {
     if (typeof id === 'number' && typeof data === 'object' && id && data) {
       let _data: any;
-      // _data.code = data.code;
-      // _data.name = data.name;
-      // _data.unit = data.unit;
-      // _data.remark = data.remark;
-      data.update_by = decoded.id;
-      data.update_at = moment().format('YYYY-MM-DD HH:MM:SS')
+      data.updated_by = decoded.id;
+      data.updated_at = moment().format('YYYY-MM-DD HH:MM:SS')
 
       let rs: any = await suppliesMinMaxModel.updateSuppliesMinMax(req.db, id, data);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
