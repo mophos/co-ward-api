@@ -45,7 +45,8 @@ router.post('/', async (req: Request, res: Response) => {
       const obj = {
         hospcode: hospcode,
         supplies_id: i.supplies_id,
-        qty: i.qty
+        qty: i.qty,
+        usage_rate_day: i.usage_rate_day
       }
       currents.push(obj);
     }
