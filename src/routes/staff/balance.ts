@@ -39,9 +39,18 @@ router.post('/', async (req: Request, res: Response) => {
       created_by: userId
     }
     const balanceId = await balanceModel.saveHead(req.db, head);
+    const currents = [];
     for (const i of data) {
       i.balance_id = balanceId
+      const obj = {
+        hospcode: hospcode,
+        supplies_id: i.supplies_id,
+        qty: i.qty
+      }
+      currents.push(obj);
     }
+    await balanceModel.removeCurrent(req.db, hospcode);
+    await balanceModel.saveCurrent(req.db, currents);
     await balanceModel.saveDetail(req.db, data);
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
