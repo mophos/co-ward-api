@@ -61,7 +61,6 @@ router.post('/', async (req: Request, res: Response) => {
   try {
     if (typeof data === 'object' && data) {
       data.create_by = decoded.id;
-      data.create_at = moment().format('YYYY-MM-DD HH:MM:SS')
       let rs: any = await suppliesModel.insertSupplies(req.db, data);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else {

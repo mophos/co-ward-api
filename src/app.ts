@@ -19,7 +19,11 @@ import { Jwt } from './models/jwt';
 
 import indexRoute from './routes/index';
 import loginRoute from './routes/login';
+
 import suppliesAdminRoute from './routes/admin/supplies';
+import userAdminRoute from './routes/admin/user';
+import userMinMaxAdminRoute from './routes/admin/supplies_min_max';
+
 import suppliesStaffRoute from './routes/staff/supplies';
 
 // Assign router to the express.Router() instance
@@ -104,10 +108,9 @@ let adminAuth = (req, res, next) => {
   const decoded = req.decoded;
   console.log(decoded);
 
-  const accessRight = decoded.accessRight || undefined;
   try {
-    if (accessRight) {
-      if (accessRight.type === 'ADMIN') {
+    if (decoded) {
+      if (decoded.type === 'ADMIN') {
         next();
       } else {
         res.send({ ok: false, error: 'No permission found!' });
@@ -122,10 +125,9 @@ let adminAuth = (req, res, next) => {
 
 let staffAuth = (req, res, next) => {
   const decoded = req.decoded;
-  const accessRight = decoded.accessRight || undefined;
   try {
-    if (accessRight) {
-      if (accessRight.type === 'STAFF') {
+    if (decoded) {
+      if (decoded.type === 'STAFF') {
         next();
       } else {
         res.send({ ok: false, error: 'No permission found!' });
@@ -140,10 +142,9 @@ let staffAuth = (req, res, next) => {
 
 let managerAuth = (req, res, next) => {
   const decoded = req.decoded;
-  const accessRight = decoded.accessRight || undefined;
   try {
-    if (accessRight) {
-      if (accessRight.type === 'MANAGER') {
+    if (decoded) {
+      if (decoded.type === 'MANAGER') {
         next();
       } else {
         res.send({ ok: false, error: 'No permission found!' });
@@ -162,6 +163,8 @@ app.use('/v1', api);
 //admin
 api.use('/admin', checkAuth, adminAuth, admin)
 admin.use('/supplies', suppliesAdminRoute)
+admin.use('/user', userAdminRoute)
+admin.use('/supplies-min-max', userMinMaxAdminRoute)
 
 //manager
 api.use('/manager', checkAuth, managerAuth, manager)
