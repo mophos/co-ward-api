@@ -15,25 +15,8 @@ const jwt = new Jwt();
 const router: Router = Router();
 
 router.post('/', async (req: Request, res: Response) => {
-
-  try {
-    let payload = {
-      fullname: 'SATIT RIANPIT',
-      username: 'satit',
-      id: 1
-    }
-
-    let token = jwt.signApiKey(payload);
-    res.send({ ok: true, token: token, code: HttpStatus.OK });
-  } catch (error) {
-    res.send({ ok: false, error: error.message, code: HttpStatus.INTERNAL_SERVER_ERROR });
-  }
-
-});
-
-router.post('/customer', async (req: Request, res: Response) => {
-  let username: string = req.body.username;
-  let password: string = req.body.password;
+  let username: string = req.body.username || '';
+  let password: string = req.body.password || '';
 
   let db = req.db;
 
@@ -45,7 +28,8 @@ router.post('/customer', async (req: Request, res: Response) => {
 
       let payload = {
         fullname: `${rs[0].first_name} ${rs[0].last_name}`,
-        id: rs[0].user_id,
+        user_id: rs[0].user_id,
+        type: rs[0].type,
       }
 
       let token = jwt.sign(payload);

@@ -13,17 +13,24 @@ import * as cors from 'cors';
 
 import Knex = require('knex');
 import { MySqlConnectionConfig } from 'knex';
+import { indexOf } from 'lodash';
 import { Router, Request, Response, NextFunction } from 'express';
 import { Jwt } from './models/jwt';
 
 import indexRoute from './routes/index';
 import loginRoute from './routes/login';
-import requestRoute from './routes/request';
+import suppliesAdminRoute from './routes/admin/supplies';
+import suppliesStaffRoute from './routes/staff/supplies';
 
 // Assign router to the express.Router() instance
 const app: express.Application = express();
 
 const jwt = new Jwt();
+const api = express.Router();
+const admin = express.Router();
+const staff = express.Router();
+const manager = express.Router();
+
 
 //view engine setup
 app.set('views', path.join(__dirname, '../views'));
@@ -93,8 +100,77 @@ let checkAuth = (req: Request, res: Response, next: NextFunction) => {
     });
 }
 
+let adminAuth = (req, res, next) => {
+  const decoded = req.decoded;
+  console.log(decoded);
+
+  const accessRight = decoded.accessRight || undefined;
+  try {
+    if (accessRight) {
+      if (accessRight.tpye === 'ADMIN') {
+        next();
+      } else {
+        res.send({ ok: false, error: 'No permission found!' });
+      }
+    } else {
+      res.send({ ok: false, error: 'No permission found!' });
+    }
+  } catch (error) {
+    res.send({ ok: false, error: error.message });
+  }
+}
+
+let staffAuth = (req, res, next) => {
+  const decoded = req.decoded;
+  const accessRight = decoded.accessRight || undefined;
+  try {
+    if (accessRight) {
+      if (accessRight.type === 'STAFF') {
+        next();
+      } else {
+        res.send({ ok: false, error: 'No permission found!' });
+      }
+    } else {
+      res.send({ ok: false, error: 'No permission found!' });
+    }
+  } catch (error) {
+    res.send({ ok: false, error: error.message });
+  }
+}
+
+let managerAuth = (req, res, next) => {
+  const decoded = req.decoded;
+  const accessRight = decoded.accessRight || undefined;
+  try {
+    if (accessRight) {
+      if (accessRight.tpye === 'MANAGER') {
+        next();
+      } else {
+        res.send({ ok: false, error: 'No permission found!' });
+      }
+    } else {
+      res.send({ ok: false, error: 'No permission found!' });
+    }
+  } catch (error) {
+    res.send({ ok: false, error: error.message });
+  }
+}
+
 app.use('/login', loginRoute);
-app.use('/api', checkAuth, requestRoute);
+app.use('/v1', api);
+
+//admin
+api.use('/admin', admin)
+admin.use('/supplies', suppliesAdminRoute)
+
+//manager
+api.use('/manager', manager)
+
+//staff
+api.use('/staff', staff)
+staff.use('/supplies', suppliesStaffRoute)
+
+//index
 app.use('/', indexRoute);
 
 //error handlers
