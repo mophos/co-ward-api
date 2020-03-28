@@ -33,7 +33,7 @@ router.post('/', async (req: Request, res: Response) => {
         prename: `${rs[0].prename}`,
         id: rs[0].id,
         type: rs[0].type,
-        hopscode: rs[0].hopscode,
+        hospcode: rs[0].hospcode,
         position: rs[0].position,
         email: rs[0].email,
         role: rs[0].role
