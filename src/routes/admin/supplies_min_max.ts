@@ -22,13 +22,44 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 
-router.get('/by-type', async (req: Request, res: Response) => {
-
-  const hosptype_code = req.query.hosptype_code || undefined;
-  const ministry_code = req.query.ministry_code || undefined;
-  const sub_ministry_code = req.query.sub_ministry_code || undefined;
+router.get('/balance', async (req: Request, res: Response) => {
+  const hospcode = req.query.hospcode
   try {
-    let rs: any = await suppliesMinMaxModel.getSuppliesMinMaxBytype(req.db, sub_ministry_code, ministry_code, hosptype_code);
+    let rs: any = await suppliesMinMaxModel.getSuppliesMinMaxByBalance(req.db, hospcode);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/hosp-balance', async (req: Request, res: Response) => {
+  try {
+    const hosptype_code = req.query.hosptype_code || undefined;
+    const ministry_code = req.query.ministry_code || undefined;
+    const sub_ministry_code = req.query.sub_ministry_code || undefined;
+    let rs: any = await suppliesMinMaxModel.getSuppliesMinMaxByHosp(req.db, sub_ministry_code, ministry_code, hosptype_code);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/balance/total', async (req: Request, res: Response) => {
+  const hospcode = req.query.hospcode
+  try {
+    let rs: any = await suppliesMinMaxModel.getSuppliesMinMaxByBalanceTotal(req.db, hospcode);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/hosp-balance/total', async (req: Request, res: Response) => {
+  try {
+    const hosptype_code = req.query.hosptype_code || undefined;
+    const ministry_code = req.query.ministry_code || undefined;
+    const sub_ministry_code = req.query.sub_ministry_code || undefined;
+    let rs: any = await suppliesMinMaxModel.getSuppliesMinMaxByHospTotal(req.db, sub_ministry_code, ministry_code, hosptype_code);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
