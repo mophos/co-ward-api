@@ -22,19 +22,33 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 
-router.put('/:id/:hospcode', async (req: Request, res: Response) => {
-  const id: any = +req.params.id
-  const hospcode: any = req.params.hospcode
+router.get('/by-type', async (req: Request, res: Response) => {
+
+  const hosptype_code = req.query.hosptype_code || undefined;
+  const ministry_code = req.query.ministry_code || undefined;
+  const sub_ministry_code = req.query.sub_ministry_code || undefined;
+  try {
+    let rs: any = await suppliesMinMaxModel.getSuppliesMinMaxBytype(req.db, sub_ministry_code, ministry_code, hosptype_code);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+
+router.post('/', async (req: Request, res: Response) => {
+  const hospcode: any = req.query.hospcode
   const data: any = req.body.data
   const decoded = req.decoded;
 
   try {
-    if (typeof id === 'number' && typeof data === 'object' && id && data) {
-      let _data: any;
-      data.updated_by = decoded.id;
-      data.updated_at = moment().format('YYYY-MM-DD HH:MM:SS')
-
-      let rs: any = await suppliesMinMaxModel.updateSuppliesMinMax(req.db, id, hospcode, data);
+    if (typeof hospcode === 'string' && hospcode && data.length) {
+      for (const _data of data) {
+        _data.hospcode = hospcode
+        _data.created_by = decoded.id;
+      }
+      await suppliesMinMaxModel.deleteSuppliesMinMax(req.db, hospcode);
+      let rs: any = await suppliesMinMaxModel.insertSuppliesMinMax(req.db, data);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else {
       res.send({ ok: false, error: 'ข้อมูลไม่ครบ', code: HttpStatus.OK });
