@@ -12,8 +12,6 @@ const router: Router = Router();
 
 router.get('/', async (req: Request, res: Response) => {
   try {
-    console.log(req.decoded.hospcode);
-
     let rs: any = await balanceModel.getBalance(req.db, req.decoded.hospcode);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {

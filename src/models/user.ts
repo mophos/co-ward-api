@@ -9,6 +9,7 @@ export class UserModel {
       v.orWhere('fname', 'like', '%' + q + '%')
       v.orWhere('lname', 'like', '%' + q + '%')
     })
+    .where('is_deleted','N')
     .limit(limit)
     .offset(offset);
   }
@@ -16,15 +17,17 @@ export class UserModel {
   getUserTotal(db: Knex, q = '') {
     return db('users') 
     .count()
+    .where('is_deleted','N')
     .where((v)=>{
       v.where('username', 'like', '%' + q + '%')
-      v.orWhere('pname', 'like', '%' + q + '%')
+      v.orWhere('prename', 'like', '%' + q + '%')
       v.orWhere('lname', 'like', '%' + q + '%')
     });
   }
 
   getUserById(db: Knex, id: number) {
     return db('users')
+    .where('is_deleted','N')
       .where('id', id);
   }
 
@@ -41,7 +44,7 @@ export class UserModel {
 
   deleteUser(db: Knex, id: number) {
     return db('users')
-      .delete()
+      .where('is_deleted','N')
       .where('id', id);
   }
 
