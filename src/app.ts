@@ -107,7 +107,7 @@ let adminAuth = (req, res, next) => {
   const accessRight = decoded.accessRight || undefined;
   try {
     if (accessRight) {
-      if (accessRight.tpye === 'ADMIN') {
+      if (accessRight.type === 'ADMIN') {
         next();
       } else {
         res.send({ ok: false, error: 'No permission found!' });
@@ -143,7 +143,7 @@ let managerAuth = (req, res, next) => {
   const accessRight = decoded.accessRight || undefined;
   try {
     if (accessRight) {
-      if (accessRight.tpye === 'MANAGER') {
+      if (accessRight.type === 'MANAGER') {
         next();
       } else {
         res.send({ ok: false, error: 'No permission found!' });
