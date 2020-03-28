@@ -160,15 +160,15 @@ app.use('/login', loginRoute);
 app.use('/v1', api);
 
 //admin
-api.use('/admin', admin)
-admin.use('/supplies', checkAuth, adminAuth, suppliesAdminRoute)
+api.use('/admin', checkAuth, adminAuth, admin)
+admin.use('/supplies', suppliesAdminRoute)
 
 //manager
 api.use('/manager', checkAuth, managerAuth, manager)
 
 //staff
-api.use('/staff', staff)
-staff.use('/supplies', checkAuth, staffAuth, suppliesStaffRoute)
+api.use('/staff', checkAuth, staffAuth, staff)
+staff.use('/supplies', suppliesStaffRoute)
 
 //index
 app.use('/', indexRoute);
