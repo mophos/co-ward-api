@@ -16,6 +16,7 @@ export class SuppliesModel {
 
   getSuppliesTotal(db: Knex, q = '') {
     return db('supplies')
+      .count('* as count')
       .where((v) => {
         v.where('name', 'like', '%' + q + '%')
         v.orWhere('code', 'like', '%' + q + '%')
