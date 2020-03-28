@@ -109,7 +109,6 @@ let checkAuth = (req: Request, res: Response, next: NextFunction) => {
 
 let adminAuth = (req, res, next) => {
   const decoded = req.decoded;
-  console.log(decoded);
 
   try {
     if (decoded) {

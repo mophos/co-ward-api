@@ -12,8 +12,6 @@ const router: Router = Router();
 
 router.get('/', async (req: Request, res: Response) => {
   try {
-    console.log(req.decoded.hospcode);
-
     let rs: any = await payModel.getPay(req.db, req.decoded.hospcode);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
@@ -27,6 +25,8 @@ router.get('/:id', async (req: Request, res: Response) => {
     let rs: any = await payModel.getPayDetail(req.db, id);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
+    console.log(error);
+    
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });

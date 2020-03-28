@@ -27,7 +27,7 @@ router.post('/', async (req: Request, res: Response) => {
     if (rs.length) {
 
       let payload = {
-        fullname: `${rs[0].fname} ${rs[0].lname}`,
+        fullname: `${rs[0].fname || ''} ${rs[0].lname || ''}`,
         fname: `${rs[0].fname}`,
         lname: `${rs[0].lname}`,
         prename: `${rs[0].prename}`,

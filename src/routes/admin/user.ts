@@ -30,7 +30,7 @@ router.get('/total', async (req: Request, res: Response) => {
     const query: any = req.query.query || ''
     let rs: any = await userModel.getUserTotal(req.db, query);
     
-    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    res.send({ ok: true, rows: rs[0].count, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }

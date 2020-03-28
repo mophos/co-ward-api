@@ -4,10 +4,11 @@ export class SuppliesModel {
 
   getSupplies(db: Knex, limit = 100, offset = 0, q = '') {
     return db('supplies')
-      .where((v)=>{
+      .where((v) => {
         v.where('name', 'like', '%' + q + '%')
         v.orWhere('code', 'like', '%' + q + '%')
       })
+      .where('is_deleted', 'N')
       .limit(limit)
       .offset(offset)
 
@@ -15,15 +16,18 @@ export class SuppliesModel {
 
   getSuppliesTotal(db: Knex, q = '') {
     return db('supplies')
-      .where((v)=>{
+      .count('* as count')
+      .where((v) => {
         v.where('name', 'like', '%' + q + '%')
         v.orWhere('code', 'like', '%' + q + '%')
-      });
+      })
+      .where('is_deleted', 'N');
   }
 
-  
+
   getSuppliesById(db: Knex, id: number) {
     return db('supplies')
+      .where('is_deleted', 'N')
       .where('id', id);
   }
 
@@ -40,7 +44,7 @@ export class SuppliesModel {
 
   deleteSupplies(db: Knex, id: number) {
     return db('supplies')
-      .delete()
+      .update('is_deleted', 'Y')
       .where('id', id);
   }
 

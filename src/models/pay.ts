@@ -14,7 +14,7 @@ export class PayModel {
     return db('pay_details as bd')
       .select('bd.*', 's.name', 's.unit', 's.code')
       .join('supplies as s', 'bd.supplies_id', 's.id')
-      .where('bd.balance_id', id);
+      .where('bd.pay_id', id);
   }
 
 }
