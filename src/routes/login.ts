@@ -34,6 +34,7 @@ router.post('/', async (req: Request, res: Response) => {
         id: rs[0].id,
         type: rs[0].type,
         hospcode: rs[0].hospcode,
+        hospname: rs[0].hospname,
         position: rs[0].position,
         email: rs[0].email,
         role: rs[0].role

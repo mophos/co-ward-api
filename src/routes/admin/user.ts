@@ -13,7 +13,22 @@ const router: Router = Router();
 
 router.get('/', async (req: Request, res: Response) => {
   try {
-    let rs: any = await userModel.getUser(req.db);
+    const limit: any = req.query.limit || 100
+    const offset: any = req.query.offset || 0
+    const query: any = req.query.query || ''
+    let rs: any = await userModel.getUser(req.db, +limit, +offset, query);
+
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/total', async (req: Request, res: Response) => {
+  try {
+    const query: any = req.query.query || ''
+    let rs: any = await userModel.getUserTotal(req.db, query);
+    
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -42,8 +57,8 @@ router.put('/:id', async (req: Request, res: Response) => {
       // _data.name = data.name;
       // _data.unit = data.unit;
       // _data.remark = data.remark;
-      data.update_by = decoded.id;
-      data.update_at = moment().format('YYYY-MM-DD HH:MM:SS')
+      data.updated_by = decoded.id;
+      data.updated_at = moment().format('YYYY-MM-DD HH:MM:SS')
 
       let rs: any = await userModel.updateUser(req.db, id, data);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
@@ -56,7 +71,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 });
 
 router.post('/', async (req: Request, res: Response) => {
-  const data: any = req.body.data || []
+  const data: any = req.body.data || {}
   const decoded = req.decoded;
   try {
     if (typeof data === 'object' && data) {
