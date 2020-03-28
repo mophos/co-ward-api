@@ -7,7 +7,7 @@ export class BalanceModel {
       .select('b.*', 's.fname as fullname')
       .join('users as s', 'b.created_by', 's.id')
       .where('b.hospcode', hospcode)
-      .orderBy('id','DESC')
+      .orderBy('id', 'DESC')
   }
 
   getBalanceDetail(db: Knex, id) {
@@ -22,10 +22,21 @@ export class BalanceModel {
       .insert(data);
   }
 
-  saveDetail(db: Knex, data, ) {
+  saveDetail(db: Knex, data) {
     return db('balance_details')
       .insert(data);
   }
+
+  removeCurrent(db: Knex, hospcode) {
+    return db('current_balances')
+      .delete()
+      .where('hospcode', hospcode);
+  }
+  saveCurrent(db: Knex, data) {
+    return db('current_balances')
+      .insert(data);
+  }
+
   updateLog(db: Knex, data, ) {
     return db('balance_logs')
       .insert(data);
