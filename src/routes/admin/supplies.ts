@@ -17,7 +17,7 @@ router.get('/', async (req: Request, res: Response) => {
   const query: any = req.query.query || ''
 
   try {
-    let rs: any = await suppliesModel.getSupplies(req.db, limit, offset, query);
+    let rs: any = await suppliesModel.getSupplies(req.db, +limit, +offset, query);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });

@@ -8,10 +8,11 @@ export class SuppliesMinMaxModel {
       .where('smm.hospcode', hospcode)
   }
 
-  updateSuppliesMinMax(db: Knex, id: number, data = {}) {
+  updateSuppliesMinMax(db: Knex, id: number,hospcode: any, data = {}) {
     return db('supplies_min_max')
       .update(data)
-      .where('id', id);
+      .where('id', id)
+      .where('hospcode', hospcode);
   }
 
   insertSuppliesMinMax(db: Knex, data = {}) {

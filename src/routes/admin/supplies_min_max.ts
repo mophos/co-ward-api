@@ -12,7 +12,7 @@ const router: Router = Router();
 
 
 router.get('/', async (req: Request, res: Response) => {
-  const hospcode = req.decoded.hospcode
+  const hospcode = req.query.hospcode
   try {
     let rs: any = await suppliesMinMaxModel.getSuppliesMinMax(req.db, hospcode);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
@@ -21,8 +21,10 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
-router.put('/:id', async (req: Request, res: Response) => {
+
+router.put('/:id/:hospcode', async (req: Request, res: Response) => {
   const id: any = +req.params.id
+  const hospcode: any = req.params.hospcode
   const data: any = req.body.data
   const decoded = req.decoded;
 
@@ -32,7 +34,7 @@ router.put('/:id', async (req: Request, res: Response) => {
       data.updated_by = decoded.id;
       data.updated_at = moment().format('YYYY-MM-DD HH:MM:SS')
 
-      let rs: any = await suppliesMinMaxModel.updateSuppliesMinMax(req.db, id, data);
+      let rs: any = await suppliesMinMaxModel.updateSuppliesMinMax(req.db, id, hospcode, data);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else {
       res.send({ ok: false, error: 'ข้อมูลไม่ครบ', code: HttpStatus.OK });

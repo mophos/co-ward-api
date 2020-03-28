@@ -1,6 +1,7 @@
 // / <reference path="../../typings.d.ts" />
 
 import * as HttpStatus from 'http-status-codes';
+import * as crypto from 'crypto';
 
 import * as moment from "moment"
 import { Router, Request, Response } from 'express';
@@ -59,7 +60,7 @@ router.put('/:id', async (req: Request, res: Response) => {
       // _data.remark = data.remark;
       data.updated_by = decoded.id;
       data.updated_at = moment().format('YYYY-MM-DD HH:MM:SS')
-
+      data.password = crypto.createHash('md5').update(data.password).digest('hex');
       let rs: any = await userModel.updateUser(req.db, id, data);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else {
@@ -75,6 +76,9 @@ router.post('/', async (req: Request, res: Response) => {
   const decoded = req.decoded;
   try {
     if (typeof data === 'object' && data) {
+      data.created_by = decoded.id;
+      data.created_at = moment().format('YYYY-MM-DD HH:MM:SS')
+      data.password = crypto.createHash('md5').update(data.password).digest('hex');
       let rs: any = await userModel.insertUser(req.db, data);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else {

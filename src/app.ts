@@ -23,6 +23,7 @@ import loginRoute from './routes/login';
 import suppliesAdminRoute from './routes/admin/supplies';
 import userAdminRoute from './routes/admin/user';
 import userMinMaxAdminRoute from './routes/admin/supplies_min_max';
+import hospitalAdminRoute from './routes/admin/hospital';
 
 import suppliesStaffRoute from './routes/staff/supplies';
 
@@ -58,7 +59,7 @@ let connection: MySqlConnectionConfig = {
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   multipleStatements: true,
-  debug: true
+  // debug: true
 }
 
 let db = Knex({
@@ -165,6 +166,7 @@ api.use('/admin', checkAuth, adminAuth, admin)
 admin.use('/supplies', suppliesAdminRoute)
 admin.use('/user', userAdminRoute)
 admin.use('/supplies-min-max', userMinMaxAdminRoute)
+admin.use('/hospital', hospitalAdminRoute)
 
 //manager
 api.use('/manager', checkAuth, managerAuth, manager)
