@@ -47,22 +47,22 @@ router.get('/create', async (req: Request, res: Response) => {
     let data: any = await restockModel.getSuppliesRestockByBalance(req.db);
     console.log(1);
     let start = moment().format('m:s')
+    let hospData = []
     let dataSet = []
     for (const _hocp of hocp) {
       let detailId = uuidv4();
-      let hospData = {
+      hospData.push( {
         id: detailId,
         restock_id: rsHead,
         hospcode: _hocp.hospcode,
-      }
-      await restockModel.insertRestockDetail(req.db, hospData);
-
+      })
+      
       console.log(22222, start, moment().format('m:s'));
       let tmp = filter(data, { 'hospcode': _hocp.hospcode })
-
+      
       for (const _data of tmp) {
         console.log(3, moment().format('m:s'));
-
+        
         dataSet.push({
           restock_detail_id: detailId,
           supplies_id: _data.supplies_id,
@@ -70,6 +70,7 @@ router.get('/create', async (req: Request, res: Response) => {
         })
       }
     }
+    await restockModel.insertRestockDetail(req.db, hospData);
     await restockModel.insertRestockDetailItem(req.db, dataSet);
     res.send({ ok: true, code: HttpStatus.OK });
 
