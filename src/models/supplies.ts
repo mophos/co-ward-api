@@ -11,6 +11,12 @@ export class SuppliesModel {
       .where('is_deleted', 'N')
       .limit(limit)
       .offset(offset)
+  }
+
+  getSuppliesActived(db: Knex) {
+    return db('supplies')
+      .where('is_deleted', 'N')
+      .where('is_actived', 'Y')
 
   }
 

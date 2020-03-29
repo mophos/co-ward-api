@@ -3,15 +3,32 @@ import * as Knex from 'knex';
 export class RestockModel {
 
   getRestock(db: Knex, limit = 100, offset = 0) {
-    return db('restocks').limit(limit).offset(offset);
+    return db('restocks')
+      .where('is_deleted', 'N')
+      .where('is_approved', 'N')
+      .limit(limit).offset(offset);
   }
 
   getRestockTotal(db: Knex) {
-    return db('restocks').count('* as count').as('count');
+    return db('restocks').count('* as count').as('count').where('is_deleted', 'N').where('is_approved', 'N');
+  }
+
+  getRestockApproved(db: Knex, limit = 100, offset = 0) {
+    return db('restocks')
+      .where('is_deleted', 'N')
+      .where('is_approved', 'Y')
+      .limit(limit).offset(offset);
+  }
+
+  getRestockTotalApproved(db: Knex) {
+    return db('restocks').count('* as count').as('count').where('is_deleted', 'N').where('is_approved', 'Y');
   }
 
   getRestockDetail(db: Knex, restockId) {
-    return db('restock_details').where('restock_id', restockId)
+    return db('restock_details as rd')
+      .select('rd.*', 's.hospname')
+      .join('chospital as s', 'rd.hospcode', 's.hospcode')
+      .where('rd.restock_id', restockId);
   }
 
   getRestockDetailTotal(db: Knex, restockId) {
@@ -39,10 +56,22 @@ export class RestockModel {
       .insert(data)
   }
 
+  deleteRestockDetailItem(db: Knex, id) {
+    return db('restock_detail_items')
+      .delete()
+      .where('restock_detail_id', id)
+  }
+
+  removeRestock(db: Knex, id) {
+    return db('restocks')
+      .update('is_deleted', 'Y')
+      .where('id', id);
+  }
+
   getSuppliesRestockByBalance(db: Knex, hospcode = undefined) {
     let sql = db('view_forecast')
     if (hospcode)
-      sql.where('hospcode', hospcode);
+      sql.whereIn('hospcode', hospcode);
     return sql
   }
 
@@ -72,14 +101,7 @@ export class RestockModel {
   insert(db: Knex, data) {
     return db('restock_detail_items_temp').insert(data);
   }
-
-  // update(db: Knex, data) {
-  //   let sql = `UPDATE restock_detail_items as rdi
-  //     join supplies as s on rdi.supplies_id = s.id 
-  //     set rdi.qty = ${data.qty}
-  //     where s.code = '${data.supplies_code}' and restock_detail_id = '${data.id}'`;
-  //   return db.raw(sql);
-  // }
+  
   update(db: Knex, data) {
     let sql = `insert restock_detail_items (supplies_id,qty,restock_detail_id)
       select s.id,r.qty,r.restock_detail_id from restock_detail_items_temp as r
@@ -87,4 +109,37 @@ export class RestockModel {
     return db.raw(sql);
   }
 
+  getListHospital(db: Knex, restockId, typesId) {
+    return db('restock_details as rd')
+      .select('rd.*', 'c.hospname')
+      .join('chospital as c', 'c.hospcode', 'rd.hospcode')
+      .where('rd.restock_id', restockId)
+      .where('c.hosptype_id', typesId)
+  }
+
+  getListSupplies(db: Knex, restockDetailId) {
+    return db('restock_detail_items as rdi')
+      .select('rdi.*', 's.code', 's.name', 's.unit_name')
+      .join('supplies as s', 's.id', 'rdi.supplies_id')
+      .where('rdi.restock_detail_id', restockDetailId)
+  }
+
+  getRestockInfo(db: Knex, restockId) {
+    return db('restocks')
+      .where('id', restockId);
+  }
+
+  getRestockDetailItem(db: Knex, restockDetailId) {
+    return db('restock_detail_items as rdi')
+      .select('rdi.*', 's.name as supplies_name', 's.unit_name as supplies_unit', 's.code as supplies_code')
+      .join('supplies as s', 'rdi.supplies_id', 's.id')
+      .where('rdi.restock_detail_id', restockDetailId);
+  }
+
+  getRestockDetailItems(db: Knex, restockDetailId) {
+    return db('restock_detail_items as rdi')
+      .select('rdi.*', 's.name as supplies_name', 's.unit_name as supplies_unit', 's.code as supplies_code')
+      .join('supplies as s', 'rdi.supplies_id', 's.id')
+      .whereIn('rdi.restock_detail_id', restockDetailId);
+  }
 }
