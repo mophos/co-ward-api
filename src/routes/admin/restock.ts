@@ -121,6 +121,19 @@ router.put('/update-supplies/:id', async (req: Request, res: Response) => {
   }
 });
 
+router.put('/remove-restock/:id', async (req: Request, res: Response) => {
+  const id: any = req.params.id
+
+  try {
+    await restockModel.removeRestock(req.db, id);
+    res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.get('/export/:id', async (req: Request, res: Response) => {
   try {
     console.log('export');
