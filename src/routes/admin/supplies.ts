@@ -58,13 +58,14 @@ router.put('/:id', async (req: Request, res: Response) => {
       // _data.unit = data.unit;
       // _data.remark = data.remark;
       data.updated_by = decoded.id;
-      data.updated_at = moment().format('YYYY-MM-DD HH:MM:SS')
       let rs: any = await suppliesModel.updateSupplies(req.db, id, data);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else {
       res.send({ ok: false, error: 'ข้อมูลไม่ครบ', code: HttpStatus.OK });
     }
   } catch (error) {
+    console.log(error);
+    
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
