@@ -12,6 +12,8 @@ import { SuppliesMinMaxModel } from '../../models/supplies_min_max';
 import { SerialModel } from '../../models/serial';
 const xl = require('excel4node');
 const uuidv4 = require('uuid/v4');
+const fse = require('fs-extra');
+const path = require('path')
 
 const serialModel = new SerialModel();
 const restockModel = new RestockModel();
@@ -91,7 +93,7 @@ router.get('/export/:id', async (req: Request, res: Response) => {
     const db = req.db;
     const wb = new xl.Workbook();
     var ws = wb.addWorksheet('Sheet 1');
-    // const info: any = await restockModel.getRestockInfo(db, id);
+    const info: any = await restockModel.getRestockInfo(db, id);
     const detail: any = await restockModel.getRestockDetail(db, id);
     const supplies: any = await suppliesModel.getSuppliesActived(db);
     const supplieId = [];
@@ -121,7 +123,18 @@ router.get('/export/:id', async (req: Request, res: Response) => {
       }
     }
 
-    wb.write('Excel.xlsx');
+    let filename = this.peopleId + `restock_` + info.code + ` ` + moment().format('x');
+    let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath);
+      }
+    });
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
