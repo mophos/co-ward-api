@@ -63,9 +63,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     } else {
       res.send({ ok: false, error: 'ข้อมูลไม่ครบ', code: HttpStatus.OK });
     }
-  } catch (error) {
-    console.log(error);
-    
+  } catch (error) {    
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
