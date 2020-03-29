@@ -20,6 +20,8 @@ router.get('/', async (req: Request, res: Response) => {
     let rs: any = await suppliesMinMaxModel.getSuppliesMinMax(req.db, hospcode);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
+    console.log(error);
+    
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
