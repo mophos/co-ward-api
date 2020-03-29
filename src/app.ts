@@ -24,6 +24,7 @@ import suppliesAdminRoute from './routes/admin/supplies';
 import userAdminRoute from './routes/admin/user';
 import userMinMaxAdminRoute from './routes/admin/supplies_min_max';
 import hospitalAdminRoute from './routes/admin/hospital';
+import restockAdminRoute from './routes/admin/restock';
 
 import suppliesStaffRoute from './routes/staff/supplies';
 import balanceStaffRoute from './routes/staff/balance';
@@ -170,6 +171,7 @@ admin.use('/supplies', suppliesAdminRoute)
 admin.use('/user', userAdminRoute)
 admin.use('/supplies-min-max', userMinMaxAdminRoute)
 admin.use('/hospital', hospitalAdminRoute)
+admin.use('/restock', restockAdminRoute)
 
 //manager
 api.use('/manager', checkAuth, managerAuth, manager)

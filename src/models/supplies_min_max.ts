@@ -2,12 +2,10 @@ import * as Knex from 'knex';
 
 export class SuppliesMinMaxModel {
   getSuppliesMinMax(db: Knex, hospcode: any) {
-    return db('supplies as s')
-      .select('s.*', 'smm.id as supplies_min_max_id', 'smm.min', 'smm.max')
-      .leftJoin('supplies_min_max as smm', (v) => {
-        v.on('smm.supplies_id', 's.id')
-        v.on('smm.hospcode', db.raw(hospcode))
-      })
+    return db('supplies_min_max as smm')
+      .select('smm.*','s.code','s.name','s.unit_name')
+      .join('supplies as s', 's.id', 'smm.supplies_id')
+      .where('smm.hospcode', hospcode)
   }
 
   getSuppliesMinMaxBytype(db: Knex, sub_ministry_code, ministry_code, hosptype_code) {
@@ -26,9 +24,11 @@ export class SuppliesMinMaxModel {
     return sql
   }
 
-  getSuppliesMinMaxByBalance(db: Knex, hospcode) {
-    return db('view_forecast')
-      .where('hospcode', hospcode);
+  getSuppliesMinMaxByBalance(db: Knex, hospcode = undefined) {
+    let sql = db('view_forecast')
+    if (hospcode)
+      sql.where('hospcode', hospcode);
+    return sql
   }
 
   getSuppliesMinMaxByHosp(db: Knex, sub_ministry_code, ministry_code, hosptype_code) {
@@ -44,13 +44,13 @@ export class SuppliesMinMaxModel {
 
   getSuppliesMinMaxByBalanceTotal(db: Knex, hospcode) {
     return db('view_forecast')
-      .count().as('count')
+      .count('* as count')
       .where('hospcode', hospcode);
   }
 
   getSuppliesMinMaxByHospTotal(db: Knex, sub_ministry_code, ministry_code, hosptype_code) {
     let sql = db('view_forecast_hosp')
-      .count().as('count')
+      .count('* as count')
     if (sub_ministry_code)
       sql.where('sub_ministry_code', sub_ministry_code);
     if (ministry_code)
