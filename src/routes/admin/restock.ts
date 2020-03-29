@@ -10,11 +10,13 @@ import { RestockModel } from '../../models/restock';
 import { SuppliesModel } from '../../models/supplies';
 import { SuppliesMinMaxModel } from '../../models/supplies_min_max';
 import { SerialModel } from '../../models/serial';
+import { PayModel } from '../../models/pay';
 const xl = require('excel4node');
 const uuidv4 = require('uuid/v4');
 
 const serialModel = new SerialModel();
 const restockModel = new RestockModel();
+const payModel = new PayModel();
 const suppliesMinMaxModel = new SuppliesMinMaxModel();
 const suppliesModel = new SuppliesModel();
 const router: Router = Router();
@@ -45,7 +47,7 @@ router.get('/create', async (req: Request, res: Response) => {
   let rsHead: any
   try {
     let head = {
-      code:  await serialModel.getSerial(req.db, 'RS'),
+      code: await serialModel.getSerial(req.db, 'RS'),
       created_by: decoded.id
     }
     rsHead = await restockModel.insertRestock(req.db, head);
@@ -106,8 +108,8 @@ router.get('/export/:id', async (req: Request, res: Response) => {
       ws.cell(row, 2).string(d.hospname.toString());
       const items: any = await restockModel.getRestockDetailItem(db, d.id);
       for (const i of items) {
-        const idx = _.findIndex(supplieId,{'id':i.supplies_id})
-        if(idx>-1){
+        const idx = _.findIndex(supplieId, { 'id': i.supplies_id })
+        if (idx > -1) {
           ws.cell(row, supplieId[idx].idx).string(i.qty.toString() || '0')
         }
       }
@@ -123,4 +125,75 @@ router.get('/export/:id', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/check-approved', async (req: Request, res: Response) => {
+  try {
+    const restockId = req.query.restockId;
+    const db = req.db;
+    const balanceTHPD = await restockModel.getBalanceFromTHPD();
+    const qtyRequest = await restockModel.getSumSuppliesFromRestockId(db, restockId);
+    const enoguh = await checkBalanceFromTHPD(qtyRequest, balanceTHPD)
+    if (enoguh) {
+      // พอ
+      res.send({ ok: true, code: HttpStatus.OK });
+    } else {
+      // ไม่พอ
+      res.send({ ok: false, error: 'สินค้าไม่พอจ่าย' });
+    }
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/approved', async (req: Request, res: Response) => {
+  try {
+    const restockId = req.query.restockId;
+    const db = req.db;
+    const balanceTHPD = await restockModel.getBalanceFromTHPD();
+    const qtyRequest = await restockModel.getSumSuppliesFromRestockId(db, restockId);
+    const enoguh = await checkBalanceFromTHPD(qtyRequest, balanceTHPD)
+    if (enoguh) {
+      // พอ
+      const detail: any = await restockModel.getRestockDetail(db, restockId);
+      // console.log(detail.length);
+      // let detailCode = map(detail, (v) => { return { 'hospcode': v.hospcode } })
+      // console.log(detailCode);
+      
+      // for (const d of detail) {
+        console.log(detail[0]);
+        
+        const payId = await payModel.saveHead(db, detail);
+      //   await payModel.selectInsertDetail(db, payId, d.id);
+      //   console.log(payId, d.id);
+
+      //   // const items: any = await restockModel.getRestockDetailItem(db, d.restock_detail_id);
+      //   // for (const iterator of oitemsbject) {
+
+      //   // }
+
+      // }
+    } else {
+      // ไม่พอ ทำค้างจ่าย
+    }
+
+
+    res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+function checkBalanceFromTHPD(qtyRequest, qtyTHPD) {
+  for (const q of qtyRequest) {
+    const idx = _.findIndex(qtyTHPD, { 'type_code': q.supplies_code });
+
+    if (idx > -1) {
+      if (q.qty > qtyTHPD[idx].qty) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
+  return true;
+}
 export default router;

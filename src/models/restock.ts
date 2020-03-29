@@ -12,9 +12,9 @@ export class RestockModel {
 
   getRestockDetail(db: Knex, restockId) {
     return db('restock_details as rd')
-    .select('rd.*', 's.hospname')
-    .join('chospital as s', 'rd.hospcode', 's.hospcode')
-    .where('rd.restock_id', restockId);
+      .select('rd.id as restock_detail_id', 's.hospcode')
+      .join('chospital as s', 'rd.hospcode', 's.hospcode')
+      .where('rd.restock_id', restockId);
   }
 
   getRestockDetailTotal(db: Knex, restockId) {
@@ -43,10 +43,10 @@ export class RestockModel {
   }
 
   getSuppliesRestockByBalance(db: Knex, hospcode = undefined) {
-    let sql =  db('view_forecast')
-    if(hospcode)
+    let sql = db('view_forecast')
+    if (hospcode)
       sql.whereIn('hospcode', hospcode);
-      return sql
+    return sql
   }
 
   getSuppliesRestockByHosp(db: Knex, sub_ministry_code = undefined, ministry_code = undefined, hosptype_code = undefined) {
@@ -62,13 +62,58 @@ export class RestockModel {
 
   getRestockInfo(db: Knex, restockId) {
     return db('restocks')
-    .where('id', restockId);
+      .where('id', restockId);
   }
 
   getRestockDetailItem(db: Knex, restockDetailId) {
     return db('restock_detail_items as rdi')
-    .select('rdi.*', 's.name as supplies_name', 's.unit_name as supplies_unit', 's.code as supplies_code')
-    .join('supplies as s', 'rdi.supplies_id', 's.id')
-    .where('rdi.restock_detail_id', restockDetailId);
+      .select('rdi.*', 's.name as supplies_name', 's.unit_name as supplies_unit', 's.code as supplies_code')
+      .join('supplies as s', 'rdi.supplies_id', 's.id')
+      .where('rdi.restock_detail_id', restockDetailId);
+  }
+
+  getSumSuppliesFromRestockId(db: Knex, restockId) {
+    return db('restock_details as rd')
+      .select('rdi.supplies_id', 's.code as supplies_code')
+      .sum('rdi.qty as qty')
+      .join('restock_detail_items as rdi', 'rd.id', 'rdi.restock_detail_id')
+      .join('supplies as s', 's.id', 'rdi.supplies_id')
+      .where('rd.restock_id', restockId)
+      .groupBy('supplies_id')
+  }
+
+  getBalanceFromTHPD() {
+    return [
+      { type_code: 'N', sku_id: 1, qty: 1000 },
+      { type_code: '110412020302', sku_id: 1, qty: 1000 },
+      { type_code: '110412020305', sku_id: 1, qty: 1000 },
+      { type_code: '110412021401', sku_id: 1, qty: 1000 },
+      { type_code: '110412021402', sku_id: 1, qty: 1000 },
+      { type_code: '110412021403', sku_id: 1, qty: 1000 },
+      { type_code: '120405400011', sku_id: 1, qty: 1000 },
+      { type_code: '120405400012', sku_id: 1, qty: 1000 },
+      { type_code: '6207003', sku_id: 1, qty: 1000 },
+      { type_code: '6207007', sku_id: 1, qty: 1000 },
+      { type_code: '6207008', sku_id: 1, qty: 1000 },
+      { type_code: '6207009', sku_id: 1, qty: 1000 },
+      { type_code: '6207010', sku_id: 1, qty: 1000 },
+      { type_code: '6207011', sku_id: 1, qty: 1000 },
+      { type_code: '6214004', sku_id: 1, qty: 1000 },
+      { type_code: '6214012', sku_id: 1, qty: 1000 },
+      { type_code: '6214014', sku_id: 1, qty: 1000 },
+      { type_code: '6214021', sku_id: 1, qty: 1000 },
+      { type_code: '6214022', sku_id: 1, qty: 1000 },
+      { type_code: '6214023', sku_id: 1, qty: 1000 },
+      { type_code: '6214024', sku_id: 1, qty: 1000 },
+      { type_code: '6214025', sku_id: 1, qty: 1000 },
+      { type_code: '6214027', sku_id: 1, qty: 1000 },
+      { type_code: '6214028', sku_id: 1, qty: 1000 },
+      { type_code: '6214029', sku_id: 1, qty: 1000 },
+      { type_code: '6214030', sku_id: 1, qty: 1000 },
+      { type_code: '6224015', sku_id: 1, qty: 1000 },
+      { type_code: '6234016', sku_id: 1, qty: 1000 },
+      { type_code: '6244017', sku_id: 1, qty: 1000 },
+
+    ];
   }
 }
