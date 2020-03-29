@@ -46,13 +46,13 @@ export class SuppliesMinMaxModel {
 
   getSuppliesMinMaxByBalanceTotal(db: Knex, hospcode) {
     return db('view_forecast')
-      .count().as('count')
+      .count('* as count')
       .where('hospcode', hospcode);
   }
 
   getSuppliesMinMaxByHospTotal(db: Knex, sub_ministry_code, ministry_code, hosptype_code) {
     let sql = db('view_forecast_hosp')
-      .count().as('count')
+      .count('* as count')
     if (sub_ministry_code)
       sql.where('sub_ministry_code', sub_ministry_code);
     if (ministry_code)
