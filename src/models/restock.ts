@@ -42,7 +42,7 @@ export class RestockModel {
   getSuppliesRestockByBalance(db: Knex, hospcode = undefined) {
     let sql =  db('view_forecast')
     if(hospcode)
-      sql.where('hospcode', hospcode);
+      sql.whereIn('hospcode', hospcode);
       return sql
   }
 
