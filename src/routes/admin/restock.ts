@@ -109,7 +109,7 @@ router.get('/export/:id', async (req: Request, res: Response) => {
     let _detail = chunk(detail, 500)
     for (const _d of _detail) {
       let items = await restockModel.getRestockDetailItems(db, map(_d, 'id'))
-      for (const d of detail) {
+      for (const d of _d) {
         ws.cell(row, 1).string(d.id.toString());
         ws.cell(row, 2).string(d.hospname.toString());
         let tmp = filter(items, { 'restock_detail_id': d.id })
@@ -123,7 +123,7 @@ router.get('/export/:id', async (req: Request, res: Response) => {
       }
     }
 
-    let filename = this.peopleId + `restock_` + info.code + ` ` + moment().format('x');
+    let filename = `restock_` + info[0].code + ` ` + moment().format('x');
     let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
     wb.write(filenamePath, function (err, stats) {
       if (err) {
@@ -135,7 +135,7 @@ router.get('/export/:id', async (req: Request, res: Response) => {
         res.sendfile(filenamePath);
       }
     });
-    res.send({ ok: true, code: HttpStatus.OK });
+    // res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
 
