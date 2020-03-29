@@ -1,17 +1,14 @@
 // / <reference path="../../typings.d.ts" />
-
 import * as HttpStatus from 'http-status-codes';
-
 import * as moment from "moment"
 import { Router, Request, Response } from 'express';
-import { filter } from 'lodash';
+import { filter, map, groupBy, chain } from 'lodash';
 import { RestockModel } from '../../models/restock';
-import { SuppliesMinMaxModel } from '../../models/supplies_min_max';
 const uuidv4 = require('uuid/v4');
-
+const path = require('path')
+const excel4node = require('excel4node');
 
 const restockModel = new RestockModel();
-const suppliesMinMaxModel = new SuppliesMinMaxModel();
 const router: Router = Router();
 
 router.get('/', async (req: Request, res: Response) => {
@@ -51,18 +48,18 @@ router.get('/create', async (req: Request, res: Response) => {
     let dataSet = []
     for (const _hocp of hocp) {
       let detailId = uuidv4();
-      hospData.push( {
+      hospData.push({
         id: detailId,
         restock_id: rsHead,
         hospcode: _hocp.hospcode,
       })
-      
+
       console.log(22222, start, moment().format('m:s'));
       let tmp = filter(data, { 'hospcode': _hocp.hospcode })
-      
+
       for (const _data of tmp) {
         console.log(3, moment().format('m:s'));
-        
+
         dataSet.push({
           restock_detail_id: detailId,
           supplies_id: _data.supplies_id,
@@ -81,5 +78,26 @@ router.get('/create', async (req: Request, res: Response) => {
   }
 });
 
+router.post('/import', async (req: Request, res: Response) => {
+  const data: any = req.body.data
+
+  try {
+    let rm = map(groupBy(data, 'restock_detail_id'), (k, v) => {
+      return v
+    });
+    console.log(data);
+    
+    await restockModel.insert(req.db, data);
+    await restockModel.remove(req.db, rm);
+    await restockModel.update(req.db, data);
+    await restockModel.removeTemp(req.db);
+
+    res.send({ ok: true });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
 
 export default router;
