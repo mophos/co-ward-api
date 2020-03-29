@@ -4,9 +4,11 @@ import * as HttpStatus from 'http-status-codes';
 
 import * as moment from "moment"
 import { Router, Request, Response } from 'express';
-
+import { filter } from 'lodash';
 import { RestockModel } from '../../models/restock';
 import { SuppliesMinMaxModel } from '../../models/supplies_min_max';
+const uuidv4 = require('uuid/v4');
+
 
 const restockModel = new RestockModel();
 const suppliesMinMaxModel = new SuppliesMinMaxModel();
@@ -42,24 +44,33 @@ router.get('/create', async (req: Request, res: Response) => {
     }
     rsHead = await restockModel.insertRestock(req.db, head);
     let hocp: any = await restockModel.getSuppliesRestockByHosp(req.db);
+    let data: any = await restockModel.getSuppliesRestockByBalance(req.db);
+    console.log(1);
+    let start = moment().format('m:s')
+    let dataSet = []
     for (const _hocp of hocp) {
+      let detailId = uuidv4();
       let hospData = {
+        id: detailId,
         restock_id: rsHead,
         hospcode: _hocp.hospcode,
       }
-      let rsDetail: any = await restockModel.insertRestockDetail(req.db, hospData);
-      let data: any = await restockModel.etSuppliesRestockByBalance(req.db, _hocp.hospcode);
-      let dataSet = []
-      for (const _data of data) {
+      await restockModel.insertRestockDetail(req.db, hospData);
+
+      console.log(22222, start, moment().format('m:s'));
+      let tmp = filter(data, { 'hospcode': _hocp.hospcode })
+
+      for (const _data of tmp) {
+        console.log(3, moment().format('m:s'));
+
         dataSet.push({
-          restock_detail_id: rsDetail,
+          restock_detail_id: detailId,
           supplies_id: _data.supplies_id,
           qty: +_data.max - +_data.qty
         })
       }
-      await restockModel.insertRestockDetailItem(req.db, dataSet);
-
     }
+    await restockModel.insertRestockDetailItem(req.db, dataSet);
     res.send({ ok: true, code: HttpStatus.OK });
 
   } catch (error) {
