@@ -77,5 +77,41 @@ router.get('/create', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/list-hospital', async (req: Request, res: Response) => {
+  let restockId = req.query.restockId
+  let typesId = req.query.typesId
+  try {
+    let rs: any = await restockModel.getListHospital(req.db, restockId, typesId);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/list-supplies', async (req: Request, res: Response) => {
+  let restockDetailId = req.query.restockDetailId
+  try {
+    let rs: any = await restockModel.getListSupplies(req.db, restockDetailId);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.put('/update-supplies/:id', async (req: Request, res: Response) => {
+  const id: any = req.params.id
+  const data: any = req.body.data
+
+  try {
+    await restockModel.deleteRestockDetailItem(req.db, id);
+    await restockModel.insertRestockDetailItem(req.db, data);
+    res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 
 export default router;
