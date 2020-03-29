@@ -123,7 +123,7 @@ router.get('/export/:id', async (req: Request, res: Response) => {
       }
     }
 
-    let filename = `restock_` + info[0].code + ` ` + moment().format('x');
+    let filename = `restock_` + info[0].code + `_` + moment().format('x');
     let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
     wb.write(filenamePath, function (err, stats) {
       if (err) {
