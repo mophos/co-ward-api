@@ -28,6 +28,8 @@ import hospitalAdminRoute from './routes/admin/hospital';
 import suppliesStaffRoute from './routes/staff/supplies';
 import balanceStaffRoute from './routes/staff/balance';
 import payStaffRoute from './routes/staff/pay';
+import bedStaffRoute from './routes/staff/bed';
+import settingStaffRoute from './routes/staff/setting';
 
 // Assign router to the express.Router() instance
 const app: express.Application = express();
@@ -177,6 +179,8 @@ api.use('/staff', checkAuth, staffAuth, staff)
 staff.use('/supplies', suppliesStaffRoute)
 staff.use('/balance', balanceStaffRoute)
 staff.use('/pay', payStaffRoute)
+staff.use('/bed', bedStaffRoute)
+staff.use('/setting', settingStaffRoute)
 
 //index
 app.use('/', indexRoute);
