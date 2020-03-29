@@ -6,10 +6,12 @@ import * as moment from "moment"
 import { Router, Request, Response } from 'express';
 import { filter, chunk, map } from 'lodash';
 import { RestockModel } from '../../models/restock';
+import { SerialModel } from '../../models/serial';
 import { SuppliesMinMaxModel } from '../../models/supplies_min_max';
 const uuidv4 = require('uuid/v4');
 
 
+const serialModel = new SerialModel();
 const restockModel = new RestockModel();
 const suppliesMinMaxModel = new SuppliesMinMaxModel();
 const router: Router = Router();
@@ -40,6 +42,7 @@ router.get('/create', async (req: Request, res: Response) => {
   let rsHead: any
   try {
     let head = {
+      code:  await serialModel.getSerial(req.db, 'RS'),
       created_by: decoded.id
     }
     rsHead = await restockModel.insertRestock(req.db, head);
