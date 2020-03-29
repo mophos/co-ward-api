@@ -143,11 +143,11 @@ router.get('/export/:id', async (req: Request, res: Response) => {
     const detail: any = await restockModel.getRestockDetail(db, id);
     const supplies: any = await suppliesModel.getSuppliesActived(db);
     const supplieId = [];
-    ws.column(2).hide();
-    ws.column(2).freeze(2);
-    ws.column(1).setWidth(36);
-    ws.row(1).hide();
-    ws.row(2).freeze();
+    // ws.column(2).hide();
+    // ws.column(2).freeze(2);
+    // ws.column(1).setWidth(36);
+    // ws.row(1).hide();
+    // ws.row(2).freeze();
     ws.cell(2, 1).string('โรงพยาบาล')
     ws.cell(2, 2).string('id')
     ws.cell(1, 1).string('โรงพยาบาล')
