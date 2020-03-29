@@ -42,11 +42,17 @@ export class RestockModel {
       .insert(data)
   }
 
+  deleteRestockDetailItem(db: Knex, id) {
+    return db('restock_detail_items')
+      .delete()
+      .where('restock_detail_id', id)
+  }
+
   getSuppliesRestockByBalance(db: Knex, hospcode = undefined) {
-    let sql =  db('view_forecast')
-    if(hospcode)
+    let sql = db('view_forecast')
+    if (hospcode)
       sql.whereIn('hospcode', hospcode);
-      return sql
+    return sql
   }
 
   getSuppliesRestockByHosp(db: Knex, sub_ministry_code = undefined, ministry_code = undefined, hosptype_code = undefined) {
@@ -58,6 +64,21 @@ export class RestockModel {
     if (hosptype_code)
       sql.where('hosptype_code', hosptype_code);
     return sql
+  }
+
+  getListHospital(db: Knex, restockId, typesId) {
+    return db('restock_details as rd')
+      .select('rd.*','c.hospname')
+      .join('chospital as c', 'c.hospcode', 'rd.hospcode')
+      .where('rd.restock_id', restockId)
+      .where('c.hosptype_id', typesId)
+  }
+
+  getListSupplies(db: Knex, restockDetailId){
+    return db('restock_detail_items as rdi')
+      .select('rdi.*','s.code','s.name','s.unit_name')
+      .join('supplies as s','s.id','rdi.supplies_id')
+      .where('rdi.restock_detail_id',restockDetailId)
   }
 
   getRestockInfo(db: Knex, restockId) {
