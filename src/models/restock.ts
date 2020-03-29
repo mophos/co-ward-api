@@ -13,6 +13,17 @@ export class RestockModel {
     return db('restocks').count('* as count').as('count').where('is_deleted', 'N').where('is_approved', 'N');
   }
 
+  getRestockApproved(db: Knex, limit = 100, offset = 0) {
+    return db('restocks')
+      .where('is_deleted', 'N')
+      .where('is_approved', 'Y')
+      .limit(limit).offset(offset);
+  }
+
+  getRestockTotalApproved(db: Knex) {
+    return db('restocks').count('* as count').as('count').where('is_deleted', 'N').where('is_approved', 'Y');
+  }
+
   getRestockDetail(db: Knex, restockId) {
     return db('restock_details as rd')
       .select('rd.*', 's.hospname')

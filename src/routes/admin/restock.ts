@@ -31,6 +31,16 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/approved', async (req: Request, res: Response) => {
+  try {
+    let rs: any = await restockModel.getRestockApproved(req.db);
+    let rsTotal: any = await restockModel.getRestockTotalApproved(req.db);
+    res.send({ ok: true, rows: rs, total: rsTotal[0].count, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.get('/detail/:id', async (req: Request, res: Response) => {
   const id = req.params.id
   try {
