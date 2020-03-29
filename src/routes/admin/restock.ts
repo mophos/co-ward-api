@@ -5,12 +5,15 @@ import * as HttpStatus from 'http-status-codes';
 import * as moment from "moment"
 import * as _ from 'lodash';
 import { Router, Request, Response } from 'express';
-
+import { filter, chunk, map } from 'lodash';
 import { RestockModel } from '../../models/restock';
 import { SuppliesModel } from '../../models/supplies';
 import { SuppliesMinMaxModel } from '../../models/supplies_min_max';
+import { SerialModel } from '../../models/serial';
 const xl = require('excel4node');
+const uuidv4 = require('uuid/v4');
 
+const serialModel = new SerialModel();
 const restockModel = new RestockModel();
 const suppliesMinMaxModel = new SuppliesMinMaxModel();
 const suppliesModel = new SuppliesModel();
@@ -42,28 +45,35 @@ router.get('/create', async (req: Request, res: Response) => {
   let rsHead: any
   try {
     let head = {
+      code:  await serialModel.getSerial(req.db, 'RS'),
       created_by: decoded.id
     }
     rsHead = await restockModel.insertRestock(req.db, head);
-    let hocp: any = await restockModel.getSuppliesRestockByHosp(req.db);
-    for (const _hocp of hocp) {
-      let hospData = {
-        restock_id: rsHead,
-        hospcode: _hocp.hospcode,
-      }
-      let rsDetail: any = await restockModel.insertRestockDetail(req.db, hospData);
-      let data: any = await restockModel.etSuppliesRestockByBalance(req.db, _hocp.hospcode);
-      let dataSet = []
-      for (const _data of data) {
-        dataSet.push({
-          restock_detail_id: rsDetail,
-          supplies_id: _data.supplies_id,
-          qty: +_data.max - +_data.qty
+    let hocp_: any = await restockModel.getSuppliesRestockByHosp(req.db);
+    let _hosp = chunk(hocp_, 15)
+    let hospData = []
+    let dataSet = []
+    for (const hocp of _hosp) {
+      let data: any = await restockModel.getSuppliesRestockByBalance(req.db, map(hocp, 'hospcode'));
+      for (const _hocp of hocp) {
+        let detailId = uuidv4();
+        hospData.push({
+          id: detailId,
+          restock_id: rsHead,
+          hospcode: _hocp.hospcode,
         })
+        let tmp = filter(data, { 'hospcode': _hocp.hospcode })
+        for (const _data of tmp) {
+          dataSet.push({
+            restock_detail_id: detailId,
+            supplies_id: _data.supplies_id,
+            qty: +_data.max - +_data.qty
+          })
+        }
       }
-      await restockModel.insertRestockDetailItem(req.db, dataSet);
-
     }
+    await restockModel.insertRestockDetail(req.db, hospData);
+    await restockModel.insertRestockDetailItem(req.db, dataSet);
     res.send({ ok: true, code: HttpStatus.OK });
 
   } catch (error) {

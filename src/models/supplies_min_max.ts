@@ -2,12 +2,10 @@ import * as Knex from 'knex';
 
 export class SuppliesMinMaxModel {
   getSuppliesMinMax(db: Knex, hospcode: any) {
-    return db('supplies as s')
-      .select('s.*', 'smm.id as supplies_min_max_id', 'smm.min', 'smm.max')
-      .leftJoin('supplies_min_max as smm', (v) => {
-        v.on('smm.supplies_id', 's.id')
-        v.on('smm.hospcode', db.raw(hospcode))
-      })
+    return db('supplies_min_max as smm')
+      .select('smm.*','s.code','s.name','s.unit_name')
+      .join('supplies as s', 's.id', 'smm.supplies_id')
+      .where('smm.hospcode', hospcode)
   }
 
   getSuppliesMinMaxBytype(db: Knex, sub_ministry_code, ministry_code, hosptype_code) {
@@ -27,10 +25,10 @@ export class SuppliesMinMaxModel {
   }
 
   getSuppliesMinMaxByBalance(db: Knex, hospcode = undefined) {
-    let sql =  db('view_forecast')
-    if(hospcode)
+    let sql = db('view_forecast')
+    if (hospcode)
       sql.where('hospcode', hospcode);
-      return sql
+    return sql
   }
 
   getSuppliesMinMaxByHosp(db: Knex, sub_ministry_code, ministry_code, hosptype_code) {

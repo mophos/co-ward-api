@@ -42,10 +42,10 @@ export class RestockModel {
       .insert(data)
   }
 
-  etSuppliesRestockByBalance(db: Knex, hospcode = undefined) {
+  getSuppliesRestockByBalance(db: Knex, hospcode = undefined) {
     let sql =  db('view_forecast')
     if(hospcode)
-      sql.where('hospcode', hospcode);
+      sql.whereIn('hospcode', hospcode);
       return sql
   }
 

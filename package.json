@@ -24,7 +24,8 @@
     "mqtt": "^2.18.8",
     "mysql": "^2.16.0",
     "path": "^0.12.7",
-    "serve-favicon": "^2.5.0"
+    "serve-favicon": "^2.5.0",
+    "uuid": "^7.0.2"
   },
   "devDependencies": {
     "@types/body-parser": "1.17.0",
