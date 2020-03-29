@@ -26,9 +26,11 @@ export class SuppliesMinMaxModel {
     return sql
   }
 
-  getSuppliesMinMaxByBalance(db: Knex, hospcode) {
-    return db('view_forecast')
-      .where('hospcode', hospcode);
+  getSuppliesMinMaxByBalance(db: Knex, hospcode = undefined) {
+    let sql =  db('view_forecast')
+    if(hospcode)
+      sql.where('hospcode', hospcode);
+      return sql
   }
 
   getSuppliesMinMaxByHosp(db: Knex, sub_ministry_code, ministry_code, hosptype_code) {
