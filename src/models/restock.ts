@@ -11,7 +11,10 @@ export class RestockModel {
   }
 
   getRestockDetail(db: Knex, restockId) {
-    return db('restock_details').where('restock_id', restockId)
+    return db('restock_details as rd')
+    .select('rd.*', 's.hospname')
+    .join('chospital as s', 'rd.hospcode', 's.hospcode')
+    .where('rd.restock_id', restockId);
   }
 
   getRestockDetailTotal(db: Knex, restockId) {
@@ -78,4 +81,22 @@ export class RestockModel {
       .where('rdi.restock_detail_id',restockDetailId)
   }
 
+  getRestockInfo(db: Knex, restockId) {
+    return db('restocks')
+    .where('id', restockId);
+  }
+
+  getRestockDetailItem(db: Knex, restockDetailId) {
+    return db('restock_detail_items as rdi')
+    .select('rdi.*', 's.name as supplies_name', 's.unit_name as supplies_unit', 's.code as supplies_code')
+    .join('supplies as s', 'rdi.supplies_id', 's.id')
+    .where('rdi.restock_detail_id', restockDetailId);
+  }
+
+  getRestockDetailItems(db: Knex, restockDetailId) {
+    return db('restock_detail_items as rdi')
+    .select('rdi.*', 's.name as supplies_name', 's.unit_name as supplies_unit', 's.code as supplies_code')
+    .join('supplies as s', 'rdi.supplies_id', 's.id')
+    .whereIn('rdi.restock_detail_id', restockDetailId);
+  }
 }

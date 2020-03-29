@@ -3,15 +3,22 @@
 import * as HttpStatus from 'http-status-codes';
 
 import * as moment from "moment"
+import * as _ from 'lodash';
 import { Router, Request, Response } from 'express';
 import { filter, chunk, map } from 'lodash';
 import { RestockModel } from '../../models/restock';
+import { SuppliesModel } from '../../models/supplies';
 import { SuppliesMinMaxModel } from '../../models/supplies_min_max';
+import { SerialModel } from '../../models/serial';
+const xl = require('excel4node');
 const uuidv4 = require('uuid/v4');
+const fse = require('fs-extra');
+const path = require('path')
 
-
+const serialModel = new SerialModel();
 const restockModel = new RestockModel();
 const suppliesMinMaxModel = new SuppliesMinMaxModel();
+const suppliesModel = new SuppliesModel();
 const router: Router = Router();
 
 router.get('/', async (req: Request, res: Response) => {
@@ -40,6 +47,7 @@ router.get('/create', async (req: Request, res: Response) => {
   let rsHead: any
   try {
     let head = {
+      code: await serialModel.getSerial(req.db, 'RS'),
       created_by: decoded.id
     }
     rsHead = await restockModel.insertRestock(req.db, head);
@@ -113,5 +121,62 @@ router.put('/update-supplies/:id', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/export/:id', async (req: Request, res: Response) => {
+  try {
+    console.log('export');
+
+    const id = req.params.id
+    const db = req.db;
+    const wb = new xl.Workbook();
+    var ws = wb.addWorksheet('Sheet 1');
+    const info: any = await restockModel.getRestockInfo(db, id);
+    const detail: any = await restockModel.getRestockDetail(db, id);
+    const supplies: any = await suppliesModel.getSuppliesActived(db);
+    const supplieId = [];
+    ws.cell(1, 1).string('id')
+    ws.cell(1, 2).string('โรงพยาบาล')
+    let col = 3
+    for (const s of supplies) {
+      supplieId.push({ idx: col, id: s.id });
+      ws.cell(1, col).string(s.code);
+      ws.cell(2, col++).string(s.name);
+    }
+    let row = 3;
+    let _detail = chunk(detail, 500)
+    for (const _d of _detail) {
+      let items = await restockModel.getRestockDetailItems(db, map(_d, 'id'))
+      for (const d of _d) {
+        ws.cell(row, 1).string(d.id.toString());
+        ws.cell(row, 2).string(d.hospname.toString());
+        let tmp = filter(items, { 'restock_detail_id': d.id })
+        for (const i of tmp) {
+          const idx = _.findIndex(supplieId, { 'id': i.supplies_id })
+          if (idx > -1) {
+            ws.cell(row, supplieId[idx].idx).string(i.qty.toString() || '0')
+          }
+        }
+        row++;
+      }
+    }
+
+    let filename = `restock_` + info[0].code + `_` + moment().format('x');
+    let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath);
+      }
+    });
+    // res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
 
 export default router;
