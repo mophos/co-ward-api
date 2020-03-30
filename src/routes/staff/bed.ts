@@ -32,10 +32,10 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 router.get('/check-bed', async (req: Request, res: Response) => {
-  console.log(req.decoded);
-  
+  const provinceCode = req.decoded.provinceCode;
+
   try {
-    let rs = await bedModel.getBedHospital(req.db);
+    let rs = await bedModel.getBedHospital(req.db, provinceCode);
 
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {

@@ -54,4 +54,15 @@ export class SuppliesModel {
       .where('id', id);
   }
 
+  checkSupplies(db: Knex, provinceCode = null) {
+    let sql = db('chospital as ch')
+      .select('ch.hospcode', 'ch.hospname', 'ch.zone_code', 'ch.province_code', 'ch.province_name', 'cb.created_at ')
+      .leftJoin('balances as cb', 'ch.hospcode', 'cb.hospcode')
+      .whereNotIn('ch.hosptype_id', ['1', '2']);
+    if (provinceCode) {
+      sql.where('ch.province_code', provinceCode)
+    }
+    return sql;
+  }
+
 }
