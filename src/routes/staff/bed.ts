@@ -35,7 +35,7 @@ router.get('/check-bed', async (req: Request, res: Response) => {
   const provinceCode = req.decoded.provinceCode;
 
   try {
-    let rs = await bedModel.getBedHospital(req.db, provinceCode);
+    let rs = await bedModel.checkBed(req.db, provinceCode);
 
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
