@@ -6,10 +6,12 @@ export class BedModel {
     return db('mm_beds');
   }
 
-  getBedHospital(db: Knex) {
-    let sql = `(select hospcode from current_beds group by hospcode)`;
-    return db('chospital as c')
-      .whereRaw(`c.id not in ${sql}`);
+  getBedHospital(db: Knex, provinceCode) {
+    return db('chospital as ch')
+      .select('ch.hospcode', 'ch.hospname', 'ch.zone_code', 'ch.province_code', 'ch.province_name', 'cb.created_at ')
+      .leftJoin('bed_historys as cb', 'ch.hospcode', 'cb.hospcode')
+      .where('ch.province_code', provinceCode)
+      .whereNotIn('ch.hosptype_id', ['1', '2']);
   }
 
   getBalanceBeds(db: Knex, hospcode: any) {
