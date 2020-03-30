@@ -3,17 +3,17 @@ import * as Knex from 'knex';
 export class BedModel {
 
   getBeds(db: Knex) {
-    return db('beds');
+    return db('mm_beds');
   }
 
   getBalanceBeds(db: Knex, hospcode: any) {
-    return db('bed_balances as bb')
-      .join('beds as b', 'b.id', 'bb.bed_id')
-      .where('bb.hospcode', hospcode);
+    return db('current_beds as cb')
+      .join('mm_beds as b', 'b.id', 'cb.bed_id')
+      .where('cb.hospcode', hospcode)
   }
 
   save(db: Knex, data) {
-    return db('bed_balances')
+    return db('')
       .insert(data);
   }
 

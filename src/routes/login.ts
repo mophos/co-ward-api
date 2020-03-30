@@ -32,6 +32,7 @@ router.post('/', async (req: Request, res: Response) => {
         lname: `${rs[0].lname}`,
         prename: `${rs[0].prename}`,
         id: rs[0].id,
+        hospitalId: rs[0].hospital_id,
         type: rs[0].type,
         hospcode: rs[0].hospcode,
         hospname: rs[0].hospname,

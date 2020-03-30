@@ -12,31 +12,41 @@ const router: Router = Router();
 
 router.get('/', async (req: Request, res: Response) => {
   const hospcode = req.decoded.hospcode;
+  console.log(req.decoded);
+  
   try {
     let rs: any
     rs = await bedModel.getBalanceBeds(req.db, hospcode);
     if (rs.length === 0) {
       rs = await bedModel.getBeds(req.db);
       for (const v of rs) {
-        v.qty = 0;
-        v.usage = 0;
+        v.total = 0;
+        v.usage_bed = 0;
       }
     }
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
+    console.log(error);
+
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
 
 router.post('/', async (req: Request, res: Response) => {
+  const data = req.body.data;
+  const hospcode = req.decoded.hospcode;
+  const hospitalId = req.decoded.hospital_id;
+  const userId = req.decoded.id;
+
   try {
-    const data = req.body.data;
-    const hospcode = req.decoded.hospcode;
-    for (const v of data) {
-      v.hospcode = hospcode;
-    }
-    await bedModel.del(req.db, hospcode);
-    await bedModel.save(req.db, data);
+
+    const head: any = {};
+    head.hospcode = hospcode;
+    head.created_by = userId;
+    // for (const v of data) {
+    //   v.hospcode = hospcode;
+    // }
+    // await bedModel.save(req.db, data);
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
