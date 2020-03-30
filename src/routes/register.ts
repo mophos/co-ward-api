@@ -68,7 +68,7 @@ router.post('/register', upload.any(), async (req: Request, res: Response) => {
         position: data.position,
         email: data.email,
         type: data.type,
-        isProvince: data.isProvince,
+        is_province: data.isProvince,
         telephone: data.telephone,
       }
       let rs: any = await registerModel.insertUser(req.db, _data);
