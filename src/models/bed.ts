@@ -22,4 +22,10 @@ export class BedModel {
       .delete().where('hospcode', hospcode);
   }
 
+  checkBed(db: Knex) {
+    return db('chospital as ch')
+      .select('ch.hospcode', 'ch.hospname', 'ch.zone_code', 'ch.province_code', 'ch.province_name', 'cb.created_at ')
+      .leftJoin('bed_historys as cb', 'ch.hospcode', 'cb.hospcode')
+      .whereNotIn('ch.hosptype_id',['1','2']);
+  }
 }
