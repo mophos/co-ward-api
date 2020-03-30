@@ -7,4 +7,8 @@ export class Register {
             .where('hospcode', hospcode)
     }
 
+    insertUser(db: Knex, data = {}) {
+        return db('users')
+            .insert(data);
+    }
 }
