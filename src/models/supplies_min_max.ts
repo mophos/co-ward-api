@@ -4,12 +4,12 @@ export class SuppliesMinMaxModel {
   getSuppliesMinMax(db: Knex, hospcode: any) {
     return db('supplies_min_max as smm')
       .select('smm.*','s.code','s.name','s.unit_name')
-      .join('supplies as s', 's.id', 'smm.supplies_id')
+      .join('mm_supplies as s', 's.id', 'smm.supplies_id')
       .where('smm.hospcode', hospcode)
   }
 
   getSuppliesMinMaxBytype(db: Knex, sub_ministry_code, ministry_code, hosptype_code) {
-    let sql = db(db('supplies as s').select('s.*', 'h.hospcode', 'h.sub_ministry_code', 'h.ministry_code', 'h.hosptype_code').join(db.raw('chospital as h')).as('s'))
+    let sql = db(db('mm_supplies as s').select('s.*', 'h.hospcode', 'h.sub_ministry_code', 'h.ministry_code', 'h.hosptype_code').join(db.raw('chospital as h')).as('s'))
       .select('s.*', 'smm.id as supplies_min_max_id', 'smm.min', 'smm.max')
 
     sql.leftJoin('supplies_min_max as smm', (v) => {

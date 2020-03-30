@@ -97,7 +97,7 @@ export class RestockModel {
   getListSupplies(db: Knex, restockDetailId) {
     return db('restock_detail_items as rdi')
       .select('rdi.*', 's.code', 's.name', 's.unit_name')
-      .join('supplies as s', 's.id', 'rdi.supplies_id')
+      .join('mm_supplies as s', 's.id', 'rdi.supplies_id')
       .where('rdi.restock_detail_id', restockDetailId)
   }
 
@@ -109,7 +109,7 @@ export class RestockModel {
   getRestockDetailItem(db: Knex, restockDetailId) {
     return db('restock_detail_items as rdi')
       .select('rdi.*', 's.name as supplies_name', 's.unit_name as supplies_unit', 's.code as supplies_code')
-      .join('supplies as s', 'rdi.supplies_id', 's.id')
+      .join('mm_supplies as s', 'rdi.supplies_id', 's.id')
       .where('rdi.restock_detail_id', restockDetailId);
   }
 
@@ -118,7 +118,7 @@ export class RestockModel {
       .select('rdi.supplies_id', 's.code as supplies_code')
       .sum('rdi.qty as qty')
       .join('restock_detail_items as rdi', 'rd.id', 'rdi.restock_detail_id')
-      .join('supplies as s', 's.id', 'rdi.supplies_id')
+      .join('mm_supplies as s', 's.id', 'rdi.supplies_id')
       .where('rd.restock_id', restockId)
       .groupBy('supplies_id')
   }
@@ -160,7 +160,7 @@ export class RestockModel {
   getRestockDetailItems(db: Knex, restockDetailId) {
     return db('restock_detail_items as rdi')
       .select('rdi.*', 's.name as supplies_name', 's.unit_name as supplies_unit', 's.code as supplies_code')
-      .join('supplies as s', 'rdi.supplies_id', 's.id')
+      .join('mm_supplies as s', 'rdi.supplies_id', 's.id')
       .whereIn('rdi.restock_detail_id', restockDetailId);
   }
 }
