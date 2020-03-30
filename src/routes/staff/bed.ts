@@ -12,8 +12,7 @@ const router: Router = Router();
 
 router.get('/', async (req: Request, res: Response) => {
   const hospcode = req.decoded.hospcode;
-  console.log(req.decoded);
-  
+
   try {
     let rs: any
     rs = await bedModel.getBalanceBeds(req.db, hospcode);
@@ -39,16 +38,40 @@ router.post('/', async (req: Request, res: Response) => {
   const userId = req.decoded.id;
 
   try {
-
+    let _data = [];
+    let __data = [];
     const head: any = {};
     head.hospcode = hospcode;
     head.created_by = userId;
-    // for (const v of data) {
-    //   v.hospcode = hospcode;
-    // }
-    // await bedModel.save(req.db, data);
-    res.send({ ok: true, code: HttpStatus.OK });
+    let headId = await bedModel.saveHead(req.db, head);
+
+    for (const v of data) {
+      const obj: any = {};
+      obj.bed_history_id = headId;
+      obj.bed_id = v.bed_id;
+      obj.total = v.total;
+      obj.usage_bed = v.usage_bed;
+      _data.push(obj);
+    }
+
+    for (const v of data) {
+      const obj: any = {};
+      obj.bed_id = v.bed_id;
+      obj.total = v.total;
+      obj.usage_bed = v.usage_bed;
+      obj.hospcode = hospcode;
+      obj.hospital_id = hospitalId;
+      __data.push(obj);
+    }
+
+    await bedModel.saveDetail(req.db, _data);
+    await bedModel.del(req.db, hospcode);
+    await bedModel.saveCurrent(req.db, __data);
+    await
+      res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
+    console.log(error);
+
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });

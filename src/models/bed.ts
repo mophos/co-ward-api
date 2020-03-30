@@ -12,13 +12,23 @@ export class BedModel {
       .where('cb.hospcode', hospcode)
   }
 
-  save(db: Knex, data) {
-    return db('')
+  saveHead(db: Knex, data) {
+    return db('bed_historys')
+      .insert(data, 'id');
+  }
+
+  saveDetail(db: Knex, data) {
+    return db('bed_history_details')
+      .insert(data);
+  }
+
+  saveCurrent(db: Knex, data) {
+    return db('current_beds')
       .insert(data);
   }
 
   del(db: Knex, hospcode: any) {
-    return db('bed_balances')
+    return db('current_beds')
       .delete().where('hospcode', hospcode);
   }
 
