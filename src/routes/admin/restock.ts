@@ -1,11 +1,9 @@
 // / <reference path="../../typings.d.ts" />
-
 import * as HttpStatus from 'http-status-codes';
-
 import * as moment from "moment"
 import * as _ from 'lodash';
 import { Router, Request, Response } from 'express';
-import { filter, chunk, map } from 'lodash';
+import { filter, chunk, map, groupBy } from 'lodash';
 import { RestockModel } from '../../models/restock';
 import { SuppliesModel } from '../../models/supplies';
 import { SuppliesMinMaxModel } from '../../models/supplies_min_max';
@@ -97,6 +95,26 @@ router.get('/create', async (req: Request, res: Response) => {
   }
 });
 
+router.post('/import', async (req: Request, res: Response) => {
+  const data: any = req.body.data
+  console.log(data);
+
+  try {
+    let rm = map(groupBy(data, 'restock_detail_id'), (k, v) => {
+      return v
+    });
+
+    await restockModel.insert(req.db, data);
+    await restockModel.remove(req.db, rm);
+    await restockModel.update(req.db, data);
+    await restockModel.removeTemp(req.db);
+
+    res.send({ ok: true });
+  } catch (error) {
+    res.send({ ok: false, message: error })
+  }
+});
+
 router.get('/list-hospital', async (req: Request, res: Response) => {
   let restockId = req.query.restockId
   let typesId = req.query.typesId
@@ -128,7 +146,7 @@ router.put('/update-supplies/:id', async (req: Request, res: Response) => {
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
-    
+
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
@@ -141,7 +159,7 @@ router.put('/remove-restock/:id', async (req: Request, res: Response) => {
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
-    
+
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });

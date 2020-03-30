@@ -86,6 +86,29 @@ export class RestockModel {
     return sql
   }
 
+  getSupplies(db: Knex, code) {
+    return db('supplies')
+      .where('code', code)
+  }
+
+  remove(db: Knex, id) {
+    return db('restock_detail_items').delete().whereIn('restock_detail_id', id);
+  }
+  removeTemp(db: Knex) {
+    return db('restock_detail_items_temp').delete();
+  }
+
+  insert(db: Knex, data) {
+    return db('restock_detail_items_temp').insert(data);
+  }
+  
+  update(db: Knex, data) {
+    let sql = `insert restock_detail_items (supplies_id,qty,restock_detail_id)
+      select s.id,r.qty,r.restock_detail_id from restock_detail_items_temp as r
+      join supplies as s on r.supplies_code = s.code`
+    return db.raw(sql);
+  }
+
   getListHospital(db: Knex, restockId, typesId) {
     return db('restock_details as rd')
       .select('rd.*', 'c.hospname')
