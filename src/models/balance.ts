@@ -13,7 +13,7 @@ export class BalanceModel {
   getBalanceDetail(db: Knex, id) {
     return db('balance_details as bd')
       .select('bd.*', 's.name', 's.unit', 's.code')
-      .join('supplies as s', 'bd.supplies_id', 's.id')
+      .join('mm_supplies as s', 'bd.supplies_id', 's.id')
       .where('bd.balance_id', id);
   }
 
