@@ -6,6 +6,12 @@ export class BedModel {
     return db('mm_beds');
   }
 
+  getBedHospital(db: Knex) {
+    let sql = `(select hospcode from current_beds group by hospcode)`;
+    return db('chospital as c')
+      .whereRaw(`c.id not in ${sql}`);
+  }
+
   getBalanceBeds(db: Knex, hospcode: any) {
     return db('current_beds as cb')
       .join('mm_beds as b', 'b.id', 'cb.bed_id')

@@ -31,6 +31,19 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/check-bed', async (req: Request, res: Response) => {
+  console.log(req.decoded);
+  
+  try {
+    let rs = await bedModel.getBedHospital(req.db);
+
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.post('/', async (req: Request, res: Response) => {
   const data = req.body.data;
   const hospcode = req.decoded.hospcode;
