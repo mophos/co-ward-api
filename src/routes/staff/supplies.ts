@@ -29,6 +29,17 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/check-supplie/hos', async (req: Request, res: Response) => {
+  const provinceCode = req.decoded.provinceCode;
 
+  try {
+    let rs = await suppliesModel.getSupplieHospital(req.db, provinceCode);
+
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
 
 export default router;

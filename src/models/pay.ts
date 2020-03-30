@@ -13,7 +13,7 @@ export class PayModel {
   getPayDetail(db: Knex, id) {
     return db('pay_details as bd')
       .select('bd.*', 's.name', 's.unit', 's.code')
-      .join('supplies as s', 'bd.supplies_id', 's.id')
+      .join('mm_supplies as s', 'bd.supplies_id', 's.id')
       .where('bd.pay_id', id);
   }
 

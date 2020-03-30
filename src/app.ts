@@ -32,6 +32,7 @@ import payStaffRoute from './routes/staff/pay';
 import bedStaffRoute from './routes/staff/bed';
 import settingStaffRoute from './routes/staff/setting';
 
+import servicesRoute from './routes/manager/services';
 // Assign router to the express.Router() instance
 const app: express.Application = express();
 
@@ -175,6 +176,7 @@ admin.use('/restock', restockAdminRoute)
 
 //manager
 api.use('/manager', checkAuth, managerAuth, manager)
+manager.use('/services', servicesRoute)
 
 //staff
 api.use('/staff', checkAuth, staffAuth, staff)
