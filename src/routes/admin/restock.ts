@@ -191,10 +191,10 @@ router.get('/export/:id', async (req: Request, res: Response) => {
     // ws.column(1).setWidth(36);
     // ws.row(1).hide();
     // ws.row(2).freeze();
-    ws.cell(2, 1).string('โรงพยาบาล')
-    ws.cell(2, 2).string('id')
-    ws.cell(1, 1).string('โรงพยาบาล')
-    ws.cell(1, 2).string('id')
+    ws.cell(2, 2).string('โรงพยาบาล')
+    ws.cell(2, 1).string('id')
+    ws.cell(1, 2).string('โรงพยาบาล')
+    ws.cell(1, 1).string('id')
     let col = 3
     for (const s of supplies) {
       supplieId.push({ idx: col, id: s.id });
@@ -209,8 +209,8 @@ router.get('/export/:id', async (req: Request, res: Response) => {
     for (const _d of _detail) {
       let items = await restockModel.getRestockDetailItems(db, map(_d, 'id'))
       for (const d of _d) {
-        ws.cell(row, 1).string(d.hospname.toString());
-        ws.cell(row, 2).string(d.id.toString());
+        ws.cell(row, 1).string(d.id.toString());
+        ws.cell(row, 2).string(d.hospname.toString());
         lockCell(ws, xl.getExcelCellRef(row, 1))
         lockCell(ws, xl.getExcelCellRef(row, 2))
         let tmp = filter(items, { 'restock_detail_id': d.id })

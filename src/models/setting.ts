@@ -1,18 +1,18 @@
 import * as Knex from 'knex';
 
 export class BedModel {
-  info(db: Knex, hospcode: any) {
-    console.log(db('chospital')
-      .where('hospcode', hospcode).toString());
+	info(db: Knex, hospcode: any) {
+		console.log(db('chospital')
+			.where('hospcode', hospcode).toString());
 
-    return db('chospital')
-      .where('hospcode', hospcode);
-  }
+		return db('chospital')
+			.where('hospcode', hospcode);
+	}
 
-  autocompleteTambon(db: Knex, query) {
-    const q = `%${query}%`;
-    const _q = `${query}%`;
-    return db.raw(`SELECT DISTINCT
+	autocompleteTambon(db: Knex, query) {
+		const q = `%${query}%`;
+		const _q = `${query}%`;
+		return db.raw(`SELECT DISTINCT
 		province_id,
 		province_name,
 		province_name_en,
@@ -37,12 +37,12 @@ export class BedModel {
 	ORDER BY
 		m.o ASC,
 		m.tambon_name`, [_q, q]);
-  }
+	}
 
-  autocompleteAmpur(db: Knex, query) {
-    const q = `%${query}%`;
-    const _q = `${query}%`;
-    return db.raw(`SELECT DISTINCT
+	autocompleteAmpur(db: Knex, query) {
+		const q = `%${query}%`;
+		const _q = `${query}%`;
+		return db.raw(`SELECT DISTINCT
 			province_id,
 			province_name,
 			province_name_en,
@@ -67,26 +67,26 @@ export class BedModel {
 		ORDER BY
 			m.o ASC,
 			m.ampur_name`, [_q, q]);
-  }
+	}
 
-  autocompleteProvince(db: Knex, query) {
-    const _q = `%${query}%`;
-    return db('view_address')
-      .orWhere('province_name', 'like', _q)
-      .orderBy('province_name')
-    // .orWhere('ampur_name','like',_q)
-    // .orWhere('tambon_name','like',_q)
-    // .orWhere('zipcode','like',_q)
-  }
+	autocompleteProvince(db: Knex, query) {
+		const _q = `%${query}%`;
+		return db('view_address')
+			.orWhere('province_name', 'like', _q)
+			.orderBy('province_name')
+		// .orWhere('ampur_name','like',_q)
+		// .orWhere('tambon_name','like',_q)
+		// .orWhere('zipcode','like',_q)
+	}
 
-  autocompleteZipcode(db: Knex, query) {
-    const _q = `%${query}%`;
-    return db('view_address')
-      .orWhere('zip_code', 'like', _q)
-      .orderBy('zip_code')
-  }
+	autocompleteZipcode(db: Knex, query) {
+		const _q = `%${query}%`;
+		return db('view_address')
+			.orWhere('zip_code', 'like', _q)
+			.orderBy('zip_code')
+	}
 
-  update(db: Knex, data, hospcode: any) {
-    return db('chospital').update(data).where('hospcode', hospcode);
-  }
+	update(db: Knex, data, hospcode: any) {
+		return db('chospital').update(data).where('hospcode', hospcode);
+	}
 }
