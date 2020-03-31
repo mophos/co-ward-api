@@ -17,13 +17,14 @@ export class UserModel {
   }
   
   getUserTotal(db: Knex, q = '') {
-    return db('um_users') 
+    return db('um_users as uu') 
     .count('* as count')
-    .where('is_deleted','N')
+    .join('um_titles as ut','ut.id','uu.title_id')
+    .where('uu.is_deleted','N')
     .where((v)=>{
-      v.where('username', 'like', '%' + q + '%')
-      v.orWhere('prename', 'like', '%' + q + '%')
-      v.orWhere('lname', 'like', '%' + q + '%')
+      v.where('uu.username', 'like', '%' + q + '%')
+      v.orWhere('ut.name', 'like', '%' + q + '%')
+      v.orWhere('uu.lname', 'like', '%' + q + '%')
     });
   }
 
