@@ -75,19 +75,20 @@ router.post('/upload', upload.any(), async (req: Request, res: Response) => {
 router.post('/', async (req: Request, res: Response) => {
 
   let data = req.body.data;
-  let picture = req.files
+  console.log(data.hospcode);
+  
   try {
     if (('username' in data) && ('password' in data) && ('hospcode' in data) && ('titleId' in data)
       && ('fname' in data) && ('cid' in data) && ('lname' in data) && ('positionId' in data) && ('email' in data) && ('type' in data)
-      && ('isProvince' in data) && ('telephone' in data) && picture.length) {
+      && ('isProvince' in data) && ('telephone' in data)) {
       let _data = {
         username: data.username,
         password: crypto.createHash('md5').update(data.password).digest('hex'),
-        hospcode: data.hospCode,
+        hospcode: data.hospcode,
         title_id: data.titleId,
         cid: data.cid,
-        fname: data.firstName,
-        lname: data.lastName,
+        fname: data.fname,
+        lname: data.lname,
         position_id: data.positionId,
         email: data.email,
         type: data.type,
