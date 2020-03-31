@@ -6,44 +6,40 @@ export class BedModel {
     return db('mm_beds');
   }
 
-  getBedHospital(db: Knex, provinceCode) {
-    return db('chospital as ch')
-      .select('ch.hospcode', 'ch.hospname', 'ch.zone_code', 'ch.province_code', 'ch.province_name', 'cb.created_at ')
-      .leftJoin('bed_historys as cb', 'ch.hospcode', 'cb.hospcode')
-      .where('ch.province_code', provinceCode)
-      .whereNotIn('ch.hosptype_id', ['1', '2']);
-  }
-
   getBalanceBeds(db: Knex, hospcode: any) {
-    return db('current_beds as cb')
+    return db('wm_current_beds as cb')
       .join('mm_beds as b', 'b.id', 'cb.bed_id')
       .where('cb.hospcode', hospcode)
   }
 
   saveHead(db: Knex, data) {
-    return db('bed_historys')
+    return db('wm_bed_historys')
       .insert(data, 'id');
   }
 
   saveDetail(db: Knex, data) {
-    return db('bed_history_details')
+    return db('wm_bed_history_details')
       .insert(data);
   }
 
   saveCurrent(db: Knex, data) {
-    return db('current_beds')
+    return db('wm_current_beds')
       .insert(data);
   }
 
   del(db: Knex, hospcode: any) {
-    return db('current_beds')
+    return db('wm_current_beds')
       .delete().where('hospcode', hospcode);
   }
 
-  checkBed(db: Knex) {
-    return db('chospital as ch')
+  checkBed(db: Knex, provinceCode = null) {
+    let sql = db('l_hospitals as ch')
       .select('ch.hospcode', 'ch.hospname', 'ch.zone_code', 'ch.province_code', 'ch.province_name', 'cb.created_at ')
-      .leftJoin('bed_historys as cb', 'ch.hospcode', 'cb.hospcode')
-      .whereNotIn('ch.hosptype_id',['1','2']);
+      .leftJoin('wm_current_beds as cb', 'ch.hospcode', 'cb.hospcode')
+      .whereNotIn('ch.hosptype_id', ['1', '2']);
+    if (provinceCode) {
+      sql.where('ch.province_code', provinceCode)
+    }
+    return sql
   }
 }
