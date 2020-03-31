@@ -3,7 +3,7 @@ import * as Knex from 'knex';
 export class BalanceModel {
 
   getBalance(db: Knex, hospcode) {
-    return db('balances as b')
+    return db('wm_supplies as b')
       .select('b.*', 's.fname as fullname')
       .join('um_users as s', 'b.created_by', 's.id')
       .where('b.hospcode', hospcode)
@@ -11,7 +11,7 @@ export class BalanceModel {
   }
 
   getBalanceDetail(db: Knex, id) {
-    return db('balance_details as bd')
+    return db('wm_supplie_details as bd')
       .select('bd.*', 's.name', 's.unit', 's.code')
       .join('mm_supplies as s', 'bd.supplies_id', 's.id')
       .where('bd.balance_id', id);
@@ -23,7 +23,7 @@ export class BalanceModel {
   }
 
   saveDetail(db: Knex, data) {
-    return db('balance_details')
+    return db('wm_supplie_details')
       .insert(data);
   }
 
@@ -43,7 +43,7 @@ export class BalanceModel {
   }
 
   update(db: Knex, id, qty) {
-    return db('balance_details')
+    return db('wm_supplie_details')
       .update('qty', qty)
       .where('id', id);
   }
