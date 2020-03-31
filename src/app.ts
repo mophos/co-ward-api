@@ -34,6 +34,7 @@ import bedStaffRoute from './routes/staff/bed';
 import requisitionStaffRoute from './routes/staff/requisition';
 import settingStaffRoute from './routes/staff/setting';
 
+import basicRoute from './routes/basic';
 import servicesRoute from './routes/manager/services';
 import eocRoute from './routes/eoc';
 // Assign router to the express.Router() instance
@@ -193,6 +194,7 @@ let managerAuth = (req, res, next) => {
 
 app.use('/login', loginRoute);
 app.use('/register', registerRoute);
+app.use('/basic', basicRoute);
 app.use('/v1', api);
 
 //admin
