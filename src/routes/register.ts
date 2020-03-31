@@ -101,4 +101,26 @@ router.post('/register', upload.any(), async (req: Request, res: Response) => {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
+
+router.get('/title', async (req: Request, res: Response) => {
+
+  try {
+    let rs: any = await registerModel.getTitles(req.db);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/position', async (req: Request, res: Response) => {
+
+  try {
+    let rs: any = await registerModel.getPositions(req.db);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+
 export default router;

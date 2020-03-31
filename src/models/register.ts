@@ -8,14 +8,24 @@ export class Register {
     }
 
     autocompleteHospital(db: Knex, query) {
-		const _q = `%${query}%`;
-		return db('l_hospitals')
-			.orWhere('hospname', 'like', _q)
-			.orderBy('hospname')
-	}
+        const _q = `%${query}%`;
+        return db('l_hospitals')
+            .orWhere('hospname', 'like', _q)
+            .orderBy('hospname')
+    }
 
     insertUser(db: Knex, data = {}) {
         return db('um_users')
             .insert(data);
+    }
+
+    getTitles(db: Knex) {
+        return db('um_titles')
+            .where('is_deleted', 'N')
+    }
+
+    getPositions(db: Knex) {
+        return db('um_positions')
+            .where('is_deleted', 'N')
     }
 }
