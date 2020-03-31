@@ -14,4 +14,8 @@ export class Register {
 			.orderBy('hospname')
 	}
 
+    insertUser(db: Knex, data = {}) {
+        return db('users')
+            .insert(data);
+    }
 }
