@@ -27,9 +27,9 @@ var storage = multer.diskStorage({
   destination: function (req: any, file: any, cb: any) {
     cb(null, uploadDir)
   },
-  filename: function (req , file, cb) {
+  filename: function (req, file, cb) {
     console.log(file.originalname);
-    cb(null,file.originalname)
+    cb(null, file.originalname)
   }
 });
 
@@ -68,7 +68,11 @@ router.get('/hospcode/autocomplete/search', async (req: Request, res: Response) 
   }
 });
 
-router.post('/register', upload.any(), async (req: Request, res: Response) => {
+router.post('/upload', upload.any(), async (req: Request, res: Response) => {
+  res.send({ ok: true, code: HttpStatus.OK });
+});
+
+router.post('/', async (req: Request, res: Response) => {
 
   let data = req.body.data;
   let picture = req.files
