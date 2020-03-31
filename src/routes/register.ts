@@ -19,7 +19,7 @@ import * as fse from 'fs-extra';
 import * as multer from 'multer';
 const uuidv4 = require('uuid/v4');
 
-const uploadDir = process.env.UPLOAD_DIR || './upload/register';
+const uploadDir = process.env.UPLOAD_DIR + '/register' || './uploads/register';
 
 fse.ensureDirSync(uploadDir);
 
@@ -27,9 +27,9 @@ var storage = multer.diskStorage({
   destination: function (req: any, file: any, cb: any) {
     cb(null, uploadDir)
   },
-  filename: function (req, file, cb) {
-    let _ext = path.extname(req.data.cid);
-    cb(null, _ext)
+  filename: function (req , file, cb) {
+    console.log(file.originalname);
+    cb(null,file.originalname)
   }
 });
 
@@ -73,7 +73,8 @@ router.post('/register', upload.any(), async (req: Request, res: Response) => {
   let data = req.body.data;
   let picture = req.files
   try {
-
+    console.log(data.toString());
+    
     if (('username' in data) && ('password' in data) && ('hospcode' in data) && ('titleId' in data)
       && ('fname' in data) && ('cid' in data) && ('lname' in data) && ('positionId' in data) && ('email' in data) && ('type' in data)
       && ('isProvince' in data) && ('telephone' in data) && picture.length) {
@@ -91,14 +92,18 @@ router.post('/register', upload.any(), async (req: Request, res: Response) => {
         telephone: data.phoneNumber,
         is_province: data.isProvince
       }
-      let rs: any = await registerModel.insertUser(req.db, _data);
-      res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+      await registerModel.insertUser(req.db, _data);
+      res.send({ ok: true, code: HttpStatus.OK });
     } else {
       res.send({ ok: false, error: 'ข้อมูลไม่ครบ', code: HttpStatus.OK });
-
     }
   } catch (error) {
-    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+    console.log(error.errno);
+    if (error.errno === 1062) {
+      res.send({ ok: false, error: 'username นี้ถูกใช้งานแล้ว', code: HttpStatus.OK });
+    } else {
+      res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+    }
   }
 });
 
