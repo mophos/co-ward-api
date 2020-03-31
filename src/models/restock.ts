@@ -91,6 +91,10 @@ export class RestockModel {
       .where('code', code)
   }
 
+  getSuppliesHos(db: Knex) {
+    return db('mm_supplies')
+  }
+
   remove(db: Knex, id) {
     return db('wm_restock_detail_items').delete().whereIn('restock_detail_id', id);
   }
@@ -101,7 +105,7 @@ export class RestockModel {
   insert(db: Knex, data) {
     return db('wm_restock_detail_items_temp').insert(data);
   }
-  
+
   update(db: Knex, data) {
     let sql = `insert wm_restock_detail_items (supplies_id,qty,restock_detail_id)
       select s.id,r.qty,r.restock_detail_id from wm_restock_detail_items_temp as r
