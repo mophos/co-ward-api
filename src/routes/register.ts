@@ -73,8 +73,6 @@ router.post('/register', upload.any(), async (req: Request, res: Response) => {
   let data = req.body.data;
   let picture = req.files
   try {
-    console.log(data.toString());
-    
     if (('username' in data) && ('password' in data) && ('hospcode' in data) && ('titleId' in data)
       && ('fname' in data) && ('cid' in data) && ('lname' in data) && ('positionId' in data) && ('email' in data) && ('type' in data)
       && ('isProvince' in data) && ('telephone' in data) && picture.length) {
