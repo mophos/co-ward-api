@@ -3,9 +3,9 @@ import * as Knex from 'knex';
 export class UserModel {
 
   getUser(db: Knex, limit = 100, offset = 0, q = '') {
-    return db('users as u') 
+    return db('um_users as u') 
     .select('u.*','h.hospname')
-    .leftJoin('chospital as h','h.hospcode','u.hospcode')
+    .leftJoin('l_hospitals as h','h.hospcode','u.hospcode')
     .where((v)=>{
       v.where('u.username', 'like', '%' + q + '%')
       v.orWhere('u.fname', 'like', '%' + q + '%')
@@ -17,7 +17,7 @@ export class UserModel {
   }
   
   getUserTotal(db: Knex, q = '') {
-    return db('users') 
+    return db('um_users') 
     .count('* as count')
     .where('is_deleted','N')
     .where((v)=>{
@@ -28,24 +28,24 @@ export class UserModel {
   }
 
   getUserById(db: Knex, id: number) {
-    return db('users')
+    return db('um_users')
     .where('is_deleted','N')
       .where('id', id);
   }
 
   updateUser(db: Knex, id: number, data = {}) {
-    return db('users')
+    return db('um_users')
       .update(data)
       .where('id', id);
   }
 
   insertUser(db: Knex, data = {}) {
-    return db('users')
+    return db('um_users')
       .insert(data);
   }
 
   deleteUser(db: Knex, id: number) {
-    return db('users')
+    return db('um_users')
       .where('is_deleted','N')
       .where('id', id);
   }

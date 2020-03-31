@@ -3,15 +3,15 @@ import * as Knex from 'knex';
 export class PayModel {
 
   getPay(db: Knex, hospcode) {
-    return db('pays as b')
+    return db('wm_pays as b')
       // .select('b.*', 's.fname as fullname')
-      // .join('users as s', 'b.created_by', 's.id')
+      // .join('um_users as s', 'b.created_by', 's.id')
       .where('b.hospcode', hospcode)
       .orderBy('id', 'DESC')
   }
 
   getPayDetail(db: Knex, id) {
-    return db('pay_details as bd')
+    return db('wm_pay_detail as bd')
       .select('bd.*', 's.name', 's.unit', 's.code')
       .join('mm_supplies as s', 'bd.supplies_id', 's.id')
       .where('bd.pay_id', id);
@@ -39,9 +39,9 @@ export class PayModel {
   }
 
   selectInsertDetail(db: Knex, ids) {
-    return db.raw(`insert pay_details (pay_id,supplies_id,qty)
-    SELECT p.id as pay_id,r.supplies_id,r.qty from restock_detail_items as r 
-    join pays as p on p.restock_detail_id = r.restock_detail_id
+    return db.raw(`insert wm_pay_detail (pay_id,supplies_id,qty)
+    SELECT p.id as pay_id,r.supplies_id,r.qty from wm_restock_detail_items as r 
+    join wm_pays as p on p.restock_detail_id = r.restock_detail_id
     where p.id BETWEEN ? and ?
     `, [ids[0], ids[ids.length - 1]])
   }
