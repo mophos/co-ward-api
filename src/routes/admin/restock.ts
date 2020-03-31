@@ -263,6 +263,20 @@ router.get('/check-approved', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/suppiles', async (req: Request, res: Response) => {
+  const db = req.db;
+
+  try {
+    const rs = await restockModel.getSuppliesHos(db);
+    for (const v of rs) {
+      v.qty = 0;
+    }
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.get('/approved', async (req: Request, res: Response) => {
   try {
     const restockId = req.query.restockId;
@@ -276,11 +290,11 @@ router.get('/approved', async (req: Request, res: Response) => {
       // console.log(detail.length);
       // let detailCode = map(detail, (v) => { return { 'hospcode': v.hospcode } })
       // console.log(detailCode);
-      
+
       // for (const d of detail) {
-        console.log(detail[0]);
-        
-        const payId = await payModel.saveHead(db, detail);
+      console.log(detail[0]);
+
+      const payId = await payModel.saveHead(db, detail);
       //   await payModel.selectInsertDetail(db, payId, d.id);
       //   console.log(payId, d.id);
 
