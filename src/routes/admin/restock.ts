@@ -95,6 +95,47 @@ router.get('/create', async (req: Request, res: Response) => {
   }
 });
 
+router.post('/create/pay-now', async (req: Request, res: Response) => {
+  const data = req.body.data;
+  const decoded = req.decoded
+
+  let rsHead: any;
+  let hospData = [];
+  let dataSet = [];
+  try {
+    let head = {
+      code: await serialModel.getSerial(req.db, 'RS'),
+      created_by: decoded.id
+    }
+    rsHead = await restockModel.insertRestock(req.db, head);
+    for (const v of data) {
+      let detailId = uuidv4();
+      hospData.push({
+        id: detailId,
+        restock_id: rsHead,
+        hospcode: v.hospcode,
+      })
+      for (const j of v.items) {
+        console.log(j);
+        
+        dataSet.push({
+          restock_detail_id: detailId,
+          supplies_id: j.id,
+          qty: j.qty
+        })
+      }
+    }
+    await restockModel.insertRestockDetail(req.db, hospData);
+    await restockModel.insertRestockDetailItem(req.db, dataSet);
+
+    res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error.message);
+    await restockModel.deleteRestock(req.db, rsHead[0]);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.post('/import', async (req: Request, res: Response) => {
   const data: any = req.body.data
   console.log(data);

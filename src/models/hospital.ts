@@ -4,11 +4,11 @@ export class HospitalModel {
 
 
   getHospTypes(db: Knex) {
-    return db('chospital_types')
+    return db('l_hospital_minitry_types')
   }
 
   getHospByType(db: Knex, offset, limit, q, hosptypeId) {
-    let sql = db('chospital')
+    let sql = db('l_hospitals')
       .where((v) => {
         v.where('hospname', 'like', '%' + q + '%')
         v.orWhere('hospcode', 'like', '%' + q + '%')
@@ -20,7 +20,7 @@ export class HospitalModel {
   }
 
   getHospByTypeTotal(db: Knex, q, sub_ministry_code, ministry_code, hosptype_code) {
-    let sql = db('chospital')
+    let sql = db('l_hospitals')
       .where((v) => {
         v.where('hospname', 'like', '%' + q + '%')
         v.orWhere('hospcode', 'like', '%' + q + '%')

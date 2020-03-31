@@ -2,10 +2,10 @@ import * as Knex from 'knex';
 
 export class BedModel {
 	info(db: Knex, hospcode: any) {
-		console.log(db('chospital')
+		console.log(db('l_hospitals')
 			.where('hospcode', hospcode).toString());
 
-		return db('chospital')
+		return db('l_hospitals')
 			.where('hospcode', hospcode);
 	}
 
@@ -87,6 +87,6 @@ export class BedModel {
 	}
 
 	update(db: Knex, data, hospcode: any) {
-		return db('chospital').update(data).where('hospcode', hospcode);
+		return db('l_hospitals').update(data).where('hospcode', hospcode);
 	}
 }

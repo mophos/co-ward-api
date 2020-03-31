@@ -4,7 +4,7 @@ import * as moment from 'moment';
 export class SerialModel {
 
 	getInfoSerial(knex: Knex, srType: any) {
-		return knex('serials')
+		return knex('sys_serials')
 			.where('type', srType)
 			.limit(1);
 	}
@@ -40,7 +40,7 @@ export class SerialModel {
 	}
 
 	updateSerial(knex: Knex, srType) {
-		return knex('serials')
+		return knex('sys_serials')
 			.increment('serial_no', 1)
 			.where('type', srType);
 	}
