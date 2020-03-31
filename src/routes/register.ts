@@ -74,21 +74,21 @@ router.post('/register', upload.any(), async (req: Request, res: Response) => {
   let picture = req.files
   try {
 
-    if (('username' in data) && ('password' in data) && ('hospcode' in data) && ('prename' in data)
-      && ('fname' in data) && ('lname' in data) && ('position' in data) && ('email' in data) && ('type' in data)
+    if (('username' in data) && ('password' in data) && ('hospcode' in data) && ('titleId' in data)
+      && ('fname' in data) && ('lname' in data) && ('positionId' in data) && ('email' in data) && ('type' in data)
       && ('isProvince' in data) && ('telephone' in data) && picture.length) {
       let _data = {
         username: data.username,
-        password: data.password,
-        hospcode: data.hospcode,
-        prename: data.prename,
-        fname: data.fname,
-        lname: data.lname,
-        position: data.position,
+        password: crypto.createHash('md5').update(data.password).digest('hex'),
+        hospcode: data.hospCode,
+        title_id: data.titleId,
+        fname: data.firstName,
+        lname: data.lastName,
+        position_id: data.positionId,
         email: data.email,
         type: data.type,
-        is_province: data.isProvince,
-        telephone: data.telephone,
+        telephone: data.phoneNumber,
+        is_province: data.isProvince
       }
       let rs: any = await registerModel.insertUser(req.db, _data);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });

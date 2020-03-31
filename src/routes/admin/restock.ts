@@ -95,6 +95,47 @@ router.get('/create', async (req: Request, res: Response) => {
   }
 });
 
+router.post('/create/pay-now', async (req: Request, res: Response) => {
+  const data = req.body.data;
+  const decoded = req.decoded
+
+  let rsHead: any;
+  let hospData = [];
+  let dataSet = [];
+  try {
+    let head = {
+      code: await serialModel.getSerial(req.db, 'RS'),
+      created_by: decoded.id
+    }
+    rsHead = await restockModel.insertRestock(req.db, head);
+    for (const v of data) {
+      let detailId = uuidv4();
+      hospData.push({
+        id: detailId,
+        restock_id: rsHead,
+        hospcode: v.hospcode,
+      })
+      for (const j of v.items) {
+        console.log(j);
+        
+        dataSet.push({
+          restock_detail_id: detailId,
+          supplies_id: j.id,
+          qty: j.qty
+        })
+      }
+    }
+    await restockModel.insertRestockDetail(req.db, hospData);
+    await restockModel.insertRestockDetailItem(req.db, dataSet);
+
+    res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error.message);
+    await restockModel.deleteRestock(req.db, rsHead[0]);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.post('/import', async (req: Request, res: Response) => {
   const data: any = req.body.data
   console.log(data);
@@ -263,6 +304,20 @@ router.get('/check-approved', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/suppiles', async (req: Request, res: Response) => {
+  const db = req.db;
+
+  try {
+    const rs = await restockModel.getSuppliesHos(db);
+    for (const v of rs) {
+      v.qty = 0;
+    }
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.get('/approved', async (req: Request, res: Response) => {
   try {
     const restockId = req.query.restockId;
@@ -276,11 +331,11 @@ router.get('/approved', async (req: Request, res: Response) => {
       // console.log(detail.length);
       // let detailCode = map(detail, (v) => { return { 'hospcode': v.hospcode } })
       // console.log(detailCode);
-      
+
       // for (const d of detail) {
-        console.log(detail[0]);
-        
-        const payId = await payModel.saveHead(db, detail);
+      console.log(detail[0]);
+
+      const payId = await payModel.saveHead(db, detail);
       //   await payModel.selectInsertDetail(db, payId, d.id);
       //   console.log(payId, d.id);
 
