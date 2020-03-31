@@ -4,7 +4,7 @@ export class HospitalModel {
 
 
   getHospTypes(db: Knex) {
-    return db('l_hospital_types')
+    return db('l_hospital_minitry_types')
   }
 
   getHospByType(db: Knex, offset, limit, q, hosptypeId) {

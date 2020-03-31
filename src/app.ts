@@ -34,6 +34,7 @@ import bedStaffRoute from './routes/staff/bed';
 import settingStaffRoute from './routes/staff/setting';
 
 import servicesRoute from './routes/manager/services';
+import eocRoute from './routes/eoc';
 // Assign router to the express.Router() instance
 const app: express.Application = express();
 
@@ -69,6 +70,16 @@ let connection: MySqlConnectionConfig = {
   // debug: true
 }
 
+let connectionEOC: MySqlConnectionConfig = {
+  host: process.env.EOC_DB_HOST,
+  port: +process.env.EOC_DB_PORT,
+  database: process.env.EOC_DB_NAME,
+  user: process.env.EOC_DB_USER,
+  password: process.env.EOC_DB_PASSWORD,
+  multipleStatements: true,
+  // debug: true
+}
+
 let db = Knex({
   client: 'mysql',
   connection: connection,
@@ -83,8 +94,23 @@ let db = Knex({
   },
 });
 
+let dbEOC = Knex({
+  client: 'mysql',
+  connection: connectionEOC,
+  pool: {
+    min: 0,
+    max: 100,
+    afterCreate: (conn, done) => {
+      conn.query('SET NAMES utf8', (err) => {
+        done(err, conn);
+      });
+    }
+  },
+});
+
 app.use((req: Request, res: Response, next: NextFunction) => {
   req.db = db;
+  req.dbEOC = dbEOC;
   next();
 });
 
@@ -179,6 +205,7 @@ admin.use('/restock', restockAdminRoute)
 //manager
 api.use('/manager', checkAuth, managerAuth, manager)
 manager.use('/services', servicesRoute)
+manager.use('/eoc', eocRoute)
 
 //staff
 api.use('/staff', checkAuth, staffAuth, staff)
