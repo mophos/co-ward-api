@@ -75,13 +75,14 @@ router.post('/register', upload.any(), async (req: Request, res: Response) => {
   try {
 
     if (('username' in data) && ('password' in data) && ('hospcode' in data) && ('titleId' in data)
-      && ('fname' in data) && ('lname' in data) && ('positionId' in data) && ('email' in data) && ('type' in data)
+      && ('fname' in data) && ('cid' in data) && ('lname' in data) && ('positionId' in data) && ('email' in data) && ('type' in data)
       && ('isProvince' in data) && ('telephone' in data) && picture.length) {
       let _data = {
         username: data.username,
         password: crypto.createHash('md5').update(data.password).digest('hex'),
         hospcode: data.hospCode,
         title_id: data.titleId,
+        cid: data.cid,
         fname: data.firstName,
         lname: data.lastName,
         position_id: data.positionId,
