@@ -28,7 +28,6 @@ var storage = multer.diskStorage({
     cb(null, uploadDir)
   },
   filename: function (req, file, cb) {
-    console.log(file.originalname);
     cb(null, file.originalname)
   }
 });
@@ -68,15 +67,14 @@ router.get('/hospcode/autocomplete/search', async (req: Request, res: Response) 
   }
 });
 
-router.post('/upload', upload.any(), async (req: Request, res: Response) => {
+router.post('/upload-supplie', upload.any(), async (req: Request, res: Response) => {
   res.send({ ok: true, code: HttpStatus.OK });
 });
 
-router.post('/', async (req: Request, res: Response) => {
+router.post('/supplie', async (req: Request, res: Response) => {
 
   let data = req.body.data;
-  console.log(data.hospcode);
-  
+
   try {
     if (('username' in data) && ('password' in data) && ('hospcode' in data) && ('titleId' in data)
       && ('fname' in data) && ('cid' in data) && ('lname' in data) && ('positionId' in data) && ('email' in data) && ('type' in data)
@@ -92,7 +90,7 @@ router.post('/', async (req: Request, res: Response) => {
         position_id: data.positionId,
         email: data.email,
         type: data.type,
-        telephone: data.phoneNumber,
+        telephone: data.telephone,
         is_province: data.isProvince
       }
       await registerModel.insertUser(req.db, _data);
