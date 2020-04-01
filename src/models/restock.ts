@@ -74,14 +74,14 @@ export class RestockModel {
   }
 
   getSuppliesRestockByBalance(db: Knex, hospcode = undefined) {
-    let sql = db('view_forecast')
+    let sql = db('view_supplies_min_max_all')
     if (hospcode)
       sql.whereIn('hospcode', hospcode);
     return sql
   }
 
   getSuppliesRestockByHosp(db: Knex, sub_ministry_code = undefined, ministry_code = undefined, hosptype_code = undefined) {
-    let sql = db('view_forecast_hosp')
+    let sql = db('l_hospitals')
     if (sub_ministry_code)
       sql.where('sub_ministry_code', sub_ministry_code);
     if (ministry_code)

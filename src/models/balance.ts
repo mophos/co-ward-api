@@ -2,6 +2,25 @@ import * as Knex from 'knex';
 
 export class BalanceModel {
 
+
+
+  getSupplies(db: Knex, hospcode) {
+    return db('mm_supplies AS ms')
+      .select('ms.*', 'wcs.usage_rate_day')
+      .leftJoin('wm_supplies_min_max AS wsmm', function () {
+        this.on('wsmm.supplies_id', 'ms.id').andOn('wsmm.hospcode', db.raw(hospcode))
+      })
+      .leftJoin('wm_current_supplies AS wcs', function () {
+        this.on(' wcs.supplies_id ', 'ms.id').andOn('wcs.hospcode', db.raw(hospcode))
+      })
+      .where((v) => {
+        v.where('wsmm.is_active', 'Y')
+        v.orWhere('wsmm.is_active', null)
+      })
+      .where('is_deleted', 'N')
+      .where('is_actived', 'Y')
+  }
+
   getBalance(db: Knex, hospcode) {
     return db('wm_supplies as b')
       .select('b.*', 's.fname as fullname')
@@ -12,7 +31,7 @@ export class BalanceModel {
 
   getBalanceDetail(db: Knex, id) {
     return db('wm_supplie_details as bd')
-      .select('bd.*', 's.name', 's.unit', 's.code')
+      .select('bd.*', 's.name', 's.unit_name', 's.code')
       .join('mm_supplies as s', 'bd.supplies_id', 's.id')
       .where('bd.balance_id', id);
   }
