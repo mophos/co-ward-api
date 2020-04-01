@@ -16,7 +16,7 @@ export class Register {
 
     insertUser(db: Knex, data = {}) {
         return db('um_users')
-            .insert(data);
+            .insert(data, 'id');
     }
 
     getTitles(db: Knex) {
@@ -27,5 +27,15 @@ export class Register {
     getPositions(db: Knex) {
         return db('um_positions')
             .where('is_deleted', 'N')
+    }
+
+    getRights(db: Knex, rights) {
+        return db('um_rights')
+            .whereIn('name', rights)
+    }
+
+    insertUserRights(db: Knex, data = {}) {
+        return db('um_user_rights')
+            .insert(data);
     }
 }
