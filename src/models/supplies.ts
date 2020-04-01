@@ -63,7 +63,6 @@ export class SuppliesModel {
     if (provinceCode) {
       sql.where('ch.province_code', provinceCode)
     }
-    console.log(sql.toString());
     
     return sql;
   }

@@ -109,7 +109,6 @@ router.post('/supplie', async (req: Request, res: Response) => {
       res.send({ ok: false, error: 'ข้อมูลไม่ครบ', code: HttpStatus.OK });
     }
   } catch (error) {
-    console.log(error.errno);
     if (error.errno === 1062) {
       res.send({ ok: false, error: 'username นี้ถูกใช้งานแล้ว', code: HttpStatus.OK });
     } else {

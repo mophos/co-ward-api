@@ -2,9 +2,6 @@ import * as Knex from 'knex';
 
 export class BedModel {
 	info(db: Knex, hospcode: any) {
-		console.log(db('l_hospitals')
-			.where('hospcode', hospcode).toString());
-
 		return db('l_hospitals')
 			.where('hospcode', hospcode);
 	}
