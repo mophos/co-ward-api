@@ -3,13 +3,19 @@ import { Router, Request, Response } from 'express';
 import { Jwt } from '../models/jwt';
 
 import * as HttpStatus from 'http-status-codes';
+import { Login } from '../models/login'
 
 const jwt = new Jwt();
 
+const model = new Login();
 const router: Router = Router();
 
 router.get('/', (req: Request, res: Response) => {
   res.send({ ok: true, message: 'Welcome to RESTful api server!', code: HttpStatus.OK });
+});
+
+router.get('/version', (req: Request, res: Response) => {
+  res.send({ ok: true, message: '1.0.0', code: HttpStatus.OK });
 });
 
 // router.get('/gen-token', async (req: Request, res: Response) => {
