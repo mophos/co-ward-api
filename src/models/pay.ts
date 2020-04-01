@@ -46,4 +46,37 @@ export class PayModel {
     `, [ids[0], ids[ids.length - 1]])
   }
 
+  payHead(db: Knex, payId) {
+    let sql = `SELECT
+      CONCAT( r.code, h.hospcode ) AS con_no,
+      h.hospname,
+      h.address,
+      h.tambon_name,
+      h.ampur_name,
+      h.province_name,
+      h.lat,
+      h.long,
+      h.zipcode,
+      u.telephone,
+      u.email,
+      CONCAT( t.name, u.fname, ' ', u.lname ) AS contact 
+    FROM
+      wm_pays AS p
+      JOIN wm_restock_details rd ON rd.id = p.restock_detail_id
+      JOIN wm_restocks r ON r.id = rd.restock_id
+      JOIN l_hospitals h ON h.hospcode = rd.hospcode
+      JOIN um_users u ON u.id = r.created_by
+      JOIN um_titles t ON t.id = u.title_id 
+    WHERE
+      p.id = ${payId}`;
+    return db.raw(sql)
+  }
+
+  payDetails(db: Knex, payId: any) {
+    return db('wm_pays as p')
+      .join('wm_pay_details as pd', 'pd.pay_id', 'p.id')
+      .join('mm_supplies as s', 's.id', 'pd.supplies_id')
+      .where('p.id', payId);
+  }
+
 }
