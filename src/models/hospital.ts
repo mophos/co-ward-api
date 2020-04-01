@@ -19,19 +19,15 @@ export class HospitalModel {
     return sql
   }
 
-  getHospByTypeTotal(db: Knex, q, sub_ministry_code, ministry_code, hosptype_code) {
+  getHospByTypeTotal(db: Knex, q, hosptypeId) {
     let sql = db('l_hospitals')
+      .count('* as count')
       .where((v) => {
         v.where('hospname', 'like', '%' + q + '%')
         v.orWhere('hospcode', 'like', '%' + q + '%')
       })
-    if (sub_ministry_code)
-      sql.where('sub_ministry_code', sub_ministry_code);
-    if (ministry_code)
-      sql.where('ministry_code', ministry_code);
-    if (hosptype_code)
-      sql.where('hosptype_code', hosptype_code);
-    return sql;
+    sql.where('hosptype_id', hosptypeId)
+    return sql
   }
 
 }
