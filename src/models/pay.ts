@@ -11,7 +11,7 @@ export class PayModel {
   }
 
   getPayDetail(db: Knex, id) {
-    return db('wm_pay_detail as bd')
+    return db('wm_pay_details as bd')
       .select('bd.*', 's.name', 's.unit', 's.code')
       .join('mm_supplies as s', 'bd.supplies_id', 's.id')
       .where('bd.pay_id', id);
@@ -39,7 +39,7 @@ export class PayModel {
   }
 
   selectInsertDetail(db: Knex, ids) {
-    return db.raw(`insert wm_pay_detail (pay_id,supplies_id,qty)
+    return db.raw(`insert wm_pay_details (pay_id,supplies_id,qty)
     SELECT p.id as pay_id,r.supplies_id,r.qty from wm_restock_detail_items as r 
     join wm_pays as p on p.restock_detail_id = r.restock_detail_id
     where p.id BETWEEN ? and ?
