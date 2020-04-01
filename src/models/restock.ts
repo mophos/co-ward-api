@@ -25,6 +25,11 @@ export class RestockModel {
   }
 
   getRestockDetail(db: Knex, restockId) {
+    console.log(db('wm_restock_details as rd')
+    .select('rd.id as restock_detail_id', 's.hospcode')
+    .join('l_hospitals as s', 'rd.hospcode', 's.hospcode')
+    .where('rd.restock_id', restockId).toString());
+    
     return db('wm_restock_details as rd')
       .select('rd.id as restock_detail_id', 's.hospcode')
       .join('l_hospitals as s', 'rd.hospcode', 's.hospcode')
@@ -150,40 +155,10 @@ export class RestockModel {
       .groupBy('supplies_id')
   }
 
-  getBalanceFromTHPD() {
-    return [
-      { type_code: 'N', sku_id: 1, qty: 1000 },
-      { type_code: '110412020302', sku_id: 1, qty: 1000 },
-      { type_code: '110412020305', sku_id: 1, qty: 1000 },
-      { type_code: '110412021401', sku_id: 1, qty: 1000 },
-      { type_code: '110412021402', sku_id: 1, qty: 1000 },
-      { type_code: '110412021403', sku_id: 1, qty: 1000 },
-      { type_code: '120405400011', sku_id: 1, qty: 1000 },
-      { type_code: '120405400012', sku_id: 1, qty: 1000 },
-      { type_code: '6207003', sku_id: 1, qty: 1000 },
-      { type_code: '6207007', sku_id: 1, qty: 1000 },
-      { type_code: '6207008', sku_id: 1, qty: 1000 },
-      { type_code: '6207009', sku_id: 1, qty: 1000 },
-      { type_code: '6207010', sku_id: 1, qty: 1000 },
-      { type_code: '6207011', sku_id: 1, qty: 1000 },
-      { type_code: '6214004', sku_id: 1, qty: 1000 },
-      { type_code: '6214012', sku_id: 1, qty: 1000 },
-      { type_code: '6214014', sku_id: 1, qty: 1000 },
-      { type_code: '6214021', sku_id: 1, qty: 1000 },
-      { type_code: '6214022', sku_id: 1, qty: 1000 },
-      { type_code: '6214023', sku_id: 1, qty: 1000 },
-      { type_code: '6214024', sku_id: 1, qty: 1000 },
-      { type_code: '6214025', sku_id: 1, qty: 1000 },
-      { type_code: '6214027', sku_id: 1, qty: 1000 },
-      { type_code: '6214028', sku_id: 1, qty: 1000 },
-      { type_code: '6214029', sku_id: 1, qty: 1000 },
-      { type_code: '6214030', sku_id: 1, qty: 1000 },
-      { type_code: '6224015', sku_id: 1, qty: 1000 },
-      { type_code: '6234016', sku_id: 1, qty: 1000 },
-      { type_code: '6244017', sku_id: 1, qty: 1000 },
-
-    ];
+  getBalanceFromTHPD(db: Knex) {
+    return db('balance_thpd');
   }
+
   getRestockDetailItems(db: Knex, restockDetailId) {
     return db('wm_restock_detail_items as rdi')
       .select('rdi.*', 's.name as supplies_name', 's.unit_name as supplies_unit', 's.code as supplies_code')

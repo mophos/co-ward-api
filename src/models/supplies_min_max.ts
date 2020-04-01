@@ -2,7 +2,7 @@ import * as Knex from 'knex';
 
 export class SuppliesMinMaxModel {
   getSuppliesMinMax(db: Knex, hospcode: any) {
-    return db('view_suppplies_min_max_all as smm')
+    return db('view_supplies_min_max_all as smm')
       // .select('smm.*','s.code','s.name','s.unit_name')
       // .join('mm_supplies as s', 's.id', 'smm.supplies_id')
       .where('smm.hospcode', hospcode)
