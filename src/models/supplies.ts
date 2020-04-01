@@ -9,6 +9,7 @@ export class SuppliesModel {
         v.orWhere('code', 'like', '%' + q + '%')
       })
       .where('is_deleted', 'N')
+      .where('is_actived', 'Y')
       .limit(limit)
       .offset(offset)
   }
