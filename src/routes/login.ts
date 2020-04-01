@@ -25,7 +25,7 @@ router.post('/', async (req: Request, res: Response) => {
     let rs: any = await loginModel.login(db, username, encPassword);
 
     if (rs.length) {
-
+      let right: any = await loginModel.rights(db, rs[0].id);
       let payload = {
         fullname: `${rs[0].fname || ''} ${rs[0].lname || ''}`,
         fname: `${rs[0].fname}`,
@@ -40,7 +40,8 @@ router.post('/', async (req: Request, res: Response) => {
         hospname: rs[0].hospname,
         position: rs[0].position,
         email: rs[0].email,
-        role: rs[0].role
+        role: rs[0].role,
+        rights: right
       }
 
       let token = jwt.sign(payload);
