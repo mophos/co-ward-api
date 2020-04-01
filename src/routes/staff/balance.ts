@@ -10,6 +10,17 @@ const balanceModel = new BalanceModel();
 const router: Router = Router();
 
 
+router.get('/supplies', async (req: Request, res: Response) => {
+  const hospcode = req.decoded.hospcode;
+  try {
+    let rs: any = await balanceModel.getSupplies(req.db, hospcode);
+    
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK, hospcode });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.get('/', async (req: Request, res: Response) => {
   try {
     let rs: any = await balanceModel.getBalance(req.db, req.decoded.hospcode);
