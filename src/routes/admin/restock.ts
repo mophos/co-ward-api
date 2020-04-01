@@ -117,7 +117,7 @@ router.post('/create/pay-now', async (req: Request, res: Response) => {
       })
       for (const j of v.items) {
         console.log(j);
-        
+
         dataSet.push({
           restock_detail_id: detailId,
           supplies_id: j.id,
@@ -356,6 +356,18 @@ router.get('/approved', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/sendthpd', async (req: Request, res: Response) => {
+  const db = req.db;
+  const payId = req.query.payId;
+
+  try {
+    let rs = await sendTHPD(db, payId);
+    res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 function checkBalanceFromTHPD(qtyRequest, qtyTHPD) {
   for (const q of qtyRequest) {
     const idx = _.findIndex(qtyTHPD, { 'type_code': q.supplies_code });
@@ -370,4 +382,63 @@ function checkBalanceFromTHPD(qtyRequest, qtyTHPD) {
   }
   return true;
 }
+
+async function sendTHPD(db, payId: any) {
+  let data = [];
+
+  let rsHead: any = await payModel.payHead(db, payId);
+  rsHead = rsHead[0];
+
+  const obj: any = {};
+
+  obj.con_no = rsHead[0].con_no;
+  obj.s_name = 'องค์การเภสัชกรรม';
+  obj.s_address = '75/1 ถ.พระรามที่ 6 ราชเทวี';
+  obj.s_subdistrict = '';
+  obj.s_district = '';
+  obj.s_province = 'กรุงเทพฯ';
+  obj.s_lat = '13.7667625';
+  obj.s_lon = '100.5285502';
+  obj.s_zipcode = '10400';
+  obj.s_tel = '02-203-8000';
+  obj.s_email = 'info@gpo.or.th';
+  obj.s_contact = 'องค์การเภสัชกรรม';
+
+  obj.r_name = rsHead[0].hospname;
+  obj.r_address = rsHead[0].address;
+  obj.r_subdistrict = rsHead[0].tambon_name;
+  obj.r_district = rsHead[0].ampur_name;
+  obj.r_province = rsHead[0].province_nane;
+  obj.r_lat = rsHead[0].lat;
+  obj.r_lon = rsHead[0].long;
+  obj.r_zipcode = rsHead[0].zipcode;
+  obj.r_tel = rsHead[0].telephone;
+  obj.r_email = rsHead[0].email;
+  obj.r_contact = rsHead[0].contact;
+
+  obj.c_name = 'กระทรวงสาธารณสุข';
+  obj.c_address = 'ถนนติวานนท์';
+  obj.c_subdistrict = 'ตลาดขวัญ';
+  obj.c_district = 'เมือง';
+  obj.c_province = 'นนทบุรี';
+  obj.c_zipcode = '11000';
+  obj.c_tel = '025901000';
+  obj.c_email = 'complain@health.moph.go.th';
+  obj.c_contact = 'กระทรวงสาธารณสุข';
+
+  obj.pickup_date = '';
+  obj.service_code = '';
+  obj.code_type = '';
+  obj.transport_company = '';
+  obj.company_code = '';
+
+  let rsDetail: any = await payModel.payDetails(db, payId);
+  obj.product_detail = rsDetail;
+
+  data.push(obj);
+
+  return data;
+}
+
+
 export default router;
