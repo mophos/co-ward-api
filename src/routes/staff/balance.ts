@@ -14,7 +14,7 @@ router.get('/supplies', async (req: Request, res: Response) => {
   const hospcode = req.decoded.hospcode;
   try {
     let rs: any = await balanceModel.getSupplies(req.db, hospcode);
-    
+
     res.send({ ok: true, rows: rs, code: HttpStatus.OK, hospcode });
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -44,6 +44,7 @@ router.post('/', async (req: Request, res: Response) => {
   try {
     const data = req.body.data;
     const hospcode = req.decoded.hospcode;
+    const hospitalId = req.decoded.hospitalId;
     const userId = req.decoded.id;
     const head = {
       hospcode,
@@ -57,7 +58,8 @@ router.post('/', async (req: Request, res: Response) => {
         hospcode: hospcode,
         supplies_id: i.supplies_id,
         qty: i.qty,
-        usage_rate_day: i.usage_rate_day
+        usage_rate_day: i.usage_rate_day,
+        hospital_id: hospitalId
       }
       currents.push(obj);
     }
