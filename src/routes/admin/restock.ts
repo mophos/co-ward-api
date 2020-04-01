@@ -13,6 +13,7 @@ const xl = require('excel4node');
 const uuidv4 = require('uuid/v4');
 const fse = require('fs-extra');
 const path = require('path')
+const request = require("request");
 
 const serialModel = new SerialModel();
 const restockModel = new RestockModel();
@@ -289,7 +290,7 @@ router.get('/check-approved', async (req: Request, res: Response) => {
   try {
     const restockId = req.query.restockId;
     const db = req.db;
-    const balanceTHPD = await restockModel.getBalanceFromTHPD();
+    const balanceTHPD = await restockModel.getBalanceFromTHPD(db);
     const qtyRequest = await restockModel.getSumSuppliesFromRestockId(db, restockId);
     const enoguh = await checkBalanceFromTHPD(qtyRequest, balanceTHPD)
     if (enoguh) {
@@ -318,51 +319,29 @@ router.get('/suppiles', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/approved', async (req: Request, res: Response) => {
+router.get('/approved-all', async (req: Request, res: Response) => {
+  const db = req.db;
+  const restockId = req.query.restockId;
+
   try {
-    const restockId = req.query.restockId;
-    const db = req.db;
-    const balanceTHPD = await restockModel.getBalanceFromTHPD();
-    const qtyRequest = await restockModel.getSumSuppliesFromRestockId(db, restockId);
-    const enoguh = await checkBalanceFromTHPD(qtyRequest, balanceTHPD)
-    if (enoguh) {
+    let balanceTHPD = await restockModel.getBalanceFromTHPD(db);
+    let qtyRequest = await restockModel.getSumSuppliesFromRestockId(db, restockId);
+    let enough = await checkBalanceFromTHPD(qtyRequest, balanceTHPD);
+
+    if (enough) {
       // พอ
-      const detail: any = await restockModel.getRestockDetail(db, restockId);
-      // console.log(detail.length);
-      // let detailCode = map(detail, (v) => { return { 'hospcode': v.hospcode } })
-      // console.log(detailCode);
+      let detail: any = await restockModel.getRestockDetail(db, restockId);
+      let payId = await payModel.saveHead(db, detail);
+      let start = payId[0];
+      let end = (detail.length + payId[0]) - 1;
+      let rs = await sendTHPD(db, start, end);
 
-      // for (const d of detail) {
-      console.log(detail[0]);
-
-      const payId = await payModel.saveHead(db, detail);
-      //   await payModel.selectInsertDetail(db, payId, d.id);
-      //   console.log(payId, d.id);
-
-      //   // const items: any = await restockModel.getRestockDetailItem(db, d.restock_detail_id);
-      //   // for (const iterator of oitemsbject) {
-
-      //   // }
-
-      // }
+      // const items: any = await restockModel.getRestockDetailItem(db, d.restock_detail_id);
+      res.send({ ok: true, rs: [start, end], code: HttpStatus.OK });
     } else {
       // ไม่พอ ทำค้างจ่าย
     }
 
-
-    res.send({ ok: true, code: HttpStatus.OK });
-  } catch (error) {
-    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
-  }
-});
-
-router.get('/sendthpd', async (req: Request, res: Response) => {
-  const db = req.db;
-  const payId = req.query.payId;
-
-  try {
-    let rs = await sendTHPD(db, payId);
-    res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
@@ -383,62 +362,115 @@ function checkBalanceFromTHPD(qtyRequest, qtyTHPD) {
   return true;
 }
 
-async function sendTHPD(db, payId: any) {
-  let data = [];
+async function sendTHPD(db, start, end) {
+  for (let v = start; v <= end; v++) {
+    let rsHead: any = await payModel.payHead(db, v);
+    rsHead = rsHead[0];
 
-  let rsHead: any = await payModel.payHead(db, payId);
-  rsHead = rsHead[0];
+    const obj: any = {};
 
-  const obj: any = {};
+    obj.con_no = rsHead[0].con_no + 'qq';
+    obj.s_name = 'องค์การเภสัชกรรม';
+    obj.s_address = '75/1 ถ.พระรามที่ 6';
+    obj.s_subdistrict = 'พญาไท';
+    obj.s_district = 'ราชเทวี';
+    obj.s_province = 'กรุงเทพฯ';
+    obj.s_lat = '13.7667625';
+    obj.s_lon = '100.5285502';
+    obj.s_zipcode = '10400';
+    obj.s_tel = '022038000';
+    obj.s_email = 'info@gpo.or.th';
+    obj.s_contact = 'องค์การเภสัชกรรม';
 
-  obj.con_no = rsHead[0].con_no;
-  obj.s_name = 'องค์การเภสัชกรรม';
-  obj.s_address = '75/1 ถ.พระรามที่ 6 ราชเทวี';
-  obj.s_subdistrict = '';
-  obj.s_district = '';
-  obj.s_province = 'กรุงเทพฯ';
-  obj.s_lat = '13.7667625';
-  obj.s_lon = '100.5285502';
-  obj.s_zipcode = '10400';
-  obj.s_tel = '02-203-8000';
-  obj.s_email = 'info@gpo.or.th';
-  obj.s_contact = 'องค์การเภสัชกรรม';
+    obj.r_name = rsHead[0].hospname;
+    obj.r_address = rsHead[0].address;
+    obj.r_subdistrict = rsHead[0].tambon_name;
+    obj.r_district = rsHead[0].ampur_name;
+    obj.r_province = rsHead[0].province_name;
+    obj.r_lat = rsHead[0].lat === null ? '0' : rsHead[0].lat;
+    obj.r_lon = rsHead[0].long === null ? '0' : rsHead[0].long;
+    obj.r_zipcode = rsHead[0].zipcode;
+    obj.r_tel = rsHead[0].telephone === null ? '-' : rsHead[0].telephone;
+    obj.r_email = rsHead[0].email;
+    obj.r_contact = rsHead[0].contact;
 
-  obj.r_name = rsHead[0].hospname;
-  obj.r_address = rsHead[0].address;
-  obj.r_subdistrict = rsHead[0].tambon_name;
-  obj.r_district = rsHead[0].ampur_name;
-  obj.r_province = rsHead[0].province_nane;
-  obj.r_lat = rsHead[0].lat;
-  obj.r_lon = rsHead[0].long;
-  obj.r_zipcode = rsHead[0].zipcode;
-  obj.r_tel = rsHead[0].telephone;
-  obj.r_email = rsHead[0].email;
-  obj.r_contact = rsHead[0].contact;
+    obj.c_name = 'กระทรวงสาธารณสุข';
+    obj.c_address = 'ถนนติวานนท์';
+    obj.c_subdistrict = 'ตลาดขวัญ';
+    obj.c_district = 'เมืองนนทบุรี';
+    obj.c_province = 'นนทบุรี';
+    obj.c_zipcode = '11000';
+    obj.c_tel = '025902185';
+    obj.c_email = 'ictmoph@gmail.com';
+    obj.c_contact = 'กระทรวงสาธารณสุข';
 
-  obj.c_name = 'กระทรวงสาธารณสุข';
-  obj.c_address = 'ถนนติวานนท์';
-  obj.c_subdistrict = 'ตลาดขวัญ';
-  obj.c_district = 'เมือง';
-  obj.c_province = 'นนทบุรี';
-  obj.c_zipcode = '11000';
-  obj.c_tel = '025901000';
-  obj.c_email = 'complain@health.moph.go.th';
-  obj.c_contact = 'กระทรวงสาธารณสุข';
+    obj.pickup_date = moment(rsHead[0].created_at).format('YYYY-MM-DD');
+    obj.service_code = 'ND';
+    obj.cod_type = 'credit';
+    obj.transport_company = 'DX_DEV';
+    obj.company_code = '0';
 
-  obj.pickup_date = '';
-  obj.service_code = '';
-  obj.code_type = '';
-  obj.transport_company = '';
-  obj.company_code = '';
-
-  let rsDetail: any = await payModel.payDetails(db, payId);
-  obj.product_detail = rsDetail;
-
-  data.push(obj);
-
-  return data;
+    let rsDetail: any = await payModel.payDetails(db, v);
+    let detail = [];
+    for (const j of rsDetail) {
+      const objD: any = {};
+      if (j.qty > 0) {
+        objD.name = j.name;
+        objD.qty = j.qty;
+        objD.unit = j.unit;
+        objD.width = 0;
+        objD.length = 0;
+        objD.height = 0;
+        objD.weight = 0;
+        detail.push(objD);
+      }
+    }
+    obj.product_detail = detail;
+    console.log(v);
+    await sandData(obj).then(async (body: any) => {
+      body = body.body;
+      const objR: any = {};
+      if (body.success) {
+        objR.ref_order_no = body.ref_order_no;
+        objR.message = body.message;
+      } else {
+        objR.message = body.message;
+      }
+      console.log(objR, v);
+      await payModel.updatePay(db, objR, v);
+    }).catch((error) => {
+      console.log(error);
+    })
+  }
+  return true;
 }
 
+async function sandData(data) {
+  return new Promise((resolve: any, reject: any) => {
+    var options = {
+      method: 'POST',
+      url: 'http://gw.dxplace.com/gateways/placeorder_prd',
+      agentOptions: {
+        rejectUnauthorized: false
+      },
+      headers:
+      {
+        'cache-control': 'no-cache',
+        'content-type': 'application/json',
+        'app_id': 'thpd',
+        'app_key': 'thpd#1234'
+      },
+      body: data,
+      json: true
+    };
 
+    request(options, async function (error, body) {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(body);
+      };
+    });
+  });
+}
 export default router;
