@@ -74,6 +74,7 @@ router.post('/upload-supplie', upload.any(), async (req: Request, res: Response)
 router.post('/supplie', async (req: Request, res: Response) => {
 
   let data = req.body.data;
+  let right = data.right
 
   try {
     if (('username' in data) && ('password' in data) && ('hospcode' in data) && ('titleId' in data)
@@ -93,7 +94,16 @@ router.post('/supplie', async (req: Request, res: Response) => {
         telephone: data.telephone,
         is_province: data.isProvince
       }
-      await registerModel.insertUser(req.db, _data);
+      let rs: any = await registerModel.insertUser(req.db, _data);
+      let rsRight: any = await registerModel.getRights(req.db, right)
+      let userRight: any = []
+      for (const i of rsRight) {
+        userRight.push({
+          user_id: rs[0],
+          right_id: i.id
+        })
+      }
+      await registerModel.insertUserRights(req.db, userRight)
       res.send({ ok: true, code: HttpStatus.OK });
     } else {
       res.send({ ok: false, error: 'ข้อมูลไม่ครบ', code: HttpStatus.OK });
