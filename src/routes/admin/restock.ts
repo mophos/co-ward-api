@@ -9,6 +9,7 @@ import { SuppliesModel } from '../../models/supplies';
 import { SuppliesMinMaxModel } from '../../models/supplies_min_max';
 import { SerialModel } from '../../models/serial';
 import { PayModel } from '../../models/pay';
+import { log } from 'util';
 const xl = require('excel4node');
 const uuidv4 = require('uuid/v4');
 const fse = require('fs-extra');
@@ -139,7 +140,6 @@ router.post('/create/pay-now', async (req: Request, res: Response) => {
 
 router.post('/import', async (req: Request, res: Response) => {
   const data: any = req.body.data
-  console.log(data);
 
   try {
     let rm = map(groupBy(data, 'restock_detail_id'), (k, v) => {
@@ -323,7 +323,8 @@ router.get('/suppiles', async (req: Request, res: Response) => {
 
 router.get('/approved-all', async (req: Request, res: Response) => {
   const db = req.db;
-  const restockId = req.query.restockId;
+  const restockId = req.query.data;
+  console.log(restockId);
 
   try {
     let balanceTHPD = await restockModel.getBalanceFromTHPD(db);
@@ -336,12 +337,25 @@ router.get('/approved-all', async (req: Request, res: Response) => {
       let payId = await payModel.saveHead(db, detail);
       let start = payId[0];
       let end = (detail.length + payId[0]) - 1;
-      let rs = await sendTHPD(db, start, end);
-
-      // const items: any = await restockModel.getRestockDetailItem(db, d.restock_detail_id);
-      res.send({ ok: true, rs: [start, end], code: HttpStatus.OK });
+      await sendTHPD(db, start, end);
+      res.send({ ok: true, rows: [start, end], code: HttpStatus.OK });
     } else {
       // ไม่พอ ทำค้างจ่าย
+      let data: any = [];
+      for (const q of qtyRequest) {
+        const idx = _.findIndex(balanceTHPD, { 'type_code': q.supplies_code });
+        if (idx > -1) {
+          if (q.qty > balanceTHPD[idx].qty) {
+            const obj: any = {};
+            obj.hospcode = q.hospcode;
+            obj.id = q.supplies_id;
+            obj.supplies_code = q.supplies_code;
+            obj.qty = q.qty - balanceTHPD[idx].qty;
+            data.push(obj);
+          }
+        }
+      }
+      res.send({ ok: true, rows: data, code: HttpStatus.OK });
     }
 
   } catch (error) {
@@ -352,7 +366,6 @@ router.get('/approved-all', async (req: Request, res: Response) => {
 function checkBalanceFromTHPD(qtyRequest, qtyTHPD) {
   for (const q of qtyRequest) {
     const idx = _.findIndex(qtyTHPD, { 'type_code': q.supplies_code });
-
     if (idx > -1) {
       if (q.qty > qtyTHPD[idx].qty) {
         return false;
@@ -428,21 +441,24 @@ async function sendTHPD(db, start, end) {
       }
     }
     obj.product_detail = detail;
-    console.log(v);
-    await sandData(obj).then(async (body: any) => {
-      body = body.body;
-      const objR: any = {};
-      if (body.success) {
-        objR.ref_order_no = body.ref_order_no;
-        objR.message = body.message;
-      } else {
-        objR.message = body.message;
-      }
-      console.log(objR, v);
-      await payModel.updatePay(db, objR, v);
-    }).catch((error) => {
-      console.log(error);
-    })
+    if (obj.product_detail.length) {
+      console.log(obj);
+
+      // await sandData(obj).then(async (body: any) => {
+      //   body = body.body;
+      //   const objR: any = {};
+      //   if (body.success) {
+      //     objR.ref_order_no = body.ref_order_no;
+      //     objR.message = body.message;
+      //   } else {
+      //     objR.message = body.message;
+      //   }
+      //   console.log(objR, v);
+      //   await payModel.updatePay(db, objR, v);
+      // }).catch((error) => {
+      //   console.log(error);
+      // })
+    }
   }
   return true;
 }
