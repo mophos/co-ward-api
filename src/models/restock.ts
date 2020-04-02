@@ -26,10 +26,10 @@ export class RestockModel {
 
   getRestockDetail(db: Knex, restockId) {
     console.log(db('wm_restock_details as rd')
-    .select('rd.id as restock_detail_id', 's.hospcode')
-    .join('l_hospitals as s', 'rd.hospcode', 's.hospcode')
-    .where('rd.restock_id', restockId).toString());
-    
+      .select('rd.id as restock_detail_id', 's.hospcode')
+      .join('l_hospitals as s', 'rd.hospcode', 's.hospcode')
+      .where('rd.restock_id', restockId).toString());
+
     return db('wm_restock_details as rd')
       .select('rd.id as restock_detail_id', 's.hospcode')
       .join('l_hospitals as s', 'rd.hospcode', 's.hospcode')
@@ -147,7 +147,7 @@ export class RestockModel {
 
   getSumSuppliesFromRestockId(db: Knex, restockId) {
     return db('wm_restock_details as rd')
-      .select('rdi.supplies_id', 's.code as supplies_code')
+      .select('rdi.supplies_id', 's.code as supplies_code', 'rd.hospcode')
       .sum('rdi.qty as qty')
       .join('wm_restock_detail_items as rdi', 'rd.id', 'rdi.restock_detail_id')
       .join('mm_supplies as s', 's.id', 'rdi.supplies_id')
