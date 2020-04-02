@@ -25,13 +25,9 @@ export class RestockModel {
   }
 
   getRestockDetail(db: Knex, restockId) {
-    console.log(db('wm_restock_details as rd')
-    .select('rd.id as restock_detail_id', 's.hospcode')
-    .join('l_hospitals as s', 'rd.hospcode', 's.hospcode')
-    .where('rd.restock_id', restockId).toString());
-    
+
     return db('wm_restock_details as rd')
-      .select('rd.id as restock_detail_id', 's.hospcode')
+      .select('rd.id as restock_detail_id', 's.hospcode','s.hospname')
       .join('l_hospitals as s', 'rd.hospcode', 's.hospcode')
       .where('rd.restock_id', restockId);
   }
@@ -160,6 +156,7 @@ export class RestockModel {
   }
 
   getRestockDetailItems(db: Knex, restockDetailId) {
+
     return db('wm_restock_detail_items as rdi')
       .select('rdi.*', 's.name as supplies_name', 's.unit_name as supplies_unit', 's.code as supplies_code')
       .join('mm_supplies as s', 'rdi.supplies_id', 's.id')

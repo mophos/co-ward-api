@@ -248,14 +248,16 @@ router.get('/export/:id', async (req: Request, res: Response) => {
     }
     let row = 3;
     let _detail = chunk(detail, 500)
+    
     for (const _d of _detail) {
-      let items = await restockModel.getRestockDetailItems(db, map(_d, 'id'))
+      let items = await restockModel.getRestockDetailItems(db, map(_d, 'restock_detail_id'))
       for (const d of _d) {
-        ws.cell(row, 1).string(d.id.toString());
+        
+        ws.cell(row, 1).string(d.restock_detail_id.toString());
         ws.cell(row, 2).string(d.hospname.toString());
         lockCell(ws, xl.getExcelCellRef(row, 1))
         lockCell(ws, xl.getExcelCellRef(row, 2))
-        let tmp = filter(items, { 'restock_detail_id': d.id })
+        let tmp = filter(items, { 'restock_detail_id': d.restock_detail_id })
         for (const i of tmp) {
           const idx = _.findIndex(supplieId, { 'id': i.supplies_id })
           if (idx > -1) {
