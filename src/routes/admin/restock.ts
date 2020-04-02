@@ -118,8 +118,6 @@ router.post('/create/pay-now', async (req: Request, res: Response) => {
         hospcode: v.hospcode,
       })
       for (const j of v.items) {
-        console.log(j);
-
         dataSet.push({
           restock_detail_id: detailId,
           supplies_id: j.id,
@@ -248,11 +246,11 @@ router.get('/export/:id', async (req: Request, res: Response) => {
     }
     let row = 3;
     let _detail = chunk(detail, 500)
-    
+
     for (const _d of _detail) {
       let items = await restockModel.getRestockDetailItems(db, map(_d, 'restock_detail_id'))
       for (const d of _d) {
-        
+
         ws.cell(row, 1).string(d.restock_detail_id.toString());
         ws.cell(row, 2).string(d.hospname.toString());
         lockCell(ws, xl.getExcelCellRef(row, 1))
@@ -329,10 +327,9 @@ router.get('/approved-all', async (req: Request, res: Response) => {
     let balanceTHPD = await restockModel.getBalanceFromTHPD(db);
     let qtyRequest = await restockModel.getSumSuppliesFromRestockId(db, restockId);
     let enough = await checkBalanceFromTHPD(qtyRequest, balanceTHPD);
-
     if (enough) {
       // พอ
-      let detail: any = await restockModel.getRestockDetail(db, restockId);
+      let detail: any = await restockModel.getRestockDetails(db, restockId);
       let payId = await payModel.saveHead(db, detail);
       let start = payId[0];
       let end = detail.length + payId[0];
@@ -357,8 +354,8 @@ router.get('/approved-all', async (req: Request, res: Response) => {
       }
       res.send({ ok: true, rows: data, code: HttpStatus.OK });
     }
-
   } catch (error) {
+    console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
