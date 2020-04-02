@@ -18,12 +18,11 @@ export class PayModel {
   }
 
   saveHead(db: Knex, data) {
-    var chunkSize = 1000;
+    var chunkSize = 100;
     const that = this;
     return db.batchInsert('wm_pays', data, chunkSize)
       .returning('id')
       .then(async function (ids) {
-        await that.selectInsertDetail(db, ids);
         return ids;
       })
       .catch(function (error) {
@@ -35,12 +34,12 @@ export class PayModel {
     return db('pay_details').insert(data);
   }
 
-  selectInsertDetail(db: Knex, ids) {
+  selectInsertDetail(db: Knex, start, end) {
     return db.raw(`insert wm_pay_details (pay_id,supplies_id,qty)
     SELECT p.id as pay_id,r.supplies_id,r.qty from wm_restock_detail_items as r 
     join wm_pays as p on p.restock_detail_id = r.restock_detail_id
     where p.id BETWEEN ? and ? and r.qty > 0
-    `, [ids[0], ids[ids.length - 1]])
+    `, [start, end]);
   }
 
   payHead(db: Knex, payId) {

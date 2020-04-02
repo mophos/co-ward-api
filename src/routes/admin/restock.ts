@@ -322,7 +322,6 @@ router.get('/suppiles', async (req: Request, res: Response) => {
 router.get('/approved-all', async (req: Request, res: Response) => {
   const db = req.db;
   const restockId = req.query.data;
-  console.log(restockId);
 
   try {
     let balanceTHPD = await restockModel.getBalanceFromTHPD(db);
@@ -334,7 +333,8 @@ router.get('/approved-all', async (req: Request, res: Response) => {
       let detail: any = await restockModel.getRestockDetail(db, restockId);
       let payId = await payModel.saveHead(db, detail);
       let start = payId[0];
-      let end = (detail.length + payId[0]) - 1;
+      let end = detail.length + payId[0];
+      await payModel.selectInsertDetail(db, start, end);
       await sendTHPD(db, start, end);
       res.send({ ok: true, rows: [start, end], code: HttpStatus.OK });
     } else {
@@ -364,6 +364,7 @@ router.get('/approved-all', async (req: Request, res: Response) => {
 function checkBalanceFromTHPD(qtyRequest, qtyTHPD) {
   for (const q of qtyRequest) {
     const idx = _.findIndex(qtyTHPD, { 'type_code': q.supplies_code });
+
     if (idx > -1) {
       if (q.qty > qtyTHPD[idx].qty) {
         return false;
@@ -376,18 +377,18 @@ function checkBalanceFromTHPD(qtyRequest, qtyTHPD) {
 }
 
 async function sendTHPD(db, start, end) {
-  for (let v = start; v <= end; v++) {
+  for (let v = start; v < end; v++) {
     let rsHead: any = await payModel.payHead(db, v);
     rsHead = rsHead[0];
 
     const obj: any = {};
 
-    obj.con_no = rsHead[0].con_no + 'qq';
+    obj.con_no = rsHead[0].con_no;
     obj.s_name = 'องค์การเภสัชกรรม';
     obj.s_address = '75/1 ถ.พระรามที่ 6';
-    obj.s_subdistrict = 'พญาไท';
+    obj.s_subdistrict = 'ทุ่งพญาไท';
     obj.s_district = 'ราชเทวี';
-    obj.s_province = 'กรุงเทพฯ';
+    obj.s_province = 'กรุงเทพมหานคร';
     obj.s_lat = '13.7667625';
     obj.s_lon = '100.5285502';
     obj.s_zipcode = '10400';
@@ -430,6 +431,7 @@ async function sendTHPD(db, start, end) {
       if (j.qty > 0) {
         objD.name = j.name;
         objD.qty = j.qty;
+        objD.product_code = j.code;
         objD.unit = j.unit;
         objD.width = 0;
         objD.length = 0;
@@ -439,33 +441,29 @@ async function sendTHPD(db, start, end) {
       }
     }
     obj.product_detail = detail;
-    if (obj.product_detail.length) {
-      console.log(obj);
-
-      // await sandData(obj).then(async (body: any) => {
-      //   body = body.body;
-      //   const objR: any = {};
-      //   if (body.success) {
-      //     objR.ref_order_no = body.ref_order_no;
-      //     objR.message = body.message;
-      //   } else {
-      //     objR.message = body.message;
-      //   }
-      //   console.log(objR, v);
-      //   await payModel.updatePay(db, objR, v);
-      // }).catch((error) => {
-      //   console.log(error);
-      // })
-    }
+    // if (obj.product_detail.length) {
+    //   await sandData(obj).then(async (body: any) => {
+    //     body = body.body;
+    //     const objR: any = {};
+    //     if (body.success) {
+    //       objR.ref_order_no = body.ref_order_no;
+    //       objR.message = body.message;
+    //     } else {
+    //       objR.message = body.message;
+    //     }
+    //     await payModel.updatePay(db, objR, v);
+    //   }).catch((error) => {
+    //     console.log(error);
+    //   })
+    // }
   }
-  return true;
 }
 
 async function sandData(data) {
   return new Promise((resolve: any, reject: any) => {
     var options = {
       method: 'POST',
-      url: 'http://gw.dxplace.com/gateways/placeorder_prd',
+      url: 'http://gw.dxplace.com/api/dxgateways/placeorder',
       agentOptions: {
         rejectUnauthorized: false
       },
@@ -473,7 +471,7 @@ async function sandData(data) {
       {
         'cache-control': 'no-cache',
         'content-type': 'application/json',
-        'app_id': 'thpd',
+        'app_id': 'thpd_demo',
         'app_key': 'thpd#1234'
       },
       body: data,

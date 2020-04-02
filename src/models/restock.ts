@@ -25,11 +25,6 @@ export class RestockModel {
   }
 
   getRestockDetail(db: Knex, restockId) {
-    console.log(db('wm_restock_details as rd')
-      .select('rd.id as restock_detail_id', 's.hospcode')
-      .join('l_hospitals as s', 'rd.hospcode', 's.hospcode')
-      .where('rd.restock_id', restockId).toString());
-
     return db('wm_restock_details as rd')
       .select('rd.id as restock_detail_id', 's.hospcode')
       .join('l_hospitals as s', 'rd.hospcode', 's.hospcode')
