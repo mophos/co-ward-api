@@ -6,20 +6,16 @@ import { Router, Request, Response } from 'express';
 import { filter, chunk, map, groupBy } from 'lodash';
 import { RestockModel } from '../../models/restock';
 import { SuppliesModel } from '../../models/supplies';
-import { SuppliesMinMaxModel } from '../../models/supplies_min_max';
 import { SerialModel } from '../../models/serial';
 import { PayModel } from '../../models/pay';
-import { log } from 'util';
 const xl = require('excel4node');
 const uuidv4 = require('uuid/v4');
-const fse = require('fs-extra');
 const path = require('path')
 const request = require("request");
 
 const serialModel = new SerialModel();
 const restockModel = new RestockModel();
 const payModel = new PayModel();
-const suppliesMinMaxModel = new SuppliesMinMaxModel();
 const suppliesModel = new SuppliesModel();
 const router: Router = Router();
 
@@ -334,8 +330,8 @@ router.get('/approved-all', async (req: Request, res: Response) => {
       let start = payId[0];
       let end = detail.length + payId[0];
       await payModel.selectInsertDetail(db, start, end);
-      await sendTHPD(db, start, end);
-      res.send({ ok: true, rows: [start, end], code: HttpStatus.OK });
+      let rs = await sendTHPD(db, start, end);
+      res.send({ ok: true, rows: [rs, start, end], code: HttpStatus.OK });
     } else {
       // ไม่พอ ทำค้างจ่าย
       let data: any = [];
@@ -420,8 +416,9 @@ async function sendTHPD(db, start, end) {
     obj.pickup_date = moment(rsHead[0].created_at).format('YYYY-MM-DD');
     obj.service_code = 'ND';
     obj.cod_type = 'credit';
-    obj.transport_company = 'DX_DEV';
+    obj.transport_company = 'DXPLACE';
     obj.company_code = '0';
+    obj.group_ref_id = '-';
 
     let rsDetail: any = await payModel.payDetails(db, v);
     let detail = [];
@@ -430,7 +427,8 @@ async function sendTHPD(db, start, end) {
       if (j.qty > 0) {
         objD.name = j.name;
         objD.qty = j.qty;
-        objD.product_code = j.code;
+        objD.code = j.code;
+        objD.sku_id = j.code;
         objD.unit = j.unit;
         objD.width = 0;
         objD.length = 0;
@@ -440,21 +438,21 @@ async function sendTHPD(db, start, end) {
       }
     }
     obj.product_detail = detail;
-    // if (obj.product_detail.length) {
-    //   await sandData(obj).then(async (body: any) => {
-    //     body = body.body;
-    //     const objR: any = {};
-    //     if (body.success) {
-    //       objR.ref_order_no = body.ref_order_no;
-    //       objR.message = body.message;
-    //     } else {
-    //       objR.message = body.message;
-    //     }
-    //     await payModel.updatePay(db, objR, v);
-    //   }).catch((error) => {
-    //     console.log(error);
-    //   })
-    // }
+    if (obj.product_detail.length) {
+      await sandData(obj).then(async (body: any) => {
+        body = body.body;
+        const objR: any = {};
+        if (body.success) {
+          objR.ref_order_no = body.ref_order_no;
+          objR.message = body.message;
+        } else {
+          objR.message = body.message;
+        }
+        await payModel.updatePay(db, objR, v);
+      }).catch((error) => {
+        console.log(error);
+      })
+    }
   }
 }
 
@@ -462,7 +460,7 @@ async function sandData(data) {
   return new Promise((resolve: any, reject: any) => {
     var options = {
       method: 'POST',
-      url: 'http://gw.dxplace.com/api/dxgateways/placeorder',
+      url: 'http://gw.dxplace.com/gateways/placeorder',
       agentOptions: {
         rejectUnauthorized: false
       },
@@ -486,4 +484,5 @@ async function sandData(data) {
     });
   });
 }
+
 export default router;

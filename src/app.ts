@@ -13,8 +13,7 @@ import * as cors from 'cors';
 
 import Knex = require('knex');
 import { MySqlConnectionConfig } from 'knex';
-import { indexOf } from 'lodash';
-import { Router, Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { Jwt } from './models/jwt';
 
 import indexRoute from './routes/index';
