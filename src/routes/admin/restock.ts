@@ -6,19 +6,16 @@ import { Router, Request, Response } from 'express';
 import { filter, chunk, map, groupBy } from 'lodash';
 import { RestockModel } from '../../models/restock';
 import { SuppliesModel } from '../../models/supplies';
-import { SuppliesMinMaxModel } from '../../models/supplies_min_max';
 import { SerialModel } from '../../models/serial';
 import { PayModel } from '../../models/pay';
 const xl = require('excel4node');
 const uuidv4 = require('uuid/v4');
-const fse = require('fs-extra');
 const path = require('path')
 const request = require("request");
 
 const serialModel = new SerialModel();
 const restockModel = new RestockModel();
 const payModel = new PayModel();
-const suppliesMinMaxModel = new SuppliesMinMaxModel();
 const suppliesModel = new SuppliesModel();
 const router: Router = Router();
 
@@ -117,8 +114,6 @@ router.post('/create/pay-now', async (req: Request, res: Response) => {
         hospcode: v.hospcode,
       })
       for (const j of v.items) {
-        console.log(j);
-
         dataSet.push({
           restock_detail_id: detailId,
           supplies_id: j.id,
@@ -139,17 +134,20 @@ router.post('/create/pay-now', async (req: Request, res: Response) => {
 
 router.post('/import', async (req: Request, res: Response) => {
   const data: any = req.body.data
-  console.log(data);
 
   try {
+    await restockModel.removeTemp(req.db);
     let rm = map(groupBy(data, 'restock_detail_id'), (k, v) => {
       return v
     });
 
     await restockModel.insert(req.db, data);
     await restockModel.remove(req.db, rm);
-    await restockModel.update(req.db, data);
-    await restockModel.removeTemp(req.db);
+    let rs = await restockModel.update(req.db);
+
+    if (rs.length) {
+      await restockModel.removeTemp(req.db);
+    }
 
     res.send({ ok: true });
   } catch (error) {
@@ -248,14 +246,16 @@ router.get('/export/:id', async (req: Request, res: Response) => {
     }
     let row = 3;
     let _detail = chunk(detail, 500)
+
     for (const _d of _detail) {
-      let items = await restockModel.getRestockDetailItems(db, map(_d, 'id'))
+      let items = await restockModel.getRestockDetailItems(db, map(_d, 'restock_detail_id'))
       for (const d of _d) {
-        ws.cell(row, 1).string(d.id.toString());
+
+        ws.cell(row, 1).string(d.restock_detail_id.toString());
         ws.cell(row, 2).string(d.hospname.toString());
         lockCell(ws, xl.getExcelCellRef(row, 1))
         lockCell(ws, xl.getExcelCellRef(row, 2))
-        let tmp = filter(items, { 'restock_detail_id': d.id })
+        let tmp = filter(items, { 'restock_detail_id': d.restock_detail_id })
         for (const i of tmp) {
           const idx = _.findIndex(supplieId, { 'id': i.supplies_id })
           if (idx > -1) {
@@ -321,28 +321,41 @@ router.get('/suppiles', async (req: Request, res: Response) => {
 
 router.get('/approved-all', async (req: Request, res: Response) => {
   const db = req.db;
-  const restockId = req.query.restockId;
+  const restockId = req.query.data;
 
   try {
     let balanceTHPD = await restockModel.getBalanceFromTHPD(db);
     let qtyRequest = await restockModel.getSumSuppliesFromRestockId(db, restockId);
     let enough = await checkBalanceFromTHPD(qtyRequest, balanceTHPD);
-
     if (enough) {
       // พอ
-      let detail: any = await restockModel.getRestockDetail(db, restockId);
+      let detail: any = await restockModel.getRestockDetails(db, restockId);
       let payId = await payModel.saveHead(db, detail);
       let start = payId[0];
-      let end = (detail.length + payId[0]) - 1;
+      let end = detail.length + payId[0];
+      await payModel.selectInsertDetail(db, start, end);
       let rs = await sendTHPD(db, start, end);
-
-      // const items: any = await restockModel.getRestockDetailItem(db, d.restock_detail_id);
-      res.send({ ok: true, rs: [start, end], code: HttpStatus.OK });
+      res.send({ ok: true, rows: [rs, start, end], code: HttpStatus.OK });
     } else {
       // ไม่พอ ทำค้างจ่าย
+      let data: any = [];
+      for (const q of qtyRequest) {
+        const idx = _.findIndex(balanceTHPD, { 'type_code': q.supplies_code });
+        if (idx > -1) {
+          if (q.qty > balanceTHPD[idx].qty) {
+            const obj: any = {};
+            obj.hospcode = q.hospcode;
+            obj.id = q.supplies_id;
+            obj.supplies_code = q.supplies_code;
+            obj.qty = q.qty - balanceTHPD[idx].qty;
+            data.push(obj);
+          }
+        }
+      }
+      res.send({ ok: true, rows: data, code: HttpStatus.OK });
     }
-
   } catch (error) {
+    console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
@@ -363,18 +376,18 @@ function checkBalanceFromTHPD(qtyRequest, qtyTHPD) {
 }
 
 async function sendTHPD(db, start, end) {
-  for (let v = start; v <= end; v++) {
+  for (let v = start; v < end; v++) {
     let rsHead: any = await payModel.payHead(db, v);
     rsHead = rsHead[0];
 
     const obj: any = {};
 
-    obj.con_no = rsHead[0].con_no + 'qq';
+    obj.con_no = rsHead[0].con_no;
     obj.s_name = 'องค์การเภสัชกรรม';
     obj.s_address = '75/1 ถ.พระรามที่ 6';
-    obj.s_subdistrict = 'พญาไท';
+    obj.s_subdistrict = 'ทุ่งพญาไท';
     obj.s_district = 'ราชเทวี';
-    obj.s_province = 'กรุงเทพฯ';
+    obj.s_province = 'กรุงเทพมหานคร';
     obj.s_lat = '13.7667625';
     obj.s_lon = '100.5285502';
     obj.s_zipcode = '10400';
@@ -407,8 +420,9 @@ async function sendTHPD(db, start, end) {
     obj.pickup_date = moment(rsHead[0].created_at).format('YYYY-MM-DD');
     obj.service_code = 'ND';
     obj.cod_type = 'credit';
-    obj.transport_company = 'DX_DEV';
+    obj.transport_company = 'DXPLACE';
     obj.company_code = '0';
+    obj.group_ref_id = '-';
 
     let rsDetail: any = await payModel.payDetails(db, v);
     let detail = [];
@@ -417,6 +431,8 @@ async function sendTHPD(db, start, end) {
       if (j.qty > 0) {
         objD.name = j.name;
         objD.qty = j.qty;
+        objD.code = j.code;
+        objD.sku_id = j.code;
         objD.unit = j.unit;
         objD.width = 0;
         objD.length = 0;
@@ -426,30 +442,29 @@ async function sendTHPD(db, start, end) {
       }
     }
     obj.product_detail = detail;
-    console.log(v);
-    await sandData(obj).then(async (body: any) => {
-      body = body.body;
-      const objR: any = {};
-      if (body.success) {
-        objR.ref_order_no = body.ref_order_no;
-        objR.message = body.message;
-      } else {
-        objR.message = body.message;
-      }
-      console.log(objR, v);
-      await payModel.updatePay(db, objR, v);
-    }).catch((error) => {
-      console.log(error);
-    })
+    if (obj.product_detail.length) {
+      await sandData(obj).then(async (body: any) => {
+        body = body.body;
+        const objR: any = {};
+        if (body.success) {
+          objR.ref_order_no = body.ref_order_no;
+          objR.message = body.message;
+        } else {
+          objR.message = body.message;
+        }
+        await payModel.updatePay(db, objR, v);
+      }).catch((error) => {
+        console.log(error);
+      })
+    }
   }
-  return true;
 }
 
 async function sandData(data) {
   return new Promise((resolve: any, reject: any) => {
     var options = {
       method: 'POST',
-      url: 'http://gw.dxplace.com/gateways/placeorder_prd',
+      url: 'http://gw.dxplace.com/api/gateways/placeorder',
       agentOptions: {
         rejectUnauthorized: false
       },
@@ -473,4 +488,5 @@ async function sandData(data) {
     });
   });
 }
+
 export default router;

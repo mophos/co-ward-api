@@ -25,11 +25,13 @@ export class RestockModel {
   }
 
   getRestockDetail(db: Knex, restockId) {
-    console.log(db('wm_restock_details as rd')
-    .select('rd.id as restock_detail_id', 's.hospcode')
-    .join('l_hospitals as s', 'rd.hospcode', 's.hospcode')
-    .where('rd.restock_id', restockId).toString());
-    
+    return db('wm_restock_details as rd')
+      .select('rd.id as restock_detail_id', 's.hospcode', 's.hospname')
+      .join('l_hospitals as s', 'rd.hospcode', 's.hospcode')
+      .where('rd.restock_id', restockId);
+  }
+
+  getRestockDetails(db: Knex, restockId) {
     return db('wm_restock_details as rd')
       .select('rd.id as restock_detail_id', 's.hospcode')
       .join('l_hospitals as s', 'rd.hospcode', 's.hospcode')
@@ -111,10 +113,10 @@ export class RestockModel {
     return db('wm_restock_detail_items_temp').insert(data);
   }
 
-  update(db: Knex, data) {
+  update(db: Knex) {
     let sql = `insert wm_restock_detail_items (supplies_id,qty,restock_detail_id)
       select s.id,r.qty,r.restock_detail_id from wm_restock_detail_items_temp as r
-      join wm_supplies as s on r.supplies_code = s.code`
+      join mm_supplies as s on r.supplies_code = s.code`
     return db.raw(sql);
   }
 
@@ -147,7 +149,7 @@ export class RestockModel {
 
   getSumSuppliesFromRestockId(db: Knex, restockId) {
     return db('wm_restock_details as rd')
-      .select('rdi.supplies_id', 's.code as supplies_code')
+      .select('rdi.supplies_id', 's.code as supplies_code', 'rd.hospcode')
       .sum('rdi.qty as qty')
       .join('wm_restock_detail_items as rdi', 'rd.id', 'rdi.restock_detail_id')
       .join('mm_supplies as s', 's.id', 'rdi.supplies_id')
