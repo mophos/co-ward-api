@@ -442,23 +442,21 @@ async function sendTHPD(db, start, end) {
       }
     }
     obj.product_detail = detail;
-    console.log(v);
-    
-    // if (obj.product_detail.length) {
-    //   await sandData(obj).then(async (body: any) => {
-    //     body = body.body;
-    //     const objR: any = {};
-    //     if (body.success) {
-    //       objR.ref_order_no = body.ref_order_no;
-    //       objR.message = body.message;
-    //     } else {
-    //       objR.message = body.message;
-    //     }
-    //     await payModel.updatePay(db, objR, v);
-    //   }).catch((error) => {
-    //     console.log(error);
-    //   })
-    // }
+    if (obj.product_detail.length) {
+      await sandData(obj).then(async (body: any) => {
+        body = body.body;
+        const objR: any = {};
+        if (body.success) {
+          objR.ref_order_no = body.ref_order_no;
+          objR.message = body.message;
+        } else {
+          objR.message = body.message;
+        }
+        await payModel.updatePay(db, objR, v);
+      }).catch((error) => {
+        console.log(error);
+      })
+    }
   }
 }
 
