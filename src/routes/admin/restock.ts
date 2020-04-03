@@ -465,7 +465,7 @@ async function sandData(data) {
   return new Promise((resolve: any, reject: any) => {
     var options = {
       method: 'POST',
-      url: 'http://gw.dxplace.com/api/gateways/placeorder',
+      url: 'http://gw.dxplace.com/api/dxgateways/placeorder',
       agentOptions: {
         rejectUnauthorized: false
       },

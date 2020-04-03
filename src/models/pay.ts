@@ -56,7 +56,7 @@ export class PayModel {
       u.telephone,
       u.email,
       r.created_at,
-      CONCAT( t.name, u.fname, ' ', u.lname ) AS contact 
+      CONCAT( u.fname, ' ', u.lname ) AS contact 
     FROM
       wm_pays AS p
       JOIN wm_restock_details rd ON rd.id = p.restock_detail_id
