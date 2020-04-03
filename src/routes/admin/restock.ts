@@ -142,8 +142,11 @@ router.post('/import', async (req: Request, res: Response) => {
 
     await restockModel.insert(req.db, data);
     await restockModel.remove(req.db, rm);
-    await restockModel.update(req.db, data);
-    await restockModel.removeTemp(req.db);
+    let rs = await restockModel.update(req.db);
+
+    if (rs.length) {
+      await restockModel.removeTemp(req.db);
+    }
 
     res.send({ ok: true });
   } catch (error) {
@@ -460,7 +463,7 @@ async function sandData(data) {
   return new Promise((resolve: any, reject: any) => {
     var options = {
       method: 'POST',
-      url: 'http://gw.dxplace.com/gateways/placeorder',
+      url: 'http://gw.dxplace.com/api/gateways/placeorder',
       agentOptions: {
         rejectUnauthorized: false
       },
@@ -468,7 +471,7 @@ async function sandData(data) {
       {
         'cache-control': 'no-cache',
         'content-type': 'application/json',
-        'app_id': 'thpd_demo',
+        'app_id': 'thpd',
         'app_key': 'thpd#1234'
       },
       body: data,

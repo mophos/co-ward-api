@@ -113,10 +113,10 @@ export class RestockModel {
     return db('wm_restock_detail_items_temp').insert(data);
   }
 
-  update(db: Knex, data) {
+  update(db: Knex) {
     let sql = `insert wm_restock_detail_items (supplies_id,qty,restock_detail_id)
       select s.id,r.qty,r.restock_detail_id from wm_restock_detail_items_temp as r
-      join wm_supplies as s on r.supplies_code = s.code`
+      join mm_supplies as s on r.supplies_code = s.code`
     return db.raw(sql);
   }
 
