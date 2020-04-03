@@ -445,6 +445,7 @@ async function sendTHPD(db, start, end) {
     if (obj.product_detail.length) {
       await sandData(obj).then(async (body: any) => {
         body = body.body;
+        console.log(body);
         const objR: any = {};
         if (body.success) {
           objR.ref_order_no = body.ref_order_no;
@@ -472,8 +473,8 @@ async function sandData(data) {
       {
         'cache-control': 'no-cache',
         'content-type': 'application/json',
-        'app_id': 'thpd',
-        'app_key': 'thpd#1234'
+        'app_id': process.env.APP_ID,
+        'app_key': process.env.APP_KEY
       },
       body: data,
       json: true
