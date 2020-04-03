@@ -30,19 +30,17 @@ router.get('/', async (req: Request, res: Response) => {
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
-    
+
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
 
 router.get('/total', async (req: Request, res: Response) => {
-  const hosptype_code = req.query.hosptype_code || undefined;
-  const ministry_code = req.query.ministry_code || undefined;
-  const sub_ministry_code = req.query.sub_ministry_code || undefined;
+  const hosptypeId = req.query.hosptype_id || undefined;
   const query = req.query.query || '';
   try {
-    let rs: any = await hospitalModel.getHospByTypeTotal(req.db, query, sub_ministry_code, ministry_code, hosptype_code);
-    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    let rs: any = await hospitalModel.getHospByTypeTotal(req.db, query, hosptypeId);
+    res.send({ ok: true, rows: rs[0].count, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }

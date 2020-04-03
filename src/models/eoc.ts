@@ -15,7 +15,6 @@ export class EocModel {
       and eoc.eoc_resource_entrydate like '%2020-03-31%'`)
 
       .whereIn('ch.hosptype_code', ['05', '06', '07'])
-    console.log(sql.toString());
     return sql;
 
   }

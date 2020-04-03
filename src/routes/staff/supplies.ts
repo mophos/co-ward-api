@@ -15,12 +15,13 @@ router.get('/', async (req: Request, res: Response) => {
     let rs: any = await suppliesModel.getSupplies(req.db);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
+    console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
 
 router.get('/:id', async (req: Request, res: Response) => {
-  const id: number = req.params.id
+  const id = req.params.id
   try {
     let rs: any = await suppliesModel.getSuppliesById(req.db, id);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });

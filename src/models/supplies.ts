@@ -32,13 +32,13 @@ export class SuppliesModel {
   }
 
 
-  getSuppliesById(db: Knex, id: number) {
+  getSuppliesById(db: Knex, id: any) {
     return db('mm_supplies')
       .where('is_deleted', 'N')
       .where('id', id);
   }
 
-  updateSupplies(db: Knex, id: number, data = {}) {
+  updateSupplies(db: Knex, id: any, data = {}) {
     return db('mm_supplies')
       .update(data)
       .where('id', id);
@@ -49,7 +49,7 @@ export class SuppliesModel {
       .insert(data);
   }
 
-  deleteSupplies(db: Knex, id: number) {
+  deleteSupplies(db: Knex, id: any) {
     return db('mm_supplies')
       .update('is_deleted', 'Y')
       .where('id', id);
@@ -63,7 +63,6 @@ export class SuppliesModel {
     if (provinceCode) {
       sql.where('ch.province_code', provinceCode)
     }
-    console.log(sql.toString());
     
     return sql;
   }

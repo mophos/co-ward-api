@@ -36,7 +36,7 @@ router.get('/total', async (req: Request, res: Response) => {
 });
 
 router.get('/:id', async (req: Request, res: Response) => {
-  const id: number = req.params.id
+  const id: any = req.params.id
   try {
     let rs: any = await suppliesModel.getSuppliesById(req.db, id);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
@@ -85,7 +85,7 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 router.delete('/:id', async (req: Request, res: Response) => {
-  const id: number = req.params.id
+  const id: any = req.params.id
   try {
     let rs: any = await suppliesModel.deleteSupplies(req.db, id);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });

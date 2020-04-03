@@ -5,7 +5,7 @@ export class BalanceModel {
 
 
   getSupplies(db: Knex, hospcode) {
-    return db('mm_supplies AS ms')
+    let sql = db('mm_supplies AS ms')
       .select('ms.*', 'wcs.usage_rate_day')
       .leftJoin('wm_supplies_min_max AS wsmm', function () {
         this.on('wsmm.supplies_id', 'ms.id').andOn('wsmm.hospcode', db.raw(hospcode))
@@ -17,8 +17,10 @@ export class BalanceModel {
         v.where('wsmm.is_active', 'Y')
         v.orWhere('wsmm.is_active', null)
       })
-      .where('is_deleted', 'N')
-      .where('is_actived', 'Y')
+      .where('ms.is_deleted', 'N')
+      .where('ms.is_actived', 'Y')
+      return sql;
+      
   }
 
   getBalance(db: Knex, hospcode) {

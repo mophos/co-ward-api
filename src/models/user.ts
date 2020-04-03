@@ -28,13 +28,13 @@ export class UserModel {
     });
   }
 
-  getUserById(db: Knex, id: number) {
+  getUserById(db: Knex, id: any) {
     return db('um_users')
     .where('is_deleted','N')
       .where('id', id);
   }
 
-  updateUser(db: Knex, id: number, data = {}) {
+  updateUser(db: Knex, id: any, data = {}) {
     return db('um_users')
       .update(data)
       .where('id', id);
@@ -45,7 +45,7 @@ export class UserModel {
       .insert(data);
   }
 
-  deleteUser(db: Knex, id: number) {
+  deleteUser(db: Knex, id: any) {
     return db('um_users')
       .where('is_deleted','N')
       .where('id', id);
