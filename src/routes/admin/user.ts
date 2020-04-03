@@ -29,7 +29,7 @@ router.get('/total', async (req: Request, res: Response) => {
   try {
     const query: any = req.query.query || ''
     let rs: any = await userModel.getUserTotal(req.db, query);
-    
+
     res.send({ ok: true, rows: rs[0].count, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -37,7 +37,7 @@ router.get('/total', async (req: Request, res: Response) => {
 });
 
 router.get('/:id', async (req: Request, res: Response) => {
-  const id: number = req.params.id
+  const id = req.params.id
   try {
     let rs: any = await userModel.getUserById(req.db, id);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
@@ -90,7 +90,7 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 router.delete('/:id', async (req: Request, res: Response) => {
-  const id: number = req.params.id
+  const id = req.params.id
   try {
     let rs: any = await userModel.deleteUser(req.db, id);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
