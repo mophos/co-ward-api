@@ -22,7 +22,7 @@ router.post('/order_sync', async (req: Request, res: Response) => {
   try {
     const db = req.db
     await thpdModel.logThpd(db, JSON.stringify(req.body));
-    res.send({ ok: true, message: '1.0.0', code: HttpStatus.OK });
+    res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error });
   }
