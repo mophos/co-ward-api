@@ -36,7 +36,7 @@ export class RestockModel {
       .select('rd.id as restock_detail_id', 's.hospcode')
       .join('l_hospitals as s', 'rd.hospcode', 's.hospcode')
       .where('rd.restock_id', restockId)
-      // .whereIn('s.hospcode', ['13756', '14173', '12439', '11472', '14965', '11471', '11470', '11539', '12438', '12250', '11469', '12249', '12248']);
+      .whereIn('s.hospcode', ['11479', '11660']);
   }
 
   getRestockDetailTotal(db: Knex, restockId) {
