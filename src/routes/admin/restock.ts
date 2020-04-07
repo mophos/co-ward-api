@@ -466,6 +466,7 @@ async function sandData(data) {
     var options = {
       method: 'POST',
       url: 'http://gw.dxplace.com/api/dxgateways/placeorder',
+      // url: 'http://gw.dxplace.com/api/gateways/placeorder',
       agentOptions: {
         rejectUnauthorized: false
       },

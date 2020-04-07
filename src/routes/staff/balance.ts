@@ -20,7 +20,6 @@ router.get('/supplies', async (req: Request, res: Response) => {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
-
 router.get('/', async (req: Request, res: Response) => {
   try {
     let rs: any = await balanceModel.getBalance(req.db, req.decoded.hospcode);

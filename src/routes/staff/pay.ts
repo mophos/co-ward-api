@@ -8,7 +8,7 @@ import { PayModel } from '../../models/pay';
 
 const payModel = new PayModel();
 const router: Router = Router();
-
+const request = require("request");
 
 router.get('/', async (req: Request, res: Response) => {
   try {
@@ -19,18 +19,53 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id/:conNo', async (req: Request, res: Response) => {
+  const id = req.params.id;
+  const conNo = req.params.conNo;
   try {
-    const id = req.params.id;
     let rs: any = await payModel.getPayDetail(req.db, id);
+    let rsOrder: any = await getOrder({ con_no: conNo });
+    console.log(rs);
+    
+    if (rsOrder.body.success) {
+      if (rsOrder.body.data.status === 'GWS00') {
+
+      }
+    }
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
-    
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
 
+async function getOrder(data) {
+  return new Promise((resolve: any, reject: any) => {
+    var options = {
+      method: 'POST',
+      url: 'http://gw.dxplace.com/api/dxgateways/getorder',
+      agentOptions: {
+        rejectUnauthorized: false
+      },
+      headers:
+      {
+        'cache-control': 'no-cache',
+        'content-type': 'application/json',
+        'app_id': process.env.APP_ID,
+        'app_key': process.env.APP_KEY
+      },
+      body: data,
+      json: true
+    };
 
+    request(options, async function (error, body) {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(body);
+      };
+    });
+  });
+}
 
 export default router;
