@@ -6,7 +6,7 @@ import * as HttpStatus from 'http-status-codes';
 import { Login } from '../models/login'
 import { ThpdModel } from '../models/thpd';
 const jwt = new Jwt();
-
+import * as moment from 'moment';
 const model = new Login();
 const router: Router = Router();
 const thpdModel = new ThpdModel();
@@ -37,23 +37,39 @@ router.post('/order_sync', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/status', async (req: Request, res: Response) => {
+  try {
+    const db = req.db
+    const rs: any = await thpdModel.getPay(db);
+    for (const i of rs) {
+      const obj = {
+        con_no: i.co_no
+      }
+      const result: any = await thpdModel.getOrder(obj);
+      const _result = result.body
+      if (_result.success) {
+        const data = {
+          status_code: _result.data.status,
+          status_name: _result.data.status_name,
+          status_name_th: _result.data.status_name_th,
+          status_update: moment(_result.data.update,'X').format('YYYY-MM-DD HH:mm:ss'),
+          tracking: _result.data.tracking
+        }
+        await thpdModel.updatePay(db, i.id, data);
+        console.log(data);
+      }
 
-// router.get('/gen-token', async (req: Request, res: Response) => {
+    }
+    // console.log(rs);
 
-//   try {
-//     let payload = {
-//       fullname: 'admin',
-//       username: 'admin',
-//       user_id: 1,
-//       type: 'admin'
-//     }
+    // await thpdModel.logThpd(db, obj);
+    res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
 
-//     let token = jwt.signApiKey(payload);
-//     res.send({ ok: true, token: token, code: HttpStatus.OK });
-//   } catch (error) {
-//     res.send({ ok: false, error: error.message, code: HttpStatus.INTERNAL_SERVER_ERROR });
-//   }
 
-// });
+
 
 export default router;
