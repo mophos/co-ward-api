@@ -2,8 +2,6 @@ import * as Knex from 'knex';
 
 export class BalanceModel {
 
-
-
   getSupplies(db: Knex, hospcode) {
     let sql = db('mm_supplies AS ms')
       .select('ms.*', 'wcs.usage_rate_day')
@@ -19,6 +17,8 @@ export class BalanceModel {
       })
       .where('ms.is_deleted', 'N')
       .where('ms.is_actived', 'Y')
+      console.log(sql.toString());
+      
       return sql;
       
   }

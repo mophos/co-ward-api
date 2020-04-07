@@ -4,12 +4,12 @@ import { Jwt } from '../models/jwt';
 
 import * as HttpStatus from 'http-status-codes';
 import { Login } from '../models/login'
-
+import { ThpdModel } from '../models/thpd';
 const jwt = new Jwt();
 
 const model = new Login();
 const router: Router = Router();
-
+const thpdModel = new ThpdModel();
 router.get('/', (req: Request, res: Response) => {
   res.send({ ok: true, message: 'Welcome to RESTful api server!', code: HttpStatus.OK });
 });
@@ -17,6 +17,17 @@ router.get('/', (req: Request, res: Response) => {
 router.get('/version', (req: Request, res: Response) => {
   res.send({ ok: true, message: '1.0.0', code: HttpStatus.OK });
 });
+
+router.post('/order_sync', async (req: Request, res: Response) => {
+  try {
+    const db = req.db
+    await thpdModel.logThpd(db, JSON.stringify(req.body));
+    res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
+
 
 // router.get('/gen-token', async (req: Request, res: Response) => {
 

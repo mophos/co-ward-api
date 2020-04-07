@@ -4,8 +4,9 @@ export class PayModel {
 
   getPay(db: Knex, hospcode) {
     return db('wm_pays as b')
-      // .select('b.*', 's.fname as fullname')
-      // .join('um_users as s', 'b.created_by', 's.id')
+      .select('b.*', db.raw('CONCAT(r.code,b.hospcode) as con_no'))
+      .join('wm_restock_details as rd', 'rd.id', 'b.restock_detail_id')
+      .join('wm_restocks as r', 'r.id', 'rd.restock_id')
       .where('b.hospcode', hospcode)
       .orderBy('id', 'DESC')
   }
@@ -56,7 +57,7 @@ export class PayModel {
       u.telephone,
       u.email,
       r.created_at,
-      CONCAT( t.name, u.fname, ' ', u.lname ) AS contact 
+      CONCAT( u.fname, ' ', u.lname ) AS contact 
     FROM
       wm_pays AS p
       JOIN wm_restock_details rd ON rd.id = p.restock_detail_id
@@ -78,6 +79,10 @@ export class PayModel {
 
   updatePay(db: Knex, data, payId: any) {
     return db('wm_pays').update(data).where('id', payId);
+  }
+
+  updateRestock(db: Knex, id: any) {
+    return db('wm_restocks').update('is_approved', 'Y').where('id', id);
   }
 
 }
