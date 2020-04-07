@@ -17,6 +17,8 @@ router.get('/supplies', async (req: Request, res: Response) => {
 
     res.send({ ok: true, rows: rs, code: HttpStatus.OK, hospcode });
   } catch (error) {
+    console.log(error);
+    
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });

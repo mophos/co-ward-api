@@ -81,4 +81,8 @@ export class PayModel {
     return db('wm_pays').update(data).where('id', payId);
   }
 
+  updateRestock(db: Knex, id: any) {
+    return db('wm_restocks').update('is_approved', 'Y').where('id', id);
+  }
+
 }

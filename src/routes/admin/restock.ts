@@ -206,8 +206,6 @@ router.put('/remove-restock/:id', async (req: Request, res: Response) => {
 
 router.get('/export/:id', async (req: Request, res: Response) => {
   try {
-    console.log('export');
-
     const id = req.params.id
     const db = req.db;
     const wb = new xl.Workbook();
@@ -335,7 +333,8 @@ router.get('/approved-all', async (req: Request, res: Response) => {
       let end = detail.length + payId[0];
       await payModel.selectInsertDetail(db, start, end);
       let rs = await sendTHPD(db, start, end);
-      res.send({ ok: true, rows: [rs, start, end], code: HttpStatus.OK });
+      await payModel.updateRestock(db, restockId);
+      res.send({ ok: true, rows: [start, end], code: HttpStatus.OK });
     } else {
       // ไม่พอ ทำค้างจ่าย
       let data: any = [];
@@ -465,8 +464,7 @@ async function sandData(data) {
   return new Promise((resolve: any, reject: any) => {
     var options = {
       method: 'POST',
-      url: 'http://gw.dxplace.com/api/dxgateways/placeorder',
-      // url: 'http://gw.dxplace.com/api/gateways/placeorder',
+      url: process.env.URL_THPD_ORDER,
       agentOptions: {
         rejectUnauthorized: false
       },
@@ -490,5 +488,32 @@ async function sandData(data) {
     });
   });
 }
+
+router.get('/export/pay/now', async (req: Request, res: Response) => {
+  try {
+    const wb = new xl.Workbook();
+    var ws = wb.addWorksheet('Sheet 1');
+    ws.cell(1, 1).string('hospcode');
+    ws.cell(1, 2).string('supplie_code');
+    ws.cell(1, 3).string('qty');
+
+    let filename = `templete` + `_` + moment().format('x');
+    let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath);
+      }
+    });
+    // res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
 
 export default router;
