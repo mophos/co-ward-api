@@ -21,7 +21,16 @@ router.get('/version', (req: Request, res: Response) => {
 router.post('/order_sync', async (req: Request, res: Response) => {
   try {
     const db = req.db
-    await thpdModel.logThpd(db, JSON.stringify(req.body));
+    const obj: any = {};
+    obj.text = JSON.stringify(req.body);
+    obj.con_no = req.body.con_no || null;
+    obj.status = req.body.status || null;
+    obj.status_name = req.body.status_name || null;
+    obj.status_name_th = req.body.status_name_th || null;
+    obj.tracking = req.body.tracking || null;
+    obj.updated = req.body.updated || null;
+    obj.detail = req.body.detail || null;
+    await thpdModel.logThpd(db, obj);
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error });
