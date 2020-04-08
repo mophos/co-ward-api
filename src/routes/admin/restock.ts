@@ -155,6 +155,43 @@ router.post('/import', async (req: Request, res: Response) => {
   }
 });
 
+router.post('/import/templete/pay/now', async (req: Request, res: Response) => {
+  const data: any = req.body.data
+  const decoded = req.decoded
+  let rsHead: any
+  let hospData = [];
+  let dataSet = [];
+
+  try {
+    let head = {
+      code: await serialModel.getSerial(req.db, 'RS'),
+      created_by: decoded.id
+    }
+    rsHead = await restockModel.insertRestock(req.db, head);
+    for (const v of data) {
+      let detailId = uuidv4();
+      hospData.push({
+        id: detailId,
+        restock_id: rsHead,
+        hospcode: v.hospcode,
+      })
+      for (const j of v.items) {
+        dataSet.push({
+          restock_detail_id: detailId,
+          supplies_id: j.id,
+          qty: j.qty
+        })
+      }
+    }
+    await restockModel.insertRestockDetail(req.db, hospData);
+    await restockModel.insertRestockDetailItem(req.db, dataSet);
+
+    res.send({ ok: true });
+  } catch (error) {
+    res.send({ ok: false, message: error })
+  }
+});
+
 router.get('/list-hospital', async (req: Request, res: Response) => {
   let restockId = req.query.restockId
   let typesId = req.query.typesId
@@ -206,8 +243,6 @@ router.put('/remove-restock/:id', async (req: Request, res: Response) => {
 
 router.get('/export/:id', async (req: Request, res: Response) => {
   try {
-    console.log('export');
-
     const id = req.params.id
     const db = req.db;
     const wb = new xl.Workbook();
@@ -335,6 +370,7 @@ router.get('/approved-all', async (req: Request, res: Response) => {
       let end = detail.length + payId[0];
       await payModel.selectInsertDetail(db, start, end);
       let rs = await sendTHPD(db, start, end);
+      await payModel.updateRestock(db, restockId);
       res.send({ ok: true, rows: [rs, start, end], code: HttpStatus.OK });
     } else {
       // ไม่พอ ทำค้างจ่าย
@@ -445,15 +481,16 @@ async function sendTHPD(db, start, end) {
     if (obj.product_detail.length) {
       await sandData(obj).then(async (body: any) => {
         body = body.body;
-        console.log(body);
         const objR: any = {};
-        if (body.success) {
-          objR.ref_order_no = body.ref_order_no;
-          objR.message = body.message;
-        } else {
-          objR.message = body.message;
+        if (body) {
+          if (body.success) {
+            objR.ref_order_no = body.ref_order_no;
+            objR.message = body.message;
+          } else {
+            objR.message = body.message;
+          }
+          await payModel.updatePay(db, objR, v);
         }
-        await payModel.updatePay(db, objR, v);
       }).catch((error) => {
         console.log(error);
       })
@@ -465,8 +502,7 @@ async function sandData(data) {
   return new Promise((resolve: any, reject: any) => {
     var options = {
       method: 'POST',
-      url: 'http://gw.dxplace.com/api/dxgateways/placeorder',
-      // url: 'http://gw.dxplace.com/api/gateways/placeorder',
+      url: process.env.URL_THPD_ORDER,
       agentOptions: {
         rejectUnauthorized: false
       },
@@ -490,5 +526,32 @@ async function sandData(data) {
     });
   });
 }
+
+router.get('/export/pay/now', async (req: Request, res: Response) => {
+  try {
+    const wb = new xl.Workbook();
+    var ws = wb.addWorksheet('Sheet 1');
+    ws.cell(1, 1).string('HOSPCODE');
+    ws.cell(1, 2).string('SUPPLIE_CODE');
+    ws.cell(1, 3).string('QTY');
+
+    let filename = `templete` + `_` + moment().format('x');
+    let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath);
+      }
+    });
+    // res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
 
 export default router;
