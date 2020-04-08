@@ -33,6 +33,7 @@ import payStaffRoute from './routes/staff/pay';
 import bedStaffRoute from './routes/staff/bed';
 import requisitionStaffRoute from './routes/staff/requisition';
 import settingStaffRoute from './routes/staff/setting';
+import drugStaffRoute from './routes/staff/drug';
 
 import basicRoute from './routes/basic';
 import servicesRoute from './routes/manager/services';
@@ -219,6 +220,7 @@ staff.use('/pay', payStaffRoute)
 staff.use('/bed', bedStaffRoute)
 staff.use('/requisition', requisitionStaffRoute)
 staff.use('/setting', settingStaffRoute)
+staff.use('/drugs', drugStaffRoute)
 
 //index
 app.use('/', indexRoute);
