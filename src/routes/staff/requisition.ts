@@ -33,7 +33,7 @@ router.post('/', async (req: Request, res: Response) => {
     code: await serialModel.getSerial(req.db, 'RQ'),
     created_by: id,
     hospcode: hospcode,
-    date: moment().format('YYYY-MM-DD HH:MM:SS')
+    date: moment().format('YYYY-MM-DD HH:mm:ss')
   }
   let headId: any = await model.saveHead(req.db, head);
 

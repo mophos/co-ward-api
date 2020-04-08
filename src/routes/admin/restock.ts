@@ -321,6 +321,56 @@ router.get('/export/:id', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/export-status/:id', async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id
+    const db = req.db;
+    const wb = new xl.Workbook();
+    var ws = wb.addWorksheet('Sheet 1');
+
+    const rs: any = await restockModel.getStatusTracking(db, id);
+    // h.hospcode,h.hospname,r.created_at,p.tracking,p.co_no,p.status_code,p.status_name,status_update 
+    ws.cell(1, 1).string('รหัสสถานบริการ')
+    ws.cell(1, 2).string('ชื่อสถานบริการ')
+    ws.cell(1, 3).string('วันที่สร้าง')
+    ws.cell(1, 4).string('tracking')
+    ws.cell(1, 5).string('co_no')
+    ws.cell(1, 6).string('status_code')
+    ws.cell(1, 7).string('status_name')
+    ws.cell(1, 8).string('status_update')
+    let row = 2
+    for (const s of rs) {
+      ws.cell(row, 1).string(s.hospcode.toString());
+      ws.cell(row, 2).string(s.hospname.toString());
+      ws.cell(row, 3).string(moment(s.created_at).format('DD-MM-YYYY').toString());
+      ws.cell(row, 4).string(s.tracking.toString());
+      ws.cell(row, 5).string(s.co_no.toString());
+      ws.cell(row, 6).string(s.status_code.toString());
+      ws.cell(row, 7).string(s.status_name.toString());
+      ws.cell(row, 8).string(moment(s.status_update).format('DD-MM-YYYY').toString());
+      row++;
+    }
+
+    let filename = `restock_` + moment().format('X');
+    let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath);
+      }
+    });
+    // res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.get('/check-approved', async (req: Request, res: Response) => {
   try {
     const restockId = req.query.restockId;

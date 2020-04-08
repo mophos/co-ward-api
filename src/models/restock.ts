@@ -139,6 +139,21 @@ export class RestockModel {
     return db('wm_restocks')
       .where('id', restockId);
   }
+  getStatusTracking(db: Knex, restockId) {
+    //     SELECT h.hospcode,h.hospname,r.created_at,p.tracking,p.co_no,p.status_code,p.status_name,status_update 
+    // from wm_restock_details as rd
+    // join wm_restocks as r on rd.restock_id = r.id
+    // join wm_pays as p on rd.id = p.restock_detail_id 
+    // join l_hospitals as h on p.hospcode = h.hospcode
+    // limit 10
+
+    return db('wm_restock_details as rd')
+      .select('h.hospcode', 'h.hospname', 'r.created_at', 'p.tracking', 'p.co_no', 'p.status_code', 'p.status_name', 'status_update')
+      .join('wm_restocks as r', 'rd.restock_id', 'r.id')
+      .join('wm_pays as p', 'rd.id', 'p.restock_detail_id')
+      .join('l_hospitals as h', 'p.hospcode', 'h.hospcode')
+      .where('rd.restock_id', restockId);
+  }
 
   getRestockDetailItem(db: Knex, restockDetailId) {
     return db('wm_restock_detail_items as rdi')
