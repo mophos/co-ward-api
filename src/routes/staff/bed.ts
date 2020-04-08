@@ -1,32 +1,67 @@
 // / <reference path="../../typings.d.ts" />
 
-import * as HttpStatus from 'http-status-codes';
-
 import { Router, Request, Response } from 'express';
-
 import { BedModel } from '../../models/bed';
+
+import * as HttpStatus from 'http-status-codes';
+import * as moment from "moment"
 
 const bedModel = new BedModel();
 const router: Router = Router();
 
-
 router.get('/', async (req: Request, res: Response) => {
+  const db = req.db;
   const hospcode = req.decoded.hospcode;
-
   try {
     let rs: any
-    rs = await bedModel.getBalanceBeds(req.db, hospcode);
-    if (rs.length === 0) {
-      rs = await bedModel.getBeds(req.db);
-      for (const v of rs) {
-        v.total = 0;
-        v.usage_bed = 0;
-      }
-    }
+    rs = await bedModel.getBedStock(db, hospcode);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
 
+router.get('/save/bed', async (req: Request, res: Response) => {
+  const db = req.db;
+  const hospcode = req.decoded.hospcode;
+  const id = req.decoded.id;
+
+  try {
+    const obj: any = {};
+    obj.created_at = moment().format('YYYY-MM-DD HH:m:s');
+    obj.created_by = id;
+    obj.hospcode = hospcode;
+
+    let rs: any = await bedModel.saveBed(db, [obj]);
+    let beds: any = await bedModel.getBeds(db);
+    let data: any = [];
+    for (const v of beds) {
+      const objD: any = {};
+      objD.bed_stock_id = rs;
+      objD.bed_id = v.id;
+      objD.qty = 0;
+      objD.usage = 0;
+      data.push(objD);
+    }
+    let rss: any = await bedModel.saveDetail(db, data);
+
+    res.send({ ok: true, rows: rss, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/:id', async (req: Request, res: Response) => {
+  const db = req.db;
+  const id = req.params.id;
+  try {
+    let rs: any
+    rs = await bedModel.getBedStockDetails(db, id);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
@@ -45,43 +80,21 @@ router.get('/check-bed', async (req: Request, res: Response) => {
 });
 
 router.post('/', async (req: Request, res: Response) => {
+  const db = req.db;
+  const id = req.decoded.id;
   const data = req.body.data;
-  const hospcode = req.decoded.hospcode;
-  const hospitalId = req.decoded.hospital_id;
-  const userId = req.decoded.id;
+  const bedId = req.body.id;
 
   try {
-    let _data = [];
-    let __data = [];
-    const head: any = {};
-    head.hospcode = hospcode;
-    head.created_by = userId;
-    let headId = await bedModel.saveHead(req.db, head);
-
     for (const v of data) {
       const obj: any = {};
-      obj.bed_history_id = headId;
-      obj.bed_id = v.bed_id;
-      obj.total = v.total;
-      obj.usage_bed = v.usage_bed;
-      _data.push(obj);
+      obj.qty = v.qty;
+      obj.usage = v.usage;
+      await bedModel.updateBedDetail(db, v.id, obj);
     }
 
-    for (const v of data) {
-      const obj: any = {};
-      obj.bed_id = v.bed_id;
-      obj.total = v.total;
-      obj.usage_bed = v.usage_bed;
-      obj.hospcode = hospcode;
-      obj.hospital_id = hospitalId;
-      __data.push(obj);
-    }
-
-    await bedModel.saveDetail(req.db, _data);
-    await bedModel.del(req.db, hospcode);
-    await bedModel.saveCurrent(req.db, __data);
-    await
-      res.send({ ok: true, code: HttpStatus.OK });
+    await bedModel.updateBeds(db, bedId, { updated_by: id });
+    res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
 

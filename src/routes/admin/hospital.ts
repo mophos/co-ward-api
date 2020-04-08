@@ -46,4 +46,66 @@ router.get('/total', async (req: Request, res: Response) => {
   }
 });
 
+router.put('/:id', async (req: Request, res: Response) => {
+  const id: any = +req.params.id
+  const data: any = req.body.data
+
+  try {
+    if (typeof id === 'number' && typeof data === 'object' && id && data) {
+      console.log(data);
+
+      const dupCode: any = await hospitalModel.checkHospCode(req.db, data.hospcode)
+      if (dupCode.length == 0 && data.hospcode.length === 5) {
+        let rs: any = await hospitalModel.updateHospital(req.db, id, data);
+        res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+      } else {
+        console.log(dupCode);
+        
+        console.log(dupCode[0].id);
+        if (dupCode[0].id == id) {
+          
+          let rs: any = await hospitalModel.updateHospital(req.db, id, data);
+          res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+        } else {
+          res.send({ ok: false, error: 'รหัสสถานบริการไม่ถูกต้อง หรือ ซ้ำ', code: HttpStatus.OK });
+        }
+      }
+
+    } else {
+      res.send({ ok: false, error: 'ข้อมูลไม่ครบ', code: HttpStatus.OK });
+    }
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.post('/', async (req: Request, res: Response) => {
+  const data: any = req.body.data || {}
+  try {
+    if (typeof data === 'object' && data) {
+      const dupCode: any = await hospitalModel.checkHospCode(req.db, data.hospcode)
+      if (dupCode.length == 0 && data.hospcode.length === 5) {
+        let rs: any = await hospitalModel.insertHospital(req.db, data);
+        res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+      } else {
+        res.send({ ok: false, error: 'รหัสสถานบริการไม่ถูกต้อง หรือ ซ้ำ', code: HttpStatus.OK });
+      }
+    } else {
+      res.send({ ok: false, error: 'ข้อมูลไม่ครบ', code: HttpStatus.OK });
+    }
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.delete('/:id', async (req: Request, res: Response) => {
+  const id = req.params.id
+  try {
+    let rs: any = await hospitalModel.deleteHospital(req.db, id);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 export default router;
