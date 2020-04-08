@@ -155,6 +155,43 @@ router.post('/import', async (req: Request, res: Response) => {
   }
 });
 
+router.post('/import/templete/pay/now', async (req: Request, res: Response) => {
+  const data: any = req.body.data
+  const decoded = req.decoded
+  let rsHead: any
+  let hospData = [];
+  let dataSet = [];
+
+  try {
+    let head = {
+      code: await serialModel.getSerial(req.db, 'RS'),
+      created_by: decoded.id
+    }
+    rsHead = await restockModel.insertRestock(req.db, head);
+    for (const v of data) {
+      let detailId = uuidv4();
+      hospData.push({
+        id: detailId,
+        restock_id: rsHead,
+        hospcode: v.hospcode,
+      })
+      for (const j of v.items) {
+        dataSet.push({
+          restock_detail_id: detailId,
+          supplies_id: j.id,
+          qty: j.qty
+        })
+      }
+    }
+    await restockModel.insertRestockDetail(req.db, hospData);
+    await restockModel.insertRestockDetailItem(req.db, dataSet);
+
+    res.send({ ok: true });
+  } catch (error) {
+    res.send({ ok: false, message: error })
+  }
+});
+
 router.get('/list-hospital', async (req: Request, res: Response) => {
   let restockId = req.query.restockId
   let typesId = req.query.typesId
@@ -334,7 +371,7 @@ router.get('/approved-all', async (req: Request, res: Response) => {
       await payModel.selectInsertDetail(db, start, end);
       let rs = await sendTHPD(db, start, end);
       await payModel.updateRestock(db, restockId);
-      res.send({ ok: true, rows: [start, end], code: HttpStatus.OK });
+      res.send({ ok: true, rows: [rs, start, end], code: HttpStatus.OK });
     } else {
       // ไม่พอ ทำค้างจ่าย
       let data: any = [];
@@ -444,15 +481,16 @@ async function sendTHPD(db, start, end) {
     if (obj.product_detail.length) {
       await sandData(obj).then(async (body: any) => {
         body = body.body;
-        console.log(body);
         const objR: any = {};
-        if (body.success) {
-          objR.ref_order_no = body.ref_order_no;
-          objR.message = body.message;
-        } else {
-          objR.message = body.message;
+        if (body) {
+          if (body.success) {
+            objR.ref_order_no = body.ref_order_no;
+            objR.message = body.message;
+          } else {
+            objR.message = body.message;
+          }
+          await payModel.updatePay(db, objR, v);
         }
-        await payModel.updatePay(db, objR, v);
       }).catch((error) => {
         console.log(error);
       })
@@ -493,9 +531,9 @@ router.get('/export/pay/now', async (req: Request, res: Response) => {
   try {
     const wb = new xl.Workbook();
     var ws = wb.addWorksheet('Sheet 1');
-    ws.cell(1, 1).string('hospcode');
-    ws.cell(1, 2).string('supplie_code');
-    ws.cell(1, 3).string('qty');
+    ws.cell(1, 1).string('HOSPCODE');
+    ws.cell(1, 2).string('SUPPLIE_CODE');
+    ws.cell(1, 3).string('QTY');
 
     let filename = `templete` + `_` + moment().format('x');
     let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
