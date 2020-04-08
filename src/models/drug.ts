@@ -47,4 +47,20 @@ export class DrugsModel {
       .where('id', id);
   }
 
+  getDrugStock(db: Knex, hospcode: any) {
+    return db('wm_drug_stocks as ds')
+      .select('ds.*', 't.name', 'u.fname', 'u.lname')
+      .leftJoin('um_users as u', 'u.id', 'ds.created_by')
+      .leftJoin('um_titles as t', 't.id', 'u.title_id')
+      .where('ds.hospcode', hospcode)
+      .orderBy('ds.created_at')
+  }
+
+  getDrugStockDetails(db: Knex, id: any) {
+    return db('wm_drug_stock_details as  dsd')
+      .select('dsd.*', 'mg.code', 'mg.name', 'mg.unit_name')
+      .join('mm_generics as mg', 'mg.id', 'dsd.bed_id')
+      .where('dsd.bed_stock_id', id);
+  }
+
 }
