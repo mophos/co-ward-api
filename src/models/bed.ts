@@ -2,6 +2,22 @@ import * as Knex from 'knex';
 
 export class BedModel {
 
+  getBedStock(db: Knex, hospcode: any) {
+    return db('wm_bed_stocks as bs')
+      .select('bs.*', 't.name', 'u.fname', 'u.lname')
+      .leftJoin('um_users as u', 'u.id', 'bs.created_by')
+      .leftJoin('um_titles as t', 't.id', 'u.title_id')
+      .where('bs.hospcode', hospcode)
+      .orderBy('bs.created_at')
+  }
+
+  getBedStockDetails(db: Knex, id: any) {
+    return db('wm_bed_stock_details as  bsd')
+      .select('bsd.*', 'b.code', 'b.name', 'b.unit_name')
+      .join('mm_beds as b', 'b.id', 'bsd.bed_id')
+      .where('bsd.bed_stock_id', id);
+  }
+
   getBeds(db: Knex) {
     return db('mm_beds');
   }
@@ -12,14 +28,27 @@ export class BedModel {
       .where('cb.hospcode', hospcode)
   }
 
+  saveBed(db: Knex, data) {
+    return db('wm_bed_stocks')
+      .insert(data, 'id');
+  }
+
   saveHead(db: Knex, data) {
     return db('wm_bed_historys')
       .insert(data, 'id');
   }
 
   saveDetail(db: Knex, data) {
-    return db('wm_bed_history_details')
+    return db('wm_bed_stock_details')
       .insert(data);
+  }
+
+  updateBeds(db: Knex, id: any, data: any) {
+    return db('wm_bed_stocks').update(data).where('id', id);
+  }
+
+  updateBedDetail(db: Knex, id: any, data: any) {
+    return db('wm_bed_stock_details').update(data).where('id', id);
   }
 
   saveCurrent(db: Knex, data) {
