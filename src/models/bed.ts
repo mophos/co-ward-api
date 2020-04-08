@@ -8,7 +8,7 @@ export class BedModel {
       .leftJoin('um_users as u', 'u.id', 'bs.created_by')
       .leftJoin('um_titles as t', 't.id', 'u.title_id')
       .where('bs.hospcode', hospcode)
-      .orderBy('bs.created_at')
+      .orderBy('bs.created_at', 'ASC')
   }
 
   getBedStockDetails(db: Knex, id: any) {
