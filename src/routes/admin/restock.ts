@@ -531,6 +531,7 @@ async function sendTHPD(db, start, end) {
     if (obj.product_detail.length) {
       await sandData(obj).then(async (body: any) => {
         body = body.body;
+        console.log(body);
         const objR: any = {};
         if (body) {
           if (body.success) {
