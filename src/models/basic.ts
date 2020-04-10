@@ -3,23 +3,23 @@ import * as moment from 'moment';
 
 export class BasicModel {
 
-    getTitles(db: Knex) {
-        return db('um_titles')
-            .where('is_deleted', 'N')
-    }
+	getTitles(db: Knex) {
+		return db('um_titles')
+			.where('is_deleted', 'N')
+	}
 
-    getPositions(db: Knex) {
-        return db('um_positions')
-            .where('is_deleted', 'N')
-    }
+	getPositions(db: Knex) {
+		return db('um_positions')
+			.where('is_deleted', 'N')
+	}
 
-    getGenerics(db: Knex) {
-        return db('mm_generics')
-            .where('is_deleted', 'N')
-            .andWhere('is_actived', 'Y')
-    }
+	getGenerics(db: Knex) {
+		return db('mm_generics')
+			.where('is_deleted', 'N')
+			.andWhere('is_actived', 'Y')
+	}
 
-    autocompleteTambon(db: Knex, query) {
+	autocompleteTambon(db: Knex, query) {
 		const q = `%${query}%`;
 		const _q = `${query}%`;
 		return db.raw(`SELECT DISTINCT
@@ -94,5 +94,16 @@ export class BasicModel {
 		return db('view_address')
 			.orWhere('zip_code', 'like', _q)
 			.orderBy('zip_code')
+	}
+
+	autocompleteHospitalRequisition(db: Knex, query, hospcode) {
+		const _q = `%${query}%`;
+		return db('mm_requisition_supplies_center AS mrsc')
+			.select('lh.*')
+			.join('mm_requisition_supplies_node AS mrsn', 'mrsn.center_id', 'mrsc.id')
+			.join('l_hospitals as lh', 'lh.hospcode', 'mrsn.hospcode')
+			.where('mrsc.hospcode', hospcode)
+			.andWhere('lh.hospname', 'like', _q)
+			.orderBy('lh.hospname')
 	}
 }

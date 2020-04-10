@@ -10,30 +10,30 @@ const model = new BasicModel();
 const router: Router = Router();
 
 router.get('/title', async (req: Request, res: Response) => {
-	try {
-		let rs: any = await model.getTitles(req.db);
-		res.send({ ok: true, rows: rs, code: HttpStatus.OK });
-	} catch (error) {
-		res.send({ ok: false, error: error.message, code: HttpStatus.OK });
-	}
+  try {
+    let rs: any = await model.getTitles(req.db);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
 });
 
 router.get('/position', async (req: Request, res: Response) => {
-	try {
-		let rs: any = await model.getPositions(req.db);
-		res.send({ ok: true, rows: rs, code: HttpStatus.OK });
-	} catch (error) {
-		res.send({ ok: false, error: error.message, code: HttpStatus.OK });
-	}
+  try {
+    let rs: any = await model.getPositions(req.db);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
 });
 
 router.get('/generics', async (req: Request, res: Response) => {
-	try {
-		let rs: any = await model.getGenerics(req.db);
-		res.send({ ok: true, rows: rs, code: HttpStatus.OK });
-	} catch (error) {
-		res.send({ ok: false, error: error.message, code: HttpStatus.OK });
-	}
+  try {
+    let rs: any = await model.getGenerics(req.db);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
 });
 
 router.get('/autocomplete/tambon', async (req: Request, res: Response) => {
@@ -88,6 +88,29 @@ router.get('/autocomplete/zipcode', async (req: Request, res: Response) => {
     const rs = await model.autocompleteZipcode(db, query);
     if (rs.length) {
       res.send(rs);
+    } else {
+      res.send([]);
+    }
+  } catch (error) {
+    res.send([]);
+  }
+});
+
+router.get('/hospcode-requisition/autocomplete/search', async (req: Request, res: Response) => {
+  const db = req.db;
+  const query = req.query.q;
+  const length = req.query.length || 1;
+  console.log(req.decoded);
+  const hospcode = req.decoded.hospcode
+  
+  try {
+    if (query.length >= length) {
+      const rs = await model.autocompleteHospitalRequisition(db, query, hospcode);
+      if (rs.length) {
+        res.send(rs);
+      } else {
+        res.send([]);
+      }
     } else {
       res.send([]);
     }

@@ -195,7 +195,7 @@ let managerAuth = (req, res, next) => {
 
 app.use('/login', loginRoute);
 app.use('/register', registerRoute);
-app.use('/basic', basicRoute);
+app.use('/basic', checkAuth, basicRoute);
 app.use('/v1', api);
 
 //admin
