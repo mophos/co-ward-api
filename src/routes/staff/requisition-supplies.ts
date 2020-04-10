@@ -34,6 +34,22 @@ router.get('/generics', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/info', async (req: Request, res: Response) => {
+  let db = req.db;
+  let id = req.query.id
+  try {
+    const head: any = await model.getHead(db, id);
+    const detail: any = await model.getDetail(db, id);
+    for (const i of detail) {
+      const items: any = await model.getDetailItem(db, i.id);
+      i.generics = items;
+    }
+    res.send({ ok: true, rows: detail, head: head[0], code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.post('/', async (req: Request, res: Response) => {
   const hospcode = req.decoded.hospcode;
   const id = req.decoded.id;
@@ -47,7 +63,7 @@ router.post('/', async (req: Request, res: Response) => {
     hospcode_req: head.hospcode,
     date: moment().format('YYYY-MM-DD HH:mm:ss')
   }
-  let headId: any = await model.saveHead(req.db, head);
+  let headId: any = await model.saveHead(req.db, _head);
 
   try {
     for (const v of detail) {
