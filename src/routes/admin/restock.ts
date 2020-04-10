@@ -512,6 +512,8 @@ async function sendTHPD(db, start, end) {
 
     let rsDetail: any = await payModel.payDetails(db, v);
     let detail = [];
+    console.log(rsDetail);
+
     for (const j of rsDetail) {
       const objD: any = {};
       if (j.qty > 0) {

@@ -8,6 +8,12 @@ export class BasicModel {
 			.where('is_deleted', 'N')
 	}
 
+	getHospitalReq(db: Knex) {
+		return db('mm_requisition_supplies_center as r')
+			.select('r.*', 'l.hospname')
+			.join('l_hospitals as l', 'l.hospcode', 'r.hospcode')
+	}
+
 	getPositions(db: Knex) {
 		return db('um_positions')
 			.where('is_deleted', 'N')

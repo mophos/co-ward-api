@@ -21,7 +21,36 @@ router.get('/', async (req: Request, res: Response) => {
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
-    
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/requisition/center', async (req: Request, res: Response) => {
+  try {
+    let rs: any = await suppliesMinMaxModel.getGenericSupplie(req.db);
+    for (const v of rs) {
+      v.min = 0;
+      v.max = 0;
+      v.safety_stock = 0;
+    }
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/requisition/center/hosp', async (req: Request, res: Response) => {
+  const hospcode = req.query.hospcode;
+
+  try {
+    let rs: any = await suppliesMinMaxModel.getGenericSupplieHospcode(req.db, hospcode);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
@@ -94,6 +123,28 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
+router.post('/center', async (req: Request, res: Response) => {
+  const data: any = req.body.data
+
+  try {
+    let _data: any = [];
+    for (const v of data.items) {
+      const obj: any = {};
+      obj.hospcode = data.hospcode;
+      obj.generic_id = v.id;
+      obj.min = v.min;
+      obj.max = v.max;
+      obj.safety_stock = v.safety_stock;
+      _data.push(obj);
+    }
+    await suppliesMinMaxModel.delMinMax(req.db, data.hospcode);
+    let rs: any = await suppliesMinMaxModel.saveMinMaxReq(req.db, _data);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 
 router.get('/export-balanc', async (req: Request, res: Response) => {
   try {
@@ -106,7 +157,7 @@ router.get('/export-balanc', async (req: Request, res: Response) => {
     let rs: any = await suppliesMinMaxModel.getSuppliesMinMaxByBalance(req.db);
     let _data = []
     let col = 1
-    
+
     rsType.forEach(element => {
       console.log(element);
 

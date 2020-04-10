@@ -33,9 +33,10 @@ export class RestockModel {
 
   getRestockDetails(db: Knex, restockId) {
     return db('wm_restock_details as rd')
-      .select('rd.id as restock_detail_id', 's.hospcode')
+      .select('rd.id as restock_detail_id', 's.hospcode', db.raw('CONCAT(r.code,s.hospcode) as con_no'))
       .join('l_hospitals as s', 'rd.hospcode', 's.hospcode')
-      .where('rd.restock_id', restockId);
+      .join('wm_restocks as r', 'r.id', 'rd.restock_id')
+      .where('rd.restock_id', restockId)
   }
 
   getRestockDetailTotal(db: Knex, restockId) {

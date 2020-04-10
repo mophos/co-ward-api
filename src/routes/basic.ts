@@ -18,6 +18,15 @@ router.get('/title', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/hospital', async (req: Request, res: Response) => {
+  try {
+    let rs: any = await model.getHospitalReq(req.db);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.get('/position', async (req: Request, res: Response) => {
   try {
     let rs: any = await model.getPositions(req.db);
@@ -102,7 +111,7 @@ router.get('/hospcode-requisition/autocomplete/search', async (req: Request, res
   const length = req.query.length || 1;
   console.log(req.decoded);
   const hospcode = req.decoded.hospcode
-  
+
   try {
     if (query.length >= length) {
       const rs = await model.autocompleteHospitalRequisition(db, query, hospcode);
