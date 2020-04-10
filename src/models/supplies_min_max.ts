@@ -8,6 +8,18 @@ export class SuppliesMinMaxModel {
       .where('smm.hospcode', hospcode)
   }
 
+  getGenericSupplie(db: Knex) {
+    return db('mm_generic_supplies as g')
+      .where('g.is_deleted', 'N')
+      .where('g.is_actived', 'Y')
+  }
+
+  getGenericSupplieHospcode(db: Knex, hospcode: any) {
+    return db('mm_requisition_supplies_center_generics as g')
+      .join('mm_generic_supplies as mg', 'mg.id', 'g.generic_id')
+      .where('g.hospcode', hospcode)
+  }
+
   getSuppliesMinMaxBytype(db: Knex, sub_ministry_code, ministry_code, hosptype_code) {
     let sql = db(db('mm_supplies as s').select('s.*', 'h.hospcode', 'h.sub_ministry_code', 'h.ministry_code', 'h.hosptype_code').join(db.raw('l_hospitals as h')).as('s'))
       .select('s.*', 'smm.id as supplies_min_max_id', 'smm.min', 'smm.max')
@@ -69,5 +81,15 @@ export class SuppliesMinMaxModel {
   insertSuppliesMinMax(db: Knex, data = {}) {
     return db('wm_supplies_min_max')
       .insert(data);
+  }
+
+  saveMinMaxReq(db: Knex, data: any) {
+    return db('mm_requisition_supplies_center_generics')
+      .insert(data);
+  }
+
+  delMinMax(db: Knex, hospcode: any) {
+    return db('mm_requisition_supplies_center_generics')
+      .del().where('hospcode', hospcode);
   }
 }
