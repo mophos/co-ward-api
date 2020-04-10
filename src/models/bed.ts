@@ -22,6 +22,13 @@ export class BedModel {
     return db('mm_beds');
   }
 
+  getRemainHosp(db: Knex) {
+    return db('mm_requisition_supplies_center_generics as rg')
+      .select('l.hospname', 'mgs.name as generic_name', 'mgs.unit_name', 'rg.*')
+      .join('mm_generic_supplies as mgs', 'mgs.id', 'rg.generic_id')
+      .join('l_hospitals as l', 'l.hospcode', 'rg.hospcode');
+  }
+
   getBalanceBeds(db: Knex, hospcode: any) {
     return db('wm_current_beds as cb')
       .join('mm_beds as b', 'b.id', 'cb.bed_id')

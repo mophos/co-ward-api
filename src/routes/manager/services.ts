@@ -43,6 +43,17 @@ router.get('/check-bed', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/remain/hosp/qty', async (req: Request, res: Response) => {
+  try {
+    let rs = await bedModel.getRemainHosp(req.db);
+    console.log(rs);
+    
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.get('/check-supplies', async (req: Request, res: Response) => {
   try {
     let rs = await suppliesModel.checkSupplies(req.db, null);
