@@ -3,8 +3,10 @@ import * as Knex from 'knex';
 export class RequisitionSuppilesModel {
 
     getlist(db: Knex, hospcode) {
-        return db('wm_requisition_supplies')
-            .where('hospcode', hospcode)
+        return db('wm_requisition_supplies as r')
+            .select('r.*', 'h.hospname as hospname_req')
+            .join('l_hospitals as h', 'h.hospcode', 'r.hospcode_req')
+            .where('r.hospcode', hospcode)
     }
 
     saveHead(db: Knex, data: any) {
@@ -28,9 +30,9 @@ export class RequisitionSuppilesModel {
 
     getHead(db: Knex, id) {
         return db('wm_requisition_supplies as r')
-        .select('r.*','h.hospname as hospname_req')
-        .join('l_hospitals as h','h.hospcode','r.hospcode_req')
-        .where('r.id',id);
+            .select('r.*', 'h.hospname as hospname_req')
+            .join('l_hospitals as h', 'h.hospcode', 'r.hospcode_req')
+            .where('r.id', id);
     }
 
     getDetail(db: Knex, id) {
@@ -39,7 +41,7 @@ export class RequisitionSuppilesModel {
     }
     getDetailItem(db: Knex, id) {
         return db('wm_requisition_supplies_detail_items as rsdi')
-        .join('mm_generic_supplies as mg','mg.id','rsdi.generic_id')
+            .join('mm_generic_supplies as mg', 'mg.id', 'rsdi.generic_id')
             .where('requisition_detail_id', id)
 
     }

@@ -43,7 +43,7 @@ router.post('/', async (req: Request, res: Response) => {
         role: rs[0].role,
         rights: right
       }
-
+      
       let token = jwt.sign(payload);
       res.send({ ok: true, token: token, code: HttpStatus.OK });
     } else {
