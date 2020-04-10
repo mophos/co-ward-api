@@ -105,4 +105,27 @@ router.get('/autocomplete/zipcode', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/hospcode-requisition/autocomplete/search', async (req: Request, res: Response) => {
+  const db = req.db;
+  const query = req.query.q;
+  const length = req.query.length || 1;
+  console.log(req.decoded);
+  const hospcode = req.decoded.hospcode
+
+  try {
+    if (query.length >= length) {
+      const rs = await model.autocompleteHospitalRequisition(db, query, hospcode);
+      if (rs.length) {
+        res.send(rs);
+      } else {
+        res.send([]);
+      }
+    } else {
+      res.send([]);
+    }
+  } catch (error) {
+    res.send([]);
+  }
+});
+
 export default router;

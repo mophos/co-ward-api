@@ -101,4 +101,15 @@ export class BasicModel {
 			.orWhere('zip_code', 'like', _q)
 			.orderBy('zip_code')
 	}
+
+	autocompleteHospitalRequisition(db: Knex, query, hospcode) {
+		const _q = `%${query}%`;
+		return db('mm_requisition_supplies_center AS mrsc')
+			.select('lh.*')
+			.join('mm_requisition_supplies_node AS mrsn', 'mrsn.center_id', 'mrsc.id')
+			.join('l_hospitals as lh', 'lh.hospcode', 'mrsn.hospcode')
+			.where('mrsc.hospcode', hospcode)
+			.andWhere('lh.hospname', 'like', _q)
+			.orderBy('lh.hospname')
+	}
 }
