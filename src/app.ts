@@ -34,6 +34,7 @@ import bedStaffRoute from './routes/staff/bed';
 import requisitionStaffRoute from './routes/staff/requisition';
 import settingStaffRoute from './routes/staff/setting';
 import requisitionSuppliesRoute from './routes/staff/requisition-supplies';
+import drugStaffRoute from './routes/staff/drug';
 
 import basicRoute from './routes/basic';
 import servicesRoute from './routes/manager/services';
@@ -195,7 +196,7 @@ let managerAuth = (req, res, next) => {
 
 app.use('/login', loginRoute);
 app.use('/register', registerRoute);
-app.use('/basic', basicRoute);
+app.use('/basic', checkAuth, basicRoute);
 app.use('/v1', api);
 
 //admin
@@ -221,6 +222,7 @@ staff.use('/bed', bedStaffRoute)
 staff.use('/requisition', requisitionStaffRoute)
 staff.use('/requisition-supplies', requisitionSuppliesRoute)
 staff.use('/setting', settingStaffRoute)
+staff.use('/drugs', drugStaffRoute)
 
 //index
 app.use('/', indexRoute);
