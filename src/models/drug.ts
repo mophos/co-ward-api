@@ -3,7 +3,7 @@ import * as Knex from 'knex';
 export class DrugsModel {
 
   getDrugs(db: Knex, limit = 100, offset = 0, q = '') {
-    return db('mm_generics')
+    return db('b_generics')
       .where((v) => {
         v.where('name', 'like', '%' + q + '%')
         v.orWhere('code', 'like', '%' + q + '%')
@@ -15,7 +15,7 @@ export class DrugsModel {
   }
 
   getDrugsTotal(db: Knex, q = '') {
-    return db('mm_generics')
+    return db('b_generics')
       .count('* as count')
       .where((v) => {
         v.where('name', 'like', '%' + q + '%')
@@ -25,42 +25,52 @@ export class DrugsModel {
   }
 
   getDrugsActived(db: Knex) {
-    return db('mm_generics')
+    return db('b_generics')
       .where('is_deleted', 'N')
       .where('is_actived', 'Y')
+      .where('type', 'DRUG')
   }
 
   updateDrugs(db: Knex, id: any, data = {}) {
-    return db('mm_generics')
+    return db('b_generics')
       .update(data)
       .where('id', id);
   }
 
   insertDrugs(db: Knex, data = {}) {
-    return db('mm_generics')
+    return db('b_generics')
       .insert(data);
   }
 
   deleteDrugs(db: Knex, id: any) {
-    return db('mm_generics')
+    return db('b_generics')
       .update('is_deleted', 'Y')
       .where('id', id);
   }
 
-  getDrugStock(db: Knex, hospcode: any) {
-    return db('wm_drug_stocks as ds')
+  getDrugStock(db: Knex, hospitalId: any) {
+    return db('wm_drugs as ds')
       .select('ds.*', 't.name', 'u.fname', 'u.lname')
-      .leftJoin('um_users as u', 'u.id', 'ds.created_by')
+      .leftJoin('um_users as u', 'u.id', 'ds.create_by')
       .leftJoin('um_titles as t', 't.id', 'u.title_id')
-      .where('ds.hospcode', hospcode)
-      .orderBy('ds.created_at')
+      .where('ds.hospital_id', hospitalId)
+      .orderBy('ds.create_date')
   }
 
   getDrugStockDetails(db: Knex, id: any) {
-    return db('wm_drug_stock_details as  dsd')
-      .select('dsd.*', 'mg.code', 'mg.name', 'mg.unit_name')
-      .join('mm_generics as mg', 'mg.id', 'dsd.bed_id')
-      .where('dsd.bed_stock_id', id);
+    return db('wm_drug_details as  dsd')
+      .select('dsd.*', 'mg.name', 'u.name as unit_name')
+      .join('b_generics as mg', 'mg.id', 'dsd.generic_id')
+      .leftJoin('b_units as u', 'u.id', 'mg.unit_id')
+      .where('dsd.wm_drug_id', id);
   }
 
+  saveHead(db: Knex, data) {
+    return db('wm_drugs')
+      .insert(data, 'id');
+  }
+  saveDetail(db: Knex, data) {
+    return db('wm_drug_details')
+      .insert(data);
+  }
 }

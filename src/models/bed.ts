@@ -2,24 +2,33 @@ import * as Knex from 'knex';
 
 export class BedModel {
 
-  getBedStock(db: Knex, hospcode: any) {
-    return db('wm_stock_beds as bs')
+  getBedStock(db: Knex, hospitalId: any) {
+    return db('wm_beds as bs')
       .select('bs.*', 't.name', 'u.fname', 'u.lname')
-      .leftJoin('um_users as u', 'u.id', 'bs.created_by')
+      .leftJoin('um_users as u', 'u.id', 'bs.create_by')
       .leftJoin('um_titles as t', 't.id', 'u.title_id')
-      .where('bs.hospcode', hospcode)
-      .orderBy('bs.created_at', 'ASC')
+      .where('bs.hospital_id', hospitalId)
+      .orderBy('bs.create_date', 'ASC')
   }
 
-  getBedStockDetails(db: Knex, id: any) {
-    return db('wm_stock_beds_details as  bsd')
-      .select('bsd.*', 'b.code', 'b.name', 'b.unit_name')
-      .join('mm_beds as b', 'b.id', 'bsd.bed_id')
-      .where('bsd.bed_stock_id', id);
+  getBedStockDetails(db: Knex, id: any, hospitalId) {
+    return db('wm_bed_details as  bsd')
+      .select('bsd.*', 'b.name','bh.qty as qty_total')
+      .join('b_beds as b', 'b.id', 'bsd.bed_id')
+      .leftJoin('b_bed_hospitals as bh', (v) => {
+        v.on('b.id', 'bh.bed_id')
+        v.on('bh.hospital_id', db.raw(`${hospitalId}`));
+      })
+      .where('bsd.wm_bed_id', id);
   }
 
-  getBeds(db: Knex) {
-    return db('mm_beds');
+  getBeds(db: Knex, hospitalId: any) {
+    return db('b_beds as b')
+      .select('b.id as bed_id', 'b.name', 'bh.qty as qty_total')
+      .leftJoin('b_bed_hospitals as bh', (v) => {
+        v.on('b.id', 'bh.bed_id')
+        v.on('bh.hospital_id', db.raw(`${hospitalId}`));
+      })
   }
 
   getRemainHosp(db: Knex) {
@@ -29,14 +38,8 @@ export class BedModel {
       .join('l_hospitals as l', 'l.hospcode', 'rg.hospcode');
   }
 
-  getBalanceBeds(db: Knex, hospcode: any) {
-    return db('wm_current_beds as cb')
-      .join('mm_beds as b', 'b.id', 'cb.bed_id')
-      .where('cb.hospcode', hospcode)
-  }
-
   saveBed(db: Knex, data) {
-    return db('wm_stock_beds')
+    return db('wm_beds')
       .insert(data, 'id');
   }
 
@@ -46,26 +49,16 @@ export class BedModel {
   }
 
   saveDetail(db: Knex, data) {
-    return db('wm_stock_beds_details')
+    return db('wm_bed_details')
       .insert(data);
   }
 
   updateBeds(db: Knex, id: any, data: any) {
-    return db('wm_stock_beds').update(data).where('id', id);
+    return db('wm_beds').update(data).where('id', id);
   }
 
   updateBedDetail(db: Knex, id: any, data: any) {
-    return db('wm_stock_beds_details').update(data).where('id', id);
-  }
-
-  saveCurrent(db: Knex, data) {
-    return db('wm_current_beds')
-      .insert(data);
-  }
-
-  del(db: Knex, hospcode: any) {
-    return db('wm_current_beds')
-      .delete().where('hospcode', hospcode);
+    return db('wm_bed_details').update(data).where('id', id);
   }
 
   checkBed(db: Knex, provinceCode = null) {

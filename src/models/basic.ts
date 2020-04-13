@@ -112,4 +112,36 @@ export class BasicModel {
 			.andWhere('lh.hospname', 'like', _q)
 			.orderBy('lh.hospname')
 	}
+
+	getGCS(db: Knex) {
+		return db('b_gcs')
+			.where('is_deleted', 'N')
+	}
+
+	getBeds(db: Knex) {
+		return db('b_beds')
+			.where('is_deleted', 'N')
+	}
+
+	getRespirators(db: Knex) {
+		return db('b_respirators')
+			.where('is_deleted', 'N')
+	}
+
+	getGenericSet(db: Knex, type) {
+		return db('b_generic_sets')
+			.where('is_deleted', 'N')
+			.where('type', type)
+	}
+
+	getGenericSetDetails(db: Knex, id) {
+		return db('b_generic_set_details')
+			.where('set_id', id)
+	}
+	getGenericSetDetailItems(db: Knex, id) {
+		return db('b_generic_set_detail_items as sdi')
+			.select('sdi.*', 'g.name as generic_name')
+			.join('b_generics as g', 'g.id', 'sdi.generic_id')
+			.where('set_detail_id', id)
+	}
 }

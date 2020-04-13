@@ -35,8 +35,10 @@ import requisitionStaffRoute from './routes/staff/requisition';
 import settingStaffRoute from './routes/staff/setting';
 import requisitionSuppliesRoute from './routes/staff/requisition-supplies';
 import drugStaffRoute from './routes/staff/drug';
+import covidCaseRoute from './routes/staff/covid-case';
 
 import basicRoute from './routes/basic';
+import basicAuthRoute from './routes/basicAuth';
 import servicesRoute from './routes/manager/services';
 import eocRoute from './routes/eoc';
 // Assign router to the express.Router() instance
@@ -194,10 +196,11 @@ let managerAuth = (req, res, next) => {
   }
 }
 
-app.use('/login', loginRoute);
-app.use('/register', registerRoute);
-app.use('/basic', checkAuth, basicRoute);
 app.use('/v1', api);
+api.use('/login', loginRoute);
+api.use('/register', registerRoute);
+api.use('/basic', basicRoute);
+api.use('/basic-auth', checkAuth, basicAuthRoute);
 
 //admin
 api.use('/admin', checkAuth, adminAuth, admin)
@@ -223,6 +226,7 @@ staff.use('/requisition', requisitionStaffRoute)
 staff.use('/requisition-supplies', requisitionSuppliesRoute)
 staff.use('/setting', settingStaffRoute)
 staff.use('/drugs', drugStaffRoute)
+staff.use('/covid-case', covidCaseRoute)
 
 //index
 app.use('/', indexRoute);

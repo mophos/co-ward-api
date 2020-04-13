@@ -18,6 +18,10 @@ router.get('/version', (req: Request, res: Response) => {
   res.send({ ok: true, message: '1.0.0', code: HttpStatus.OK });
 });
 
+router.get('/date', (req: Request, res: Response) => {
+  res.send({ ok: true, rows:moment().format('YYYY-MM-DD HH:mm:ss'), code: HttpStatus.OK });
+});
+
 router.post('/order_sync', async (req: Request, res: Response) => {
   try {
     const db = req.db
