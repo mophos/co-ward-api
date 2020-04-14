@@ -22,6 +22,42 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/node', async (req: Request, res: Response) => {
+  const hospitalId = req.decoded.hospitalId;
+  try {
+    let rs: any = await covidCaseModel.getListHosp(req.db, hospitalId);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/node/requisition', async (req: Request, res: Response) => {
+  const reqId = req.query.reqId;
+  try {
+    let rs: any = await covidCaseModel.getListDrug(req.db, reqId);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/node/detail', async (req: Request, res: Response) => {
+  const hospitalIdClient = req.query.hospitalIdClient;
+  try {
+    let rs: any = await covidCaseModel.getListHospDetail(req.db, hospitalIdClient);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.get('/approved', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   try {
@@ -143,7 +179,7 @@ async function saveDrug(db, hospitalId, drugs, gcsId, hospitalType, covidCaseDet
     return { ok: true };
   } catch (error) {
     console.log(error);
-    
+
     return { ok: false, error: error };
   }
 }
