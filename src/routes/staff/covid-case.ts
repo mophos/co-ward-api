@@ -1,3 +1,4 @@
+
 // / <reference path="../../typings.d.ts" />
 
 import * as HttpStatus from 'http-status-codes';
@@ -5,8 +6,10 @@ import * as HttpStatus from 'http-status-codes';
 import { Router, Request, Response } from 'express';
 
 import { CovidCaseModel } from '../../models/covid-case';
-
+import { BasicModel } from '../../models/basic';
+import * as _ from 'lodash';
 const covidCaseModel = new CovidCaseModel();
+const basicModel = new BasicModel();
 const router: Router = Router();
 
 
@@ -109,7 +112,17 @@ router.post('/', async (req: Request, res: Response) => {
       last_name: data.lname,
       gender_id: data.genderId,
       birth_date: data.birthDate,
-      telephone: data.tel
+      telephone: data.tel,
+      house_no: data.houseNo,
+      room_no: data.roomNo,
+      village: data.village,
+      village_name: data.villageName,
+      road: data.road,
+      tambon_code: data.tambonId,
+      ampur_code: data.ampurId,
+      province_code: data.provinceId,
+      zipcode: data.zipcode,
+      country_code: data.countryId,
     }
     const personId = await covidCaseModel.savePerson(db, person);
     const patient = {
@@ -121,26 +134,31 @@ router.post('/', async (req: Request, res: Response) => {
     const _data = {
       patient_id: patientId,
       status: 'ADMIT',
-      date_admit: data.dateAdmit
+      an: data.an,
+      date_admit: data.admitDate
     }
-    const covidCaseId = await covidCaseModel.saveCovidCase(req.db, _data);
+    const covidCaseId = await covidCaseModel.saveCovidCase(db, _data);
     const detail = {
       covid_case_id: covidCaseId,
       gcs_id: data.gcsId,
       bed_id: data.bedId,
       respirator_id: data.respiratorId
     }
-    const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(req.db, detail);
+    const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
+    const generic = await basicModel.getGenerics(db);
     const items = []
     for (const i of data.drugs) {
-      const item = {
+      const item: any = {
         covid_case_detail_id: covidCaseDetailId,
         generic_id: i.genericId,
-        qty: i.qty
+      }
+      const idx = _.findIndex(generic, { 'generic_id': +i.genericId });
+      if (idx > -1) {
+        item.qty = generic[idx].first_pay_qty;
       }
       items.push(item);
     }
-    await covidCaseModel.saveCovidCaseDetailItem(req.db, items);
+    await covidCaseModel.saveCovidCaseDetailItem(db, items);
     const resu: any = await saveDrug(db, hospitalId, data.drugs, data.gcsId, hospitalType, covidCaseDetailId);
     if (resu.ok) {
       res.send({ ok: true, code: HttpStatus.OK });

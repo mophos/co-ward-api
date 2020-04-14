@@ -62,30 +62,23 @@ export class CovidCaseModel {
   }
 
   getCasePresent(db: Knex, hospitalId) {
-
-    let sql = db('p_covid_cases as c')
+    return db('p_covid_cases as c')
       .select('c.id as covid_case_id', 'c.status', 'c.date_admit', 'pt.hn', 'pt.person_id', 'p.*', 't.name as title_name',
         'cd.bed_id', 'cd.gcs_id', 'cd.respirator_id', db.raw(`DATE_FORMAT(cd.create_date, "%Y-%m-%d") as create_date`),
-        db.raw(`(select if(generic_id,'1',null) from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 1 limit 1) as set1,
-        (select if(generic_id,'2',null) from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 2 limit 1) as set2,
-        (select if(generic_id,'1',null) from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 3  limit 1) as set3,
-        (select if(generic_id,'2',null) from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 5  limit 1) as set4,
-          (select if(generic_id,'1',null) from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 7  limit 1) as set5,
-            (select if(generic_id,'1',null) from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 8  limit 1) as set6`))
+        db.raw(`(select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 1 or generic_id = 2) limit 1) as set1,
+      (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 3 or generic_id = 5) limit 1) as set2,
+      (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 7  limit 1) as set3,
+      (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 8  limit 1) as set4`))
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .leftJoin('um_titles as t', 'p.title_id', 't.id')
-      .joinRaw(`left join (	select max(ccd.id) as covid_case_detail_id,cc.patient_id from p_covid_case_details as ccd
-      join p_covid_cases as cc on cc.id = ccd.covid_case_id
-      group by cc.patient_id ) as ccd on c.patient_id = ccd.patient_id
-      left join p_covid_case_details as cd on ccd.covid_case_detail_id = cd.id`)
+      .joinRaw(`left join ( select max(ccd.id) as covid_case_detail_id,cc.patient_id from p_covid_case_details as ccd
+    join p_covid_cases as cc on cc.id = ccd.covid_case_id
+    group by cc.patient_id ) as ccd on c.patient_id = ccd.patient_id
+    left join p_covid_case_details as cd on ccd.covid_case_detail_id = cd.id`)
       // .leftJoin('p_covid_case_details as cd','ccs.covid_case_detail_id','cd.id')
       .where('pt.hospital_id', hospitalId)
       .where('c.status', 'ADMIT');
-    console.log(sql.toString());
-    return sql
-
-
   }
 
   getInfo(db: Knex, hospitalId, covidCaseId) {
