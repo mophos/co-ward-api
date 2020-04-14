@@ -278,4 +278,18 @@ router.get('/respirators', async (req: Request, res: Response) => {
 });
 
 
+router.post('/requisition-stock', async (req: Request, res: Response) => {
+  const hospitalId = req.decoded.hospitalId;
+  let id = req.body.id;
+  try {
+    id = Array.isArray(id) ? id : [id];
+    let rs: any = await covidCaseModel.getRequisitionStock(req.db, id, hospitalId);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+
 export default router;

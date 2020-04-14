@@ -163,4 +163,14 @@ export class CovidCaseModel {
     GROUP BY ccd.respirator_id) as gg on g.id = gg.respirator_id`, [hospitalId]);
   }
 
+  getRequisitionStock(db: Knex, id, hospitalId) {
+    return db('b_generics AS bg')
+      .select('bg.*', db.raw('sum( ifnull(wrd.qty, 0 ) ) as requisition_qty, ifnull(wg.qty, 0 ) as stock_qty'))
+      .join('wm_requisition_details as wrd', 'wrd.generic_id', 'bg.id')
+      .leftJoin('wm_generics as wg', (v) => {
+        v.on('wg.generic_id', 'bg.id').andOn('wg.hospital_id', hospitalId)
+      })
+      .whereIn('wrd.requisition_id', id)
+      .groupBy('bg.id')
+  }
 }
