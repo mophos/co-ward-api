@@ -11,6 +11,40 @@ export class CovidCaseModel {
       .where('pt.hospital_id', hospitalId)
   }
 
+  getListHosp(db: Knex, hospitalId) {
+    return db('wm_requisitions as r')
+      .select('r.*', 'h1.hospname')
+      .join('b_hospitals as h1', 'h1.id', 'r.hospital_id_client')
+      .where('hospital_id_node', hospitalId)
+      .where('r.is_approved', 'N')
+      .groupBy('hospital_id_client')
+  }
+
+  getListHospDetail(db: Knex, hospitalIdClient) {
+    return db('wm_requisitions as r')
+      .select('r.*')
+      // .join('wm_requisition_details as rd', 'rd.requisition_id', 'r.id')
+      .where('hospital_id_client', hospitalIdClient)
+      .where('is_approved', 'N')
+  }
+
+  getListHospDetailClient(db: Knex, hospitalIdClient) {
+    return db('wm_requisitions as r')
+      .select('r.*')
+      // .join('wm_requisition_details as rd', 'rd.requisition_id', 'r.id')
+      .where('hospital_id_client', hospitalIdClient)
+    // .where('is_approved', 'N')
+  }
+
+  getListDrug(db: Knex, reqId) {
+    return db('wm_requisitions as r')
+      .select('r.*', 'rd.*', 'g.*', 'u.name as unit_name')
+      .join('wm_requisition_details as rd', 'rd.requisition_id', 'r.id')
+      .join('b_generics as g', 'g.id', 'rd.generic_id')
+      .join('b_units as u', 'u.id', 'g.unit_id')
+      .where('r.id', reqId)
+  }
+
   getListApproved(db: Knex, hospitalId) {
     return db('wm_requisitions as r')
       .select('r.*', 'h1.hospname as hospital_name_node', 'h2.hospname as hospital_name_client')
@@ -165,4 +199,25 @@ export class CovidCaseModel {
     GROUP BY ccd.respirator_id) as gg on g.id = gg.respirator_id`, [hospitalId]);
   }
 
+  getRequisitionStock(db: Knex, id, hospitalId) {
+    return db('b_generics AS bg')
+      .select('u.name as unit_name', 'bg.*', 'wg.id as wm_id', db.raw('sum( ifnull(wrd.qty, 0 ) ) as requisition_qty, ifnull(wg.qty, 0 ) as stock_qty'))
+      .join('wm_requisition_details as wrd', 'wrd.generic_id', 'bg.id')
+      .leftJoin('wm_generics as wg', (v) => {
+        v.on('wg.generic_id', 'bg.id').andOn('wg.hospital_id', hospitalId)
+      })
+      .leftJoin('b_units as u', 'u.id', 'bg.unit_id')
+      .whereIn('wrd.requisition_id', id)
+      .groupBy('bg.id')
+  }
+
+  updateStockQty(db: Knex, id, qty) {
+    return db('wm_generics').update('qty', qty)
+      .where('id', id);
+  }
+
+  updateReq(db: Knex, id) {
+    return db('wm_requisitions').update('is_approved', 'Y')
+      .whereIn('id', id);
+  }
 }
