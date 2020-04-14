@@ -58,6 +58,18 @@ router.get('/node/detail', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/node/detail/client', async (req: Request, res: Response) => {
+  const hospitalId = req.decoded.hospitalId;
+  try {
+    let rs: any = await covidCaseModel.getListHospDetailClient(req.db, hospitalId);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.get('/approved', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   try {
@@ -310,6 +322,38 @@ router.get('/respirators', async (req: Request, res: Response) => {
     res.send({ ok: true, rows: rs[0] })
   } catch (error) {
     res.send({ ok: false, error: error });
+  }
+});
+
+
+router.post('/requisition-stock', async (req: Request, res: Response) => {
+  const hospitalId = req.decoded.hospitalId;
+  let id = req.body.id;
+  try {
+    id = Array.isArray(id) ? id : [id];
+    let rs: any = await covidCaseModel.getRequisitionStock(req.db, id, hospitalId);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.post('/requisition', async (req: Request, res: Response) => {
+  let data = req.body.data;
+  let dataReqId = req.body.dataReqId;
+  try {
+    dataReqId = Array.isArray(dataReqId) ? dataReqId : [dataReqId];
+    for (const v of data) {
+      await covidCaseModel.updateStockQty(req.db, v.id, v.qty);
+    }
+    console.log(dataReqId, 'sdfkasdlfja;lsdkjfal;skdjf');
+
+    await covidCaseModel.updateReq(req.db, dataReqId);
+    res.send({ ok: true, rows: data, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
 
