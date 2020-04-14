@@ -118,9 +118,13 @@ export class BasicModel {
 			.where('is_deleted', 'N')
 	}
 
-	getBeds(db: Knex) {
-		return db('b_beds')
-			.where('is_deleted', 'N')
+	getBeds(db: Knex, hospitalId) {
+		return db('b_beds as b')
+			.leftJoin('b_bed_hospitals as bh', (v) => {
+				v.on('b.id', 'bh.bed_id')
+				v.on('bh.hospital_id', db.raw(`${hospitalId}`));
+			})
+			.where('b.is_deleted', 'N')
 	}
 
 	getRespirators(db: Knex) {

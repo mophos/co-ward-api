@@ -244,5 +244,38 @@ router.post('/check-register', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/beds', async (req: Request, res: Response) => {
+  const db = req.db;
+  const hospitalId = req.decoded.hospitalId;
+  try {
+    const rs = await covidCaseModel.getBeds(db, hospitalId);
+    res.send({ ok: true, rows: rs })
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
+
+router.get('/gcs', async (req: Request, res: Response) => {
+  const db = req.db;
+  const hospitalId = req.decoded.hospitalId;
+  try {
+    const rs = await covidCaseModel.getGcs(db, hospitalId);
+    res.send({ ok: true, rows: rs[0] })
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
+
+router.get('/respirators', async (req: Request, res: Response) => {
+  const db = req.db;
+  const hospitalId = req.decoded.hospitalId;
+  try {
+    const rs = await covidCaseModel.getRespirators(db, hospitalId);
+    res.send({ ok: true, rows: rs[0] })
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
+
 
 export default router;

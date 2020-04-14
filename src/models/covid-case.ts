@@ -21,7 +21,7 @@ export class CovidCaseModel {
 
   getListApprovedDetail(db: Knex, id) {
     return db('wm_requisition_details as r')
-    .select('r.*','g.name as generic_name','u.name as unit_name')
+      .select('r.*', 'g.name as generic_name', 'u.name as unit_name')
       .join('b_generics as g', 'g.id', 'r.generic_id')
       .leftJoin('b_units as u', 'u.id', 'g.unit_id')
       .where('r.requisition_id', id)
@@ -135,4 +135,32 @@ export class CovidCaseModel {
       .where('type', hospitalType)
       .where('gcs_id', gcsId)
   }
+
+  getBeds(db: Knex, hospitalId) {
+    return db('view_beds as b')
+      .where('b.hospital_id', hospitalId)
+  }
+
+  getGcs(db, hospitalId) {
+    return db.raw(`select g.id,g.name,ifnull(gg.count,0) as count from b_gcs as g 
+    left join (
+    select ccd.gcs_id,count(*) as count from p_covid_case_details as ccd 
+    join (SELECT c.id,p.hospital_id from p_covid_cases as c 
+    join p_patients as p on c.patient_id = p.id 
+    where c.status = 'ADMIT') as cc on ccd.covid_case_id = cc.id
+    where cc.hospital_id = ?
+    GROUP BY ccd.gcs_id) as gg on g.id = gg.gcs_id`, [hospitalId]);
+  }
+
+  getRespirators(db, hospitalId) {
+    return db.raw(`select g.id,g.name,ifnull(gg.count,0) as count from b_respirators as g 
+    left join (
+    select ccd.respirator_id,count(*) as count from p_covid_case_details as ccd 
+    join (SELECT c.id,p.hospital_id from p_covid_cases as c 
+    join p_patients as p on c.patient_id = p.id 
+    where c.status = 'ADMIT') as cc on ccd.covid_case_id = cc.id
+    where cc.hospital_id = ?
+    GROUP BY ccd.respirator_id) as gg on g.id = gg.respirator_id`, [hospitalId]);
+  }
+
 }
