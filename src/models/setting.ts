@@ -38,4 +38,14 @@ export class BedModel {
 	updateUser(db: Knex, data, userId: any) {
 		return db('um_users').update(data).where('id', userId);
 	}
+
+	saveHead(db: Knex, data) {
+    return db('wm_beds')
+      .insert(data, 'id');
+	}
+	
+	saveDetail(db: Knex, data) {
+    return db('wm_bed_details')
+      .insert(data);
+  }
 }

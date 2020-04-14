@@ -4,7 +4,8 @@ import * as HttpStatus from 'http-status-codes';
 import { Router, Request, Response } from 'express';
 import * as crypto from 'crypto';
 import { BedModel } from '../../models/setting';
-
+import { cloneDeep } from "lodash";
+import moment = require('moment');
 const model = new BedModel();
 const router: Router = Router();
 
@@ -50,20 +51,33 @@ router.get('/beds', async (req: Request, res: Response) => {
 
 router.post('/beds', async (req: Request, res: Response) => {
   const db = req.db;
+  const id = req.decoded.id;
   const hospitalId = req.decoded.hospitalId;
   const data = req.body.data;
-  try { 
+  try {
+    const head: any = {};
+    head.date = moment().format('YYYY-MM_DD');
+    head.create_by = id;
+    head.hospital_id = hospitalId;
+    let rs: any = await model.saveHead(db, [head]);
     await model.removeBeds(db, hospitalId);
     const _data = [];
+    let detail: any = [];
     for (const i of data) {
-      const obj = {
+      _data.push({
         hospital_id: hospitalId,
         bed_id: i.bed_id,
         qty: i.qty
-      }
-      _data.push(obj);
+      });
+
+      detail.push({
+        wm_bed_id: rs,
+        bed_id: i.bed_id,
+        qty: i.qty
+      });
     }
     await model.saveBeds(db, _data);
+    await model.saveDetail(db, detail);
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
