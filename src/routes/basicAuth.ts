@@ -43,8 +43,9 @@ router.get('/gcs', async (req: Request, res: Response) => {
 
 router.get('/beds', async (req: Request, res: Response) => {
   const db = req.db;
+  const hospitalId = req.decoded.hospitalId;
   try {
-    const rs = await model.getBeds(db);
+    const rs = await model.getBeds(db, hospitalId);
     res.send({ ok: true, rows: rs })
   } catch (error) {
     res.send({ ok: false, error: error });
@@ -66,7 +67,7 @@ router.get('/generic-set', async (req: Request, res: Response) => {
   const type = req.query.type;
   try {
     const head = await model.getGenericSet(db, type);
-  
+
     for (const h of head) {
       const detail = await model.getGenericSetDetails(db, h.id);
       for (const d of detail) {
