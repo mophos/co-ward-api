@@ -104,13 +104,17 @@ export class CovidCaseModel {
   checkCidSameHospital(db: Knex, hospitalId, cid) {
     return db('p_patients as pt')
       .join('p_persons as p', 'pt.person_id', 'p.id')
+      .join('p_covid_cases as c', 'c.patient_id', 'pt.id')
       .where('pt.hospital_id', hospitalId)
+      .where('c.status', 'ADMIT')
       .where('p.cid', cid)
   }
 
   checkCidAllHospital(db: Knex, cid) {
     return db('p_patients as pt')
+      .select('h.hospname', 'p.*','pt.hn',)
       .join('p_persons as p', 'pt.person_id', 'p.id')
+      .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
       .where('p.cid', cid)
   }
 
