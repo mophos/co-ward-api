@@ -114,11 +114,11 @@ export class BasicModel {
 	}
 
 	autocompleteHospital(db: Knex, query) {
-        const _q = `%${query}%`;
-        return db('b_hospitals')
-            .orWhere('hospname', 'like', _q)
-            .orderBy('hospname')
-    }
+		const _q = `%${query}%`;
+		return db('b_hospitals')
+			.orWhere('hospname', 'like', _q)
+			.orderBy('hospname')
+	}
 
 	getGCS(db: Knex) {
 		return db('b_gcs')
@@ -127,6 +127,7 @@ export class BasicModel {
 
 	getBeds(db: Knex, hospitalId) {
 		return db('b_beds as b')
+			.select('b.id', 'b.name', 'bh.hospital_id', 'bh.bed_id', 'bh.qty')
 			.leftJoin('b_bed_hospitals as bh', (v) => {
 				v.on('b.id', 'bh.bed_id')
 				v.on('bh.hospital_id', db.raw(`${hospitalId}`));
