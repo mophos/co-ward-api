@@ -11,6 +11,40 @@ export class CovidCaseModel {
       .where('pt.hospital_id', hospitalId)
   }
 
+  getListHosp(db: Knex, hospitalId) {
+    return db('wm_requisitions as r')
+      .select('r.*', 'h1.hospname')
+      .join('b_hospitals as h1', 'h1.id', 'r.hospital_id_client')
+      .where('hospital_id_node', hospitalId)
+      .where('r.is_approved', 'N')
+      .groupBy('hospital_id_client')
+  }
+
+  getListHospDetail(db: Knex, hospitalIdClient) {
+    return db('wm_requisitions as r')
+      .select('r.*')
+      // .join('wm_requisition_details as rd', 'rd.requisition_id', 'r.id')
+      .where('hospital_id_client', hospitalIdClient)
+      .where('is_approved', 'N')
+  }
+
+  getListHospDetailClient(db: Knex, hospitalIdClient) {
+    return db('wm_requisitions as r')
+      .select('r.*')
+      // .join('wm_requisition_details as rd', 'rd.requisition_id', 'r.id')
+      .where('hospital_id_client', hospitalIdClient)
+    // .where('is_approved', 'N')
+  }
+
+  getListDrug(db: Knex, reqId) {
+    return db('wm_requisitions as r')
+      .select('r.*', 'rd.*', 'g.*', 'u.name as unit_name')
+      .join('wm_requisition_details as rd', 'rd.requisition_id', 'r.id')
+      .join('b_generics as g', 'g.id', 'rd.generic_id')
+      .join('b_units as u', 'u.id', 'g.unit_id')
+      .where('r.id', reqId)
+  }
+
   getListApproved(db: Knex, hospitalId) {
     return db('wm_requisitions as r')
       .select('r.*', 'h1.hospname as hospital_name_node', 'h2.hospname as hospital_name_client')
@@ -28,30 +62,23 @@ export class CovidCaseModel {
   }
 
   getCasePresent(db: Knex, hospitalId) {
-
-    let sql = db('p_covid_cases as c')
+    return db('p_covid_cases as c')
       .select('c.id as covid_case_id', 'c.status', 'c.date_admit', 'pt.hn', 'pt.person_id', 'p.*', 't.name as title_name',
         'cd.bed_id', 'cd.gcs_id', 'cd.respirator_id', db.raw(`DATE_FORMAT(cd.create_date, "%Y-%m-%d") as create_date`),
-        db.raw(`(select if(generic_id,'1',null) from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 1 limit 1) as set1,
-        (select if(generic_id,'2',null) from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 2 limit 1) as set2,
-        (select if(generic_id,'1',null) from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 3  limit 1) as set3,
-        (select if(generic_id,'2',null) from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 5  limit 1) as set4,
-          (select if(generic_id,'1',null) from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 7  limit 1) as set5,
-            (select if(generic_id,'1',null) from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 8  limit 1) as set6`))
+        db.raw(`(select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 1 or generic_id = 2) limit 1) as set1,
+      (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 3 or generic_id = 4) limit 1) as set2,
+      (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 7  limit 1) as set3,
+      (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 8  limit 1) as set4`))
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .leftJoin('um_titles as t', 'p.title_id', 't.id')
-      .joinRaw(`left join (	select max(ccd.id) as covid_case_detail_id,cc.patient_id from p_covid_case_details as ccd
-      join p_covid_cases as cc on cc.id = ccd.covid_case_id
-      group by cc.patient_id ) as ccd on c.patient_id = ccd.patient_id
-      left join p_covid_case_details as cd on ccd.covid_case_detail_id = cd.id`)
+      .joinRaw(`left join ( select max(ccd.id) as covid_case_detail_id,cc.patient_id from p_covid_case_details as ccd
+    join p_covid_cases as cc on cc.id = ccd.covid_case_id
+    group by cc.patient_id ) as ccd on c.patient_id = ccd.patient_id
+    left join p_covid_case_details as cd on ccd.covid_case_detail_id = cd.id`)
       // .leftJoin('p_covid_case_details as cd','ccs.covid_case_detail_id','cd.id')
       .where('pt.hospital_id', hospitalId)
       .where('c.status', 'ADMIT');
-    console.log(sql.toString());
-    return sql
-
-
   }
 
   getInfo(db: Knex, hospitalId, covidCaseId) {
@@ -77,13 +104,22 @@ export class CovidCaseModel {
   checkCidSameHospital(db: Knex, hospitalId, cid) {
     return db('p_patients as pt')
       .join('p_persons as p', 'pt.person_id', 'p.id')
+      .join('p_covid_cases as c', 'c.patient_id', 'pt.id')
       .where('pt.hospital_id', hospitalId)
+      .where('c.status', 'ADMIT')
       .where('p.cid', cid)
   }
 
   checkCidAllHospital(db: Knex, cid) {
     return db('p_patients as pt')
+      .select('h.hospname', 'p.*', 'pt.hn','va.*')
       .join('p_persons as p', 'pt.person_id', 'p.id')
+      .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
+      .leftJoin('view_address as va', (v) => {
+        v.on('va.ampur_code', 'p.ampur_code')
+        v.on('va.tambon_code', 'p.tambon_code')
+        v.on('va.province_code', 'p.province_code')
+      })
       .where('p.cid', cid)
   }
 
@@ -174,12 +210,34 @@ export class CovidCaseModel {
 
   getRequisitionStock(db: Knex, id, hospitalId) {
     return db('b_generics AS bg')
-      .select('bg.*', db.raw('sum( ifnull(wrd.qty, 0 ) ) as requisition_qty, ifnull(wg.qty, 0 ) as stock_qty'))
+      .select('u.name as unit_name', 'bg.*', 'wg.id as wm_id', db.raw('sum( ifnull(wrd.qty, 0 ) ) as requisition_qty, ifnull(wg.qty, 0 ) as stock_qty'))
       .join('wm_requisition_details as wrd', 'wrd.generic_id', 'bg.id')
       .leftJoin('wm_generics as wg', (v) => {
         v.on('wg.generic_id', 'bg.id').andOn('wg.hospital_id', hospitalId)
       })
+      .leftJoin('b_units as u', 'u.id', 'bg.unit_id')
       .whereIn('wrd.requisition_id', id)
       .groupBy('bg.id')
+  }
+
+  updateStockQty(db: Knex, id, qty) {
+    return db('wm_generics').update('qty', qty)
+      .where('id', id);
+  }
+
+  updateReq(db: Knex, id) {
+    return db('wm_requisitions').update('is_approved', 'Y')
+      .whereIn('id', id);
+  }
+
+  countRequisitionhospital(db: Knex, id) {
+    return db('wm_requisitions')
+      .count('* as count')
+      .where('hospital_id_client', id)
+  }
+
+  updateDischarge(db: Knex, id, data) {
+    return db('p_covid_cases').update(data)
+      .where('id', id);
   }
 }

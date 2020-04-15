@@ -1,3 +1,4 @@
+
 // / <reference path="../../typings.d.ts" />
 
 import * as HttpStatus from 'http-status-codes';
@@ -5,8 +6,13 @@ import * as HttpStatus from 'http-status-codes';
 import { Router, Request, Response } from 'express';
 
 import { CovidCaseModel } from '../../models/covid-case';
+import { BasicModel } from '../../models/basic';
+import { SerialModel } from '../../models/serial';
+import * as _ from 'lodash';
 
+const serialModel = new SerialModel();
 const covidCaseModel = new CovidCaseModel();
+const basicModel = new BasicModel();
 const router: Router = Router();
 
 
@@ -14,6 +20,54 @@ router.get('/', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   try {
     let rs: any = await covidCaseModel.getCase(req.db, hospitalId);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/node', async (req: Request, res: Response) => {
+  const hospitalId = req.decoded.hospitalId;
+  try {
+    let rs: any = await covidCaseModel.getListHosp(req.db, hospitalId);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/node/requisition', async (req: Request, res: Response) => {
+  const reqId = req.query.reqId;
+  try {
+    let rs: any = await covidCaseModel.getListDrug(req.db, reqId);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/node/detail', async (req: Request, res: Response) => {
+  const hospitalIdClient = req.query.hospitalIdClient;
+  try {
+    let rs: any = await covidCaseModel.getListHospDetail(req.db, hospitalIdClient);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/node/detail/client', async (req: Request, res: Response) => {
+  const hospitalId = req.decoded.hospitalId;
+  try {
+    let rs: any = await covidCaseModel.getListHospDetailClient(req.db, hospitalId);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -50,6 +104,7 @@ router.get('/approved-detail', async (req: Request, res: Response) => {
 router.post('/', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   const hospitalType = req.decoded.hospitalType;
+  const hospcode = req.decoded.hospcode;
   const data = req.body.data;
   const db = req.db;
   try {
@@ -61,7 +116,17 @@ router.post('/', async (req: Request, res: Response) => {
       last_name: data.lname,
       gender_id: data.genderId,
       birth_date: data.birthDate,
-      telephone: data.tel
+      telephone: data.tel,
+      house_no: data.houseNo,
+      room_no: data.roomNo,
+      village: data.village,
+      village_name: data.villageName,
+      road: data.road,
+      tambon_code: data.tambonId,
+      ampur_code: data.ampurId,
+      province_code: data.provinceId,
+      zipcode: data.zipcode,
+      country_code: data.countryId,
     }
     const personId = await covidCaseModel.savePerson(db, person);
     const patient = {
@@ -73,27 +138,32 @@ router.post('/', async (req: Request, res: Response) => {
     const _data = {
       patient_id: patientId,
       status: 'ADMIT',
-      date_admit: data.dateAdmit
+      an: data.an,
+      date_admit: data.admitDate
     }
-    const covidCaseId = await covidCaseModel.saveCovidCase(req.db, _data);
+    const covidCaseId = await covidCaseModel.saveCovidCase(db, _data);
     const detail = {
       covid_case_id: covidCaseId,
       gcs_id: data.gcsId,
       bed_id: data.bedId,
       respirator_id: data.respiratorId
     }
-    const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(req.db, detail);
+    const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
+    const generic = await basicModel.getGenerics(db);
     const items = []
     for (const i of data.drugs) {
-      const item = {
+      const item: any = {
         covid_case_detail_id: covidCaseDetailId,
         generic_id: i.genericId,
-        qty: i.qty
+      }
+      const idx = _.findIndex(generic, { 'id': +i.genericId });
+      if (idx > -1) {
+        item.qty = generic[idx].first_pay_qty;
       }
       items.push(item);
     }
-    await covidCaseModel.saveCovidCaseDetailItem(req.db, items);
-    const resu: any = await saveDrug(db, hospitalId, data.drugs, data.gcsId, hospitalType, covidCaseDetailId);
+    await covidCaseModel.saveCovidCaseDetailItem(db, items);
+    const resu: any = await saveDrug(db, hospitalId, hospcode, data.drugs, data.gcsId, hospitalType, covidCaseDetailId);
     if (resu.ok) {
       res.send({ ok: true, code: HttpStatus.OK });
     } else {
@@ -105,8 +175,12 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
-async function saveDrug(db, hospitalId, drugs, gcsId, hospitalType, covidCaseDetailId) {
+async function saveDrug(db, hospitalId, hospcode, drugs, gcsId, hospitalType, covidCaseDetailId) {
   try {
+
+    const currentNo = await covidCaseModel.countRequisitionhospital(db, hospitalId)
+    const newSerialNo = await serialModel.paddingNumber(currentNo[0].count + 1, 5)
+
     const node: any = await covidCaseModel.findNode(db, hospitalId);
     let hospital_id_node;
     if (node.length) {
@@ -117,7 +191,8 @@ async function saveDrug(db, hospitalId, drugs, gcsId, hospitalType, covidCaseDet
     const head = {
       hospital_id_node,
       hospital_id_client: hospitalId,
-      covid_case_detail_id: covidCaseDetailId
+      covid_case_detail_id: covidCaseDetailId,
+      code: 'RQ-' + hospcode + '-' + newSerialNo
     }
 
     const requisitionId = await covidCaseModel.saveRequisition(db, head);
@@ -130,6 +205,7 @@ async function saveDrug(db, hospitalId, drugs, gcsId, hospitalType, covidCaseDet
       }
       detail.push(obj);
     }
+
     const q = await covidCaseModel.getQtySupplues(db, gcsId, hospitalType)
     for (const d of q) {
       const obj = {
@@ -143,7 +219,7 @@ async function saveDrug(db, hospitalId, drugs, gcsId, hospitalType, covidCaseDet
     return { ok: true };
   } catch (error) {
     console.log(error);
-    
+
     return { ok: false, error: error };
   }
 }
@@ -161,18 +237,39 @@ router.get('/present', async (req: Request, res: Response) => {
 });
 
 router.put('/present', async (req: Request, res: Response) => {
-  const data = req.body.data;
   const db = req.db;
+  const data = req.body.data;
+  const hospitalId = req.decoded.hospitalId;
+  const hospcode = req.decoded.hospcode;
+  const hospitalType = req.decoded.hospitalType;
   try {
-    console.log(data);
     const detail = {
       covid_case_id: data.covid_case_id,
       gcs_id: data.gcs_id,
       bed_id: data.bed_id,
       respirator_id: data.respirator_id
     }
-    await covidCaseModel.saveCovidCaseDetail(db, detail);
-    res.send({ ok: true, code: HttpStatus.OK });
+    const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
+    const generic = await basicModel.getGenerics(db);
+    const items = []
+    for (const i of data.drugs) {
+      const item: any = {
+        covid_case_detail_id: covidCaseDetailId,
+        generic_id: i.genericId,
+      }
+      const idx = _.findIndex(generic, { 'id': +i.genericId });
+      if (idx > -1) {
+        item.qty = generic[idx].pay_qty;
+      }
+      items.push(item);
+    }
+    await covidCaseModel.saveCovidCaseDetailItem(db, items);
+    const resu: any = await saveDrug(db, hospitalId, hospcode, data.drugs, data.gcs_id, hospitalType, covidCaseDetailId);
+    if (resu.ok) {
+      res.send({ ok: true, code: HttpStatus.OK });
+    } else {
+      res.send({ ok: false, error: resu.error, code: HttpStatus.OK });
+    }
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -210,6 +307,7 @@ router.post('/check-register', async (req: Request, res: Response) => {
   const passport = req.body.passport;
   const type = req.body.type;
   const db = req.db;
+  const hospname = req.decoded.hospname;
   try {
     if (type == 'CID') {
       const rs: any = await covidCaseModel.checkCidSameHospital(db, hospitalId, cid);
@@ -218,7 +316,7 @@ router.post('/check-register', async (req: Request, res: Response) => {
       } else {
         const rs: any = await covidCaseModel.checkCidAllHospital(db, cid);
         if (rs.length) {
-          res.send({ ok: true, case: 'REFER' })
+          res.send({ ok: true, case: 'REFER', rows: rs[0] })
         } else {
           res.send({ ok: true, case: 'NEW' });
         }
@@ -285,6 +383,42 @@ router.post('/requisition-stock', async (req: Request, res: Response) => {
     id = Array.isArray(id) ? id : [id];
     let rs: any = await covidCaseModel.getRequisitionStock(req.db, id, hospitalId);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.post('/update/discharge', async (req: Request, res: Response) => {
+  const data = req.body.data;
+  try {
+    const obj: any = {};
+    obj.status = data.status;
+    obj.date_discharge = data.dateDischarge;
+    if (data.hospitalId !== undefined) {
+      obj.hospital_id_refer = data.hospitalId;
+    }
+
+    let rs: any = await covidCaseModel.updateDischarge(req.db, data.covidCaseId, obj);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.post('/requisition', async (req: Request, res: Response) => {
+  let data = req.body.data;
+  let dataReqId = req.body.dataReqId;
+  try {
+    dataReqId = Array.isArray(dataReqId) ? dataReqId : [dataReqId];
+    for (const v of data) {
+      await covidCaseModel.updateStockQty(req.db, v.id, v.qty);
+    }
+    console.log(dataReqId, 'sdfkasdlfja;lsdkjfal;skdjf');
+
+    await covidCaseModel.updateReq(req.db, dataReqId);
+    res.send({ ok: true, rows: data, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });

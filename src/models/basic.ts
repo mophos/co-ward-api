@@ -20,7 +20,7 @@ export class BasicModel {
 	}
 
 	getGenerics(db: Knex) {
-		return db('mm_generics')
+		return db('b_generics')
 			.where('is_deleted', 'N')
 			.andWhere('is_actived', 'Y')
 	}
@@ -29,13 +29,13 @@ export class BasicModel {
 		const q = `%${query}%`;
 		const _q = `${query}%`;
 		return db.raw(`SELECT DISTINCT
-		province_id,
+		province_code,
 		province_name,
 		province_name_en,
-		ampur_id,
+		ampur_code,
 		ampur_name,
 		ampur_name_en,
-		tambon_id,
+		tambon_code,
 		tambon_name,
 		tambon_name_en,
 		zip_code 
@@ -59,13 +59,13 @@ export class BasicModel {
 		const q = `%${query}%`;
 		const _q = `${query}%`;
 		return db.raw(`SELECT DISTINCT
-			province_id,
+			province_code,
 			province_name,
 			province_name_en,
-			ampur_id,
+			ampur_code,
 			ampur_name,
 			ampur_name_en,
-			tambon_id,
+			tambon_code,
 			tambon_name,
 			tambon_name_en,
 			zip_code 
@@ -112,6 +112,13 @@ export class BasicModel {
 			.andWhere('lh.hospname', 'like', _q)
 			.orderBy('lh.hospname')
 	}
+
+	autocompleteHospital(db: Knex, query) {
+        const _q = `%${query}%`;
+        return db('b_hospitals')
+            .orWhere('hospname', 'like', _q)
+            .orderBy('hospname')
+    }
 
 	getGCS(db: Knex) {
 		return db('b_gcs')
