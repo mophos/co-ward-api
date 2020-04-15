@@ -357,6 +357,24 @@ router.post('/requisition-stock', async (req: Request, res: Response) => {
   }
 });
 
+router.post('/update/discharge', async (req: Request, res: Response) => {
+  const data = req.body.data;
+  try {
+    const obj: any = {};
+    obj.status = data.status;
+    obj.date_discharge = data.dateDischarge;
+    if (data.hospitalId !== undefined) {
+      obj.hospital_id_refer = data.hospitalId;
+    }
+
+    let rs: any = await covidCaseModel.updateDischarge(req.db, data.covidCaseId, obj);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.post('/requisition', async (req: Request, res: Response) => {
   let data = req.body.data;
   let dataReqId = req.body.dataReqId;

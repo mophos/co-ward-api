@@ -113,6 +113,13 @@ export class BasicModel {
 			.orderBy('lh.hospname')
 	}
 
+	autocompleteHospital(db: Knex, query) {
+        const _q = `%${query}%`;
+        return db('b_hospitals')
+            .orWhere('hospname', 'like', _q)
+            .orderBy('hospname')
+    }
+
 	getGCS(db: Knex) {
 		return db('b_gcs')
 			.where('is_deleted', 'N')

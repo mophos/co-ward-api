@@ -220,4 +220,9 @@ export class CovidCaseModel {
     return db('wm_requisitions').update('is_approved', 'Y')
       .whereIn('id', id);
   }
+
+  updateDischarge(db: Knex, id, data) {
+    return db('p_covid_cases').update(data)
+      .where('id', id);
+  }
 }
