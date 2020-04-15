@@ -66,7 +66,7 @@ export class CovidCaseModel {
       .select('c.id as covid_case_id', 'c.status', 'c.date_admit', 'pt.hn', 'pt.person_id', 'p.*', 't.name as title_name',
         'cd.bed_id', 'cd.gcs_id', 'cd.respirator_id', db.raw(`DATE_FORMAT(cd.create_date, "%Y-%m-%d") as create_date`),
         db.raw(`(select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 1 or generic_id = 2) limit 1) as set1,
-      (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 3 or generic_id = 5) limit 1) as set2,
+      (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 3 or generic_id = 4) limit 1) as set2,
       (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 7  limit 1) as set3,
       (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 8  limit 1) as set4`))
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
@@ -112,7 +112,7 @@ export class CovidCaseModel {
 
   checkCidAllHospital(db: Knex, cid) {
     return db('p_patients as pt')
-      .select('h.hospname', 'p.*','pt.hn',)
+      .select('h.hospname', 'p.*', 'pt.hn')
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
       .where('p.cid', cid)
@@ -225,6 +225,12 @@ export class CovidCaseModel {
       .whereIn('id', id);
   }
 
+  countRequisitionhospital(db: Knex, id) {
+    return db('wm_requisitions')
+      .count('* as count')
+      .where('hospital_id_client', id)
+  }
+  
   updateDischarge(db: Knex, id, data) {
     return db('p_covid_cases').update(data)
       .where('id', id);
