@@ -112,7 +112,7 @@ export class CovidCaseModel {
 
   checkCidAllHospital(db: Knex, cid) {
     return db('p_patients as pt')
-      .select('h.hospname', 'p.*','pt.hn',)
+      .select('h.hospname', 'p.*', 'pt.hn')
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
       .where('p.cid', cid)
@@ -223,5 +223,11 @@ export class CovidCaseModel {
   updateReq(db: Knex, id) {
     return db('wm_requisitions').update('is_approved', 'Y')
       .whereIn('id', id);
+  }
+
+  countRequisitionhospital(db: Knex, id) {
+    return db('wm_requisitions')
+      .count('* as count')
+      .where('hospital_id_client', id)
   }
 }

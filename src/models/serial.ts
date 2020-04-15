@@ -29,7 +29,6 @@ export class SerialModel {
 		}
 	}
 
-
 	paddingNumber(currentNo: number, serialLength: number) {
 		if (currentNo.toString().length > serialLength) {
 			serialLength = currentNo.toString().length;

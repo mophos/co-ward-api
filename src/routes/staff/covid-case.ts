@@ -7,7 +7,10 @@ import { Router, Request, Response } from 'express';
 
 import { CovidCaseModel } from '../../models/covid-case';
 import { BasicModel } from '../../models/basic';
+import { SerialModel } from '../../models/serial';
 import * as _ from 'lodash';
+
+const serialModel = new SerialModel();
 const covidCaseModel = new CovidCaseModel();
 const basicModel = new BasicModel();
 const router: Router = Router();
@@ -101,6 +104,7 @@ router.get('/approved-detail', async (req: Request, res: Response) => {
 router.post('/', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   const hospitalType = req.decoded.hospitalType;
+  const hospcode = req.decoded.hospcode;
   const data = req.body.data;
   const db = req.db;
   try {
@@ -152,14 +156,14 @@ router.post('/', async (req: Request, res: Response) => {
         covid_case_detail_id: covidCaseDetailId,
         generic_id: i.genericId,
       }
-      const idx = _.findIndex(generic, { 'generic_id': +i.genericId });
+      const idx = _.findIndex(generic, { 'id': +i.genericId });
       if (idx > -1) {
         item.qty = generic[idx].first_pay_qty;
       }
       items.push(item);
     }
     await covidCaseModel.saveCovidCaseDetailItem(db, items);
-    const resu: any = await saveDrug(db, hospitalId, data.drugs, data.gcsId, hospitalType, covidCaseDetailId);
+    const resu: any = await saveDrug(db, hospitalId, hospcode, data.drugs, data.gcsId, hospitalType, covidCaseDetailId);
     if (resu.ok) {
       res.send({ ok: true, code: HttpStatus.OK });
     } else {
@@ -171,8 +175,12 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
-async function saveDrug(db, hospitalId, drugs, gcsId, hospitalType, covidCaseDetailId) {
+async function saveDrug(db, hospitalId, hospcode, drugs, gcsId, hospitalType, covidCaseDetailId) {
   try {
+
+    const currentNo = await covidCaseModel.countRequisitionhospital(db, hospitalId)
+    const newSerialNo = await serialModel.paddingNumber(currentNo[0].count + 1, 5)
+
     const node: any = await covidCaseModel.findNode(db, hospitalId);
     let hospital_id_node;
     if (node.length) {
@@ -183,7 +191,8 @@ async function saveDrug(db, hospitalId, drugs, gcsId, hospitalType, covidCaseDet
     const head = {
       hospital_id_node,
       hospital_id_client: hospitalId,
-      covid_case_detail_id: covidCaseDetailId
+      covid_case_detail_id: covidCaseDetailId,
+      code: 'RQ-' + hospcode + '-' + newSerialNo
     }
 
     const requisitionId = await covidCaseModel.saveRequisition(db, head);
@@ -196,6 +205,7 @@ async function saveDrug(db, hospitalId, drugs, gcsId, hospitalType, covidCaseDet
       }
       detail.push(obj);
     }
+
     const q = await covidCaseModel.getQtySupplues(db, gcsId, hospitalType)
     for (const d of q) {
       const obj = {
@@ -227,10 +237,12 @@ router.get('/present', async (req: Request, res: Response) => {
 });
 
 router.put('/present', async (req: Request, res: Response) => {
-  const data = req.body.data;
   const db = req.db;
+  const data = req.body.data;
+  const hospitalId = req.decoded.hospitalId;
+  const hospcode = req.decoded.hospcode;
+  const hospitalType = req.decoded.hospitalType;
   try {
-    console.log(data.drugs);
     const detail = {
       covid_case_id: data.covid_case_id,
       gcs_id: data.gcs_id,
@@ -245,14 +257,19 @@ router.put('/present', async (req: Request, res: Response) => {
         covid_case_detail_id: covidCaseDetailId,
         generic_id: i.genericId,
       }
-      const idx = _.findIndex(generic, { 'generic_id': +i.genericId });
+      const idx = _.findIndex(generic, { 'id': +i.genericId });
       if (idx > -1) {
         item.qty = generic[idx].pay_qty;
       }
       items.push(item);
     }
     await covidCaseModel.saveCovidCaseDetailItem(db, items);
-    res.send({ ok: true, code: HttpStatus.OK });
+    const resu: any = await saveDrug(db, hospitalId, hospcode, data.drugs, data.gcs_id, hospitalType, covidCaseDetailId);
+    if (resu.ok) {
+      res.send({ ok: true, code: HttpStatus.OK });
+    } else {
+      res.send({ ok: false, error: resu.error, code: HttpStatus.OK });
+    }
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
