@@ -230,4 +230,9 @@ export class CovidCaseModel {
       .count('* as count')
       .where('hospital_id_client', id)
   }
+  
+  updateDischarge(db: Knex, id, data) {
+    return db('p_covid_cases').update(data)
+      .where('id', id);
+  }
 }
