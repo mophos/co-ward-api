@@ -182,11 +182,22 @@ router.post('/', async (req: Request, res: Response) => {
 
 async function saveDrug(db, hospitalId, hospcode, drugs, gcsId, hospitalType, covidCaseDetailId) {
   try {
+    let hospitalIdNodeSupplies: any;
+    let hospitalIdNodeDrugs: any;
 
     const nodeSupplies: any = await covidCaseModel.findNodeSupplies(db, hospitalId);
+    if (nodeSupplies.length) {
+      hospitalIdNodeSupplies = nodeSupplies[0].hospital_id;
+    } else {
+      hospitalIdNodeSupplies = hospitalId;
+    }
+
     const nodeDrugs: any = await covidCaseModel.findNodeDrugs(db, hospitalId);
-    const hospitalIdNodeSupplies = nodeSupplies[0].hospital_id;
-    const hospitalIdNodeDrugs = nodeDrugs[0].hospital_id;
+    if (nodeDrugs.length) {
+      hospitalIdNodeDrugs = nodeDrugs[0].hospital_id;
+    } else {
+      hospitalIdNodeDrugs = hospitalId;
+    }
 
 
     // RD
