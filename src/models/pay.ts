@@ -8,6 +8,20 @@ export class PayModel {
       .orderBy('id', 'DESC')
   }
 
+  getSurgicalMask(db: Knex, hospitalId) {
+    return db('pay_surgical_masks as p')
+      .select('p.*', 'h2.hospname')
+      .join('b_hospitals as h1', 'h1.id', 'p.src_hospital_id')
+      .join('b_hospitals as h2', 'h2.id', 'p.dst_hospital_id')
+      .where('h1.id', hospitalId)
+      .orderBy('p.id', 'DESC')
+  }
+
+  insertSergicalMask(db: Knex, data) {
+    return db('pay_surgical_masks')
+      .insert(data);
+  }
+
   getPayDetail(db: Knex, id) {
     return db('wm_pay_details as bd')
       .select('bd.*', 's.name', 's.unit', 's.code')
