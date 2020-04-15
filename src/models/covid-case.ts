@@ -112,9 +112,14 @@ export class CovidCaseModel {
 
   checkCidAllHospital(db: Knex, cid) {
     return db('p_patients as pt')
-      .select('h.hospname', 'p.*', 'pt.hn')
+      .select('h.hospname', 'p.*', 'pt.hn','va.*')
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
+      .leftJoin('view_address as va', (v) => {
+        v.on('va.ampur_code', 'p.ampur_code')
+        v.on('va.tambon_code', 'p.tambon_code')
+        v.on('va.province_code', 'p.province_code')
+      })
       .where('p.cid', cid)
   }
 
@@ -230,7 +235,7 @@ export class CovidCaseModel {
       .count('* as count')
       .where('hospital_id_client', id)
   }
-  
+
   updateDischarge(db: Knex, id, data) {
     return db('p_covid_cases').update(data)
       .where('id', id);
