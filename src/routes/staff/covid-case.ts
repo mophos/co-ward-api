@@ -230,14 +230,28 @@ router.put('/present', async (req: Request, res: Response) => {
   const data = req.body.data;
   const db = req.db;
   try {
-    console.log(data);
+    console.log(data.drugs);
     const detail = {
       covid_case_id: data.covid_case_id,
       gcs_id: data.gcs_id,
       bed_id: data.bed_id,
       respirator_id: data.respirator_id
     }
-    await covidCaseModel.saveCovidCaseDetail(db, detail);
+    const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
+    const generic = await basicModel.getGenerics(db);
+    const items = []
+    for (const i of data.drugs) {
+      const item: any = {
+        covid_case_detail_id: covidCaseDetailId,
+        generic_id: i.genericId,
+      }
+      const idx = _.findIndex(generic, { 'generic_id': +i.genericId });
+      if (idx > -1) {
+        item.qty = generic[idx].pay_qty;
+      }
+      items.push(item);
+    }
+    await covidCaseModel.saveCovidCaseDetailItem(db, items);
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
