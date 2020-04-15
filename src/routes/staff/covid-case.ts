@@ -276,6 +276,7 @@ router.post('/check-register', async (req: Request, res: Response) => {
   const passport = req.body.passport;
   const type = req.body.type;
   const db = req.db;
+  const hospname = req.decoded.hospname;
   try {
     if (type == 'CID') {
       const rs: any = await covidCaseModel.checkCidSameHospital(db, hospitalId, cid);
@@ -284,7 +285,7 @@ router.post('/check-register', async (req: Request, res: Response) => {
       } else {
         const rs: any = await covidCaseModel.checkCidAllHospital(db, cid);
         if (rs.length) {
-          res.send({ ok: true, case: 'REFER' })
+          res.send({ ok: true, case: 'REFER', rows: rs[0] })
         } else {
           res.send({ ok: true, case: 'NEW' });
         }
