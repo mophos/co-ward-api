@@ -38,4 +38,9 @@ export class Register {
         return db('um_user_rights')
             .insert(data);
     }
+
+    getNodes(db: Knex, id = '') {
+        return db('h_nodes')
+            .where('hospital_id', id)
+    }
 }

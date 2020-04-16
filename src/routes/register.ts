@@ -47,6 +47,17 @@ router.get('/hopscode', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/get-nodes', async (req: Request, res: Response) => {
+  let id = req.query.id
+  console.log(id);
+  try {
+    let rs: any = await registerModel.getNodes(req.db, id);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.post('/upload-supplie', upload.any(), async (req: Request, res: Response) => {
   res.send({ ok: true, code: HttpStatus.OK });
 });
@@ -54,7 +65,6 @@ router.post('/upload-supplie', upload.any(), async (req: Request, res: Response)
 router.post('/supplie', async (req: Request, res: Response) => {
 
   let data = req.body.data;
-  let right = data.right
 
   try {
     if (('username' in data) && ('password' in data) && ('hospcode' in data) && ('titleId' in data)
@@ -72,10 +82,26 @@ router.post('/supplie', async (req: Request, res: Response) => {
         email: data.email,
         type: data.type,
         telephone: data.telephone,
-        is_province: data.isProvince
+        is_province: data.isProvince,
+      }
+
+      if (data.isProvince === 'N') {
+        if (data.isNode) {
+          data.right = ['STAFF_COVID_CASE', 'STAFF_COVID_CASE_STATUS', 'STAFF_COVID_CASE_REQUISITION', 'STAFF_PAY', 'STAFF_STOCK_SUPPLIES', 'STAFF_SETTING_USERS', 'STAFF_SETTING_BASIC', 'STAFF_SETTING_BEDS', 'STAFF_SETTING_VENTILATORS', 'STAFF_SETTING_PROFESSIONAL','STAFF_PRODUCT_RESRRVE']
+          if(data.isDRUGS){
+            data.right.push('STAFF_COVID_CASE_DRUGS_APPROVED')
+          }
+          if(data.isSupplies){
+            data.right.push('STAFF_COVID_CASE_SUPPLIES_APPROVED')
+          }
+        } else {
+          data.right = ['STAFF_COVID_CASE', 'STAFF_COVID_CASE_STATUS', 'STAFF_COVID_CASE_REQUISITION', 'STAFF_PAY', 'STAFF_STOCK_SUPPLIES', 'STAFF_SETTING_USERS', 'STAFF_SETTING_BASIC', 'STAFF_SETTING_BEDS', 'STAFF_SETTING_VENTILATORS', 'STAFF_SETTING_PROFESSIONAL']
+        }
+      } else {
+        data.right = ['STAFF_CHECK_DRUGS', 'STAFF_CHECK_SUPPLIES', 'STAFF_CHECK_BEDS', 'STAFF_SETTING_BASIC']
       }
       let rs: any = await registerModel.insertUser(req.db, _data);
-      let rsRight: any = await registerModel.getRights(req.db, right)
+      let rsRight: any = await registerModel.getRights(req.db, data.right)
       let userRight: any = []
       for (const i of rsRight) {
         userRight.push({
