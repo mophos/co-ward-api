@@ -1,4 +1,5 @@
 import * as Knex from 'knex';
+var request = require("request");
 
 export class Register {
 
@@ -37,5 +38,49 @@ export class Register {
     insertUserRights(db: Knex, data = {}) {
         return db('um_user_rights')
             .insert(data);
+    }
+
+    reqOTP(tel) {
+        return new Promise((resolve, reject) => {
+            var options = {
+                method: 'POST',
+                url: 'https://covid19.moph.go.th/authentication/register',
+                headers: { 'content-type': 'application/json' },
+                body: { tel: tel, appId: '76503a47-cea5-482f-ae27-e151ca5a2722' },
+                json: true
+            };
+
+            request(options, function (error, response, body) {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(body);
+                }
+            });
+        });
+
+    }
+    verifyOTP(refCode, otp) {
+        return new Promise((resolve, reject) => {
+            var options = {
+                method: 'POST',
+                url: 'https://covid19.moph.go.th/authentication/verify',
+                headers: { 'content-type': 'application/json' },
+                body: {
+                    refCode: refCode,
+                    otp: otp,
+                    appId: '76503a47-cea5-482f-ae27-e151ca5a2722'
+                },
+                json: true
+            };
+
+            request(options, function (error, response, body) {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(body);
+                }
+            });
+        });
     }
 }

@@ -117,6 +117,7 @@ export class BasicModel {
 		const _q = `%${query}%`;
 		return db('b_hospitals')
 			.orWhere('hospname', 'like', _q)
+			.orWhere('hospcode', 'like', _q)
 			.orderBy('hospname')
 	}
 
