@@ -188,52 +188,57 @@ async function saveDrug(db, hospitalId, hospcode, drugs, gcsId, hospitalType, co
     }
 
     // RD
-    const currentNoRd = await covidCaseModel.countRequisitionhospital(db, hospitalId)
-    const newSerialNoRd = await serialModel.paddingNumber(currentNoRd[0].count + 1, 5)
+    if (drugs.length > 0) {
+      const currentNoRd = await covidCaseModel.countRequisitionhospital(db, hospitalId)
+      const newSerialNoRd = await serialModel.paddingNumber(currentNoRd[0].count + 1, 5)
 
-    const headRd = {
-      hospital_id_node,
-      hospital_id_client: hospitalId,
-      covid_case_detail_id: covidCaseDetailId,
-      code: 'RD-' + hospcode + '-' + newSerialNoRd
-    }
-
-    const requisitionIdRd = await covidCaseModel.saveRequisition(db, headRd);
-    const detailRd = [];
-    for (const d of drugs) {
-      const obj = {
-        requisition_id: requisitionIdRd[0],
-        generic_id: d.genericId,
-        qty: d.qty
+      const headRd = {
+        hospital_id_node,
+        hospital_id_client: hospitalId,
+        covid_case_detail_id: covidCaseDetailId,
+        code: 'RD-' + hospcode + '-' + newSerialNoRd
       }
-      detailRd.push(obj);
-    }
 
-    await covidCaseModel.saveRequisitionDetail(db, detailRd);
-
-    // RS
-    const currentNoRs = await covidCaseModel.countRequisitionhospital(db, hospitalId)
-    const newSerialNoRs = await serialModel.paddingNumber(currentNoRs[0].count + 1, 5)
-
-    const headRs = {
-      hospital_id_node,
-      hospital_id_client: hospitalId,
-      covid_case_detail_id: covidCaseDetailId,
-      code: 'RS-' + hospcode + '-' + newSerialNoRs
-    }
-
-    const requisitionIdRs = await covidCaseModel.saveRequisition(db, headRs);
-    const detailRs = [];
-    const q = await covidCaseModel.getQtySupplues(db, gcsId, hospitalType)
-    for (const d of q) {
-      const obj = {
-        requisition_id: requisitionIdRs[0],
-        generic_id: d.generic_id,
-        qty: d.qty
+      const requisitionIdRd = await covidCaseModel.saveRequisition(db, headRd);
+      const detailRd = [];
+      for (const d of drugs) {
+        const obj = {
+          requisition_id: requisitionIdRd[0],
+          generic_id: d.genericId,
+          qty: d.qty
+        }
+        detailRd.push(obj);
       }
-      detailRs.push(obj);
+
+      await covidCaseModel.saveRequisitionDetail(db, detailRd);
     }
-    await covidCaseModel.saveRequisitionDetail(db, detailRs);
+
+    if (gcsId) {
+      // RS
+      const currentNoRs = await covidCaseModel.countRequisitionhospital(db, hospitalId)
+      const newSerialNoRs = await serialModel.paddingNumber(currentNoRs[0].count + 1, 5)
+
+      const headRs = {
+        hospital_id_node,
+        hospital_id_client: hospitalId,
+        covid_case_detail_id: covidCaseDetailId,
+        code: 'RS-' + hospcode + '-' + newSerialNoRs
+      }
+
+      const requisitionIdRs = await covidCaseModel.saveRequisition(db, headRs);
+      const detailRs = [];
+      const q = await covidCaseModel.getQtySupplues(db, gcsId, hospitalType)
+      for (const d of q) {
+        const obj = {
+          requisition_id: requisitionIdRs[0],
+          generic_id: d.generic_id,
+          qty: d.qty
+        }
+        detailRs.push(obj);
+      }
+      await covidCaseModel.saveRequisitionDetail(db, detailRs);
+
+    }
 
     return { ok: true };
   } catch (error) {
