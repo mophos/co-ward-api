@@ -30,7 +30,7 @@ export class BedModel {
 	}
 
 	removeVentilators(db: Knex, hospitalId) {
-		return db('b_rventilator_hospitals')
+		return db('b_ventilator_hospitals')
 			.where('hospital_id', hospitalId)
 			.del();
 	}
