@@ -52,10 +52,10 @@ router.get('/beds', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/respirators', async (req: Request, res: Response) => {
+router.get('/ventilators', async (req: Request, res: Response) => {
   const db = req.db;
   try {
-    const rs = await model.getRespirators(db);
+    const rs = await model.getVentilators(db);
     res.send({ ok: true, rows: rs })
   } catch (error) {
     res.send({ ok: false, error: error });
