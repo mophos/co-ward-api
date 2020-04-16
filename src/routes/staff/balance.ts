@@ -10,6 +10,19 @@ const balanceModel = new BalanceModel();
 const router: Router = Router();
 
 
+router.get('/inventory-status', async (req: Request, res: Response) => {
+  let limit = req.query.limit || 20;
+  let offset = req.query.offset || 0;
+  const hospitalId = req.decoded.hospitalId;
+  try {
+    let rs: any = await balanceModel.getInventoryStatus(req.db, +limit, +offset, hospitalId);
+    let rsTotal: any = await balanceModel.getInventoryStatusTotal(req.db, hospitalId);
+    res.send({ ok: true, rows: rs, total: rsTotal[0].count, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.get('/supplies', async (req: Request, res: Response) => {
   const hospcode = req.decoded.hospcode;
   try {
