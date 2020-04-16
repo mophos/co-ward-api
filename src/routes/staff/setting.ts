@@ -49,6 +49,19 @@ router.get('/beds', async (req: Request, res: Response) => {
   }
 });
 
+// router.get('/beds/remain', async (req: Request, res: Response) => {
+//   const db = req.db;
+//   const hospitalId = req.decoded.hospitalId;
+//   try {
+//     const rs = await model.getBeds(db, hospitalId);
+//     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+//   } catch (error) {
+//     console.log(error);
+
+//     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+//   }
+// });
+
 router.post('/beds', async (req: Request, res: Response) => {
   const db = req.db;
   const id = req.decoded.id;
@@ -67,13 +80,15 @@ router.post('/beds', async (req: Request, res: Response) => {
       _data.push({
         hospital_id: hospitalId,
         bed_id: i.bed_id,
-        qty: i.qty
+        qty: i.qty,
+        covid_qty: i.covid_qty
       });
 
       detail.push({
         wm_bed_id: rs,
         bed_id: i.bed_id,
-        qty: i.qty
+        qty: i.qty,
+        covid_qty: i.covid_qty
       });
     }
     await model.saveBeds(db, _data);

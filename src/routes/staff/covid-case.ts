@@ -397,6 +397,7 @@ router.post('/update/discharge', async (req: Request, res: Response) => {
     obj.date_discharge = data.dateDischarge;
     if (data.hospitalId !== undefined) {
       obj.hospital_id_refer = data.hospitalId;
+      obj.reason = data.reason;
     }
 
     let rs: any = await covidCaseModel.updateDischarge(req.db, data.covidCaseId, obj);
