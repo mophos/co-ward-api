@@ -51,9 +51,9 @@ export class BedModel {
 
 	getMedicalSupplies(db: Knex, hospitalId: any) {
 		return db('b_medical-supplies as b')
-			.select('b.id as medical-supplie_id', 'b.name', 'bh.qty')
+			.select('b.id as medical_supplie_id', 'b.name', 'bh.qty')
 			.leftJoin('b_medical-supplie_hospitals as bh', (v) => {
-				v.on('b.id', 'bh.medical-supplie_id')
+				v.on('b.id', 'bh.medical_supplie_id')
 				v.on('bh.hospital_id', db.raw(`${hospitalId}`));
 			}).where('b.is_show', 'Y')
 	}
