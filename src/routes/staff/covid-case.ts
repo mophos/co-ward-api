@@ -383,7 +383,7 @@ router.get('/gcs', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   try {
     const rs = await covidCaseModel.getGcs(db, hospitalId);
-    res.send({ ok: true, rows: rs[0] })
+    res.send({ ok: true, rows: rs })
   } catch (error) {
     res.send({ ok: false, error: error });
   }
@@ -394,7 +394,9 @@ router.get('/medical-supplies', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   try {
     const rs = await covidCaseModel.getMedicalSupplies(db, hospitalId);
-    res.send({ ok: true, rows: rs[0] })
+    console.log(rs);
+    
+    res.send({ ok: true, rows: rs })
   } catch (error) {
     res.send({ ok: false, error: error });
   }

@@ -105,12 +105,12 @@ export class BedModel {
 	}
 
 	saveHeadMedicalSupplie(db: Knex, data) {
-		return db('wm_medical-supplies')
+		return db('wm_medical_supplies')
 			.insert(data, 'id');
 	}
 
 	saveDetailMedicalSupplies(db: Knex, data) {
-		return db('wm_medical-supplie_details')
+		return db('wm_medical_supplie_details')
 			.insert(data);
 	}
 }
