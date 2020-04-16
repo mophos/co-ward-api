@@ -75,5 +75,21 @@ export class BalanceModel {
       .where('id', id);
   }
 
+  getInventoryStatus(db: Knex, limit = 100, offset = 0, hosp_id) {
+    return db('wm_generics as wg')
+    .select('wg.*','bg.name as generic_name', 'bu.name as unit_name')
+    .join('b_generics as bg','bg.id', 'wg.generic_id')
+    .join('b_units as bu', 'bu.id', 'bg.unit_id')
+    .where('wg.hospital_id', hosp_id)
+    .limit(limit).offset(offset)
+  }
 
+  getInventoryStatusTotal(db: Knex, hosp_id) {
+    return db('wm_generics as wg')
+    .count('bg.id as count')
+    // .select('wg.*','bg.name as generic_name', 'bu.name as unit_name')
+    .join('b_generics as bg','bg.id', 'wg.generic_id')
+    .join('b_units as bu', 'bu.id', 'bg.unit_id')
+    .where('wg.hospital_id', hosp_id)
+  }
 }
