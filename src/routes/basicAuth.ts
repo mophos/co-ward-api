@@ -44,8 +44,10 @@ router.get('/gcs', async (req: Request, res: Response) => {
 router.get('/beds', async (req: Request, res: Response) => {
   const db = req.db;
   const hospitalId = req.decoded.hospitalId;
+  const hospitalType = req.decoded.hospitalType;
+
   try {
-    const rs = await model.getBeds(db, hospitalId);
+    const rs = await model.getBeds(db, hospitalId, hospitalType);
     res.send({ ok: true, rows: rs })
   } catch (error) {
     res.send({ ok: false, error: error });
@@ -54,8 +56,10 @@ router.get('/beds', async (req: Request, res: Response) => {
 
 router.get('/medical-supplies', async (req: Request, res: Response) => {
   const db = req.db;
+  const hospitalType = req.decoded.hospitalType;
+
   try {
-    const rs = await model.getMedicalSupplies(db);
+    const rs = await model.getMedicalSupplies(db, hospitalType);
     res.send({ ok: true, rows: rs })
   } catch (error) {
     res.send({ ok: false, error: error });

@@ -15,7 +15,6 @@ const covidCaseModel = new CovidCaseModel();
 const basicModel = new BasicModel();
 const router: Router = Router();
 
-
 router.get('/', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   try {

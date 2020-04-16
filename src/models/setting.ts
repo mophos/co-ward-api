@@ -42,11 +42,11 @@ export class BedModel {
 		GROUP BY
 			c.id 
 			) 
-			AND p.hospital_id = ${hospitalId} 
+			AND p.hospital_id = ? 
 		GROUP BY
 			cd.bed_id 
 			) AS t ON t.bed_id = b.id`
-		return db.raw(sql);
+		return db.raw(sql, [hospitalId]);
 	}
 
 	getMedicalSupplies(db: Knex, hospitalId: any) {
@@ -56,6 +56,15 @@ export class BedModel {
 			.joinRaw(`LEFT JOIN view_medical_supplie_sum_hospitals as vms ON vms.medical_supplie_id = b.id AND vms.hospital_id = '?'`, hospitalId)
 			.where('bh.hospital_id', hospitalId)
 			.where('b.is_deleted', 'N')
+	}
+
+	getProfessional(db: Knex, hospitalId: any) {
+		return db('b_professionals as b')
+			.select('b.id as professional_id', 'b.name', 'bh.qty')
+			.leftJoin('b_professional_hospitals as bh', (v) => {
+				v.on('b.id', 'bh.professional_id')
+				v.on('bh.hospital_id', db.raw(`${hospitalId}`));
+			})
 	}
 
 	removeBeds(db: Knex, hospitalId) {
@@ -70,6 +79,12 @@ export class BedModel {
 			.del();
 	}
 
+	removeProfessionals(db: Knex, hospitalId) {
+		return db('b_professional_hospitals')
+			.where('hospital_id', hospitalId)
+			.del();
+	}
+
 	saveBeds(db: Knex, data) {
 		return db('b_bed_hospitals')
 			.insert(data);
@@ -77,6 +92,11 @@ export class BedModel {
 
 	saveMedicalSupplies(db: Knex, data) {
 		return db('b_medical_supplie_hospitals')
+			.insert(data);
+	}
+
+	saveProfessionals(db: Knex, data) {
+		return db('b_professional_hospitals')
 			.insert(data);
 	}
 
@@ -111,6 +131,16 @@ export class BedModel {
 
 	saveDetailMedicalSupplies(db: Knex, data) {
 		return db('wm_medical_supplie_details')
+			.insert(data);
+	}
+
+	saveHeadProfessional(db: Knex, data) {
+		return db('wm_professionals')
+			.insert(data, 'id');
+	}
+
+	saveDetailProfessionals(db: Knex, data) {
+		return db('wm_professional_details')
 			.insert(data);
 	}
 }
