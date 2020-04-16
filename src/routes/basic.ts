@@ -125,4 +125,24 @@ router.get('/hospcode/autocomplete/search', async (req: Request, res: Response) 
   }
 });
 
+router.get('/countries/autocomplete/search', async (req: Request, res: Response) => {
+  const db = req.db;
+  const query = req.query.q;
+  const length = req.query.length || 1;
+  try {
+    if (query.length >= length) {
+      const rs = await model.autocompleteCountry(db, query);
+      if (rs.length) {
+        res.send(rs);
+      } else {
+        res.send([]);
+      }
+    } else {
+      res.send([]);
+    }
+  } catch (error) {
+    res.send([]);
+  }
+});
+
 export default router;

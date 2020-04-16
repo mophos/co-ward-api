@@ -249,8 +249,9 @@ async function saveDrug(db, hospitalId, hospcode, drugs, gcsId, hospitalType, co
 
 router.get('/present', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
+  const query = req.query.query;
   try {
-    let rs: any = await covidCaseModel.getCasePresent(req.db, hospitalId);
+    let rs: any = await covidCaseModel.getCasePresent(req.db, hospitalId, query);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -383,7 +384,7 @@ router.get('/gcs', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   try {
     const rs = await covidCaseModel.getGcs(db, hospitalId);
-    res.send({ ok: true, rows: rs[0] })
+    res.send({ ok: true, rows: rs })
   } catch (error) {
     res.send({ ok: false, error: error });
   }
@@ -394,7 +395,9 @@ router.get('/medical-supplies', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   try {
     const rs = await covidCaseModel.getMedicalSupplies(db, hospitalId);
-    res.send({ ok: true, rows: rs[0] })
+    console.log(rs);
+    
+    res.send({ ok: true, rows: rs })
   } catch (error) {
     res.send({ ok: false, error: error });
   }

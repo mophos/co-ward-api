@@ -120,6 +120,13 @@ export class BasicModel {
 			.orderBy('hospname')
 	}
 
+	autocompleteCountry(db: Knex, query) {
+		const _q = `%${query}%`;
+		return db('b_countries')
+			.orWhere('name', 'like', _q)
+			.orderBy('name')
+	}
+
 	getGCS(db: Knex) {
 		return db('b_gcs')
 			.where('is_deleted', 'N')
