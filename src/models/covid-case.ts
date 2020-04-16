@@ -61,7 +61,7 @@ export class CovidCaseModel {
       .where('r.requisition_id', id)
   }
 
-  getCasePresent(db: Knex, hospitalId) {
+  getCasePresent(db: Knex, hospitalId, query) {
     return db('p_covid_cases as c')
       .select('c.id as covid_case_id', 'c.status', 'c.date_admit', 'pt.hn', 'pt.person_id', 'p.*', 't.name as title_name',
         'cd.bed_id', 'cd.gcs_id', 'cd.medical_supplie_id', db.raw(`DATE_FORMAT(cd.create_date, "%Y-%m-%d") as create_date`),
@@ -78,7 +78,12 @@ export class CovidCaseModel {
     left join p_covid_case_details as cd on ccd.covid_case_detail_id = cd.id`)
       // .leftJoin('p_covid_case_details as cd','ccs.covid_case_detail_id','cd.id')
       .where('pt.hospital_id', hospitalId)
-      .where('c.status', 'ADMIT');
+      .where('c.status', 'ADMIT')
+      .where((v) => {
+        v.where('pt.hn', 'like', '%' + query + '%')
+        v.orWhere('p.first_name', 'like', '%' + query + '%')
+        v.orWhere('p.last_name', 'like', '%' + query + '%')
+      });
   }
 
   getInfo(db: Knex, hospitalId, covidCaseId) {
