@@ -50,12 +50,12 @@ export class BedModel {
 	}
 
 	getMedicalSupplies(db: Knex, hospitalId: any) {
-		return db('b_medical_supplies as b')
-			.select('b.id as medical_supplie_id', 'b.name', 'bh.qty')
-			.leftJoin('b_medical_supplie_hospitals as bh', (v) => {
-				v.on('b.id', 'bh.medical_supplie_id')
-				v.on('bh.hospital_id', db.raw(`${hospitalId}`));
-			}).where('b.is_show', 'Y')
+		return db('b_medical_supplies AS b')
+			.select('b.id', 'b.name', 'bh.qty', 'bh.covid_qty', 'vms.qty as usage_qty')
+			.leftJoin('b_medical_supplie_hospitals AS bh', 'bh.medical_supplie_id', 'b.id')
+			.joinRaw(`LEFT JOIN view_medical_supplie_sum_hospitals as vms ON vms.medical_supplie_id = b.id AND vms.hospital_id = '?'`, hospitalId)
+			.where('bh.hospital_id', hospitalId)
+			.where('b.is_deleted', 'N')
 	}
 
 	removeBeds(db: Knex, hospitalId) {
