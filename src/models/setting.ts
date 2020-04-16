@@ -14,6 +14,41 @@ export class BedModel {
 			})
 	}
 
+	getBedReamin(db: Knex, hospitalId: any) {
+		let sql = `SELECT
+			b.id,
+			b.NAME,
+			t.count 
+		FROM
+			b_beds b
+			LEFT JOIN (
+		SELECT
+			p.hospital_id,
+			cd.bed_id,
+			count( cd.id ) AS count 
+		FROM
+			p_covid_case_details AS cd
+			JOIN p_covid_cases AS c ON c.id = cd.covid_case_id
+			JOIN p_patients AS p ON p.id = c.patient_id 
+		WHERE
+			cd.id IN (
+		SELECT
+			MAX( cd.id ) 
+		FROM
+			p_covid_case_details AS cd
+			JOIN p_covid_cases c ON c.id = cd.covid_case_id 
+		WHERE
+			c.STATUS = 'ADMIT' 
+		GROUP BY
+			c.id 
+			) 
+			AND p.hospital_id = ${hospitalId} 
+		GROUP BY
+			cd.bed_id 
+			) AS t ON t.bed_id = b.id`
+		return db.raw(sql);
+	}
+
 	getVentilators(db: Knex, hospitalId: any) {
 		return db('b_ventilators as b')
 			.select('b.id as ventilator_id', 'b.name', 'bh.qty')

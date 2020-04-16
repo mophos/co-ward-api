@@ -49,18 +49,18 @@ router.get('/beds', async (req: Request, res: Response) => {
   }
 });
 
-// router.get('/beds/remain', async (req: Request, res: Response) => {
-//   const db = req.db;
-//   const hospitalId = req.decoded.hospitalId;
-//   try {
-//     const rs = await model.getBeds(db, hospitalId);
-//     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
-//   } catch (error) {
-//     console.log(error);
+router.get('/beds/remain', async (req: Request, res: Response) => {
+  const db = req.db;
+  const hospitalId = req.decoded.hospitalId;
+  try {
+    const rs = await model.getBedReamin(db, hospitalId);
+    res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
 
-//     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
-//   }
-// });
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
 
 router.post('/beds', async (req: Request, res: Response) => {
   const db = req.db;
