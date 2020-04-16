@@ -56,8 +56,10 @@ router.get('/beds', async (req: Request, res: Response) => {
 
 router.get('/medical-supplies', async (req: Request, res: Response) => {
   const db = req.db;
+  const hospitalType = req.decoded.hospitalType;
+
   try {
-    const rs = await model.getMedicalSupplies(db);
+    const rs = await model.getMedicalSupplies(db, hospitalType);
     res.send({ ok: true, rows: rs })
   } catch (error) {
     res.send({ ok: false, error: error });

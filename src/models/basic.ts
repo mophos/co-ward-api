@@ -146,10 +146,14 @@ export class BasicModel {
 			})
 	}
 
-	getMedicalSupplies(db: Knex) {
-		return db('b_medical_supplies')
-			.where('pay_type', 'COVID')
-			.where('is_deleted', 'N')
+	getMedicalSupplies(db: Knex, hospitalType) {
+		return db('b_medical_supplies as b')
+			.where('b.pay_type', 'COVID')
+			.where('b.is_deleted', 'N')
+			.where((v) => {
+				v.where('b.is_hospital', hospitalType == 'HOSPITAL' ? 'Y' : 'N')
+				v.orWhere('b.is_hospitel', hospitalType == 'HOSPITEL' ? 'Y' : 'N')
+			})
 	}
 
 	getGenericSet(db: Knex, type) {
