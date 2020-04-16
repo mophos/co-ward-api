@@ -64,7 +64,7 @@ export class CovidCaseModel {
   getCasePresent(db: Knex, hospitalId) {
     return db('p_covid_cases as c')
       .select('c.id as covid_case_id', 'c.status', 'c.date_admit', 'pt.hn', 'pt.person_id', 'p.*', 't.name as title_name',
-        'cd.bed_id', 'cd.gcs_id', 'cd.ventilator_id', db.raw(`DATE_FORMAT(cd.create_date, "%Y-%m-%d") as create_date`),
+        'cd.bed_id', 'cd.gcs_id', 'cd.medical-supplie_id', db.raw(`DATE_FORMAT(cd.create_date, "%Y-%m-%d") as create_date`),
         db.raw(`(select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 1 or generic_id = 2) limit 1) as set1,
       (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 3 or generic_id = 4) limit 1) as set2,
       (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 7  limit 1) as set3,
@@ -197,15 +197,15 @@ export class CovidCaseModel {
     GROUP BY ccd.gcs_id) as gg on g.id = gg.gcs_id`, [hospitalId]);
   }
 
-  getVentilators(db, hospitalId) {
-    return db.raw(`select g.id,g.name,ifnull(gg.count,0) as count from b_ventilators as g 
+  getMedicalSupplies(db, hospitalId) {
+    return db.raw(`select g.id,g.name,ifnull(gg.count,0) as count from b_medical-supplies as g 
     left join (
-    select ccd.ventilator_id,count(*) as count from p_covid_case_details as ccd 
+    select ccd.medical-supplie_id,count(*) as count from p_covid_case_details as ccd 
     join (SELECT c.id,p.hospital_id from p_covid_cases as c 
     join p_patients as p on c.patient_id = p.id 
     where c.status = 'ADMIT') as cc on ccd.covid_case_id = cc.id
     where cc.hospital_id = ?
-    GROUP BY ccd.ventilator_id) as gg on g.id = gg.ventilator_id`, [hospitalId]);
+    GROUP BY ccd.medical-supplie_id) as gg on g.id = gg.medical-supplie_id`, [hospitalId]);
   }
 
   getRequisitionStock(db: Knex, id, hospitalId) {

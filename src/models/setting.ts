@@ -49,11 +49,11 @@ export class BedModel {
 		return db.raw(sql);
 	}
 
-	getVentilators(db: Knex, hospitalId: any) {
-		return db('b_ventilators as b')
-			.select('b.id as ventilator_id', 'b.name', 'bh.qty')
-			.leftJoin('b_ventilator_hospitals as bh', (v) => {
-				v.on('b.id', 'bh.ventilator_id')
+	getMedicalSupplies(db: Knex, hospitalId: any) {
+		return db('b_medical-supplies as b')
+			.select('b.id as medical-supplie_id', 'b.name', 'bh.qty')
+			.leftJoin('b_medical-supplie_hospitals as bh', (v) => {
+				v.on('b.id', 'bh.medical-supplie_id')
 				v.on('bh.hospital_id', db.raw(`${hospitalId}`));
 			}).where('b.is_show', 'Y')
 	}
@@ -64,8 +64,8 @@ export class BedModel {
 			.del();
 	}
 
-	removeVentilators(db: Knex, hospitalId) {
-		return db('b_ventilator_hospitals')
+	removeMedicalSupplies(db: Knex, hospitalId) {
+		return db('b_medical-supplie_hospitals')
 			.where('hospital_id', hospitalId)
 			.del();
 	}
@@ -75,8 +75,8 @@ export class BedModel {
 			.insert(data);
 	}
 
-	saveVentilators(db: Knex, data) {
-		return db('b_ventilator_hospitals')
+	saveMedicalSupplies(db: Knex, data) {
+		return db('b_medical-supplie_hospitals')
 			.insert(data);
 	}
 
@@ -104,13 +104,13 @@ export class BedModel {
 			.insert(data);
 	}
 
-	saveHeadVentilator(db: Knex, data) {
-		return db('wm_ventilators')
+	saveHeadMedicalSupplie(db: Knex, data) {
+		return db('wm_medical-supplies')
 			.insert(data, 'id');
 	}
 
-	saveDetailVentilators(db: Knex, data) {
-		return db('wm_ventilator_details')
+	saveDetailMedicalSupplies(db: Knex, data) {
+		return db('wm_medical-supplie_details')
 			.insert(data);
 	}
 }
