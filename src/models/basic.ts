@@ -139,7 +139,11 @@ export class BasicModel {
 				v.on('b.id', 'bh.bed_id')
 				v.on('bh.hospital_id', db.raw(`${hospitalId}`));
 			})
-			.where('b.is_deleted', 'N').where('hospital_type', hospitalType)
+			.where('b.is_deleted', 'N')
+			.where((v) => {
+				v.where('b.is_hospital', hospitalType == 'HOSPITAL' ? 'Y' : 'N')
+				v.orWhere('b.is_hospitel', hospitalType == 'HOSPITEL' ? 'Y' : 'N')
+			})
 	}
 
 	getMedicalSupplies(db: Knex) {
