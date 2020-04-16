@@ -53,8 +53,13 @@ router.get('/node/requisition', async (req: Request, res: Response) => {
 
 router.get('/node/detail', async (req: Request, res: Response) => {
   const hospitalIdClient = req.query.hospitalIdClient;
+  const right = req.decoded.rights;
   try {
-    let rs: any = await covidCaseModel.getListHospDetail(req.db, hospitalIdClient);
+    const type = [];
+    _.findIndex(right, { name: 'STAFF_COVID_CASE_DRUGS_APPROVED' }) > -1 ? type.push('DRUG') : null;
+    _.findIndex(right, { name: 'STAFF_COVID_CASE_SUPPLIES_APPROVEDF' }) > -1 ? type.push('SUPPLIES') : null;
+    console.log(type, _.findIndex(right, { name: 'STAFF_COVID_CASE_DRUGS_APPROVED' }), right);
+    let rs: any = await covidCaseModel.getListHospDetail(req.db, hospitalIdClient, type);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -195,7 +200,8 @@ async function saveDrug(db, hospitalId, hospcode, drugs, gcsId, hospitalType, co
         hospital_id_node,
         hospital_id_client: hospitalId,
         covid_case_detail_id: covidCaseDetailId,
-        code: 'RD-' + hospcode + '-' + newSerialNoRd
+        code: 'RD-' + hospcode + '-' + newSerialNoRd,
+        type: 'DRUG'
       }
 
       const requisitionIdRd = await covidCaseModel.saveRequisition(db, headRd);
@@ -221,7 +227,8 @@ async function saveDrug(db, hospitalId, hospcode, drugs, gcsId, hospitalType, co
         hospital_id_node,
         hospital_id_client: hospitalId,
         covid_case_detail_id: covidCaseDetailId,
-        code: 'RS-' + hospcode + '-' + newSerialNoRs
+        code: 'RS-' + hospcode + '-' + newSerialNoRs,
+        type: 'SUPPLUES'
       }
 
       const requisitionIdRs = await covidCaseModel.saveRequisition(db, headRs);
@@ -395,7 +402,7 @@ router.get('/medical-supplies', async (req: Request, res: Response) => {
   try {
     const rs = await covidCaseModel.getMedicalSupplies(db, hospitalId);
     console.log(rs);
-    
+
     res.send({ ok: true, rows: rs })
   } catch (error) {
     res.send({ ok: false, error: error });

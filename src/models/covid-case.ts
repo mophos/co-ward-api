@@ -20,11 +20,12 @@ export class CovidCaseModel {
       .groupBy('hospital_id_client')
   }
 
-  getListHospDetail(db: Knex, hospitalIdClient) {
+  getListHospDetail(db: Knex, hospitalIdClient, type) {
     return db('wm_requisitions as r')
       .select('r.*')
       // .join('wm_requisition_details as rd', 'rd.requisition_id', 'r.id')
       .where('hospital_id_client', hospitalIdClient)
+      .whereIn('type', type)
       .where('is_approved', 'N')
   }
 
@@ -33,6 +34,7 @@ export class CovidCaseModel {
       .select('r.*')
       // .join('wm_requisition_details as rd', 'rd.requisition_id', 'r.id')
       .where('hospital_id_client', hospitalIdClient)
+
     // .where('is_approved', 'N')
   }
 

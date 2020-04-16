@@ -83,4 +83,9 @@ export class Register {
             });
         });
     }
+
+    getNodes(db: Knex, id = '') {
+        return db('h_nodes')
+            .where('hospital_id', id)
+    }
 }
