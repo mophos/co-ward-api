@@ -159,6 +159,7 @@ router.post('/', async (req: Request, res: Response) => {
       const idx = _.findIndex(generic, { 'id': +i.genericId });
       if (idx > -1) {
         item.qty = generic[idx].first_pay_qty;
+        i.qty = generic[idx].first_pay_qty;
       }
       items.push(item);
     }
@@ -178,9 +179,6 @@ router.post('/', async (req: Request, res: Response) => {
 async function saveDrug(db, hospitalId, hospcode, drugs, gcsId, hospitalType, covidCaseDetailId) {
   try {
 
-    const currentNo = await covidCaseModel.countRequisitionhospital(db, hospitalId)
-    const newSerialNo = await serialModel.paddingNumber(currentNo[0].count + 1, 5)
-
     const node: any = await covidCaseModel.findNode(db, hospitalId);
     let hospital_id_node;
     if (node.length) {
@@ -188,38 +186,58 @@ async function saveDrug(db, hospitalId, hospcode, drugs, gcsId, hospitalType, co
     } else {
       hospital_id_node = hospitalId;
     }
-    const head = {
+
+    // RD
+    const currentNoRd = await covidCaseModel.countRequisitionhospital(db, hospitalId)
+    const newSerialNoRd = await serialModel.paddingNumber(currentNoRd[0].count + 1, 5)
+
+    const headRd = {
       hospital_id_node,
       hospital_id_client: hospitalId,
       covid_case_detail_id: covidCaseDetailId,
-      code: 'RQ-' + hospcode + '-' + newSerialNo
+      code: 'RD-' + hospcode + '-' + newSerialNoRd
     }
 
-    const requisitionId = await covidCaseModel.saveRequisition(db, head);
-    const detail = [];
+    const requisitionIdRd = await covidCaseModel.saveRequisition(db, headRd);
+    const detailRd = [];
     for (const d of drugs) {
       const obj = {
-        requisition_id: requisitionId[0],
+        requisition_id: requisitionIdRd[0],
         generic_id: d.genericId,
         qty: d.qty
       }
-      detail.push(obj);
+      detailRd.push(obj);
     }
 
+    await covidCaseModel.saveRequisitionDetail(db, detailRd);
+
+    // RS
+    const currentNoRs = await covidCaseModel.countRequisitionhospital(db, hospitalId)
+    const newSerialNoRs = await serialModel.paddingNumber(currentNoRs[0].count + 1, 5)
+
+    const headRs = {
+      hospital_id_node,
+      hospital_id_client: hospitalId,
+      covid_case_detail_id: covidCaseDetailId,
+      code: 'RS-' + hospcode + '-' + newSerialNoRs
+    }
+
+    const requisitionIdRs = await covidCaseModel.saveRequisition(db, headRs);
+    const detailRs = [];
     const q = await covidCaseModel.getQtySupplues(db, gcsId, hospitalType)
     for (const d of q) {
       const obj = {
-        requisition_id: requisitionId[0],
+        requisition_id: requisitionIdRs[0],
         generic_id: d.generic_id,
         qty: d.qty
       }
-      detail.push(obj);
+      detailRs.push(obj);
     }
-    await covidCaseModel.saveRequisitionDetail(db, detail);
+    await covidCaseModel.saveRequisitionDetail(db, detailRs);
+    
     return { ok: true };
   } catch (error) {
     console.log(error);
-
     return { ok: false, error: error };
   }
 }
@@ -258,8 +276,10 @@ router.put('/present', async (req: Request, res: Response) => {
         generic_id: i.genericId,
       }
       const idx = _.findIndex(generic, { 'id': +i.genericId });
+      
       if (idx > -1) {
         item.qty = generic[idx].pay_qty;
+        i.qty = generic[idx].pay_qty;
       }
       items.push(item);
     }
