@@ -131,14 +131,16 @@ router.post('/medical-supplies', async (req: Request, res: Response) => {
     for (const i of data) {
       _data.push({
         hospital_id: hospitalId,
-        medical_supplie_id: i.medical_supplie_id,
-        qty: i.qty
+        medical_supplie_id: i.id,
+        qty: i.qty,
+        covid_qty: i.covid_qty
       });
 
       detail.push({
         wm_medical_supplie_id: rs,
-        medical_supplie_id: i.medical_supplie_id,
-        qty: i.qty
+        medical_supplie_id: i.id,
+        qty: i.qty,
+        covid_qty: i.covid_qty
       });
     }
     await model.saveMedicalSupplies(db, _data);
@@ -146,7 +148,6 @@ router.post('/medical-supplies', async (req: Request, res: Response) => {
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
-
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });

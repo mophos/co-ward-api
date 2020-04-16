@@ -115,7 +115,7 @@ export class CovidCaseModel {
       .where('p.cid', cid)
   }
 
-  checkCidAllHospital(db: Knex, cid) {
+  checkCidAllHospital(db: Knex, hospitalId, cid) {
     return db('p_patients as pt')
       .select('h.hospname', 'p.*', 'pt.hn', 'va.*')
       .join('p_persons as p', 'pt.person_id', 'p.id')
@@ -125,6 +125,7 @@ export class CovidCaseModel {
         v.on('va.tambon_code', 'p.tambon_code')
         v.on('va.province_code', 'p.province_code')
       })
+      .whereNot('pt.hospital_id', hospitalId)
       .where('p.cid', cid)
   }
 
@@ -187,30 +188,28 @@ export class CovidCaseModel {
   }
 
   getBeds(db: Knex, hospitalId) {
-    return db('view_beds as b')
-      .where('b.hospital_id', hospitalId)
+    return db('b_beds AS bb')
+      .select('bb.id', 'bb.name', 'bbh.hospital_id', 'bbh.qty', 'bbh.covid_qty', 'vbs.usage_qty')
+      .leftJoin('b_bed_hospitals AS bbh', 'bbh.bed_id', 'bb.id')
+      .joinRaw(`LEFT JOIN view_bed_sum_hospitals AS vbs ON vbs.bed_id = bb.id AND vbs.hospital_id = '?'`, hospitalId)
+      .where('bbh.hospital_id', hospitalId)
+      .where('bb.is_deleted', 'N')
   }
 
   getGcs(db, hospitalId) {
-    return db.raw(`select g.id,g.name,ifnull(gg.count,0) as count from b_gcs as g 
-    left join (
-    select ccd.gcs_id,count(*) as count from p_covid_case_details as ccd 
-    join (SELECT c.id,p.hospital_id from p_covid_cases as c 
-    join p_patients as p on c.patient_id = p.id 
-    where c.status = 'ADMIT') as cc on ccd.covid_case_id = cc.id
-    where cc.hospital_id = ?
-    GROUP BY ccd.gcs_id) as gg on g.id = gg.gcs_id`, [hospitalId]);
+    return db('b_gcs AS bg')
+      .leftJoin('view_gcs_sum_hospitals AS vgs', 'vgs.gcs_id', 'bg.id')
+      .where('vgs.hospital_id', hospitalId)
+      .where('bg.is_deleted', 'N')
   }
 
   getMedicalSupplies(db, hospitalId) {
-    return db.raw(`select g.id,g.name,ifnull(gg.count,0) as count from b_medical_supplies as g 
-    left join (
-    select ccd.medical_supplie_id,count(*) as count from p_covid_case_details as ccd 
-    join (SELECT c.id,p.hospital_id from p_covid_cases as c 
-    join p_patients as p on c.patient_id = p.id 
-    where c.status = 'ADMIT') as cc on ccd.covid_case_id = cc.id
-    where cc.hospital_id = ? and pay_type = 'COVID'
-    GROUP BY ccd.medical_supplie_id) as gg on g.id = gg.medical_supplie_id`, [hospitalId]);
+    return db('b_medical_supplies AS bms')
+      .select('bms.id', 'bms.name', 'bmh.hospital_id', 'bmh.qty', 'bmh.covid_qty', 'vms.qty as usage_qty')
+      .leftJoin('b_medical_supplie_hospitals as bmh', 'bmh.medical_supplie_id', 'bms.id')
+      .joinRaw(`LEFT JOIN view_medical_supplie_sum_hospitals AS vms ON vms.medical_supplie_id = bms.id AND vms.hospital_id = '?'`, hospitalId)
+      .where('bmh.hospital_id', hospitalId)
+      .where('bms.is_deleted', 'N')
   }
 
   getRequisitionStock(db: Knex, id, hospitalId) {
