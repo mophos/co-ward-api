@@ -48,67 +48,83 @@ router.get('/generics', async (req: Request, res: Response) => {
 router.get('/autocomplete/tambon', async (req: Request, res: Response) => {
   const db = req.db;
   const query = req.query.q;
+  const length = req.query.length || 2;
   try {
-    const rs = await model.autocompleteTambon(db, query);
-    if (rs[0].length) {
-      res.send(rs[0]);
-    } else {
-      res.send([]);
+    if (query.length >= length) {
+      const rs = await model.autocompleteTambon(db, query);
+      if (rs[0].length) {
+        res.send(rs[0]);
+      } else {
+        res.send([]);
+      }
     }
   } catch (error) {
     res.send([]);
   }
+
 });
 
 router.get('/autocomplete/ampur', async (req: Request, res: Response) => {
   const db = req.db;
   const query = req.query.q;
+  const length = req.query.length || 2;
   try {
-    const rs = await model.autocompleteAmpur(db, query);
-    if (rs[0].length) {
-      res.send(rs[0]);
-    } else {
-      res.send([]);
+    if (query.length >= length) {
+      const rs = await model.autocompleteAmpur(db, query);
+      if (rs[0].length) {
+        res.send(rs[0]);
+      } else {
+        res.send([]);
+      }
     }
   } catch (error) {
     res.send([]);
   }
+
 });
 
 router.get('/autocomplete/province', async (req: Request, res: Response) => {
   const db = req.db;
   const query = req.query.q;
+  const length = req.query.length || 2;
   try {
-    const rs = await model.autocompleteProvince(db, query);
-    if (rs.length) {
-      res.send(rs);
-    } else {
-      res.send([]);
+    if (query.length >= length) {
+      const rs = await model.autocompleteProvince(db, query);
+      if (rs.length) {
+        res.send(rs);
+      } else {
+        res.send([]);
+      }
     }
   } catch (error) {
     res.send([]);
   }
+
 });
 
 router.get('/autocomplete/zipcode', async (req: Request, res: Response) => {
   const db = req.db;
   const query = req.query.q;
+  const length = req.query.length || 3;
   try {
-    const rs = await model.autocompleteZipcode(db, query);
-    if (rs.length) {
-      res.send(rs);
-    } else {
-      res.send([]);
+    if (query.length >= length) {
+      const rs = await model.autocompleteZipcode(db, query);
+      if (rs.length) {
+        res.send(rs);
+      } else {
+        res.send([]);
+      }
     }
   } catch (error) {
     res.send([]);
   }
+
 });
 
 router.get('/hospcode/autocomplete/search', async (req: Request, res: Response) => {
   const db = req.db;
   const query = req.query.q;
-  const length = req.query.length || 1;
+  const length = req.query.length || 2;
   try {
     if (query.length >= length) {
       const rs = await model.autocompleteHospital(db, query);
@@ -128,7 +144,7 @@ router.get('/hospcode/autocomplete/search', async (req: Request, res: Response) 
 router.get('/countries/autocomplete/search', async (req: Request, res: Response) => {
   const db = req.db;
   const query = req.query.q;
-  const length = req.query.length || 1;
+  const length = req.query.length || 2;
   try {
     if (query.length >= length) {
       const rs = await model.autocompleteCountry(db, query);
