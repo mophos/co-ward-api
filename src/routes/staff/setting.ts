@@ -151,6 +151,56 @@ router.post('/medical-supplies', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/professional', async (req: Request, res: Response) => {
+  const db = req.db;
+  const hospitalId = req.decoded.hospitalId;
+  try {
+    const rs = await model.getProfessional(db, hospitalId);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.post('/professional', async (req: Request, res: Response) => {
+  const db = req.db;
+  const id = req.decoded.id;
+  const hospitalId = req.decoded.hospitalId;
+  const data = req.body.data;
+  try {
+    const head: any = {};
+    head.date = moment().format('YYYY-MM_DD');
+    head.create_by = id;
+    head.hospital_id = hospitalId;
+    let rs: any = await model.saveHeadProfessional(db, [head]);
+    await model.removeProfessionals(db, hospitalId);
+    const _data = [];
+    let detail: any = [];
+    for (const i of data) {
+      _data.push({
+        hospital_id: hospitalId,
+        professional_id: i.professional_id,
+        qty: i.qty
+      });
+
+      detail.push({
+        wm_professional_id: rs,
+        professional_id: i.professional_id,
+        qty: i.qty
+      });
+    }
+    await model.saveProfessionals(db, _data);
+    await model.saveDetailProfessionals(db, detail);
+    res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.post('/', async (req: Request, res: Response) => {
   const db = req.db;
   const data = req.body.data;

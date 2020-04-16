@@ -209,7 +209,7 @@ export class CovidCaseModel {
     join (SELECT c.id,p.hospital_id from p_covid_cases as c 
     join p_patients as p on c.patient_id = p.id 
     where c.status = 'ADMIT') as cc on ccd.covid_case_id = cc.id
-    where cc.hospital_id = ?
+    where cc.hospital_id = ? and pay_type = 'COVID'
     GROUP BY ccd.medical_supplie_id) as gg on g.id = gg.medical_supplie_id`, [hospitalId]);
   }
 

@@ -132,18 +132,19 @@ export class BasicModel {
 			.where('is_deleted', 'N')
 	}
 
-	getBeds(db: Knex, hospitalId) {
+	getBeds(db: Knex, hospitalId, hospitalType) {
 		return db('b_beds as b')
 			.select('b.id', 'b.name', 'bh.hospital_id', 'bh.bed_id', 'bh.qty')
 			.leftJoin('b_bed_hospitals as bh', (v) => {
 				v.on('b.id', 'bh.bed_id')
 				v.on('bh.hospital_id', db.raw(`${hospitalId}`));
 			})
-			.where('b.is_deleted', 'N')
+			.where('b.is_deleted', 'N').where('hospital_type', hospitalType)
 	}
 
 	getMedicalSupplies(db: Knex) {
 		return db('b_medical_supplies')
+			.where('pay_type', 'COVID')
 			.where('is_deleted', 'N')
 	}
 
