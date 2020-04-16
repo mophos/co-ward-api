@@ -49,6 +49,19 @@ router.get('/beds', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/beds/remain', async (req: Request, res: Response) => {
+  const db = req.db;
+  const hospitalId = req.decoded.hospitalId;
+  try {
+    const rs = await model.getBedReamin(db, hospitalId);
+    res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.post('/beds', async (req: Request, res: Response) => {
   const db = req.db;
   const id = req.decoded.id;
@@ -67,13 +80,15 @@ router.post('/beds', async (req: Request, res: Response) => {
       _data.push({
         hospital_id: hospitalId,
         bed_id: i.bed_id,
-        qty: i.qty
+        qty: i.qty,
+        covid_qty: i.covid_qty
       });
 
       detail.push({
         wm_bed_id: rs,
         bed_id: i.bed_id,
-        qty: i.qty
+        qty: i.qty,
+        covid_qty: i.covid_qty
       });
     }
     await model.saveBeds(db, _data);
@@ -86,11 +101,11 @@ router.post('/beds', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/ventilators', async (req: Request, res: Response) => {
+router.get('/medical-supplies', async (req: Request, res: Response) => {
   const db = req.db;
   const hospitalId = req.decoded.hospitalId;
   try {
-    const rs = await model.getVentilators(db, hospitalId);
+    const rs = await model.getMedicalSupplies(db, hospitalId);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -99,7 +114,7 @@ router.get('/ventilators', async (req: Request, res: Response) => {
   }
 });
 
-router.post('/ventilators', async (req: Request, res: Response) => {
+router.post('/medical-supplies', async (req: Request, res: Response) => {
   const db = req.db;
   const id = req.decoded.id;
   const hospitalId = req.decoded.hospitalId;
@@ -109,25 +124,25 @@ router.post('/ventilators', async (req: Request, res: Response) => {
     head.date = moment().format('YYYY-MM_DD');
     head.create_by = id;
     head.hospital_id = hospitalId;
-    let rs: any = await model.saveHeadVentilator(db, [head]);
-    await model.removeVentilators(db, hospitalId);
+    let rs: any = await model.saveHeadMedicalSupplie(db, [head]);
+    await model.removeMedicalSupplies(db, hospitalId);
     const _data = [];
     let detail: any = [];
     for (const i of data) {
       _data.push({
         hospital_id: hospitalId,
-        ventilator_id: i.ventilator_id,
+        medical_supplie_id: i.medical_supplie_id,
         qty: i.qty
       });
 
       detail.push({
-        wm_ventilator_id: rs,
-        ventilator_id: i.ventilator_id,
+        wm_medical_supplie_id: rs,
+        medical_supplie_id: i.medical_supplie_id,
         qty: i.qty
       });
     }
-    await model.saveVentilators(db, _data);
-    await model.saveDetailVentilators(db, detail);
+    await model.saveMedicalSupplies(db, _data);
+    await model.saveDetailMedicalSupplies(db, detail);
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);

@@ -105,8 +105,8 @@ router.post('/', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   const hospitalType = req.decoded.hospitalType;
   const hospcode = req.decoded.hospcode;
-  const data = req.body.data;
   const db = req.db;
+  const data = req.body.data;
   try {
     const person = {
       cid: data.cid,
@@ -146,7 +146,7 @@ router.post('/', async (req: Request, res: Response) => {
       covid_case_id: covidCaseId,
       gcs_id: data.gcsId,
       bed_id: data.bedId,
-      ventilator_id: data.ventilatorId
+      medical_supplie_id: data.medical_supplieId
     }
     const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
     const generic = await basicModel.getGenerics(db);
@@ -270,7 +270,7 @@ router.put('/present', async (req: Request, res: Response) => {
       covid_case_id: data.covid_case_id,
       gcs_id: data.gcs_id,
       bed_id: data.bed_id,
-      ventilator_id: data.ventilator_id
+      medical_supplie_id: data.medical_supplie_id
     }
     const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
     const generic = await basicModel.getGenerics(db);
@@ -389,11 +389,11 @@ router.get('/gcs', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/ventilators', async (req: Request, res: Response) => {
+router.get('/medical-supplies', async (req: Request, res: Response) => {
   const db = req.db;
   const hospitalId = req.decoded.hospitalId;
   try {
-    const rs = await covidCaseModel.getVentilators(db, hospitalId);
+    const rs = await covidCaseModel.getMedicalSupplies(db, hospitalId);
     res.send({ ok: true, rows: rs[0] })
   } catch (error) {
     res.send({ ok: false, error: error });
@@ -422,6 +422,7 @@ router.post('/update/discharge', async (req: Request, res: Response) => {
     obj.date_discharge = data.dateDischarge;
     if (data.hospitalId !== undefined) {
       obj.hospital_id_refer = data.hospitalId;
+      obj.reason = data.reason;
     }
 
     let rs: any = await covidCaseModel.updateDischarge(req.db, data.covidCaseId, obj);
