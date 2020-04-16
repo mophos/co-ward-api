@@ -198,7 +198,7 @@ export class CovidCaseModel {
   }
 
   getMedicalSupplies(db, hospitalId) {
-    return db.raw(`select g.id,g.name,ifnull(gg.count,0) as count from b_medical-supplies as g 
+    return db.raw(`select g.id,g.name,ifnull(gg.count,0) as count from b_medical_supplies as g 
     left join (
     select ccd.medical_supplie_id,count(*) as count from p_covid_case_details as ccd 
     join (SELECT c.id,p.hospital_id from p_covid_cases as c 

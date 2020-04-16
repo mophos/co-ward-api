@@ -136,7 +136,7 @@ export class BasicModel {
 	}
 
 	getMedicalSupplies(db: Knex) {
-		return db('b_medical-supplies')
+		return db('b_medical_supplies')
 			.where('is_deleted', 'N')
 	}
 
