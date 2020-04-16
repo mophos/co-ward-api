@@ -340,7 +340,7 @@ router.post('/check-register', async (req: Request, res: Response) => {
       if (rs.length) {
         res.send({ ok: false, error: 'เคยบันทึก Case นี้ไปแล้ว' });
       } else {
-        const rs: any = await covidCaseModel.checkCidAllHospital(db, cid);
+        const rs: any = await covidCaseModel.checkCidAllHospital(db, hospitalId, cid);
         if (rs.length) {
           res.send({ ok: true, case: 'REFER', rows: rs[0] })
         } else {

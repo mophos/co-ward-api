@@ -115,7 +115,7 @@ export class CovidCaseModel {
       .where('p.cid', cid)
   }
 
-  checkCidAllHospital(db: Knex, cid) {
+  checkCidAllHospital(db: Knex, hospitalId, cid) {
     return db('p_patients as pt')
       .select('h.hospname', 'p.*', 'pt.hn', 'va.*')
       .join('p_persons as p', 'pt.person_id', 'p.id')
@@ -125,6 +125,7 @@ export class CovidCaseModel {
         v.on('va.tambon_code', 'p.tambon_code')
         v.on('va.province_code', 'p.province_code')
       })
+      .whereNot('pt.hospital_id', hospitalId)
       .where('p.cid', cid)
   }
 
