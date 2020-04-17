@@ -109,7 +109,7 @@ router.post('/supplie', async (req: Request, res: Response) => {
           data.right = ['STAFF_COVID_CASE', 'STAFF_COVID_CASE_STATUS', 'STAFF_COVID_CASE_REQUISITION', 'STAFF_PAY', 'STAFF_STOCK_SUPPLIES', 'STAFF_SETTING_USERS', 'STAFF_SETTING_BASIC', 'STAFF_SETTING_BEDS', 'STAFF_SETTING_VENTILATORS', 'STAFF_SETTING_PROFESSIONAL']
         }
       } else {
-        data.right = ['STAFF_CHECK_DRUGS', 'STAFF_CHECK_SUPPLIES', 'STAFF_CHECK_BEDS', 'STAFF_SETTING_BASIC']
+        data.right = ['STAFF_CHECK_DRUGS', 'STAFF_CHECK_SUPPLIES', 'STAFF_CHECK_BEDS', 'STAFF_SETTING_BASIC','STAFF_PROVINCE_SET_SUPER_USER']
         if (data.isNodeDrugs || data.isNodeSupplies) {
           if (data.isDRUGS) {
             data.right.push('STAFF_COVID_CASE_DRUGS_APPROVED')
