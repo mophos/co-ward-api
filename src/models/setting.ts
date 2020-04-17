@@ -143,4 +143,39 @@ export class BedModel {
 		return db('wm_professional_details')
 			.insert(data);
 	}
+
+	getProvinceUser(db: Knex, provinceCode, userId){
+		return db.raw(`SELECT
+		uu.id,
+		uu.cid,
+		CONCAT( uu.fname, ' ', uu.lname ) AS name,
+		if(uu.is_approved = 'Y',true,false) as approved,
+		bh.hospcode,
+		bh.hospname,
+		if(uur.id, true, false) rightAdmin,
+		uur.id user_right_id
+	FROM
+		um_users uu
+		LEFT JOIN (select uur.id, uur.user_id  from um_user_rights as uur join um_rights as ur on ur.id = uur.right_id and ur.name = 'STAFF_SETTING_USERS' ) as uur on uur.user_id = uu.id
+		left join b_hospitals as bh on bh.hospcode = uu.hospcode
+		where bh.province_code = ?
+		and uu.id <> ? `, [provinceCode, userId])
+	}
+
+	changeApproved(db: Knex, id, status){
+		return db('um_users')
+		.update('is_approved', status)
+		.where('id', id)
+	}
+
+	deleteRightSupUser(db: Knex, id){
+		return db('um_user_rights')
+		.delete()
+		.where({user_id: id, right_id: 25});
+	}
+
+	addRightSupUser(db: Knex, id){
+		return db('um_user_rights')
+		.insert({user_id: id, right_id: 25});
+	}
 }
