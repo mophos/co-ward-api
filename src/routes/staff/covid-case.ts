@@ -150,7 +150,7 @@ router.post('/', async (req: Request, res: Response) => {
       covid_case_id: covidCaseId,
       gcs_id: data.gcsId,
       bed_id: data.bedId,
-      medical_supplie_id: data.medical_supplieId
+      medical_supplie_id: data.medicalSupplieId
     }
     const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
     const generic = await basicModel.getGenerics(db);
