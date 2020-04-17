@@ -150,7 +150,7 @@ router.post('/', async (req: Request, res: Response) => {
       covid_case_id: covidCaseId,
       gcs_id: data.gcsId,
       bed_id: data.bedId,
-      medical_supplie_id: data.medical_supplieId
+      medical_supplie_id: data.medicalSupplieId
     }
     const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
     const generic = await basicModel.getGenerics(db);
@@ -183,13 +183,11 @@ router.post('/', async (req: Request, res: Response) => {
 async function saveDrug(db, hospitalId, hospcode, drugs, gcsId, hospitalType, covidCaseDetailId) {
   try {
 
-    const node: any = await covidCaseModel.findNode(db, hospitalId);
-    let hospital_id_node;
-    if (node.length) {
-      hospital_id_node = node[0].hospital_id;
-    } else {
-      hospital_id_node = hospitalId;
-    }
+    const nodeSupplies: any = await covidCaseModel.findNodeSupplies(db, hospitalId);
+    const nodeDrugs: any = await covidCaseModel.findNodeDrugs(db, hospitalId);
+    const hospitalIdNodeSupplies = nodeSupplies[0].hospital_id;
+    const hospitalIdNodeDrugs = nodeDrugs[0].hospital_id;
+
 
     // RD
     if (drugs.length > 0) {
@@ -197,7 +195,7 @@ async function saveDrug(db, hospitalId, hospcode, drugs, gcsId, hospitalType, co
       const newSerialNoRd = await serialModel.paddingNumber(currentNoRd[0].count + 1, 5)
 
       const headRd = {
-        hospital_id_node,
+        hospital_id_node: hospitalIdNodeDrugs,
         hospital_id_client: hospitalId,
         covid_case_detail_id: covidCaseDetailId,
         code: 'RD-' + hospcode + '-' + newSerialNoRd,
@@ -224,7 +222,7 @@ async function saveDrug(db, hospitalId, hospcode, drugs, gcsId, hospitalType, co
       const newSerialNoRs = await serialModel.paddingNumber(currentNoRs[0].count + 1, 5)
 
       const headRs = {
-        hospital_id_node,
+        hospital_id_node: hospitalIdNodeSupplies,
         hospital_id_client: hospitalId,
         covid_case_detail_id: covidCaseDetailId,
         code: 'RS-' + hospcode + '-' + newSerialNoRs,
@@ -396,13 +394,21 @@ router.get('/gcs', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/ventilators', async (req: Request, res: Response) => {
+  const db = req.db;
+  const hospitalId = req.decoded.hospitalId;
+  try {
+    const rs = await covidCaseModel.getVentilators(db, hospitalId);
+    res.send({ ok: true, rows: rs })
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
 router.get('/medical-supplies', async (req: Request, res: Response) => {
   const db = req.db;
   const hospitalId = req.decoded.hospitalId;
   try {
     const rs = await covidCaseModel.getMedicalSupplies(db, hospitalId);
-    console.log(rs);
-
     res.send({ ok: true, rows: rs })
   } catch (error) {
     res.send({ ok: false, error: error });
