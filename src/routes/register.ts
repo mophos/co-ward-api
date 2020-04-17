@@ -47,11 +47,22 @@ router.get('/hopscode', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/get-nodes', async (req: Request, res: Response) => {
+router.get('/get-node-drugs', async (req: Request, res: Response) => {
   let id = req.query.id
   console.log(id);
   try {
-    let rs: any = await registerModel.getNodes(req.db, id);
+    let rs: any = await registerModel.getNodeDrugs(req.db, id);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/get-node-supplies', async (req: Request, res: Response) => {
+  let id = req.query.id
+  console.log(id);
+  try {
+    let rs: any = await registerModel.getNodeSupplies(req.db, id);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -86,12 +97,12 @@ router.post('/supplie', async (req: Request, res: Response) => {
       }
 
       if (data.isProvince === 'N') {
-        if (data.isNode) {
-          data.right = ['STAFF_COVID_CASE', 'STAFF_COVID_CASE_STATUS', 'STAFF_COVID_CASE_REQUISITION', 'STAFF_PAY', 'STAFF_STOCK_SUPPLIES', 'STAFF_SETTING_USERS', 'STAFF_SETTING_BASIC', 'STAFF_SETTING_BEDS', 'STAFF_SETTING_VENTILATORS', 'STAFF_SETTING_PROFESSIONAL','STAFF_PRODUCT_RESRRVE']
-          if(data.isDRUGS){
+        if (data.isNodeDrugs || data.isNodeSupplies) {
+          data.right = ['STAFF_COVID_CASE', 'STAFF_COVID_CASE_STATUS', 'STAFF_COVID_CASE_REQUISITION', 'STAFF_PAY', 'STAFF_STOCK_SUPPLIES', 'STAFF_SETTING_USERS', 'STAFF_SETTING_BASIC', 'STAFF_SETTING_BEDS', 'STAFF_SETTING_VENTILATORS', 'STAFF_SETTING_PROFESSIONAL', 'STAFF_PRODUCT_RESRRVE']
+          if (data.isDRUGS) {
             data.right.push('STAFF_COVID_CASE_DRUGS_APPROVED')
           }
-          if(data.isSupplies){
+          if (data.isSupplies) {
             data.right.push('STAFF_COVID_CASE_SUPPLIES_APPROVED')
           }
         } else {

@@ -84,8 +84,12 @@ export class Register {
         });
     }
 
-    getNodes(db: Knex, id = '') {
-        return db('h_nodes')
+    getNodeDrugs(db: Knex, id = '') {
+        return db('h_node_drugs')
+            .where('hospital_id', id)
+    }
+    getNodeSupplies(db: Knex, id = '') {
+        return db('h_node_supplies')
             .where('hospital_id', id)
     }
 }

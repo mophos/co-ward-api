@@ -119,7 +119,7 @@ export class CovidCaseModel {
 
   checkCidAllHospital(db: Knex, hospitalId, cid) {
     return db('p_patients as pt')
-      .select('h.hospname', 'p.*', 'pt.hn', 'va.*','c.name as country_name')
+      .select('h.hospname', 'p.*', 'pt.hn', 'va.*', 'c.name as country_name')
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
       .leftJoin('view_address as va', (v) => {
@@ -127,7 +127,7 @@ export class CovidCaseModel {
         v.on('va.tambon_code', 'p.tambon_code')
         v.on('va.province_code', 'p.province_code')
       })
-      .leftJoin('b_countries as c','c.id','p.country_code')
+      .leftJoin('b_countries as c', 'c.id', 'p.country_code')
       .whereNot('pt.hospital_id', hospitalId)
       .where('p.cid', cid)
   }
@@ -168,10 +168,24 @@ export class CovidCaseModel {
       .insert(data);
   }
 
-  findNode(db: Knex, hospitalId) {
-    return db('h_node_details as nd')
+  // findNode(db: Knex, hospitalId) {
+  //   return db('h_node_details as nd')
+  //     .select('n.hospital_id')
+  //     .join('h_nodes as n', 'n.id', 'nd.node_id')
+  //     .where('nd.hospital_id', hospitalId)
+  // }
+
+  findNodeDrugs(db: Knex, hospitalId) {
+    return db('h_node_drug_details as nd')
       .select('n.hospital_id')
-      .join('h_nodes as n', 'n.id', 'nd.node_id')
+      .join('h_node_drugss as n', 'n.id', 'nd.node_id')
+      .where('nd.hospital_id', hospitalId)
+  }
+
+  findNodeSupplies(db: Knex, hospitalId) {
+    return db('h_node_supplies_details as nd')
+      .select('n.hospital_id')
+      .join('h_node_supplies as n', 'n.id', 'nd.node_id')
       .where('nd.hospital_id', hospitalId)
   }
 

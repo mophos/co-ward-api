@@ -183,13 +183,11 @@ router.post('/', async (req: Request, res: Response) => {
 async function saveDrug(db, hospitalId, hospcode, drugs, gcsId, hospitalType, covidCaseDetailId) {
   try {
 
-    const node: any = await covidCaseModel.findNode(db, hospitalId);
-    let hospital_id_node;
-    if (node.length) {
-      hospital_id_node = node[0].hospital_id;
-    } else {
-      hospital_id_node = hospitalId;
-    }
+    const nodeSupplies: any = await covidCaseModel.findNodeSupplies(db, hospitalId);
+    const nodeDrugs: any = await covidCaseModel.findNodeDrugs(db, hospitalId);
+    const hospitalIdNodeSupplies = nodeSupplies[0].hospital_id;
+    const hospitalIdNodeDrugs = nodeDrugs[0].hospital_id;
+
 
     // RD
     if (drugs.length > 0) {
@@ -197,7 +195,7 @@ async function saveDrug(db, hospitalId, hospcode, drugs, gcsId, hospitalType, co
       const newSerialNoRd = await serialModel.paddingNumber(currentNoRd[0].count + 1, 5)
 
       const headRd = {
-        hospital_id_node,
+        hospital_id_node: hospitalIdNodeDrugs,
         hospital_id_client: hospitalId,
         covid_case_detail_id: covidCaseDetailId,
         code: 'RD-' + hospcode + '-' + newSerialNoRd,
@@ -224,7 +222,7 @@ async function saveDrug(db, hospitalId, hospcode, drugs, gcsId, hospitalType, co
       const newSerialNoRs = await serialModel.paddingNumber(currentNoRs[0].count + 1, 5)
 
       const headRs = {
-        hospital_id_node,
+        hospital_id_node: hospitalIdNodeSupplies,
         hospital_id_client: hospitalId,
         covid_case_detail_id: covidCaseDetailId,
         code: 'RS-' + hospcode + '-' + newSerialNoRs,
