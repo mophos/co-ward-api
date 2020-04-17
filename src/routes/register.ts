@@ -110,6 +110,14 @@ router.post('/supplie', async (req: Request, res: Response) => {
         }
       } else {
         data.right = ['STAFF_CHECK_DRUGS', 'STAFF_CHECK_SUPPLIES', 'STAFF_CHECK_BEDS', 'STAFF_SETTING_BASIC']
+        if (data.isNodeDrugs || data.isNodeSupplies) {
+          if (data.isDRUGS) {
+            data.right.push('STAFF_COVID_CASE_DRUGS_APPROVED')
+          }
+          if (data.isSupplies) {
+            data.right.push('STAFF_COVID_CASE_SUPPLIES_APPROVED')
+          }
+        } 
       }
       let rs: any = await registerModel.insertUser(req.db, _data);
       let rsRight: any = await registerModel.getRights(req.db, data.right)
