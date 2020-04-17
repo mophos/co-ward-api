@@ -178,7 +178,7 @@ export class CovidCaseModel {
   findNodeDrugs(db: Knex, hospitalId) {
     return db('h_node_drug_details as nd')
       .select('n.hospital_id')
-      .join('h_node_drugss as n', 'n.id', 'nd.node_id')
+      .join('h_node_drugs as n', 'n.id', 'nd.node_id')
       .where('nd.hospital_id', hospitalId)
   }
 
