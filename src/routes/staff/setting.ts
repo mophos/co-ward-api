@@ -235,4 +235,61 @@ router.put('/user', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/province-user', async (req: Request, res: Response) => {
+  const db = req.db;
+  const provinceCode = req.decoded.provinceCode;
+  const id = req.decoded.id;
+  try {
+    const rs = await model.getProvinceUser(db, provinceCode, id);
+    res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.put('/change-approve-user', async (req: Request, res: Response) => {
+  const db = req.db;
+  const userId = req.body.id;
+  let status = req.body.status;
+  try {
+    console.log(status);
+    status = status ? 'Y' : 'N';
+    const rs = await model.changeApproved(db, userId, status);
+    if(status == 'N'){
+
+      await model.deleteRightSupUser(db, userId);
+
+    }
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.put('/change-right-sup-user', async (req: Request, res: Response) => {
+  const db = req.db;
+  const userId = req.body.id;
+  let status = req.body.status;
+  try {
+    console.log(status);
+    if(status){
+      await model.addRightSupUser(db, userId);
+
+    } else {
+      await model.deleteRightSupUser(db, userId);
+
+    }
+
+    res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 export default router;
