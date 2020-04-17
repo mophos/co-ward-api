@@ -394,13 +394,21 @@ router.get('/gcs', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/ventilators', async (req: Request, res: Response) => {
+  const db = req.db;
+  const hospitalId = req.decoded.hospitalId;
+  try {
+    const rs = await covidCaseModel.getVentilators(db, hospitalId);
+    res.send({ ok: true, rows: rs })
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
 router.get('/medical-supplies', async (req: Request, res: Response) => {
   const db = req.db;
   const hospitalId = req.decoded.hospitalId;
   try {
     const rs = await covidCaseModel.getMedicalSupplies(db, hospitalId);
-    console.log(rs);
-
     res.send({ ok: true, rows: rs })
   } catch (error) {
     res.send({ ok: false, error: error });

@@ -228,6 +228,15 @@ export class CovidCaseModel {
       .where('bmh.hospital_id', hospitalId)
       .where('bms.is_deleted', 'N')
   }
+  getVentilators(db, hospitalId) {
+    return db('b_medical_supplies AS bms')
+      .select('bms.id', 'bms.name', 'bmh.hospital_id', 'bmh.qty', 'bmh.covid_qty', 'vms.qty as usage_qty')
+      .leftJoin('b_medical_supplie_hospitals as bmh', 'bmh.medical_supplie_id', 'bms.id')
+      .joinRaw(`LEFT JOIN view_medical_supplie_sum_hospitals AS vms ON vms.medical_supplie_id = bms.id AND vms.hospital_id = '?'`, hospitalId)
+      .where('bmh.hospital_id', hospitalId)
+      .where('bms.pay_type', 'COVID')
+      .where('bms.is_deleted', 'N')
+  }
 
   getRequisitionStock(db: Knex, id, hospitalId) {
     return db('b_generics AS bg')
