@@ -5,7 +5,7 @@ import * as HttpStatus from 'http-status-codes';
 import { Router, Request, Response } from 'express';
 
 import { SuppliesModel } from '../../models/supplies';
-
+import * as moment from 'moment';
 const suppliesModel = new SuppliesModel();
 const router: Router = Router();
 
@@ -46,27 +46,42 @@ router.get('/details/:id', async (req: Request, res: Response) => {
 
 router.post('/', async (req: Request, res: Response) => {
   const db = req.db;
-  const id = req.decoded.id;
+  const userId = req.decoded.id;
   const hospitalId = req.decoded.hospitalId;
   const data = req.body.data;
 
   try {
-    const head: any = {};
-    head.date = data.date;
-    head.create_by = id;
-    head.hospital_id = hospitalId;
+    const timeCut = moment(process.env.TIME_CUT, 'HH:mm');
+    const cut = moment().diff(timeCut, 'minutes');
 
-    let rs: any = await suppliesModel.saveHead(db, [head]);
-    let detail: any = [];
-    for (const v of data.items) {
-      const objD: any = {};
-      objD.wm_supplie_id = rs;
-      objD.generic_id = v.generic_id;
-      objD.qty = v.qty;
-      detail.push(objD);
+    if (cut < 0) {
+      const head: any = {};
+      head.date = moment().format('YYYY-MM-DD');
+      head.create_by = userId;
+      head.hospital_id = hospitalId;
+
+      let rs: any = await suppliesModel.saveHead(db, head);
+      let id = rs[0].insertId;
+      if (!id) {
+        const _id = await suppliesModel.getId(db, head);
+        id = _id[0].id;
+      }
+
+      let detail: any = [];
+      for (const v of data.items) {
+        if (v.qty) {
+          const objD: any = {};
+          objD.wm_supplie_id = id;
+          objD.generic_id = v.generic_id;
+          objD.qty = v.qty || 0;
+          detail.push(objD);
+        }
+      }
+      await suppliesModel.saveDetail(db, detail);
+      res.send({ ok: true, code: HttpStatus.OK });
+    } else {
+      res.send({ ok: false, error: `ขณะนี้เกินเวลา ${moment(timeCut).format('HH:mm').toString()} ไม่สามารถบันทึกได้` });
     }
-    await suppliesModel.saveDetail(db, detail);
-    res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
 

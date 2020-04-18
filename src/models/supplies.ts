@@ -1,5 +1,4 @@
 import * as Knex from 'knex';
-
 export class SuppliesModel {
 
   getSupplies(db: Knex, limit = 100, offset = 0, q = '') {
@@ -68,25 +67,56 @@ export class SuppliesModel {
       .leftJoin('um_users as u', 'u.id', 'sp.create_by')
       .leftJoin('um_titles as t', 't.id', 'u.title_id')
       .where('sp.hospital_id', hospitalId)
-      .orderBy('sp.create_date')
+      .orderBy('sp.create_date','DESC')
   }
 
   getSuppliesStockDetails(db: Knex, id: any) {
-    return db('wm_supplie_details as  dsd')
+    return db('wm_supplies_details as  dsd')
       .select('dsd.*', 'mg.name', 'u.name as unit_name')
       .join('b_generics as mg', 'mg.id', 'dsd.generic_id')
       .leftJoin('b_units as u', 'u.id', 'mg.unit_id')
       .where('dsd.wm_supplie_id', id);
   }
 
-  saveHead(db: Knex, data) {
+  getId(db: Knex, data) {
     return db('wm_supplies')
-      .insert(data, 'id');
+      .where('date', data.date)
+      .where('hospital_id', data.hospital_id)
+      .where('create_by', data.create_by)
+  }
+
+  saveHead(db: Knex, data) {
+    let sql = `
+          INSERT INTO wm_supplies
+          (date, create_by,hospital_id)
+          VALUES(?, ?,?)
+          ON DUPLICATE KEY UPDATE
+          update_by=?`;
+    return db.raw(sql, [data.date, data.create_by, data.hospital_id, data.create_by])
+
+    // return db('wm_supplies')
+    // .insert(data, 'id')
+
   }
 
   saveDetail(db: Knex, data) {
-    return db('wm_supplie_details')
-      .insert(data);
+    let sqls = [];
+    data.forEach(v => {
+      let sql = `
+          INSERT INTO wm_supplies_details
+          (wm_supplie_id, generic_id,qty)
+          VALUES(${v.wm_supplie_id},${v.generic_id},${v.qty})
+          ON DUPLICATE KEY UPDATE
+          qty=${v.qty}
+        `;
+      sqls.push(sql);
+    });
+
+    let queries = sqls.join(';');
+
+    return db.raw(queries);
+    // return db('wm_supplies_details')
+    //   .insert(data);
   }
 
   getSuppliesActived(db: Knex) {
