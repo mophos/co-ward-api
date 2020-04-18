@@ -98,26 +98,18 @@ router.post('/supplie', async (req: Request, res: Response) => {
 
       if (data.isProvince === 'N') {
         if (data.isNodeDrugs || data.isNodeSupplies) {
-          data.right = ['STAFF_COVID_CASE', 'STAFF_COVID_CASE_STATUS', 'STAFF_COVID_CASE_REQUISITION', 'STAFF_PAY', 'STAFF_STOCK_SUPPLIES', 'STAFF_SETTING_USERS', 'STAFF_SETTING_BASIC', 'STAFF_SETTING_BEDS', 'STAFF_SETTING_VENTILATORS', 'STAFF_SETTING_PROFESSIONAL', 'STAFF_PRODUCT_RESRRVE']
+          data.right = ['STAFF_COVID_CASE', 'STAFF_COVID_CASE_STATUS', 'STAFF_COVID_CASE_REQUISITION', 'STAFF_PAY', 'STAFF_STOCK_SUPPLIES', 'STAFF_SETTING_BASIC', 'STAFF_SETTING_BEDS', 'STAFF_SETTING_MEDICALSUPPLIE', 'STAFF_SETTING_PROFESSIONAL', 'STAFF_PRODUCT_RESRRVE']
           if (data.isDRUGS) {
             data.right.push('STAFF_COVID_CASE_DRUGS_APPROVED')
-          }
-          if (data.isSupplies) {
-            data.right.push('STAFF_COVID_CASE_SUPPLIES_APPROVED')
           }
         } else {
-          data.right = ['STAFF_COVID_CASE', 'STAFF_COVID_CASE_STATUS', 'STAFF_COVID_CASE_REQUISITION', 'STAFF_PAY', 'STAFF_STOCK_SUPPLIES', 'STAFF_SETTING_USERS', 'STAFF_SETTING_BASIC', 'STAFF_SETTING_BEDS', 'STAFF_SETTING_VENTILATORS', 'STAFF_SETTING_PROFESSIONAL']
+          data.right = ['STAFF_COVID_CASE', 'STAFF_COVID_CASE_STATUS', 'STAFF_COVID_CASE_REQUISITION', 'STAFF_PAY', 'STAFF_STOCK_SUPPLIES', 'STAFF_SETTING_BASIC', 'STAFF_SETTING_BEDS', 'STAFF_SETTING_MEDICALSUPPLIE', 'STAFF_SETTING_PROFESSIONAL']
         }
       } else {
-        data.right = ['STAFF_CHECK_DRUGS', 'STAFF_CHECK_SUPPLIES', 'STAFF_CHECK_BEDS', 'STAFF_SETTING_BASIC','STAFF_PROVINCE_SET_SUPER_USER']
-        if (data.isNodeDrugs || data.isNodeSupplies) {
-          if (data.isDRUGS) {
-            data.right.push('STAFF_COVID_CASE_DRUGS_APPROVED')
-          }
-          if (data.isSupplies) {
-            data.right.push('STAFF_COVID_CASE_SUPPLIES_APPROVED')
-          }
-        } 
+        data.right = ['STAFF_CHECK_DRUGS', 'STAFF_CHECK_SUPPLIES', 'STAFF_CHECK_BEDS', 'STAFF_SETTING_BASIC', 'STAFF_PROVINCE_SET_SUPER_USER', 'STAFF_COVID_CASE_REQUISITION']
+        if (data.isSupplies) {
+          data.right.push('STAFF_COVID_CASE_SUPPLIES_APPROVED')
+        }
       }
       let rs: any = await registerModel.insertUser(req.db, _data);
       let rsRight: any = await registerModel.getRights(req.db, data.right)
@@ -135,7 +127,7 @@ router.post('/supplie', async (req: Request, res: Response) => {
     }
   } catch (error) {
     if (error.errno === 1062) {
-      res.send({ ok: false, error: 'username นี้ถูกใช้งานแล้ว', code: HttpStatus.OK });
+      res.send({ ok: false, error: 'username หริอ เลขบัตรประชาชน นี้ถูกใช้งานแล้ว', code: HttpStatus.OK });
     } else {
       res.send({ ok: false, error: error.message, code: HttpStatus.OK });
     }
