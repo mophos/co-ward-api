@@ -15,7 +15,7 @@ router.get('/', (req: Request, res: Response) => {
 });
 
 router.get('/version', (req: Request, res: Response) => {
-  res.send({ ok: true, message: '1.0.0', code: HttpStatus.OK });
+  res.send({ ok: true, message: '1.0.1', code: HttpStatus.OK });
 });
 
 router.get('/date', (req: Request, res: Response) => {
