@@ -104,8 +104,8 @@ export class SuppliesModel {
     data.forEach(v => {
       let sql = `
           INSERT INTO wm_supplies_details
-          (wm_supplie_id, generic_id,qty)
-          VALUES(${v.wm_supplie_id},${v.generic_id},${v.qty})
+          (wm_supplie_id, generic_id,qty,month_usage_qty)
+          VALUES(${v.wm_supplie_id},${v.generic_id},${v.qty},${v.month_usage_qty})
           ON DUPLICATE KEY UPDATE
           qty=${v.qty}
         `;

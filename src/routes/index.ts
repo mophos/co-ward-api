@@ -19,7 +19,18 @@ router.get('/version', (req: Request, res: Response) => {
 });
 
 router.get('/date', (req: Request, res: Response) => {
-  res.send({ ok: true, rows:moment().format('YYYY-MM-DD HH:mm:ss'), code: HttpStatus.OK });
+  res.send({ ok: true, rows: moment().format('YYYY-MM-DD HH:mm:ss'), code: HttpStatus.OK });
+});
+
+router.get('/time-cut', (req: Request, res: Response) => {
+  const timeCut = moment(process.env.TIME_CUT, 'HH:mm');
+  const cut = moment().diff(timeCut, 'minutes');
+  if (cut < 0) {
+    // true = บันทึกได้
+    res.send({ ok: true });
+  } else {
+    res.send({ ok: false });
+  }
 });
 
 router.post('/order_sync', async (req: Request, res: Response) => {
@@ -56,7 +67,7 @@ router.get('/status', async (req: Request, res: Response) => {
           status_code: _result.data.status,
           status_name: _result.data.status_name,
           status_name_th: _result.data.status_name_th,
-          status_update: moment(_result.data.update,'X').format('YYYY-MM-DD HH:mm:ss'),
+          status_update: moment(_result.data.update, 'X').format('YYYY-MM-DD HH:mm:ss'),
           tracking: _result.data.tracking
         }
         await thpdModel.updatePay(db, i.id, data);
