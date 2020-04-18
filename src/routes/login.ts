@@ -56,4 +56,31 @@ router.post('/', async (req: Request, res: Response) => {
 
 });
 
+router.get('/get-username', async (req: Request, res: Response) => {
+  const db = req.db;
+  const cid = req.query.cid;
+  const phoneNumber = req.query.phoneNumber;
+
+  try {
+    let rs: any = await loginModel.getUsername(db, cid, phoneNumber);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.post('/update-password', async (req: Request, res: Response) => {
+  const db = req.db;
+  const id = req.body.id;
+  const passwordNew = req.body.passwordNew;
+  let encPassword = crypto.createHash('md5').update(passwordNew).digest('hex');
+  try {
+    await loginModel.updatePassword(db, id, encPassword)
+    res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 export default router;

@@ -160,6 +160,7 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
   let otp = req.body.otp
   try {
     let rs: any = await registerModel.verifyOTP(refCode, otp);
+    console.log(rs);
     res.send(rs);
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
