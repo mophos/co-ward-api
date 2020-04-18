@@ -37,6 +37,7 @@ import settingStaffRoute from './routes/staff/setting';
 import requisitionSuppliesRoute from './routes/staff/requisition-supplies';
 import drugStaffRoute from './routes/staff/drug';
 import covidCaseRoute from './routes/staff/covid-case';
+import userRoute from './routes/staff/user';
 
 import basicRoute from './routes/basic';
 import basicAuthRoute from './routes/basicAuth';
@@ -221,6 +222,7 @@ manager.use('/eoc', eocRoute)
 //staff
 api.use('/staff', checkAuth, staffAuth, staff)
 staff.use('/supplies', suppliesStaffRoute)
+staff.use('/users', userRoute)
 staff.use('/balance', balanceStaffRoute)
 staff.use('/pay', payStaffRoute)
 staff.use('/bed', bedStaffRoute)
