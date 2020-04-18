@@ -32,7 +32,7 @@ export class BalanceModel {
   }
 
   getBalanceDetail(db: Knex, id) {
-    return db('wm_supplie_details as bd')
+    return db('wm_supplies_details as bd')
       .select('bd.*', 's.name', 's.unit_name', 's.code')
       .join('mm_supplies as s', 'bd.supplies_id', 's.id')
       .where('bd.balance_id', id);
@@ -44,7 +44,7 @@ export class BalanceModel {
   }
 
   saveDetail(db: Knex, data) {
-    return db('wm_supplie_details')
+    return db('wm_supplies_details')
       .insert(data);
   }
 
@@ -64,7 +64,7 @@ export class BalanceModel {
   }
 
   update(db: Knex, id, qty) {
-    return db('wm_supplie_details')
+    return db('wm_supplies_details')
       .update('qty', qty)
       .where('id', id);
   }

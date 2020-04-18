@@ -72,7 +72,7 @@ export class SuppliesModel {
   }
 
   getSuppliesStockDetails(db: Knex, id: any) {
-    return db('wm_supplie_details as  dsd')
+    return db('wm_supplies_details as  dsd')
       .select('dsd.*', 'mg.name', 'u.name as unit_name')
       .join('b_generics as mg', 'mg.id', 'dsd.generic_id')
       .leftJoin('b_units as u', 'u.id', 'mg.unit_id')
@@ -85,7 +85,7 @@ export class SuppliesModel {
   }
 
   saveDetail(db: Knex, data) {
-    return db('wm_supplie_details')
+    return db('wm_supplies_details')
       .insert(data);
   }
 
