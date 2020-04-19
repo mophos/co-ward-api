@@ -24,6 +24,15 @@ router.get('/date', (req: Request, res: Response) => {
   res.send({ ok: true, rows: moment().format('YYYY-MM-DD HH:mm:ss'), code: HttpStatus.OK });
 });
 
+router.get('/date-time-cut', async (req: Request, res: Response) => {
+  const timeCut: any = await basicModel.timeCut();
+  if (timeCut.ok) {
+    res.send({ ok: true, rows: moment().format('YYYY-MM-DD HH:mm:ss'), code: HttpStatus.OK });
+  } else {
+    res.send({ ok: true, rows: moment().add(1, 'days').format('YYYY-MM-DD HH:mm:ss'), code: HttpStatus.OK });
+  }
+});
+
 router.get('/time-cut', async (req: Request, res: Response) => {
   try {
     const timeCut = await basicModel.timeCut();

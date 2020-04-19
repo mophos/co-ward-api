@@ -53,7 +53,7 @@ router.post('/', async (req: Request, res: Response) => {
   const _timeCut = process.env.TIME_CUT;
 
   try {
-    const timeCut = await basicModel.timeCut();
+    const timeCut: any = await basicModel.timeCut();
     if (timeCut.ok) {
       const head: any = {};
       head.date = moment().format('YYYY-MM-DD');

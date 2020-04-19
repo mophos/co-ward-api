@@ -5,8 +5,10 @@ import * as moment from "moment"
 import { Router, Request, Response } from 'express';
 
 import { PayModel } from '../../models/pay';
+import { BasicModel } from '../../models/basic';
 
 const payModel = new PayModel();
+const basicModel = new BasicModel();
 const router: Router = Router();
 const request = require("request");
 
@@ -33,7 +35,13 @@ router.post('/', async (req: Request, res: Response) => {
   const data = req.body.data;
   const srcHospitalId = req.decoded.hospitalId;
   try {
+    const timeCut: any = await basicModel.timeCut();
     const obj: any = {};
+    if (timeCut.ok) {
+      obj.entry_date = moment().format('YYYY-MM-DD');
+    } else {
+      obj.entry_date = moment().add(1, 'days').format('YYYY-MM-DD');
+    }
     obj.src_hospital_id = srcHospitalId;
     obj.dst_hospital_id = data.hospitalId;
     obj.qty = data.qty;
@@ -115,8 +123,13 @@ async function getOrder(data) {
 router.delete('/:id', async (req: Request, res: Response) => {
   const id = req.params.id
   try {
-    let rs: any = await payModel.delPay(req.db, id);
-    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    const timeCut: any = await basicModel.timeCut();
+    if (timeCut.ok) {
+      let rs: any = await payModel.delPay(req.db, id);
+      res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    } else {
+      res.send({ ok: false, error: `ขณะนี้เกินเวลา ${moment(timeCut).format('HH:mm').toString()} ไม่สามารถลบได้` });
+    }
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
