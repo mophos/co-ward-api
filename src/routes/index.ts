@@ -27,9 +27,9 @@ router.get('/date', (req: Request, res: Response) => {
 router.get('/date-time-cut', async (req: Request, res: Response) => {
   const timeCut: any = await basicModel.timeCut();
   if (timeCut.ok) {
-    res.send({ ok: true, rows: moment().format('YYYY-MM-DD HH:mm:ss'), code: HttpStatus.OK });
+    res.send({ ok: true, rows: moment().format('YYYY-MM-DD'), code: HttpStatus.OK });
   } else {
-    res.send({ ok: true, rows: moment().add(1, 'days').format('YYYY-MM-DD HH:mm:ss'), code: HttpStatus.OK });
+    res.send({ ok: true, rows: moment().add(1, 'days').format('YYYY-MM-DD'), code: HttpStatus.OK });
   }
 });
 
