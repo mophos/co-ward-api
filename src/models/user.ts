@@ -54,9 +54,10 @@ export class UserModel {
   getListUser(db: Knex, hospcode: any, query = '') {
     const _query = `%${query}%`;
     return db('um_users as u')
-      .select('u.id', 'u.username', 'ut.name as title_name', 'u.fname', 'u.lname', 'up.name as position_name', 'u.telephone')
+      .select('u.id', 'u.username', 'ut.name as title_name', 'u.fname', 'u.lname', 'up.name as position_name', 'u.telephone', 'bh.id as hosp_id', 'bh.hosptype_code')
       .join('um_titles as ut', 'ut.id', 'u.title_id')
       .join('um_positions as up', 'up.id', 'u.position_id')
+      .join('b_hospitals as bh', 'bh.hospcode', 'u.hospcode')
       .where('u.hospcode', hospcode)
       .where('u.is_deleted', 'N')
       .where((w) => {
@@ -68,7 +69,5 @@ export class UserModel {
         w.orWhere('u.telephone', 'like', _query)
       });
   }
-
-
 
 }
