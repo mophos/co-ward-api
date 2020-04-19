@@ -125,6 +125,7 @@ export class SuppliesModel {
       .where('g.is_deleted', 'N')
       .where('g.is_actived', 'Y')
       .where('g.type', 'SUPPLIES')
+      .orderBy('g.id');
   }
 
 }
