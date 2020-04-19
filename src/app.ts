@@ -30,6 +30,7 @@ import drugAdminRoute from './routes/admin/drug';
 
 import suppliesStaffRoute from './routes/staff/supplies';
 import balanceStaffRoute from './routes/staff/balance';
+import smhRoute from './routes/staff/smh';
 import payStaffRoute from './routes/staff/pay';
 import bedStaffRoute from './routes/staff/bed';
 import requisitionStaffRoute from './routes/staff/requisition';
@@ -227,6 +228,7 @@ manager.use('/eoc', eocRoute)
 api.use('/staff', checkAuth, staffAuth, staff)
 staff.use('/supplies', suppliesStaffRoute)
 staff.use('/users', userRoute)
+staff.use('/smh', smhRoute)
 staff.use('/balance', balanceStaffRoute)
 staff.use('/pay', payStaffRoute)
 staff.use('/bed', bedStaffRoute)
