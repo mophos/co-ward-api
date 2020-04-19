@@ -20,6 +20,15 @@ router.get('/version', (req: Request, res: Response) => {
   res.send({ ok: true, message: '1.1.0', code: HttpStatus.OK });
 });
 
+router.get('/demo', (req: Request, res: Response) => {
+  if (process.env.DEMO == 'Y') {
+    res.send({ ok: true });
+  } else {
+    res.send({ ok: false });
+  }
+});
+
+
 router.get('/date', (req: Request, res: Response) => {
   res.send({ ok: true, rows: moment().format('YYYY-MM-DD HH:mm:ss'), code: HttpStatus.OK });
 });
