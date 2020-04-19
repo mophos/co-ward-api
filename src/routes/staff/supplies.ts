@@ -89,5 +89,4 @@ router.post('/', async (req: Request, res: Response) => {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
-
 export default router;

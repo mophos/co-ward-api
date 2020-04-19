@@ -184,4 +184,13 @@ export class BasicModel {
 			return { ok: false, error: `ขณะนี้เกินเวลา ${moment(timeCut).format('HH:mm').toString()} ไม่สามารถบันทึกได้` };
 		}
 	}
+
+	getListChildNode(db: Knex, hospitalId) {
+		let sql = db('h_node_surgical_details as cnode')
+			.select('h.id', 'h.hospname', 'h.hospcode')
+			.join('h_node_surgicals as node', 'node.id', 'cnode.node_id')
+			.join('b_hospitals as h', 'h.id', 'cnode.hospital_id')
+			.where('node.hospital_id', hospitalId)
+		return sql
+	}
 }

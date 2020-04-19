@@ -36,7 +36,7 @@ router.delete('/', async (req: Request, res: Response) => {
       if(rs){
         res.send({ ok: true });
       } else{
-        res.send({ok:false,error:`คุณไม่สามารถลบได้ เนื่องจากเกินกำหนดเวลา`})
+        res.send({ok:false,error:`คุณไม่สามารถลบได้ เนื่องจากเกินกำหนดเวลา`});
       }
       
     } else {
