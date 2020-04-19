@@ -42,7 +42,22 @@ router.post('/', async (req: Request, res: Response) => {
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
-    
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.put('/', async (req: Request, res: Response) => {
+  const data = req.body.data;
+  const id = req.query.id;
+  try {
+    const obj: any = {};
+    obj.qty = data.qty;
+    let rs: any = await payModel.updateSergicalMask(req.db, obj, id);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
@@ -95,5 +110,17 @@ async function getOrder(data) {
     });
   });
 }
+
+
+router.delete('/:id', async (req: Request, res: Response) => {
+  const id = req.params.id
+  try {
+    let rs: any = await payModel.delPay(req.db, id);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 
 export default router;

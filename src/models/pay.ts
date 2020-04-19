@@ -22,6 +22,11 @@ export class PayModel {
       .insert(data);
   }
 
+  updateSergicalMask(db: Knex, data, id) {
+    return db('pay_surgical_masks')
+      .update(data).where('id', id);
+  }
+
   getPayDetail(db: Knex, id) {
     return db('wm_pay_details as bd')
       .select('bd.*', 's.name', 's.unit', 's.code')
@@ -94,6 +99,10 @@ export class PayModel {
 
   updateRestock(db: Knex, id: any) {
     return db('wm_restocks').update('is_approved', 'Y').where('id', id);
+  }
+
+  delPay(db: Knex, id: any) {
+    return db('pay_surgical_masks').del().where('id', id);
   }
 
 }
