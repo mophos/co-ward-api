@@ -67,7 +67,7 @@ export class SuppliesModel {
       .leftJoin('um_users as u', 'u.id', 'sp.create_by')
       .leftJoin('um_titles as t', 't.id', 'u.title_id')
       .where('sp.hospital_id', hospitalId)
-      .orderBy('sp.create_date','DESC')
+      .orderBy('sp.create_date', 'DESC')
   }
 
   getSuppliesStockDetails(db: Knex, id: any) {
@@ -89,10 +89,10 @@ export class SuppliesModel {
     let sql = `
           INSERT INTO wm_supplies
           (date, create_by,hospital_id)
-          VALUES(?, ?,?)
+          VALUES(now(), ?,?)
           ON DUPLICATE KEY UPDATE
-          update_by=?`;
-    return db.raw(sql, [data.date, data.create_by, data.hospital_id, data.create_by])
+          update_by=?,update_date=now()`;
+    return db.raw(sql, [data.create_by, data.hospital_id, data.create_by])
 
     // return db('wm_supplies')
     // .insert(data, 'id')
@@ -107,11 +107,10 @@ export class SuppliesModel {
           (wm_supplie_id, generic_id,qty,month_usage_qty)
           VALUES(${v.wm_supplie_id},${v.generic_id},${v.qty},${v.month_usage_qty})
           ON DUPLICATE KEY UPDATE
-          qty=${v.qty}
+          qty=${v.qty},month_usage_qty=${v.month_usage_qty}
         `;
       sqls.push(sql);
     });
-
     let queries = sqls.join(';');
 
     return db.raw(queries);
@@ -120,10 +119,12 @@ export class SuppliesModel {
   }
 
   getSuppliesActived(db: Knex) {
-    return db('b_generics')
-      .where('is_deleted', 'N')
-      .where('is_actived', 'Y')
-      .where('type', 'SUPPLIES')
+    return db('b_generics as g')
+      .select('g.*', 'u.name as unit_name')
+      .leftJoin('b_units as u', 'u.id', 'g.unit_id')
+      .where('g.is_deleted', 'N')
+      .where('g.is_actived', 'Y')
+      .where('g.type', 'SUPPLIES')
   }
 
 }
