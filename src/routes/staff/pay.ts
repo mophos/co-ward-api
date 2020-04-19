@@ -25,9 +25,6 @@ router.get('/surgical-mask', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   try {
     let rs: any = await payModel.getSurgicalMask(req.db, hospitalId);
-    for (const v of rs) {
-      v.entry_date = moment(v.entry_date).format('YYYY-MM-DD');
-    }
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
