@@ -1,74 +1,131 @@
-import * as Knex from 'knex';
+import Knex = require('knex');
+import request = require("request");
 
-export class UserModel {
+export class smhModel {
 
-  getUser(db: Knex, limit = 100, offset = 0, q = '') {
-    return db('um_users as u')
-      .select('u.*', 'h.hospname')
-      .leftJoin('l_hospitals as h', 'h.hospcode', 'u.hospcode')
-      .where((v) => {
-        v.where('u.username', 'like', '%' + q + '%')
-        v.orWhere('u.fname', 'like', '%' + q + '%')
-        v.orWhere('u.lname', 'like', '%' + q + '%')
-      })
-      .where('u.is_deleted', 'N')
-      .limit(limit)
-      .offset(offset);
+  getToken(db: Knex) {
+    return db('sys_token_shm').where('is_actived', 'Y');
   }
 
-  getUserTotal(db: Knex, q = '') {
-    return db('um_users as uu')
-      .count('* as count')
-      .join('um_titles as ut', 'ut.id', 'uu.title_id')
-      .where('uu.is_deleted', 'N')
-      .where((v) => {
-        v.where('uu.username', 'like', '%' + q + '%')
-        v.orWhere('ut.name', 'like', '%' + q + '%')
-        v.orWhere('uu.lname', 'like', '%' + q + '%')
+  getZipcode(db: Knex, id: any) {
+    console.log(db('b_subdistrict')
+    .where('id', id).toString());
+    
+    return db('b_subdistrict')
+      .where('id', id);
+  }
+  getProvince(db: Knex, id: any) {
+    return db('b_subdistrict')
+      .where('id', id);
+  }
+  getDistrict(db: Knex, id: any) {
+    return db('b_district')
+      .where('id', id);
+  }
+  getSubdistrict(db: Knex, id: any) {
+    return db('b_province')
+      .where('id', id);
+  }
+
+  getSmarthealth(cid, token) {
+    return new Promise((resolve: any, reject: any) => {
+      var options = {
+        method: 'GET',
+        url: `https://smarthealth.service.moph.go.th/phps/api/person/v2/findby/cid?cid=${cid}`,
+        agentOptions: {
+          rejectUnauthorized: false
+        },
+        headers:
+        {
+          'content-type': 'application/json',
+          'jwt-token': token
+        },
+        json: true
+      };
+
+      request(options, function (error, response, body) {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(body);
+        }
       });
+    });
   }
 
-  getUserById(db: Knex, id: any) {
-    return db('um_users')
-      .where('is_deleted', 'N')
-      .where('id', id);
-  }
+  getSmarthealthAddress(cid, token) {
+    return new Promise((resolve: any, reject: any) => {
+      var options = {
+        method: 'GET',
+        url: `https://smarthealth.service.moph.go.th/phps/api/address/v1/find_by_cid?cid=${cid}`,
+        agentOptions: {
+          rejectUnauthorized: false
+        },
+        headers:
+        {
+          'content-type': 'application/json',
+          'jwt-token': token
+        },
+        json: true
+      };
 
-  updateUser(db: Knex, id: any, data = {}) {
-    return db('um_users')
-      .update(data)
-      .where('id', id);
-  }
-
-  insertUser(db: Knex, data = {}) {
-    return db('um_users')
-      .insert(data);
-  }
-
-  deleteUser(db: Knex, id: any) {
-    return db('um_users')
-      .update('is_deleted', 'Y')
-      .where('id', id);
-  }
-
-  getListUser(db: Knex, hospcode: any, query = '') {
-    const _query = `%${query}%`;
-    return db('um_users as u')
-      .select('u.id', 'u.username', 'ut.name as title_name', 'u.fname', 'u.lname', 'up.name as position_name', 'u.telephone')
-      .join('um_titles as ut', 'ut.id', 'u.title_id')
-      .join('um_positions as up', 'up.id', 'u.position_id')
-      .where('u.hospcode', hospcode)
-      .where('u.is_deleted', 'N')
-      .where((w) => {
-        w.orWhere('u.username', 'like', _query)
-        w.orWhere('ut.name', 'like', _query)
-        w.orWhere('u.fname', 'like', _query)
-        w.orWhere('u.lname', 'like', _query)
-        w.orWhere('up.name', 'like', _query)
-        w.orWhere('u.telephone', 'like', _query)
+      request(options, function (error, response, body) {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(body);
+        }
       });
+    });
   }
 
+  infoCid(cid, token) {
+    return new Promise((resolve, reject) => {
+      var options = {
+        method: 'POST',
+        url: 'https://smarthealth.service.moph.go.th/phps/api/00023/001/01',
+        agentOptions: {
+          rejectUnauthorized: false
+        },
+        headers: {
+          'jwt-token': token,
+          'content-type': 'application/json'
+        },
+        body: cid
+      };
 
+      request(options, function (error, response, body) {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(JSON.parse(body));
+        }
+      });
+    });
+  }
 
+  infoCidAddress(cid, token) {
+    return new Promise((resolve, reject) => {
+      var options = {
+        method: 'POST',
+        url: 'https://smarthealth.service.moph.go.th/phps/api/00023/008/01',
+        agentOptions: {
+          rejectUnauthorized: false
+        },
+        headers: {
+          'jwt-token': token,
+          'content-type': 'application/json'
+        },
+        body: cid
+      };
+
+      request(options, function (error, response, body) {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(JSON.parse(body));
+        }
+      });
+    });
+  }
 }

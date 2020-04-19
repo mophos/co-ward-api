@@ -4,13 +4,14 @@ export class CovidCaseModel {
 
   getCase(db: Knex, hospitalId) {
     return db('p_covid_cases as c')
-      .select('c.id as covid_case_id', 'c.status', 'c.date_admit', 'pt.hn', 'pt.person_id', 'p.*', 't.name as title_name')
+      .select('c.id as covid_case_id', 'c.an', 'c.status', 'c.date_admit', 'pt.hn', 'pt.person_id', 'p.*', 't.name as title_name')
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .leftJoin('um_titles as t', 'p.title_id', 't.id')
       .where('pt.hospital_id', hospitalId)
       .where('c.is_deleted', 'N')
   }
+
 
   getListHosp(db: Knex, hospitalId) {
     return db('wm_requisitions as r')
@@ -91,10 +92,22 @@ export class CovidCaseModel {
 
   getInfo(db: Knex, hospitalId, covidCaseId) {
     return db('p_covid_cases as c')
-      .select('c.id as covid_case_id', 'c.status', 'c.date_admit', 'pt.hn', 'p.*', 't.name as title_name')
+      .select('c.id as covid_case_id', 'c.an', 'c.status', 'c.date_admit', 'c.confirm_date', 'pt.person_id', 'pt.id as patient_id', 'pt.hn', 'p.*', 't.name as title_name',
+        'pv.name_th as province_name', 'd.name_th as ampur_name', 'sd.name_th as tambon_name', 'bc.name as country_name')
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .leftJoin('um_titles as t', 'p.title_id', 't.id')
+      .leftJoin('b_countries as bc', 'bc.id', 'p.country_code')
+      .leftJoin('b_province as pv', 'pv.code', 'p.province_code')
+      .leftJoin('b_district as d', (v) => {
+        v.on('d.province_code', 'p.province_code')
+        v.on('d.code', 'p.ampur_code')
+      })
+      .leftJoin('b_subdistrict as sd', (v) => {
+        v.on('sd.province_code', 'p.province_code')
+        v.on('sd.ampur_code', 'p.ampur_code')
+        v.on('sd.code', 'p.tambon_code')
+      })
       .where('c.id', covidCaseId)
       .where('pt.hospital_id', hospitalId)
   }
@@ -150,6 +163,14 @@ export class CovidCaseModel {
     return db('p_covid_cases')
       .insert(data)
   }
+
+  updateCovidCase(db: Knex, id, data) {
+    return db('p_covid_cases')
+      .where('id', id)
+      .whereRaw('date_entry=CURRENT_DATE()')
+      .update(data)
+  }
+
   saveCovidCaseDetail(db: Knex, data) {
     return db('p_covid_case_details')
       .insert(data);
@@ -164,9 +185,20 @@ export class CovidCaseModel {
       .insert(data);
   }
 
+  updatePerson(db: Knex, id, data) {
+    return db('p_persons')
+      .update(data)
+      .where('id', id);
+  }
+
   savePatient(db: Knex, data) {
     return db('p_patients')
       .insert(data);
+  }
+  updatePatient(db: Knex, id, data) {
+    return db('p_patients')
+      .update(data)
+      .where('id', id);
   }
 
   // findNode(db: Knex, hospitalId) {
@@ -303,13 +335,6 @@ export class CovidCaseModel {
 
   }
 
-  // getCovidCaseDetail(db: Knex, caseId, date) {
-  //   return db('p_covid_case_details')
-  //     .select(db.raw('group_concat(id) as id'))
-  //     .where('covid_case_id', caseId)
-  //     .whereBetween('create_date',[ date + ' 00:00:00', date + ' 23:59:59']);
-  // }
-
   removeCovidCaseDetail(db: Knex,  caseId, date) {
     return db('p_covid_case_details')
       .delete()
@@ -325,4 +350,5 @@ export class CovidCaseModel {
       .where('covid_case_id', caseId)
       .whereBetween('create_date',[ date + ' 00:00:00', date + ' 23:59:59']));
   }
+
 }
