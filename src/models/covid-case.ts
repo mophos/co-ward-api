@@ -9,6 +9,7 @@ export class CovidCaseModel {
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .leftJoin('um_titles as t', 'p.title_id', 't.id')
       .where('pt.hospital_id', hospitalId)
+      .where('c.is_deleted', 'N')
   }
 
   getListHosp(db: Knex, hospitalId) {
@@ -147,7 +148,7 @@ export class CovidCaseModel {
 
   saveCovidCase(db: Knex, data) {
     return db('p_covid_cases')
-      .insert(data);
+      .insert(data)
   }
   saveCovidCaseDetail(db: Knex, data) {
     return db('p_covid_case_details')
@@ -290,5 +291,15 @@ export class CovidCaseModel {
   updateDischarge(db: Knex, id, data) {
     return db('p_covid_cases').update(data)
       .where('id', id);
+  }
+
+  isDeleted(db: Knex, id) {
+    let sql =  db('p_covid_cases')
+      .update('is_deleted', 'Y')
+      .where('id', id)
+      .whereRaw('date_entry=CURRENT_DATE()');
+      console.log(sql.toString());
+      return sql;
+      
   }
 }

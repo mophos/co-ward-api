@@ -2,7 +2,7 @@
 // / <reference path="../../typings.d.ts" />
 
 import * as HttpStatus from 'http-status-codes';
-
+import * as moment from 'moment';
 import { Router, Request, Response } from 'express';
 
 import { CovidCaseModel } from '../../models/covid-case';
@@ -23,6 +23,27 @@ router.get('/', async (req: Request, res: Response) => {
   } catch (error) {
     console.log(error);
 
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.delete('/', async (req: Request, res: Response) => {
+  const covidCaseId = req.query.covidCaseId;
+  try {
+    const timeCut = await basicModel.timeCut();
+    if (timeCut.ok) {
+      let rs: any = await covidCaseModel.isDeleted(req.db, covidCaseId);
+      if(rs){
+        res.send({ ok: true });
+      } else{
+        res.send({ok:false,error:`คุณไม่สามารถลบได้ เนื่องจากเกินกำหนดเวลา`});
+      }
+      
+    } else {
+      res.send({ ok: false, error: timeCut.error });
+    }
+  } catch (error) {
+    console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
@@ -143,7 +164,8 @@ router.post('/', async (req: Request, res: Response) => {
       patient_id: patientId,
       status: 'ADMIT',
       an: data.an,
-      date_admit: data.admitDate
+      date_admit: data.admitDate,
+      date_entry: moment().format('YYYY-MM-DD')
     }
     const covidCaseId = await covidCaseModel.saveCovidCase(db, _data);
     const detail = {

@@ -5,7 +5,9 @@ import { Jwt } from '../models/jwt';
 import * as HttpStatus from 'http-status-codes';
 import { Login } from '../models/login'
 import { ThpdModel } from '../models/thpd';
+import { BasicModel } from '../models/basic';
 const jwt = new Jwt();
+const basicModel = new BasicModel();
 import * as moment from 'moment';
 const model = new Login();
 const router: Router = Router();
@@ -22,14 +24,21 @@ router.get('/date', (req: Request, res: Response) => {
   res.send({ ok: true, rows: moment().format('YYYY-MM-DD HH:mm:ss'), code: HttpStatus.OK });
 });
 
-router.get('/time-cut', (req: Request, res: Response) => {
-  const timeCut = moment(process.env.TIME_CUT, 'HH:mm');
-  const cut = moment().diff(timeCut, 'minutes');
-  if (cut < 0) {
-    // true = บันทึกได้
-    res.send({ ok: true });
+router.get('/date-time-cut', async (req: Request, res: Response) => {
+  const timeCut: any = await basicModel.timeCut();
+  if (timeCut.ok) {
+    res.send({ ok: true, rows: moment().format('YYYY-MM-DD HH:mm:ss'), code: HttpStatus.OK });
   } else {
-    res.send({ ok: false });
+    res.send({ ok: true, rows: moment().add(1, 'days').format('YYYY-MM-DD HH:mm:ss'), code: HttpStatus.OK });
+  }
+});
+
+router.get('/time-cut', async (req: Request, res: Response) => {
+  try {
+    const timeCut = await basicModel.timeCut();
+    res.send(timeCut);
+  } catch (error) {
+    res.send({ ok: false, error: error });
   }
 });
 
