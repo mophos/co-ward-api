@@ -173,4 +173,15 @@ export class BasicModel {
 			.join('b_generics as g', 'g.id', 'sdi.generic_id')
 			.where('set_detail_id', id)
 	}
+
+	timeCut() {
+		const timeCut = moment(process.env.TIME_CUT, 'HH:mm');
+		const cut = moment().diff(timeCut, 'minutes');
+		if (cut < 0) {
+			// true = บันทึกได้
+			return { ok: true };
+		} else {
+			return { ok: false, error: `ขณะนี้เกินเวลา ${moment(timeCut).format('HH:mm').toString()} ไม่สามารถบันทึกได้` };
+		}
+	}
 }
