@@ -3,9 +3,10 @@
 import * as HttpStatus from 'http-status-codes';
 
 import { Router, Request, Response } from 'express';
-
+import { BasicModel } from '../../models/basic';
 import { SuppliesModel } from '../../models/supplies';
 import * as moment from 'moment';
+const basicModel = new BasicModel();
 const suppliesModel = new SuppliesModel();
 const router: Router = Router();
 
@@ -51,10 +52,8 @@ router.post('/', async (req: Request, res: Response) => {
   const data = req.body.data;
 
   try {
-    const timeCut = moment(process.env.TIME_CUT, 'HH:mm');
-    const cut = moment().diff(timeCut, 'minutes');
-
-    if (cut < 0) {
+    const timeCut = await basicModel.timeCut();
+    if (timeCut.ok) {
       const head: any = {};
       head.date = moment().format('YYYY-MM-DD');
       head.create_by = userId;

@@ -9,6 +9,7 @@ export class CovidCaseModel {
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .leftJoin('um_titles as t', 'p.title_id', 't.id')
       .where('pt.hospital_id', hospitalId)
+      .where('c.is_deleted', 'N')
   }
 
   getListHosp(db: Knex, hospitalId) {
