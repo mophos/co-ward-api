@@ -204,19 +204,34 @@ export class CovidCaseModel {
       .where('gcs_id', gcsId)
   }
 
-  getBeds(db: Knex, hospitalId) {
+  getBeds(db: Knex, hospitalId, hospitalType) {
     return db('b_beds AS bb')
-      .select('bb.id', 'bb.name', 'bbh.hospital_id', 'bbh.qty', 'bbh.covid_qty', 'vbs.usage_qty')
-      .leftJoin('b_bed_hospitals AS bbh', 'bbh.bed_id', 'bb.id')
-      .joinRaw(`LEFT JOIN view_bed_sum_hospitals AS vbs ON vbs.bed_id = bb.id AND vbs.hospital_id = '?'`, hospitalId)
-      .where('bbh.hospital_id', hospitalId)
+      .select('bb.id', 'bb.name', 'bh.hospital_id', 'bh.qty', 'bh.covid_qty', 'vbs.usage_qty')
+      .leftJoin('b_bed_hospitals as bh', (v) => {
+        v.on('bb.id', 'bh.bed_id')
+        v.on('bh.hospital_id', db.raw(`${hospitalId}`));
+      })
+      .leftJoin('view_bed_sum_hospitals as vbs', (v) => {
+        v.on('vbs.bed_id', 'bb.id')
+        v.on('vbs.hospital_id', db.raw(`${hospitalId}`));
+      })
+      .where((v) => {
+        v.where('bb.is_hospital', hospitalType == 'HOSPITAL' ? 'Y' : 'N')
+        v.orWhere('bb.is_hospitel', hospitalType == 'HOSPITEL' ? 'Y' : 'N')
+      })
       .where('bb.is_deleted', 'N')
   }
 
-  getGcs(db, hospitalId) {
+  getGcs(db, hospitalId, hospitalType) {
     return db('b_gcs AS bg')
-      .leftJoin('view_gcs_sum_hospitals AS vgs', 'vgs.gcs_id', 'bg.id')
-      .where('vgs.hospital_id', hospitalId)
+      .leftJoin('view_gcs_sum_hospitals as bh', (v) => {
+        v.on('bg.id', 'bh.gcs_id')
+        v.on('bh.hospital_id', db.raw(`${hospitalId}`));
+      })
+      .where((v) => {
+        v.where('bg.is_hospital', hospitalType == 'HOSPITAL' ? 'Y' : 'N')
+        v.orWhere('bg.is_hospitel', hospitalType == 'HOSPITEL' ? 'Y' : 'N')
+      })
       .where('bg.is_deleted', 'N')
   }
 
@@ -228,12 +243,18 @@ export class CovidCaseModel {
       .where('bmh.hospital_id', hospitalId)
       .where('bms.is_deleted', 'N')
   }
+
   getVentilators(db, hospitalId) {
     return db('b_medical_supplies AS bms')
       .select('bms.id', 'bms.name', 'bmh.hospital_id', 'bmh.qty', 'bmh.covid_qty', 'vms.qty as usage_qty')
-      .leftJoin('b_medical_supplie_hospitals as bmh', 'bmh.medical_supplie_id', 'bms.id')
-      .joinRaw(`LEFT JOIN view_medical_supplie_sum_hospitals AS vms ON vms.medical_supplie_id = bms.id AND vms.hospital_id = '?'`, hospitalId)
-      .where('bmh.hospital_id', hospitalId)
+      .leftJoin('b_medical_supplie_hospitals as bmh', (v) => {
+        v.on('bmh.medical_supplie_id', 'bms.id')
+        v.on('bmh.hospital_id', db.raw(`${hospitalId}`));
+      })
+      .leftJoin('view_medical_supplie_sum_hospitals as vms', (v) => {
+        v.on('vms.medical_supplie_id', 'bms.id')
+        v.on('vms.hospital_id', db.raw(`${hospitalId}`));
+      })
       .where('bms.pay_type', 'COVID')
       .where('bms.is_deleted', 'N')
   }

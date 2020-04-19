@@ -68,12 +68,13 @@ router.post('/', async (req: Request, res: Response) => {
       }
 
       let detail: any = [];
-      for (const v of data.items) {
+      for (const v of data) {
         if (v.qty) {
           const objD: any = {};
           objD.wm_supplie_id = id;
           objD.generic_id = v.generic_id;
           objD.qty = v.qty || 0;
+          objD.month_usage_qty = v.month_usage_qty || 0;
           detail.push(objD);
         }
       }
