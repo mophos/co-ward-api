@@ -137,7 +137,7 @@ router.put('/', async (req: Request, res: Response) => {
       confirm_date: data.confirmDate
     }
     const covidCase = await covidCaseModel.updateCovidCase(db, data.covidCaseId, _data);
-    if(covidCase){
+    if (covidCase) {
 
       const person = {
         cid: data.cid,
@@ -161,18 +161,18 @@ router.put('/', async (req: Request, res: Response) => {
       }
       console.log(person);
       console.log(data.personId);
-      
+
       const personId = await covidCaseModel.updatePerson(db, data.personId, person);
-  
-  
+
+
       const patient = {
         hn: data.hn
       }
       const patientId = await covidCaseModel.updatePatient(db, data.patientId, patient);
-  
-     
+
+
       res.send({ ok: true, code: HttpStatus.OK });
-    
+
     } else {
       res.send({ ok: false, error: `คุณไม่สามารถแก้ไขได้ เนื่องจากเกินกำหนดเวลา` });
     }
@@ -247,12 +247,12 @@ router.post('/', async (req: Request, res: Response) => {
       items.push(item);
     }
     await covidCaseModel.saveCovidCaseDetailItem(db, items);
-    const resu: any = await saveDrug(db, hospitalId, hospcode, data.drugs, data.gcsId, hospitalType, covidCaseDetailId);
-    if (resu.ok) {
-      res.send({ ok: true, code: HttpStatus.OK });
-    } else {
-      res.send({ ok: false, error: resu.error, code: HttpStatus.OK });
-    }
+    // const resu: any = await saveDrug(db, hospitalId, hospcode, data.drugs, data.gcsId, hospitalType, covidCaseDetailId);
+    // if (resu.ok) {
+    res.send({ ok: true, code: HttpStatus.OK });
+    // } else {
+    //   res.send({ ok: false, error: resu.error, code: HttpStatus.OK });
+    // }
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });

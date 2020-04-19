@@ -43,6 +43,10 @@ import basicRoute from './routes/basic';
 import basicAuthRoute from './routes/basicAuth';
 import servicesRoute from './routes/manager/services';
 import eocRoute from './routes/eoc';
+import approveDrugsRoute from './routes/staff/approve-drugs';
+import approveSuppliesRoute from './routes/staff/approve-supplies';
+
+
 // Assign router to the express.Router() instance
 const app: express.Application = express();
 
@@ -231,6 +235,8 @@ staff.use('/requisition-supplies', requisitionSuppliesRoute)
 staff.use('/setting', settingStaffRoute)
 staff.use('/drugs', drugStaffRoute)
 staff.use('/covid-case', covidCaseRoute)
+staff.use('/approve-drugs', approveDrugsRoute)
+staff.use('/approve-supplies', approveSuppliesRoute)
 
 //index
 app.use('/', indexRoute);
