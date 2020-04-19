@@ -86,5 +86,20 @@ router.get('/generic-set', async (req: Request, res: Response) => {
   }
 });
 
-
+router.get('/list-child-node', async (req: Request, res: Response) => {
+  const db = req.db;
+  const hospitalId = req.decoded.hospitalId
+  // const query = req.query.q;
+  // const length = req.query.length || 2;
+  try {
+    const rs = await model.getListChildNode(db, hospitalId);
+    if (rs.length) {
+      res.send({ ok: true, rows: rs })
+    } else {
+      res.send({ ok: true, rows: [] })
+    }
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
 export default router;

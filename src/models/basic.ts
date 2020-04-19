@@ -173,4 +173,15 @@ export class BasicModel {
 			.join('b_generics as g', 'g.id', 'sdi.generic_id')
 			.where('set_detail_id', id)
 	}
+
+	getListChildNode(db:Knex, hospitalId) {
+		let sql =  db('h_node_surgical_details as cnode')
+		.select('h.id', 'h.hospname', 'h.hospcode')
+		.join('h_node_surgicals as node','node.id', 'cnode.node_id')
+		.join('b_hospitals as h', 'h.id', 'cnode.hospital_id')
+		.where('node.hospital_id', hospitalId)
+console.log(sql.toString());
+
+		return sql
+	}
 }
