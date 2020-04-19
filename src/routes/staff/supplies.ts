@@ -50,6 +50,7 @@ router.post('/', async (req: Request, res: Response) => {
   const userId = req.decoded.id;
   const hospitalId = req.decoded.hospitalId;
   const data = req.body.data;
+  const _timeCut = process.env.TIME_CUT;
 
   try {
     const timeCut: any = await basicModel.timeCut();
@@ -80,7 +81,7 @@ router.post('/', async (req: Request, res: Response) => {
       await suppliesModel.saveDetail(db, detail);
       res.send({ ok: true, code: HttpStatus.OK });
     } else {
-      res.send({ ok: false, error: `ขณะนี้เกินเวลา ${moment(timeCut).format('HH:mm').toString()} ไม่สามารถบันทึกได้` });
+      res.send({ ok: false, error: `ขณะนี้เกินเวลา ${moment(_timeCut).format('HH:mm').toString()} ไม่สามารถบันทึกได้` });
     }
   } catch (error) {
     console.log(error);
