@@ -4,6 +4,7 @@ import * as express from 'express';
 import { Router, Request, Response } from 'express';
 import * as HttpStatus from 'http-status-codes';
 import * as crypto from 'crypto';
+import * as _ from 'lodash';
 
 import { Register } from '../models/register';
 
@@ -96,21 +97,28 @@ router.post('/supplie', async (req: Request, res: Response) => {
         is_province: data.isProvince,
       }
 
-      if (data.isProvince === 'N') {
-        if (data.isNodeDrugs || data.isNodeSupplies) {
-          data.right = ['STAFF_COVID_CASE', 'STAFF_COVID_CASE_STATUS', 'STAFF_COVID_CASE_REQUISITION', 'STAFF_PAY', 'STAFF_STOCK_SUPPLIES', 'STAFF_SETTING_BASIC', 'STAFF_SETTING_BEDS', 'STAFF_SETTING_MEDICALSUPPLIE', 'STAFF_SETTING_PROFESSIONAL', 'STAFF_PRODUCT_RESRRVE']
-          if (data.isDRUGS) {
-            data.right.push('STAFF_COVID_CASE_DRUGS_APPROVED')
-          }
-        } else {
-          data.right = ['STAFF_COVID_CASE', 'STAFF_COVID_CASE_STATUS', 'STAFF_COVID_CASE_REQUISITION', 'STAFF_PAY', 'STAFF_STOCK_SUPPLIES', 'STAFF_SETTING_BASIC', 'STAFF_SETTING_BEDS', 'STAFF_SETTING_MEDICALSUPPLIE', 'STAFF_SETTING_PROFESSIONAL']
+      data.right = [];
+      if (data.isNodeSupplies) {
+        const rs: any = await registerModel.getGroupRight(req.db, 's')
+        data.right = _.map(rs, 'name')
+        if (!data.isSupplies) {
+          data.right = _.remove(data.right, function (n) {
+            return n !== 'STAFF_APPROVED_SUPPLIES';
+          });
+        }
+      } else if (data.isNodeDrugs) {
+        const rs: any = await registerModel.getGroupRight(req.db, 'n')
+        data.right = _.map(rs, 'name')
+        if (!data.isDRUGS) {
+          data.right = _.remove(data.right, function (n) {
+            return n !== 'STAFF_APPROVED_DRUGS';
+          });
         }
       } else {
-        data.right = ['STAFF_CHECK_DRUGS', 'STAFF_CHECK_SUPPLIES', 'STAFF_CHECK_BEDS', 'STAFF_SETTING_BASIC', 'STAFF_PROVINCE_SET_SUPER_USER', 'STAFF_COVID_CASE_REQUISITION']
-        if (data.isSupplies) {
-          data.right.push('STAFF_COVID_CASE_SUPPLIES_APPROVED')
-        }
+        const rs: any = await registerModel.getGroupRight(req.db, 'c')
+        data.right = _.map(rs, 'name')
       }
+      
       let rs: any = await registerModel.insertUser(req.db, _data);
       let rsRight: any = await registerModel.getRights(req.db, data.right)
       let userRight: any = []

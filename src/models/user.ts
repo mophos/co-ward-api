@@ -54,9 +54,10 @@ export class UserModel {
   getListUser(db: Knex, hospcode: any, query = '') {
     const _query = `%${query}%`;
     return db('um_users as u')
-      .select('u.id', 'u.username', 'ut.name as title_name', 'u.fname', 'u.lname', 'up.name as position_name', 'u.telephone')
+      .select('u.id', 'u.username', 'ut.name as title_name', 'u.fname', 'u.lname', 'up.name as position_name', 'u.telephone', 'bh.id as hospital_id')
       .join('um_titles as ut', 'ut.id', 'u.title_id')
       .join('um_positions as up', 'up.id', 'u.position_id')
+      .join('b_hospitals as bh', 'bh.hospcode', 'u.hospcode')
       .where('u.hospcode', hospcode)
       .where('u.is_deleted', 'N')
       .where((w) => {
@@ -69,6 +70,25 @@ export class UserModel {
       });
   }
 
+  getUserRight(db: Knex, userId: any, groupName: any) {
+    return db('um_group_right as ugr')
+      .select('ur.name', 'ur.name_menu', 'ur.id', 'uur.user_id')
+      .join('um_group_rights_details as ugrd', 'ugrd.group_id', 'ugr.id')
+      .join('um_rights as ur', 'ur.id', 'ugrd.right_id')
+      .joinRaw(`LEFT JOIN um_user_rights as uur ON uur.right_id = ugrd.right_id AND uur.user_id = ?`, userId)
+      .where('ugr.name', groupName)
+      .orderBy('ugrd.id')
+  }
 
+  deleteUserRight(db: Knex, id: any) {
+    return db('um_user_rights')
+      .delete()
+      .where('user_id', id)
+  }
+
+  insertUserRight(db: Knex, data: any) {
+    return db('um_user_rights')
+      .insert(data)
+  }
 
 }
