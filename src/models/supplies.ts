@@ -59,15 +59,31 @@ export class SuppliesModel {
     return sql;
   }
 
-
-
-  getSuppliesStock(db: Knex, hospitalId) {
+  getSuppliesStock(db: Knex, hospitalId: any) {
     return db('wm_supplies as sp')
       .select('sp.*', 't.name', 'u.fname', 'u.lname')
       .leftJoin('um_users as u', 'u.id', 'sp.create_by')
       .leftJoin('um_titles as t', 't.id', 'u.title_id')
       .where('sp.hospital_id', hospitalId)
       .orderBy('sp.create_date', 'DESC')
+  }
+
+  getType(db: Knex, provinceCode: any, hospitalId: any) {
+    return db('b_hospitals as h')
+      .select('h.hosptype_code', 'ht.name')
+      .join('b_hospital_types as ht', 'ht.id', 'h.hosptype_code')
+      .where('h.province_code', provinceCode)
+      .whereNot('h.id', hospitalId)
+      .groupBy('h.hosptype_code')
+      .orderBy('h.hosptype_code')
+  }
+
+  getHospital(db: Knex, hosptypeCode: any, provinceCode: any) {
+    return db('b_hospitals as h')
+      .select('h.id as hospital_id', 'h.hospname')
+      .where('h.province_code', provinceCode)
+      .where('h.hosptype_code', hosptypeCode)
+      .orderBy('h.hosptype_code')
   }
 
   getSuppliesStockDetails(db: Knex, id: any) {
@@ -79,7 +95,7 @@ export class SuppliesModel {
         v.on('dsd.wm_supplie_id', db.raw(`${id}`))
       })
       .leftJoin('b_units as u', 'u.id', 'mg.unit_id')
-      .where('mg.type','SUPPLIES')
+      .where('mg.type', 'SUPPLIES')
       .orderBy('mg.id');
   }
 

@@ -543,6 +543,21 @@ router.get('/gcs', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/gcs-bed', async (req: Request, res: Response) => {
+  const db = req.db;
+  const hospitalId = req.decoded.hospitalId;
+  const hospitalType = req.decoded.hospitalType;
+  try {
+    const data: any = [];
+    const rsg = await covidCaseModel.getGcs(db, hospitalId, hospitalType);
+    const rsb = await covidCaseModel.getBeds(db, hospitalId, hospitalType);
+    data.push(rsg, rsb)
+    res.send({ ok: true, rows: data });
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
+
 router.get('/ventilators', async (req: Request, res: Response) => {
   const db = req.db;
   const hospitalId = req.decoded.hospitalId;
