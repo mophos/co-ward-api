@@ -71,11 +71,16 @@ export class SuppliesModel {
   }
 
   getSuppliesStockDetails(db: Knex, id: any) {
-    return db('wm_supplies_details as  dsd')
+    return db('b_generics as mg')
       .select('dsd.*', 'mg.name', 'u.name as unit_name')
-      .join('b_generics as mg', 'mg.id', 'dsd.generic_id')
+      // .leftJoin('wm_supplies_details as dsd', 'mg.id', 'dsd.generic_id')
+      .leftJoin('wm_supplies_details as dsd', (v) => {
+        v.on('mg.id', 'dsd.generic_id')
+        v.on('dsd.wm_supplie_id', db.raw(`${id}`))
+      })
       .leftJoin('b_units as u', 'u.id', 'mg.unit_id')
-      .where('dsd.wm_supplie_id', id);
+      .where('mg.type','SUPPLIES')
+      .orderBy('mg.id');
   }
 
   getId(db: Knex, data) {
