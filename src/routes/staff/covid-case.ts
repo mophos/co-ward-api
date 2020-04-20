@@ -33,12 +33,12 @@ router.delete('/', async (req: Request, res: Response) => {
     const timeCut = await basicModel.timeCut();
     if (timeCut.ok) {
       let rs: any = await covidCaseModel.isDeleted(req.db, covidCaseId);
-      if(rs){
+      if (rs) {
         res.send({ ok: true });
-      } else{
-        res.send({ok:false,error:`คุณไม่สามารถลบได้ เนื่องจากเกินกำหนดเวลา`});
+      } else {
+        res.send({ ok: false, error: `คุณไม่สามารถลบได้ เนื่องจากเกินกำหนดเวลา` });
       }
-      
+
     } else {
       res.send({ ok: false, error: timeCut.error });
     }
@@ -126,6 +126,62 @@ router.get('/approved-detail', async (req: Request, res: Response) => {
   }
 });
 
+router.put('/', async (req: Request, res: Response) => {
+  const hospitalId = req.decoded.hospitalId;
+  const data = req.body.data;
+  const db = req.db;
+  try {
+    const _data = {
+      an: data.an,
+      date_admit: data.admitDate,
+      confirm_date: data.confirmDate
+    }
+    const covidCase = await covidCaseModel.updateCovidCase(db, data.covidCaseId, _data);
+    if (covidCase) {
+
+      const person = {
+        cid: data.cid,
+        passport: data.passport || null,
+        title_id: data.titleId,
+        first_name: data.fname,
+        last_name: data.lname,
+        gender_id: data.genderId,
+        birth_date: data.birthDate,
+        telephone: data.tel,
+        house_no: data.houseNo,
+        room_no: data.roomNo,
+        village: data.village,
+        village_name: data.villageName,
+        road: data.road,
+        tambon_code: data.tambonCode,
+        ampur_code: data.ampurCode,
+        province_code: data.provinceCode,
+        zipcode: data.zipcode,
+        country_code: data.countryCode,
+      }
+      console.log(person);
+      console.log(data.personId);
+
+      const personId = await covidCaseModel.updatePerson(db, data.personId, person);
+
+
+      const patient = {
+        hn: data.hn
+      }
+      const patientId = await covidCaseModel.updatePatient(db, data.patientId, patient);
+
+
+      res.send({ ok: true, code: HttpStatus.OK });
+
+    } else {
+      res.send({ ok: false, error: `คุณไม่สามารถแก้ไขได้ เนื่องจากเกินกำหนดเวลา` });
+    }
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.post('/', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   const hospitalType = req.decoded.hospitalType;
@@ -165,6 +221,7 @@ router.post('/', async (req: Request, res: Response) => {
       status: 'ADMIT',
       an: data.an,
       date_admit: data.admitDate,
+      confirm_date: data.confirmDate,
       date_entry: moment().format('YYYY-MM-DD')
     }
     const covidCaseId = await covidCaseModel.saveCovidCase(db, _data);
@@ -190,12 +247,12 @@ router.post('/', async (req: Request, res: Response) => {
       items.push(item);
     }
     await covidCaseModel.saveCovidCaseDetailItem(db, items);
-    const resu: any = await saveDrug(db, hospitalId, hospcode, data.drugs, data.gcsId, hospitalType, covidCaseDetailId);
-    if (resu.ok) {
-      res.send({ ok: true, code: HttpStatus.OK });
-    } else {
-      res.send({ ok: false, error: resu.error, code: HttpStatus.OK });
-    }
+    // const resu: any = await saveDrug(db, hospitalId, hospcode, data.drugs, data.gcsId, hospitalType, covidCaseDetailId);
+    // if (resu.ok) {
+    res.send({ ok: true, code: HttpStatus.OK });
+    // } else {
+    //   res.send({ ok: false, error: resu.error, code: HttpStatus.OK });
+    // }
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
