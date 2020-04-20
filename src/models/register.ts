@@ -92,4 +92,13 @@ export class Register {
         return db('h_node_supplies')
             .where('hospital_id', id)
     }
+
+    getGroupRight(db: Knex, groupName: any) {
+        return db('um_group_right AS ug')
+            .select('ur.name')
+            .join('um_group_rights_details as ugrd', 'ugrd.group_id', 'ug.id')
+            .join('um_rights as ur', 'ur.id', 'ugrd.right_id')
+            .where('ug.name', groupName)
+            .whereNot('ur.name', 'STAFF_SETTING_USERS')
+    }
 }
