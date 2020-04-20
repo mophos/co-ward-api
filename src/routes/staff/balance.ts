@@ -3,12 +3,13 @@
 import * as HttpStatus from 'http-status-codes';
 
 import { Router, Request, Response } from 'express';
-
+import * as moment from "moment"
 import { BalanceModel } from '../../models/balance';
+import { BasicModel } from '../../models/basic';
 
 const balanceModel = new BalanceModel();
 const router: Router = Router();
-
+const basicModel = new BasicModel();
 
 router.get('/inventory-status', async (req: Request, res: Response) => {
   let limit = req.query.limit || 20;
@@ -23,6 +24,73 @@ router.get('/inventory-status', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/receives', async (req: Request, res: Response) => {
+  const hospitalId = req.decoded.hospitalId;
+
+  try {
+    let rs: any = await balanceModel.getReceives(req.db, hospitalId);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/get-receives-detail', async (req: Request, res: Response) => {
+  const id = req.query.id;
+  try {
+    let rs: any = await balanceModel.getReceivesDetail(req.db, id);
+    console.log(rs);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/get-receives-generics', async (req: Request, res: Response) => {
+  try {
+    let rs: any = await balanceModel.getReceivesGenerics(req.db);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.post('/save', async (req: Request, res: Response) => {
+  try {
+    const data = req.body.data;
+    const hospitalId = req.decoded.hospitalId;
+    const userId = req.decoded.id;
+    const timeCut: any = await basicModel.timeCut();
+    const obj: any = {};
+    if (timeCut.ok) {
+      obj.entry_date = moment().format('YYYY-MM-DD');
+    } else {
+      obj.entry_date = moment().add(1, 'days').format('YYYY-MM-DD');
+    }
+    obj.hospital_id = hospitalId;
+    obj.created_by = userId;
+    const receiveId = await balanceModel.saveHeadReceives(req.db, obj)
+    let id = receiveId[0].insertId;
+    if (!id) {
+      const _id = await balanceModel.getId(req.db, obj);
+      id = _id[0].id;
+    }
+    const currents = [];
+    for (const i of data) {
+      const obj = {
+        wm_receive_id: id,
+        generic_id: i.generic_id,
+        qty: i.qty
+      }
+      currents.push(obj);
+    }
+    await balanceModel.saveDetailReceives(req.db, currents);
+    res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.get('/supplies', async (req: Request, res: Response) => {
   const hospcode = req.decoded.hospcode;
   try {
@@ -31,7 +99,7 @@ router.get('/supplies', async (req: Request, res: Response) => {
     res.send({ ok: true, rows: rs, code: HttpStatus.OK, hospcode });
   } catch (error) {
     console.log(error);
-    
+
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
@@ -109,7 +177,5 @@ router.put('/:id', async (req: Request, res: Response) => {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
-
-
 
 export default router;
