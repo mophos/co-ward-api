@@ -137,7 +137,7 @@ router.put('/', async (req: Request, res: Response) => {
       confirm_date: data.confirmDate
     }
     const covidCase = await covidCaseModel.updateCovidCase(db, data.covidCaseId, _data);
-    if(covidCase){
+    if (covidCase) {
 
       const person = {
         cid: data.cid,
@@ -161,18 +161,18 @@ router.put('/', async (req: Request, res: Response) => {
       }
       console.log(person);
       console.log(data.personId);
-      
+
       const personId = await covidCaseModel.updatePerson(db, data.personId, person);
-  
-  
+
+
       const patient = {
         hn: data.hn
       }
       const patientId = await covidCaseModel.updatePatient(db, data.patientId, patient);
-  
-     
+
+
       res.send({ ok: true, code: HttpStatus.OK });
-    
+
     } else {
       res.send({ ok: false, error: `คุณไม่สามารถแก้ไขได้ เนื่องจากเกินกำหนดเวลา` });
     }
@@ -361,11 +361,15 @@ router.put('/present', async (req: Request, res: Response) => {
   const hospcode = req.decoded.hospcode;
   const hospitalType = req.decoded.hospitalType;
   try {
-    const detail = {
+    const timeCut = await basicModel.timeCut();
+    const detail: any = {
       covid_case_id: data.covid_case_id,
       gcs_id: data.gcs_id,
       bed_id: data.bed_id,
       medical_supplie_id: data.medical_supplie_id
+    }
+    if (!timeCut.ok) {
+      detail.create_date = moment().add(1, 'days').format('YYYY-MM-DD HH:m:s');
     }
     const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
     const generic = await basicModel.getGenerics(db);
@@ -402,16 +406,24 @@ router.put('/present/edit', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   const hospcode = req.decoded.hospcode;
   const hospitalType = req.decoded.hospitalType;
+  const userId = req.decoded.id
   try {
-    
-    const detail = {
+    const timeCut = await basicModel.timeCut();
+    const detail: any = {
       covid_case_id: data.covid_case_id,
       gcs_id: data.gcs_id,
       bed_id: data.bed_id,
-      medical_supplie_id: data.medical_supplie_id
+      medical_supplie_id: data.medical_supplie_id,
+      updated_by: userId
+
     }
-    await covidCaseModel.removeCovidCaseDetailItem(db, data.covid_case_id , data.create_date)
-    await covidCaseModel.removeCovidCaseDetail(db, data.covid_case_id , data.create_date)
+    if (timeCut.ok) {
+      await covidCaseModel.removeCovidCaseDetailItem(db, data.covid_case_id, data.create_date)
+      await covidCaseModel.removeCovidCaseDetail(db, data.covid_case_id, data.create_date)
+
+    } else {
+      detail.create_date = moment().add(1, 'days').format('YYYY-MM-DD HH:m:s');
+    }
     const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
     const generic = await basicModel.getGenerics(db);
     const items = []
