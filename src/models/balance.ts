@@ -17,10 +17,8 @@ export class BalanceModel {
       })
       .where('ms.is_deleted', 'N')
       .where('ms.is_actived', 'Y')
-      console.log(sql.toString());
-      
-      return sql;
-      
+    return sql;
+
   }
 
   getBalance(db: Knex, hospcode) {
@@ -77,19 +75,77 @@ export class BalanceModel {
 
   getInventoryStatus(db: Knex, limit = 100, offset = 0, hosp_id) {
     return db('wm_generics as wg')
-    .select('wg.*','bg.name as generic_name', 'bu.name as unit_name')
-    .join('b_generics as bg','bg.id', 'wg.generic_id')
-    .join('b_units as bu', 'bu.id', 'bg.unit_id')
-    .where('wg.hospital_id', hosp_id)
-    .limit(limit).offset(offset)
+      .select('wg.*', 'bg.name as generic_name', 'bu.name as unit_name')
+      .join('b_generics as bg', 'bg.id', 'wg.generic_id')
+      .join('b_units as bu', 'bu.id', 'bg.unit_id')
+      .where('wg.hospital_id', hosp_id)
+      .limit(limit).offset(offset)
   }
 
   getInventoryStatusTotal(db: Knex, hosp_id) {
     return db('wm_generics as wg')
-    .count('bg.id as count')
-    // .select('wg.*','bg.name as generic_name', 'bu.name as unit_name')
-    .join('b_generics as bg','bg.id', 'wg.generic_id')
-    .join('b_units as bu', 'bu.id', 'bg.unit_id')
-    .where('wg.hospital_id', hosp_id)
+      .count('bg.id as count')
+      // .select('wg.*','bg.name as generic_name', 'bu.name as unit_name')
+      .join('b_generics as bg', 'bg.id', 'wg.generic_id')
+      .join('b_units as bu', 'bu.id', 'bg.unit_id')
+      .where('wg.hospital_id', hosp_id)
   }
+
+  getReceives(db: Knex, hosp_id) {
+    return db('wm_receives AS wr')
+      .select('wr.*', 'ut.name as title_name', 'uu.fname', 'uu.lname')
+      .join('um_users as uu', 'uu.id', 'wr.create_by')
+      .join('um_titles as ut', 'ut.id', 'uu.title_id')
+      .where('wr.hospital_id', hosp_id)
+  }
+
+  getReceivesDetail(db: Knex, id) {
+    return db('b_generics AS bg')
+      .select('bg.id', 'bg.name', 'wrd.qty', 'bu.name AS unit_name', 'wrd.wm_receive_id')
+      .joinRaw(`left join wm_receives_details as wrd ON wrd.generic_id = bg.id AND wrd.wm_receive_id = ?`, id)
+      .join('b_units as bu', 'bu.id', 'bg.unit_id')
+      .where('bg.is_actived', 'Y')
+  }
+
+  getReceivesGenerics(db: Knex) {
+    return db('b_generics AS bg ')
+      .select('bg.id', 'bg.name', 'bu.name AS unit_name')
+      .join('b_units as bu', 'bu.id', 'bg.unit_id')
+      .where('bg.is_actived', 'Y')
+  }
+
+  saveHeadReceives(db: Knex, data) {
+    let sql = `
+          INSERT INTO wm_receives
+          (entry_date, create_by,hospital_id)
+          VALUES(?, ?,?)
+          ON DUPLICATE KEY UPDATE
+          update_by=?,update_date=now()`;
+    return db.raw(sql, [data.entry_date, data.created_by, data.hospital_id, data.created_by])
+  }
+
+  getId(db: Knex, data) {
+    return db('wm_receives')
+      .where('entry_date', data.entry_date)
+      .where('hospital_id', data.hospital_id)
+      .where('create_by', data.create_by)
+  }
+
+  saveDetailReceives(db: Knex, data) {
+    let sqls = [];
+    data.forEach(v => {
+      let sql = `
+          INSERT INTO wm_receives_details
+          (wm_receive_id, generic_id,qty)
+          VALUES(${v.wm_receive_id},${v.generic_id},${v.qty})
+          ON DUPLICATE KEY UPDATE
+          qty=${v.qty}
+        `;
+      sqls.push(sql);
+    });
+    let queries = sqls.join(';');
+    return db.raw(queries);
+  }
+
+
 }
