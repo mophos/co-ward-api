@@ -388,12 +388,12 @@ router.put('/present', async (req: Request, res: Response) => {
       items.push(item);
     }
     await covidCaseModel.saveCovidCaseDetailItem(db, items);
-    const resu: any = await saveDrug(db, hospitalId, hospcode, data.drugs, data.gcs_id, hospitalType, covidCaseDetailId);
-    if (resu.ok) {
+    // const resu: any = await saveDrug(db, hospitalId, hospcode, data.drugs, data.gcs_id, hospitalType, covidCaseDetailId);
+    // if (resu.ok) {
       res.send({ ok: true, code: HttpStatus.OK });
-    } else {
-      res.send({ ok: false, error: resu.error, code: HttpStatus.OK });
-    }
+    // } else {
+    //   res.send({ ok: false, error: resu.error, code: HttpStatus.OK });
+    // }
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
