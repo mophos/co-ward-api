@@ -330,25 +330,24 @@ export class CovidCaseModel {
       .update('is_deleted', 'Y')
       .where('id', id)
       .whereRaw('date_entry=CURRENT_DATE()');
-    console.log(sql.toString());
     return sql;
 
   }
 
-  removeCovidCaseDetail(db: Knex,  caseId, date) {
+  removeCovidCaseDetail(db: Knex, caseId, date) {
     return db('p_covid_case_details')
       .delete()
       .where('covid_case_id', caseId)
-      .whereBetween('create_date',[ date + ' 00:00:00', date + ' 23:59:59']);
+      .whereBetween('create_date', [date + ' 00:00:00', date + ' 23:59:59']);
   }
 
-  removeCovidCaseDetailItem(db: Knex,  caseId, date) {
+  removeCovidCaseDetailItem(db: Knex, caseId, date) {
     return db('p_covid_case_detail_items')
       .delete()
       .whereIn('covid_case_detail_id', db('p_covid_case_details')
-      .select('id')
-      .where('covid_case_id', caseId)
-      .whereBetween('create_date',[ date + ' 00:00:00', date + ' 23:59:59']));
+        .select('id')
+        .where('covid_case_id', caseId)
+        .whereBetween('create_date', [date + ' 00:00:00', date + ' 23:59:59']));
   }
 
 }

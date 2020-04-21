@@ -39,6 +39,8 @@ import requisitionSuppliesRoute from './routes/staff/requisition-supplies';
 import drugStaffRoute from './routes/staff/drug';
 import covidCaseRoute from './routes/staff/covid-case';
 import userRoute from './routes/staff/user';
+import reportRoute from './routes/staff/report';
+import reportManagerRoute from './routes/manager/report';
 
 import basicRoute from './routes/basic';
 import basicAuthRoute from './routes/basicAuth';
@@ -222,6 +224,7 @@ admin.use('/drugs', drugAdminRoute)
 //manager
 api.use('/manager', checkAuth, managerAuth, manager)
 manager.use('/services', servicesRoute)
+manager.use('/report', reportManagerRoute)
 manager.use('/eoc', eocRoute)
 
 //staff
@@ -231,6 +234,7 @@ staff.use('/users', userRoute)
 staff.use('/smh', smhRoute)
 staff.use('/balance', balanceStaffRoute)
 staff.use('/pay', payStaffRoute)
+staff.use('/report', reportRoute)
 staff.use('/bed', bedStaffRoute)
 staff.use('/requisition', requisitionStaffRoute)
 staff.use('/requisition-supplies', requisitionSuppliesRoute)

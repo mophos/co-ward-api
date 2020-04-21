@@ -76,8 +76,6 @@ router.get('/:id/:conNo', async (req: Request, res: Response) => {
   try {
     let rs: any = await payModel.getPayDetail(req.db, id);
     let rsOrder: any = await getOrder({ con_no: conNo });
-    console.log(rs);
-
     if (rsOrder.body.success) {
       if (rsOrder.body.data.status === 'GWS00') {
 

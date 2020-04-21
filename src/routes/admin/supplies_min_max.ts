@@ -159,7 +159,6 @@ router.get('/export-balanc', async (req: Request, res: Response) => {
     let col = 1
 
     rsType.forEach(element => {
-      console.log(element);
 
       _data.push({ name: element.name, data: filter(rs, { sub_ministry_code: element.sub_ministry_code, ministry_code: element.ministry_code, hosptype_code: element.hosptype_code }) })
     });

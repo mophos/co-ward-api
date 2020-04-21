@@ -5,9 +5,12 @@ import * as HttpStatus from 'http-status-codes';
 import { Router, Request, Response } from 'express';
 import { BasicModel } from '../../models/basic';
 import { SuppliesModel } from '../../models/supplies';
+import { CovidCaseModel } from '../../models/covid-case';
 import * as moment from 'moment';
+
 const basicModel = new BasicModel();
 const suppliesModel = new SuppliesModel();
+const covidCaseModel = new CovidCaseModel();
 const router: Router = Router();
 
 
@@ -23,6 +26,50 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
+
+router.get('/hospital-center', async (req: Request, res: Response) => {
+  const db = req.db;
+  const hospitalId = req.decoded.hospitalId;
+  const provinceCode = req.decoded.provinceCode;
+  try {
+    const data: any = [];
+    const rs: any = await suppliesModel.getType(db, provinceCode, hospitalId);
+    for (const v of rs) {
+      const obj: any = {};
+      obj.head = v.name;
+      obj.hosptype_code = v.hosptype_code;
+
+      const detail: any = [];
+      const rsh: any = await suppliesModel.getHospital(db, v.hosptype_code, provinceCode);
+      for (const y of rsh) {
+        const objd: any = {};
+        objd.hospname = y.hospname;
+        objd.hospital_id = y.hospital_id;
+        objd.hospital_type = y.hospital_type;
+
+        const detailBeds: any = [];
+        const detailGcs: any = [];
+        const rsd: any = await covidCaseModel.getBeds(db, y.hospital_id, y.hospital_type);
+        const rsg: any = await covidCaseModel.getGcs(db, y.hospital_id, y.hospital_type);
+        for (const x of rsd) {
+          detailBeds.push(x);
+          objd.detailBed = detailBeds;
+        }
+        for (const j of rsg) {
+          detailGcs.push(j);
+          objd.detailGcs = detailGcs;
+        }
+        detail.push(objd);
+      }
+      obj.detail = detail;
+      data.push(obj);
+    }
+    res.send({ ok: true, rows: data, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
 
 router.get('/actived', async (req: Request, res: Response) => {
   try {

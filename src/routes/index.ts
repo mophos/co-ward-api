@@ -95,13 +95,9 @@ router.get('/status', async (req: Request, res: Response) => {
           tracking: _result.data.tracking
         }
         await thpdModel.updatePay(db, i.id, data);
-        console.log(data);
       }
 
     }
-    // console.log(rs);
-
-    // await thpdModel.logThpd(db, obj);
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error });
