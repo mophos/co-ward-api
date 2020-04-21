@@ -184,8 +184,6 @@ router.put('/', async (req: Request, res: Response) => {
 
 router.post('/', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
-  const hospitalType = req.decoded.hospitalType;
-  const hospcode = req.decoded.hospcode;
   const db = req.db;
   const data = req.body.data;
   try {
@@ -226,10 +224,10 @@ router.post('/', async (req: Request, res: Response) => {
     }
     const covidCaseId = await covidCaseModel.saveCovidCase(db, _data);
     const detail: any = {
-      covid_case_id: covidCaseId,
+      covid_case_id: covidCaseId[0],
       gcs_id: data.gcsId,
       bed_id: data.bedId,
-      medical_supplie_id: data.medicalSupplieId
+      medical_supplie_id: data.medicalSupplieId || null
     }
     const timeCut = await basicModel.timeCut();
     if (!timeCut.ok) {
@@ -363,81 +361,28 @@ router.get('/present', async (req: Request, res: Response) => {
 router.put('/present', async (req: Request, res: Response) => {
   const db = req.db;
   const data = req.body.data;
-  const hospitalId = req.decoded.hospitalId;
-  const hospcode = req.decoded.hospcode;
-  const hospitalType = req.decoded.hospitalType;
   try {
     const timeCut = await basicModel.timeCut();
     const detail: any = {
-      covid_case_id: data.covid_case_id,
-      gcs_id: data.gcs_id,
-      bed_id: data.bed_id,
-      medical_supplie_id: data.medical_supplie_id
+      covid_case_id: data.covid_case_id || null,
+      gcs_id: data.gcs_id || null,
+      bed_id: data.bed_id || null,
+      medical_supplie_id: data.medical_supplie_id || null
     }
     if (!timeCut.ok) {
       detail.entry_date = moment().add(1, 'days').format('YYYY-MM-DD');
     } else {
       detail.entry_date = moment().format('YYYY-MM-DD');
     }
+    await covidCaseModel.removeCovidCaseDetailItem(db, data.id)
     const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
+    console.log(covidCaseDetailId[0].insertId);
+
     const generic = await basicModel.getGenerics(db);
     const items = []
     for (const i of data.drugs) {
       const item: any = {
-        covid_case_detail_id: covidCaseDetailId,
-        generic_id: i.genericId,
-      }
-      const idx = _.findIndex(generic, { 'id': +i.genericId });
-
-      if (idx > -1) {
-        item.qty = generic[idx].pay_qty;
-        i.qty = generic[idx].pay_qty;
-      }
-      items.push(item);
-    }
-    await covidCaseModel.saveCovidCaseDetailItem(db, items);
-    // const resu: any = await saveDrug(db, hospitalId, hospcode, data.drugs, data.gcs_id, hospitalType, covidCaseDetailId);
-    // if (resu.ok) {
-    res.send({ ok: true, code: HttpStatus.OK });
-    // } else {
-    //   res.send({ ok: false, error: resu.error, code: HttpStatus.OK });
-    // }
-  } catch (error) {
-    console.log(error);
-    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
-  }
-});
-
-router.put('/present/edit', async (req: Request, res: Response) => {
-  const db = req.db;
-  const data = req.body.data;
-  const hospitalId = req.decoded.hospitalId;
-  const hospcode = req.decoded.hospcode;
-  const hospitalType = req.decoded.hospitalType;
-  const userId = req.decoded.id
-  try {
-    const timeCut = await basicModel.timeCut();
-    const detail: any = {
-      covid_case_id: data.covid_case_id,
-      gcs_id: data.gcs_id,
-      bed_id: data.bed_id,
-      medical_supplie_id: data.medical_supplie_id,
-      updated_by: userId
-
-    }
-    if (timeCut.ok) {
-      await covidCaseModel.removeCovidCaseDetailItem(db, data.covid_case_id, data.create_date)
-      await covidCaseModel.removeCovidCaseDetail(db, data.covid_case_id, data.create_date)
-
-    } else {
-      detail.create_date = moment().add(1, 'days').format('YYYY-MM-DD HH:m:s');
-    }
-    const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
-    const generic = await basicModel.getGenerics(db);
-    const items = []
-    for (const i of data.drugs) {
-      const item: any = {
-        covid_case_detail_id: covidCaseDetailId,
+        covid_case_detail_id: covidCaseDetailId[0].insertId == 0 ? data.id : covidCaseDetailId[0].insertId,
         generic_id: i.genericId,
       }
       const idx = _.findIndex(generic, { 'id': +i.genericId });
