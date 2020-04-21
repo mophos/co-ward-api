@@ -3,119 +3,119 @@ import * as moment from 'moment';
 
 export class ReportModel {
 
-  getGcs(db: Knex, hospital) {
-    return db('view_case_lasted AS vcl')
-      .count('* as count')
-      .select('vcl.gcs_id', 'bg.name as gcs_name')
-      .join('p_patients AS pp', 'pp.id', 'vcl.patient_id')
-      .join('b_hospitals AS bh', 'bh.id', 'pp.hospital_id')
-      .join('b_gcs as bg', 'bg.id', 'vcl.gcs_id')
-      .where('pp.hospital_id', hospital)
-      .groupBy('vcl.gcs_id')
-  }
+    getGcs(db: Knex, hospital) {
+        return db('view_case_lasted AS vcl')
+            .count('* as count')
+            .select('vcl.gcs_id', 'bg.name as gcs_name')
+            .join('p_patients AS pp', 'pp.id', 'vcl.patient_id')
+            .join('b_hospitals AS bh', 'bh.id', 'pp.hospital_id')
+            .join('b_gcs as bg', 'bg.id', 'vcl.gcs_id')
+            .where('pp.hospital_id', hospital)
+            .groupBy('vcl.gcs_id')
+    }
 
-  getHospital(db: Knex, province) {
-    return db('b_hospitals AS bh')
-      .where('bh.province_code', province)
-      .whereIn('bh.hosptype_code', ['05', '06', '07'])
-  }
+    getHospital(db: Knex, province) {
+        return db('b_hospitals AS bh')
+            .where('bh.province_code', province)
+            .whereIn('bh.hosptype_code', ['05', '06', '07'])
+    }
 
-  getProvince(db: Knex, zoneCode) {
-    return db('b_province')
-      .where('zone_code', zoneCode)
-  }
-  getZoneHospital(db: Knex, zoneCode) {
-    return db('b_hospitals as h')
-      .count('p.id as count')
-      .select('h.id as hospital_id', 'h.hospname', 'h.hospcode', 'h.province_name', 'p.id as patient_id')
-      .join('p_patients as p', 'p.hospital_id', 'h.id')
-      .join('view_case_lasted as pc', 'pc.covid_case_id', 'p.id')
-      .join('p_covid_cases as c', 'c.patient_id', 'p.id')
-      .where('h.zone_code', zoneCode)
-      // .where('c.status', 'ADMIT')
-      .groupBy('h.id')
-      .orderBy('h.province_name')
-  }
+    getProvince(db: Knex, zoneCode) {
+        return db('b_province')
+            .where('zone_code', zoneCode)
+    }
+    getZoneHospital(db: Knex, zoneCode) {
+        return db('b_hospitals as h')
+            .count('p.id as count')
+            .select('h.id as hospital_id', 'h.hospname', 'h.hospcode', 'h.province_name', 'p.id as patient_id')
+            .join('p_patients as p', 'p.hospital_id', 'h.id')
+            .join('view_case_lasted as pc', 'pc.covid_case_id', 'p.id')
+            .join('p_covid_cases as c', 'c.patient_id', 'p.id')
+            .where('h.zone_code', zoneCode)
+            // .where('c.status', 'ADMIT')
+            .groupBy('h.id')
+            .orderBy('h.province_name')
+    }
 
-  getCovidCase(db: Knex) {
-    return db('p_covid_cases as p')
-      .join('p_patients as pp', 'pp.id', 'p.patient_id')
-      .join('view_case_lasted as pc', 'pc.covid_case_id', 'p.id')
-      .join('b_gcs as g', 'g.id', 'pc.gcs_id')
-    // .where('p.status', 'ADMIT')
-  }
+    getCovidCase(db: Knex) {
+        return db('p_covid_cases as p')
+            .join('p_patients as pp', 'pp.id', 'p.patient_id')
+            .join('view_case_lasted as pc', 'pc.covid_case_id', 'p.id')
+            .join('b_gcs as g', 'g.id', 'pc.gcs_id')
+        // .where('p.status', 'ADMIT')
+    }
 
-  getSupplie(db: Knex, date: any, query: any) {
-    return db('b_hospitals as h')
-      .select('h.hospcode',
-        'h.hospname',
-        'h.zone_code',
-        'h.hosptype_code',
-        db.raw(`(select qty from wm_supplies_details as sd 
+    getSupplie(db: Knex, date: any, query: any) {
+        return db('b_hospitals as h')
+            .select('h.hospcode',
+                'h.hospname',
+                'h.zone_code',
+                'h.hosptype_code',
+                db.raw(`(select qty from wm_supplies_details as sd 
     join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 17) as surgical_mask`),
-        db.raw(`(select qty from wm_supplies_details as sd 
+                db.raw(`(select qty from wm_supplies_details as sd 
     join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 12) as N95`),
-        db.raw(`(select qty from wm_supplies_details as sd 
+                db.raw(`(select qty from wm_supplies_details as sd 
     join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 10) as cover_all_1`),
-        db.raw(`(select qty from wm_supplies_details as sd 
+                db.raw(`(select qty from wm_supplies_details as sd 
     join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 11) as cover_all_2`),
-        db.raw(`(select qty from wm_supplies_details as sd 
+                db.raw(`(select qty from wm_supplies_details as sd 
     join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 13) as shoe_cover`),
-        db.raw(`(select qty from wm_supplies_details as sd 
+                db.raw(`(select qty from wm_supplies_details as sd 
     join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 14) as surgical_hood`),
-        db.raw(`(select qty from wm_supplies_details as sd 
+                db.raw(`(select qty from wm_supplies_details as sd 
     join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 15) as long_glove`),
-        db.raw(`(select qty from wm_supplies_details as sd 
+                db.raw(`(select qty from wm_supplies_details as sd 
     join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 16) as face_shield`)
-      )
-      .leftJoin('wm_supplies as s', (v) => {
-        v.on('h.id', 's.hospital_id')
-        v.on('s.date', db.raw(`'${date}'`))
-      })
-      .whereIn('h.hosptype_code', ['01', '02', '05', '06', '07'])
-      .where((v) => {
-        v.where('h.hospname', 'like', '%' + query + '%')
-        v.orWhere('h.hospcode', 'like', '%' + query + '%')
-      })
-  }
+            )
+            .leftJoin('wm_supplies as s', (v) => {
+                v.on('h.id', 's.hospital_id')
+                v.on('s.date', db.raw(`'${date}'`))
+            })
+            .whereIn('h.hosptype_code', ['01', '02', '05', '06', '07'])
+            .where((v) => {
+                v.where('h.hospname', 'like', '%' + query + '%')
+                v.orWhere('h.hospcode', 'like', '%' + query + '%')
+            })
+    }
 
-  getSupplieZone(db: Knex, date: any, query: any, zoneCode) {
-    return db('b_hospitals as h')
-      .select('h.hospcode',
-        'h.hospname',
-        'h.zone_code',
-        'h.hosptype_code',
-        db.raw(`(select qty from wm_supplies_details as sd 
-    join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 17) as surgical_mask`),
-        db.raw(`(select qty from wm_supplies_details as sd 
-    join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 12) as N95`),
-        db.raw(`(select qty from wm_supplies_details as sd 
-    join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 10) as cover_all_1`),
-        db.raw(`(select qty from wm_supplies_details as sd 
-    join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 11) as cover_all_2`),
-        db.raw(`(select qty from wm_supplies_details as sd 
-    join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 13) as shoe_cover`),
-        db.raw(`(select qty from wm_supplies_details as sd 
-    join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 14) as surgical_hood`),
-        db.raw(`(select qty from wm_supplies_details as sd 
-    join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 15) as long_glove`),
-        db.raw(`(select qty from wm_supplies_details as sd 
-    join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 16) as face_shield`)
-      )
-      .leftJoin('wm_supplies as s', (v) => {
-        v.on('h.id', 's.hospital_id')
-        v.on('s.date', db.raw(`'${date}'`))
-      })
-      .whereIn('h.hosptype_code', ['01', '02', '05', '06', '07'])
-      .where('h.zone_code', zoneCode)
-      .where((v) => {
-        v.where('h.hospname', 'like', '%' + query + '%')
-        v.orWhere('h.hospcode', 'like', '%' + query + '%')
-      })
-  }
+    getSupplieZone(db: Knex, date: any, query: any, zoneCode) {
+        return db('b_hospitals as h')
+            .select('h.hospcode',
+                'h.hospname',
+                'h.zone_code',
+                'h.hosptype_code',
+                db.raw(`(select qty from wm_supplies_details as sd 
+                join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 17) as surgical_mask`),
+                db.raw(`(select qty from wm_supplies_details as sd 
+                join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 12) as N95`),
+                db.raw(`(select qty from wm_supplies_details as sd 
+                join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 10) as cover_all_1`),
+                db.raw(`(select qty from wm_supplies_details as sd 
+                join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 11) as cover_all_2`),
+                db.raw(`(select qty from wm_supplies_details as sd 
+                join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 13) as shoe_cover`),
+                db.raw(`(select qty from wm_supplies_details as sd 
+                join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 14) as surgical_hood`),
+                db.raw(`(select qty from wm_supplies_details as sd 
+                join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 15) as long_glove`),
+                db.raw(`(select qty from wm_supplies_details as sd 
+                join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 16) as face_shield`)
+            )
+            .leftJoin('wm_supplies as s', (v) => {
+                v.on('h.id', 's.hospital_id')
+                v.on('s.date', db.raw(`'${date}'`))
+            })
+            .whereIn('h.hosptype_code', ['01', '02', '05', '06', '07'])
+            .where('h.zone_code', zoneCode)
+            .where((v) => {
+                v.where('h.hospname', 'like', '%' + query + '%')
+                v.orWhere('h.hospcode', 'like', '%' + query + '%')
+            })
+    }
 
-  getTotalSupplie(db: Knex) {
-    return db.raw(`SELECT
+    getTotalSupplie(db: Knex, type) {
+        return db.raw(`SELECT
         g.id,
         CONCAT( g.name, ' (', u.name, ')' ) AS supplies,
         ( SELECT sum( v.qty ) AS sum FROM b_hospitals h JOIN views_supplies_hospitals v ON v.hospital_id = h.id WHERE h.zone_code = '01' AND v.generic_id = g.id GROUP BY h.zone_code ) AS zone1,
@@ -136,18 +136,40 @@ export class ReportModel {
         b_generics g
         JOIN b_units u ON u.id = g.unit_id
     WHERE
-        g.type = 'SUPPLIES'
+        g.type = '${type}'
         AND g.is_actived = 'Y'`);
-  }
+    }
 
-  getZone(db: Knex, query, zone) {
-    return db('b_hospitals')
-      .select('zone_code')
-      .where('hospname', 'like', '%' + query + '%')
-      .where('zone_code', 'like', '%' + zone + '%')
-      .whereNot('zone_code', null)
-      .whereNot('zone_code', '-')
-      .groupBy('zone_code')
-      .orderBy('zone_code')
-  }
+    getZone(db: Knex, query, zone) {
+        return db('b_hospitals')
+            .select('zone_code')
+            .where('hospname', 'like', '%' + query + '%')
+            .where('zone_code', 'like', '%' + zone + '%')
+            .whereNot('zone_code', null)
+            .whereNot('zone_code', '-')
+            .groupBy('zone_code')
+            .orderBy('zone_code')
+    }
+
+    getGenerics(db: Knex, type) {
+        return db('b_generics as g')
+            .where('g.is_actived', 'Y')
+            .where('g.type', type);
+    }
+
+    getProvinceByZone(db: Knex, zone) {
+        return db('b_hospitals as h')
+            .select('h.province_code', 'h.province_name')
+            .where('h.zone_code', zone)
+            .groupBy('h.province_code');
+    }
+
+    getSumByProvince(db: Knex, provinceCode, genericId) {
+        return db('b_hospitals as h')
+            .sum('vs.qty as sum')
+            .join('views_supplies_hospitals as vs', 'vs.hospital_id', 'h.id')
+            .where('h.province_code', provinceCode)
+            .where('vs.generic_id', genericId)
+            .groupBy('h.province_code');
+    }
 }

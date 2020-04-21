@@ -43,7 +43,7 @@ router.get('/covid-case', async (req: Request, res: Response) => {
 router.get('/total', async (req: Request, res: Response) => {
   const db = req.db;
   try {
-    const z: any = await model.getTotalSupplie(db);
+    const z: any = await model.getTotalSupplie(db, 'SUPPLIES');
     res.send({ ok: true, rows: z[0], code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -74,4 +74,30 @@ router.get('/supplies', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/total-zone', async (req: Request, res: Response) => {
+  const db = req.db;
+  const zone = req.query.zone;
+  try {
+    const data: any = [];
+    const gen: any = await model.getGenerics(db, 'SUPPLIES');
+    const pro: any = await model.getProvinceByZone(db, zone);
+    for (const v of gen) {
+      const obj: any = {};
+      obj.generic_name = v.name;
+      for (const p of pro) {
+        const sum: any = await model.getSumByProvince(db, p.province_code, v.id);
+        // obj[p.province_code] = v.name;
+        // obj.v.id = v.id;
+        // obj.sum = sum[0].sum;
+      }
+
+      data.push(obj);
+    }
+    console.log(data);
+    res.send({ ok: true, rows: data, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
 export default router;
