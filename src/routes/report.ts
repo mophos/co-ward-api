@@ -366,7 +366,7 @@ router.get('/get-supplies', async (req: Request, res: Response) => {
           };
           const _sup = _.filter(sup, { hospital_id: h.id })
           for (const s of _sup) {
-            obj['p_' + s.id] = s.qty;
+            obj[s.generic_id] = s.qty;
           }
           hosp.push(obj);
         }
