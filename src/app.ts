@@ -209,7 +209,7 @@ app.use('/v1', api);
 api.use('/login', loginRoute);
 api.use('/register', registerRoute);
 api.use('/basic', basicRoute);
-api.use('/report', reportManagerRoute)
+api.use('/report', checkAuth, reportManagerRoute)
 api.use('/basic-auth', checkAuth, basicAuthRoute);
 
 //admin
