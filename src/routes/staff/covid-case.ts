@@ -225,11 +225,17 @@ router.post('/', async (req: Request, res: Response) => {
       date_entry: moment().format('YYYY-MM-DD')
     }
     const covidCaseId = await covidCaseModel.saveCovidCase(db, _data);
-    const detail = {
+    const detail: any = {
       covid_case_id: covidCaseId,
       gcs_id: data.gcsId,
       bed_id: data.bedId,
       medical_supplie_id: data.medicalSupplieId
+    }
+    const timeCut = await basicModel.timeCut();
+    if (!timeCut.ok) {
+      detail.entry_date = moment().add(1, 'days').format('YYYY-MM-DD');
+    } else {
+      detail.entry_date = moment().format('YYYY-MM-DD');
     }
     const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
     const generic = await basicModel.getGenerics(db);
@@ -369,7 +375,9 @@ router.put('/present', async (req: Request, res: Response) => {
       medical_supplie_id: data.medical_supplie_id
     }
     if (!timeCut.ok) {
-      detail.create_date = moment().add(1, 'days').format('YYYY-MM-DD HH:m:s');
+      detail.entry_date = moment().add(1, 'days').format('YYYY-MM-DD');
+    } else {
+      detail.entry_date = moment().format('YYYY-MM-DD');
     }
     const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
     const generic = await basicModel.getGenerics(db);
@@ -390,7 +398,7 @@ router.put('/present', async (req: Request, res: Response) => {
     await covidCaseModel.saveCovidCaseDetailItem(db, items);
     // const resu: any = await saveDrug(db, hospitalId, hospcode, data.drugs, data.gcs_id, hospitalType, covidCaseDetailId);
     // if (resu.ok) {
-      res.send({ ok: true, code: HttpStatus.OK });
+    res.send({ ok: true, code: HttpStatus.OK });
     // } else {
     //   res.send({ ok: false, error: resu.error, code: HttpStatus.OK });
     // }

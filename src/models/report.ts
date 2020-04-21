@@ -3,25 +3,25 @@ import * as moment from 'moment';
 
 export class ReportModel {
 
-  getGcs(db: Knex, hospital) {
+  getGcs(db: Knex) {
     return db('view_case_lasted AS vcl')
       .count('* as count')
-      .select('vcl.gcs_id', 'bg.name as gcs_name')
+      .select('vcl.gcs_id', 'bg.name as gcs_name', 'pp.hospital_id')
       .join('p_patients AS pp', 'pp.id', 'vcl.patient_id')
       .join('b_hospitals AS bh', 'bh.id', 'pp.hospital_id')
       .join('b_gcs as bg', 'bg.id', 'vcl.gcs_id')
-      .where('pp.hospital_id', hospital)
-      .groupBy('vcl.gcs_id')
+      .groupBy('pp.hospital_id', 'vcl.gcs_id')
   }
 
   getBad(db: Knex) {
     return db('views_bed_hospitals AS vbh')
   }
 
-  getHospital(db: Knex, province = '') {
+  getHospital(db: Knex) {
     return db('b_hospitals AS bh')
       .whereIn('bh.hosptype_code', ['05', '06', '07'])
   }
+
   getProvince(db: Knex, zoneCode) {
     return db('b_province')
       .where('zone_code', zoneCode)
