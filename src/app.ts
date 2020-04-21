@@ -40,8 +40,8 @@ import drugStaffRoute from './routes/staff/drug';
 import covidCaseRoute from './routes/staff/covid-case';
 import userRoute from './routes/staff/user';
 import reportRoute from './routes/staff/report';
-import reportManagerRoute from './routes/manager/report';
 
+import reportManagerRoute from './routes/report';
 import basicRoute from './routes/basic';
 import basicAuthRoute from './routes/basicAuth';
 import servicesRoute from './routes/manager/services';
@@ -209,6 +209,7 @@ app.use('/v1', api);
 api.use('/login', loginRoute);
 api.use('/register', registerRoute);
 api.use('/basic', basicRoute);
+api.use('/report', reportManagerRoute)
 api.use('/basic-auth', checkAuth, basicAuthRoute);
 
 //admin
@@ -224,7 +225,6 @@ admin.use('/drugs', drugAdminRoute)
 //manager
 api.use('/manager', checkAuth, managerAuth, manager)
 manager.use('/services', servicesRoute)
-manager.use('/report', reportManagerRoute)
 manager.use('/eoc', eocRoute)
 
 //staff
