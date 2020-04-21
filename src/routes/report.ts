@@ -179,7 +179,7 @@ router.get('/get-gcs', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/bed', async (req: Request, res: Response) => {
+router.get('/get-bed', async (req: Request, res: Response) => {
   const db = req.db;
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
@@ -187,7 +187,6 @@ router.get('/bed', async (req: Request, res: Response) => {
   const _provinceCode = req.decoded.provinceCode;
 
   try {
-    let data: any = [];
     let zoneCodes = [];
     let provinceCode = null;
     if (type == 'MANAGER') {
@@ -200,7 +199,9 @@ router.get('/bed', async (req: Request, res: Response) => {
         provinceCode = _provinceCode;
       }
     }
-    for (const z of zoneCode) {
+
+    let data: any = [];
+    for (const z of zoneCodes) {
       const zone: any = {};
       zone.name = z;
       let provinces: any = [];
@@ -210,8 +211,6 @@ router.get('/bed', async (req: Request, res: Response) => {
       } else {
         province = await model.getProvince(db, z);
       }
-
-      zone.name = z;
       const hospital: any = await model.getHospital(db)
       for (const p of province) {
         const _province: any = {};
