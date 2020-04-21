@@ -40,14 +40,34 @@ router.get('/covid-case', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/total', async (req: Request, res: Response) => {
+  const db = req.db;
+  try {
+    const z: any = await model.getTotalSupplie(db);
+    res.send({ ok: true, rows: z[0], code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.get('/supplies', async (req: Request, res: Response) => {
   const db = req.db;
   const date = req.query.date;
   const query = req.query.query;
+  const zone = req.query.zone;
 
   try {
-    const rs = await model.getSupplie(db, date, query);
-    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    let data = [];
+    const z: any = await model.getZone(db, query, zone);
+    for (const v of z) {
+      const rs = await model.getSupplieZone(db, date, query, v.zone_code);
+      const obj: any = {};
+      obj.zone = v.zone_code;
+      obj.detail = rs;
+      data.push(obj);
+    }
+    res.send({ ok: true, rows: data, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
