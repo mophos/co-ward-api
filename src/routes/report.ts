@@ -155,15 +155,19 @@ router.get('/get-gcs', async (req: Request, res: Response) => {
         for (const h of s) {
           const _hospital: any = {};
           _hospital.province_name = p.name_th;
-          const obj = {
+          const obj: any = {
             hospital_id: h.id,
             hospcode: h.hospcode,
             hospname: h.hospname
           };
           const _gcs = _.filter(gcs, { hospital_id: h.id })
+          let sum = 0;
           for (const g of _gcs) {
+            sum += g.count;
             obj[g.gcs_name] = g.count;
+            p[g.gcs_name]+= g.count;
           }
+          obj.sum = sum;
           hosp.push(obj);
         }
         _province.hospitals = hosp;
@@ -296,7 +300,7 @@ router.get('/get-professional', async (req: Request, res: Response) => {
           };
           const _pro = _.filter(pro, { hospital_id: h.id })
           for (const p of _pro) {
-            obj['p_' + p.id] = p.qty;
+            obj['p_' + p.professional_id] = p.qty;
           }
           hosp.push(obj);
         }
@@ -313,7 +317,7 @@ router.get('/get-professional', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/get-professional', async (req: Request, res: Response) => {
+router.get('/get-supplies', async (req: Request, res: Response) => {
   const db = req.db;
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
