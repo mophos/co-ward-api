@@ -17,34 +17,37 @@ router.get('/hosp', async (req: Request, res: Response) => {
     let hops: any = [];
     const zoneCode = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
     for (const z of zoneCode) {
-      const zone:any = {};
+      const zone: any = {};
       zone.name = z;
       let provinces: any = [];
       const province: any = await model.getProvince(db, z);
       for (const p of province) {
-        const _province:any = {};
+        const _province: any = {};
         _province.province_name = p.name_th;
         const hospital: any = await model.getHospital(db, p.id)
         const hosp = [];
         for (const h of hospital) {
+          const _hospital: any = {};
+          _hospital.province_name = p.name_th;
           const obj = {
-            count: h.count,
-            gcs_id: h.gcs_id,
-            gcs_name: h.gcs_name,
-            hospital_id: h.hospital_id,
+            hospital_id: h.id,
             hospcode: h.hospcode,
             hospname: h.hospname
           };
+          const gcs: any = await model.getGcs(db, h.id)
+          for (const g of gcs) {
+            obj[g.gcs_name] = g.count;
+          }
           hosp.push(obj);
         }
         _province.hospitals = hosp;
-          provinces.push(_province);
-        }
+        provinces.push(_province);
+      }
       zone.provinces = provinces;
       data.push(zone);
     }
     console.log(data);
-    
+
     res.send({ ok: true, rows: data, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
