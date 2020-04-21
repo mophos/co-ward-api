@@ -24,6 +24,11 @@ export class ReportModel {
         return db('b_province')
             .where('zone_code', zoneCode)
     }
+    getProvinceFromProvinceCode(db: Knex, provinceCode) {
+      return db('b_province')
+        .where('code', provinceCode)
+    }
+    
     getZoneHospital(db: Knex, zoneCode) {
         return db('b_hospitals as h')
             .count('p.id as count')
