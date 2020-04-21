@@ -114,11 +114,8 @@ router.get('/get-gcs', async (req: Request, res: Response) => {
   const zoneCode = req.decoded.zone_code;
   const type = req.decoded.type;
   const _provinceCode = req.decoded.provinceCode;
-<<<<<<< HEAD
   const date = req.query.date;
-=======
   const zone = req.query.zone;
->>>>>>> a437619d7b5e8d928d7fd18fa2798a5af83f221f
 
   try {
     let zoneCodes = [];
