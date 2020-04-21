@@ -52,7 +52,8 @@ export class Requisition {
             .leftJoin('h_node_drug_details as nsd', 'nsd.hospital_id', 'pt.hospital_id')
             .leftJoin('h_node_drugs as ns', 'nsd.node_id', 'ns.id')
             .leftJoin('b_hospitals as h', 'h.id', 'pt.hospital_id')
-            .where('ccd.is_requisition', 'N');
+            .where('ccd.is_requisition', 'N')
+            .where('ccd.status', 'ADMIT');
     }
 
     getDetailCovidCaseSupplies(db: Knex, id) {
