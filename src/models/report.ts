@@ -3,13 +3,14 @@ import * as moment from 'moment';
 
 export class ReportModel {
 
-  getGcs(db: Knex) {
-    return db('view_case_lasted AS vcl')
+  getGcs(db: Knex, date) {
+    return db('views_case_dates AS vcl')
       .count('* as count')
       .select('vcl.gcs_id', 'bg.name as gcs_name', 'pp.hospital_id')
       .join('p_patients AS pp', 'pp.id', 'vcl.patient_id')
       .join('b_hospitals AS bh', 'bh.id', 'pp.hospital_id')
       .join('b_gcs as bg', 'bg.id', 'vcl.gcs_id')
+      .where('vcl.entry_date', date)
       .groupBy('pp.hospital_id', 'vcl.gcs_id')
   }
 
