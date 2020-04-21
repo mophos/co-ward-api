@@ -330,7 +330,6 @@ export class CovidCaseModel {
       .update('is_deleted', 'Y')
       .where('id', id)
       .whereRaw('date_entry=CURRENT_DATE()');
-    console.log(sql.toString());
     return sql;
 
   }

@@ -52,16 +52,12 @@ router.put('/:id', async (req: Request, res: Response) => {
 
   try {
     if (typeof id === 'number' && typeof data === 'object' && id && data) {
-      console.log(data);
 
       const dupCode: any = await hospitalModel.checkHospCode(req.db, data.hospcode)
       if (dupCode.length == 0 && data.hospcode.length === 5) {
         let rs: any = await hospitalModel.updateHospital(req.db, id, data);
         res.send({ ok: true, rows: rs, code: HttpStatus.OK });
       } else {
-        console.log(dupCode);
-        
-        console.log(dupCode[0].id);
         if (dupCode[0].id == id) {
           
           let rs: any = await hospitalModel.updateHospital(req.db, id, data);

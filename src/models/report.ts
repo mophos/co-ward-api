@@ -24,38 +24,6 @@ export class ReportModel {
   }
 
   getSupplie(db: Knex, date: any, query: any) {
-    console.log(db('b_hospitals as h')
-      .select('h.hospcode',
-        'h.hospname',
-        'h.hosptype_code',
-        db.raw(`(select qty from wm_supplies_details as sd 
-  join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 17) as surgical_mask`),
-        db.raw(`(select qty from wm_supplies_details as sd 
-  join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 12) as N95`),
-        db.raw(`(select qty from wm_supplies_details as sd 
-  join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 10) as cover_all_1`),
-
-        db.raw(`(select qty from wm_supplies_details as sd 
-  join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 10) as cover_all_2`),
-        db.raw(`(select qty from wm_supplies_details as sd 
-  join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 10) as shoe_cover`),
-        db.raw(`(select qty from wm_supplies_details as sd 
-  join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 10) as surgical_hood`),
-        db.raw(`(select qty from wm_supplies_details as sd 
-  join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 10) as long_glove`),
-        db.raw(`(select qty from wm_supplies_details as sd 
-  join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 10) as face_shield`)
-      )
-      .leftJoin('wm_supplies as s', (v) => {
-        v.on('h.id', 's.hospital_id')
-        v.on('s.date', db.raw(`${date}`))
-      })
-      .whereIn('h.hosptype_code', ['01', '02', '05', '06', '07'])
-      .where((v) => {
-        v.where('h.hospname', 'like', '%' + query + '%')
-        v.orWhere('h.hospcode', 'like', '%' + query + '%')
-      }).toString());
-
     return db('b_hospitals as h')
       .select('h.hospcode',
         'h.hospname',

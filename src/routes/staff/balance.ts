@@ -39,7 +39,6 @@ router.get('/get-receives-detail', async (req: Request, res: Response) => {
   const id = req.query.id;
   try {
     let rs: any = await balanceModel.getReceivesDetail(req.db, id);
-    console.log(rs);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
