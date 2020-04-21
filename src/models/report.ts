@@ -6,7 +6,7 @@ export class ReportModel {
   getGcs(db: Knex) {
     return db('view_case_lasted AS vcl')
       .count('* as count')
-      .select('vcl.gcs_id', 'bg.name as gcs_name', 'vcl.hospital_id')
+      .select('vcl.gcs_id', 'bg.name as gcs_name', 'pp.hospital_id')
       .join('p_patients AS pp', 'pp.id', 'vcl.patient_id')
       .join('b_hospitals AS bh', 'bh.id', 'pp.hospital_id')
       .join('b_gcs as bg', 'bg.id', 'vcl.gcs_id')

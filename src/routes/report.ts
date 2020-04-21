@@ -108,12 +108,13 @@ router.get('/total-zone', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/hosp', async (req: Request, res: Response) => {
+router.get('/get-gcs', async (req: Request, res: Response) => {
   const db = req.db;
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
   const type = req.decoded.type;
   const _provinceCode = req.decoded.provinceCode;
+  
   try {
     let zoneCodes = [];
     let provinceCode = null;
@@ -139,12 +140,14 @@ router.get('/hosp', async (req: Request, res: Response) => {
       } else {
         province = await model.getProvince(db, z);
       }
+      const hospital: any = await model.getHospital(db)
       for (const p of province) {
         const _province: any = {};
         _province.province_name = p.name_th;
-        const hospital: any = await model.getHospital(db, p.code)
+        const s = _.filter(hospital, { province_code: p.code })
         const hosp = [];
-        for (const h of hospital) {
+        const gcs: any = await model.getGcs(db)
+        for (const h of s) {
           const _hospital: any = {};
           _hospital.province_name = p.name_th;
           const obj = {
@@ -152,8 +155,8 @@ router.get('/hosp', async (req: Request, res: Response) => {
             hospcode: h.hospcode,
             hospname: h.hospname
           };
-          const gcs: any = await model.getGcs(db, h.id)
-          for (const g of gcs) {
+          const _gcs = _.filter(gcs, { hospital_id: h.id })
+          for (const g of _gcs) {
             obj[g.gcs_name] = g.count;
           }
           hosp.push(obj);
