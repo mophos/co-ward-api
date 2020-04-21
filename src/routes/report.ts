@@ -2,6 +2,7 @@ import { ReportModel } from '../models/report';
 /// <reference path="../../typings.d.ts" />
 import { Router, Request, Response } from 'express';
 import * as HttpStatus from 'http-status-codes';
+import * as _ from 'lodash';
 
 const model = new ReportModel();
 const router: Router = Router();
@@ -108,8 +109,6 @@ router.get('/total-zone', async (req: Request, res: Response) => {
 });
 
 router.get('/hosp', async (req: Request, res: Response) => {
-  console.log(req.decoded);
-  
   const db = req.db;
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
@@ -156,6 +155,75 @@ router.get('/hosp', async (req: Request, res: Response) => {
           const gcs: any = await model.getGcs(db, h.id)
           for (const g of gcs) {
             obj[g.gcs_name] = g.count;
+          }
+          hosp.push(obj);
+        }
+        _province.hospitals = hosp;
+        provinces.push(_province);
+      }
+      zone.provinces = provinces;
+      data.push(zone);
+    }
+    res.send({ ok: true, rows: data, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/bed', async (req: Request, res: Response) => {
+  const db = req.db;
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
+  const type = req.decoded.type;
+  const _provinceCode = req.decoded.provinceCode;
+
+  try {
+    let data: any = [];
+    let zoneCodes = [];
+    let provinceCode = null;
+    if (type == 'MANAGER') {
+      zoneCodes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
+    } else {
+      if (providerType == 'ZONE') {
+        zoneCodes = [zoneCode];
+      } else if (providerType == 'SSJ') {
+        zoneCodes = [zoneCode];
+        provinceCode = _provinceCode;
+      }
+    }
+    for (const z of zoneCode) {
+      const zone: any = {};
+      zone.name = z;
+      let provinces: any = [];
+      let province: any;
+      if (provinceCode) {
+        province = await model.getProvinceFromProvinceCode(db, provinceCode);
+      } else {
+        province = await model.getProvince(db, z);
+      }
+
+      zone.name = z;
+      const hospital: any = await model.getHospital(db)
+      for (const p of province) {
+        const _province: any = {};
+        _province.province_name = p.name_th;
+        const s = _.filter(hospital, { province_code: p.code })
+        const hosp = [];
+        const bed: any = await model.getBad(db)
+        for (const h of s) {
+          const _hospital: any = {};
+          _hospital.province_name = p.name_th;
+          const obj = {
+            hospital_id: h.id,
+            hospcode: h.hospcode,
+            hospname: h.hospname
+          };
+          const _bed = _.filter(bed, { hospital_id: h.id })
+          for (const b of _bed) {
+            obj[b.bed_name + '_qty'] = b.qty;
+            obj[b.bed_name + '_covid_qty'] = b.covid_qty;
+            obj[b.bed_name + '_usage_qty'] = b.usage_qty;
           }
           hosp.push(obj);
         }
