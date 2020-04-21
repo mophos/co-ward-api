@@ -6,11 +6,17 @@ import * as HttpStatus from 'http-status-codes';
 import { Login } from '../models/login'
 import { ThpdModel } from '../models/thpd';
 import { BasicModel } from '../models/basic';
+import { Requisition } from '../models/requisition';
+import { CovidCaseModel } from '../models/covid-case';
+import { SerialModel } from '../models/serial';
 const jwt = new Jwt();
 const basicModel = new BasicModel();
+const covidCaseModel = new CovidCaseModel();
+const serialModel = new SerialModel();
 import * as moment from 'moment';
 const model = new Login();
 const router: Router = Router();
+const requisition = new Requisition();
 const thpdModel = new ThpdModel();
 router.get('/', (req: Request, res: Response) => {
   res.send({ ok: true, message: 'Welcome to RESTful api server!', code: HttpStatus.OK });
@@ -96,6 +102,76 @@ router.get('/status', async (req: Request, res: Response) => {
     // console.log(rs);
 
     // await thpdModel.logThpd(db, obj);
+    res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
+
+
+router.get('/updatereq', async (req: Request, res: Response) => {
+  try {
+    const db = req.db
+    const headDrug: any = await requisition.getHeadCovidCaseDrugs(db);
+    for (const i of headDrug) {
+      const drugs = await requisition.getDetailCovidCaseDrugs(db, i.covid_case_id);
+      if (drugs.length > 0) {
+        const currentNoRd = await covidCaseModel.countRequisitionhospital(db, i.hospital_id_client)
+        const newSerialNoRd = await serialModel.paddingNumber(currentNoRd[0].count + 1, 5)
+
+        const headRd = {
+          hospital_id_node: i.hospital_id_node,
+          hospital_id_client: i.hospital_id_client,
+          covid_case_detail_id: i.covid_case_detail_id,
+          code: 'RD-' + i.hospital_id_client_code + '-' + newSerialNoRd,
+          type: 'DRUG'
+        }
+
+        const requisitionIdRd = await covidCaseModel.saveRequisition(db, headRd);
+        const detailRd = [];
+        for (const d of drugs) {
+          const obj = {
+            requisition_id: requisitionIdRd[0],
+            generic_id: d.generic_id,
+            qty: d.qty
+          }
+          detailRd.push(obj);
+        }
+
+        await covidCaseModel.saveRequisitionDetail(db, detailRd);
+      }
+    }
+
+    const headSupplies: any = await requisition.getHeadCovidCaseSupplies(db);
+    console.log(headSupplies);
+    
+    for (const i of headSupplies) {
+      const supplies = await requisition.getDetailCovidCaseSupplies(db, i.covid_case_id);
+      // RS
+      const currentNoRs = await covidCaseModel.countRequisitionhospital(db, i.hospital_id_client)
+      const newSerialNoRs = await serialModel.paddingNumber(currentNoRs[0].count + 1, 5)
+
+      const headRs = {
+        hospital_id_node: i.hospital_id_node,
+        hospital_id_client: i.hospital_id_client,
+        covid_case_detail_id: i.covid_case_detail_id,
+        code: 'RS-' + i.hospital_id_client_code + '-' + newSerialNoRs,
+        type: 'SUPPLUES'
+      }
+
+      const requisitionIdRd = await covidCaseModel.saveRequisition(db, headRs);
+      const detailRd = [];
+      for (const d of supplies) {
+        const obj = {
+          requisition_id: requisitionIdRd[0],
+          generic_id: d.generic_id,
+          qty: d.qty
+        }
+        detailRd.push(obj);
+      }
+    }
+
+    await requisition.updateIsRequisition(db);
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error });
