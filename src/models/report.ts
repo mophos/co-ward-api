@@ -2,6 +2,22 @@ import Knex = require('knex');
 import * as moment from 'moment';
 
 export class ReportModel {
+
+  getHospital(db: Knex, province) {
+    return db('view_case_lasted AS vcl')
+      .count('* as count')
+      .select('vcl.gcs_id', 'bg.name as gcs_name', 'pp.hospital_id', 'bh.hospcode', 'bh.hospname')
+      .join('p_patients AS pp', 'pp.id', 'vcl.patient_id')
+      .join('b_hospitals AS bh', 'bh.id', 'pp.hospital_id')
+      .join('b_gcs as bg', 'bg.id', 'vcl.gcs_id')
+      .where('bh.province_code', province)
+      .groupBy('bh.id', 'vcl.gcs_id')
+  }
+
+  getProvince(db: Knex, zoneCode) {
+    return db('b_province')
+      .where('zone_code', zoneCode)
+  }
     getZoneHospital(db: Knex, zoneCode) {
         return db('b_hospitals as h')
             .count('p.id as count')
