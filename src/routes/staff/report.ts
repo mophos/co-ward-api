@@ -1,11 +1,8 @@
 // / <reference path="../../typings.d.ts" />
 
 import * as HttpStatus from 'http-status-codes';
-
 import { Router, Request, Response } from 'express';
 import { ReportModel } from '../../models/report';
-import * as moment from 'moment';
-import e = require('express');
 
 const model = new ReportModel();
 const router: Router = Router();
