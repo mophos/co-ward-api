@@ -185,12 +185,17 @@ router.get('/get-bed', async (req: Request, res: Response) => {
   const zoneCode = req.decoded.zone_code;
   const type = req.decoded.type;
   const _provinceCode = req.decoded.provinceCode;
+  const zone = req.query.zone;
 
   try {
     let zoneCodes = [];
     let provinceCode = null;
     if (type == 'MANAGER') {
-      zoneCodes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
+      if (zone) {
+        zoneCodes = [zone];
+      } else {
+        zoneCodes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
+      }
     } else {
       if (providerType == 'ZONE') {
         zoneCodes = [zoneCode];
@@ -253,12 +258,17 @@ router.get('/get-professional', async (req: Request, res: Response) => {
   const zoneCode = req.decoded.zone_code;
   const type = req.decoded.type;
   const _provinceCode = req.decoded.provinceCode;
+  const zone = req.query.zone;
 
   try {
     let zoneCodes = [];
     let provinceCode = null;
     if (type == 'MANAGER') {
-      zoneCodes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
+      if (zone) {
+        zoneCodes = [zone];
+      } else {
+        zoneCodes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
+      }
     } else {
       if (providerType == 'ZONE') {
         zoneCodes = [zoneCode];
