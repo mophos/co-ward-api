@@ -2,28 +2,6 @@ import Knex = require('knex');
 import * as moment from 'moment';
 
 export class ReportModel {
-
-  getPatient(db: Knex, provinceCode: any, hospitalId: any, query: any = '') {
-    return db('b_hospitals as h')
-      .select('h.id', 'h.hospcode', 'h.hospname', 'h.hosptype_code')
-      .count('p.id as count')
-      .leftJoin('p_patients as p', 'p.hospital_id', 'h.id')
-      .leftJoin('p_covid_cases as c', 'c.patient_id', 'p.id')
-      .where('h.province_code', provinceCode)
-      .whereNot('h.id', hospitalId)
-      .where((v) => {
-        v.where('h.hospname', 'like', '%' + query + '%')
-        v.orWhere('h.hospcode', 'like', '%' + query + '%')
-      })
-      .groupBy('h.id')
-  }
-
-  getHospital(db: Knex, provinceCode: any, hospitalId: any) {
-    return db('b_hospitals as b')
-      .where('b.province_code', provinceCode)
-      .whereNot('b.id', hospitalId)
-  }
-
   getZoneHospital(db: Knex, zoneCode) {
     return db('b_hospitals as h')
       .count('p.id as count')
@@ -45,65 +23,37 @@ export class ReportModel {
       .groupBy('pp.id');
   }
 
-  getSupplies(db: Knex, hospitalId: any, date: any = '') {
-    return db('wm_supplies as s')
-      .select('g.id as generic_id', 'g.name as generic_name', 'sd.qty', 'u.name as unit_name')
-      .leftJoin('wm_supplies_details as sd', 's.id', 'sd.wm_supplie_id')
-      .leftJoin('b_generics as g', 'g.id', 'sd.generic_id')
-      .leftJoin('b_units as u', 'u.id', 'g.unit_id')
-      .where('s.hospital_id', hospitalId)
-      .where('s.create_date', 'like', '%' + date + '%');
+  getSupplie(db: Knex, date: any, query: any) {
+    return db('b_hospitals as h')
+      .select('h.hospcode',
+        'h.hospname',
+        'h.hosptype_code',
+        db.raw(`(select qty from wm_supplies_details as sd 
+    join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 17) as surgical_mask`),
+        db.raw(`(select qty from wm_supplies_details as sd 
+    join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 12) as N95`),
+        db.raw(`(select qty from wm_supplies_details as sd 
+    join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 10) as cover_all_1`),
+
+        db.raw(`(select qty from wm_supplies_details as sd 
+    join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 10) as cover_all_2`),
+        db.raw(`(select qty from wm_supplies_details as sd 
+    join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 10) as shoe_cover`),
+        db.raw(`(select qty from wm_supplies_details as sd 
+    join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 10) as surgical_hood`),
+        db.raw(`(select qty from wm_supplies_details as sd 
+    join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 10) as long_glove`),
+        db.raw(`(select qty from wm_supplies_details as sd 
+    join b_generics as g on g.id = sd.generic_id where sd.wm_supplie_id = s.id and g.id = 10) as face_shield`)
+      )
+      .leftJoin('wm_supplies as s', (v) => {
+        v.on('h.id', 's.hospital_id')
+        v.on('s.date', db.raw(`${date}`))
+      })
+      .whereIn('h.hosptype_code', ['01', '02', '05', '06', '07'])
+      .where((v) => {
+        v.where('h.hospname', 'like', '%' + query + '%')
+        v.orWhere('h.hospcode', 'like', '%' + query + '%')
+      })
   }
-
-  getSupInfo(db: Knex) {
-    return db('b_generics as g')
-      .where('type', 'SUPPLIES')
-      .where('is_actived', 'Y')
-      .where('is_deleted', 'N')
-  }
-
-  getSupplie(db: Knex, data, provinceCode: any, hospitalId: any) {
-    let sql = `SELECT
-    h.id,
-    h.hospcode,
-    h.hospname,`;
-    for (let v = 0; v < data.length; v++) {
-      sql += `(
-      SELECT
-        sd.qty 
-      FROM
-        wm_supplies_details AS sd
-        LEFT JOIN b_generics AS g ON g.id = sd.generic_id 
-      WHERE
-        sd.wm_supplie_id = s.id 
-        AND g.id = ${data[v].id} 
-        ) AS 'g${data[v].id}'`;
-      if (v != data.length - 1) {
-        sql += ','
-      }
-    }
-    sql += `FROM
-    b_hospitals h
-    LEFT JOIN wm_supplies s ON s.hospital_id = h.id
-    WHERE h.province_code = ? AND h.id != ?`;
-    return db.raw(sql, [provinceCode, hospitalId]);
-  }
-
-  // getSupplie(db: Knex, provinceCode: any, hospitalId: any, query: any = '', date: any = '') {
-  //   return db('b_hospitals as h')
-  //     .select('h.id', 'h.hospcode', 'h.hospname', 'h.hosptype_code', 'g.name as generic_name', 'sd.qty', 'u.name as unit_name')
-  //     .leftJoin('wm_supplies as s', 's.hospital_id', 'h.id')
-  //     .leftJoin('wm_supplies_details as sd', 's.id', 'sd.wm_supplie_id')
-  //     .leftJoin('b_generics as g', 'g.id', 'sd.generic_id')
-  //     .leftJoin('b_units as u', 'u.id', 'g.unit_id')
-  //     .where('h.province_code', provinceCode)
-  //     .whereNot('h.id', hospitalId)
-  //     // .where('s.create_date', 'like', '%' + date + '%')
-  //     .where((v) => {
-  //       v.where('h.hospname', 'like', '%' + query + '%')
-  //       v.orWhere('h.hospcode', 'like', '%' + query + '%')
-  //       v.orWhere('g.name', 'like', '%' + query + '%')
-  //     })
-  // }
-
 }
