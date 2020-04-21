@@ -17,7 +17,6 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
-
 router.get('/zone', async (req: Request, res: Response) => {
   const db = req.db;
 
