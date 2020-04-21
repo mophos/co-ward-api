@@ -18,6 +18,14 @@ export class ReportModel {
     return db('views_bed_hospitals AS vbh')
   }
 
+  getProfessional(db: Knex) {
+    return db('views_professional_hospitals AS vph')
+  }
+
+  getSupplies(db: Knex) {
+    return db('views_supplies_hospitals AS vsh')
+  }
+
   getHospital(db: Knex) {
     return db('b_hospitals AS bh')
       .whereIn('bh.hosptype_code', ['05', '06', '07'])
