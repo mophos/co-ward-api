@@ -24,7 +24,7 @@ router.get('/hosp', async (req: Request, res: Response) => {
       for (const p of province) {
         const _province: any = {};
         _province.province_name = p.name_th;
-        const hospital: any = await model.getHospital(db, p.id)
+        const hospital: any = await model.getHospital(db, p.code)
         const hosp = [];
         for (const h of hospital) {
           const _hospital: any = {};
