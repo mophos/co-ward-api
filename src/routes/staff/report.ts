@@ -5,22 +5,42 @@ import * as HttpStatus from 'http-status-codes';
 import { Router, Request, Response } from 'express';
 import { ReportModel } from '../../models/report';
 import * as moment from 'moment';
+import e = require('express');
 
 const model = new ReportModel();
 const router: Router = Router();
 
 router.get('/hosp', async (req: Request, res: Response) => {
   const db = req.db;
-
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
+  const type = req.decoded.type;
+  const _provinceCode = req.decoded.provinceCode;
   try {
+    let zoneCodes = [];
+    let provinceCode = null;
+    if (type == 'MANAGER') {
+      zoneCodes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
+    } else {
+      if (providerType == 'ZONE') {
+        zoneCodes = [zoneCode];
+      } else if (providerType == 'SSJ') {
+        zoneCodes = [zoneCode];
+        provinceCode = _provinceCode;
+      }
+    }
+
     let data: any = [];
-    let hops: any = [];
-    const zoneCode = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
-    for (const z of zoneCode) {
+    for (const z of zoneCodes) {
       const zone: any = {};
       zone.name = z;
       let provinces: any = [];
-      const province: any = await model.getProvince(db, z);
+      let province: any;
+      if (provinceCode) {
+        province = await model.getProvinceFromProvinceCode(db, provinceCode);
+      } else {
+        province = await model.getProvince(db, z);
+      }
       for (const p of province) {
         const _province: any = {};
         _province.province_name = p.name_th;
@@ -46,8 +66,6 @@ router.get('/hosp', async (req: Request, res: Response) => {
       zone.provinces = provinces;
       data.push(zone);
     }
-    console.log(data);
-
     res.send({ ok: true, rows: data, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
