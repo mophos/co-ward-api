@@ -31,13 +31,15 @@ export class ReportModel {
       .whereIn('bh.hosptype_code', ['05', '06', '07'])
   }
 
-  getProvince(db: Knex, zoneCode) {
-    return db('b_province')
-      .where('zone_code', zoneCode)
-  }
-  getProvinceFromProvinceCode(db: Knex, provinceCode) {
-    return db('b_province')
-      .where('code', provinceCode)
+  getProvince(db: Knex, zoneCode = null, provinceCode = null) {
+    const sql = db('b_province')
+    if (zoneCode) {
+      sql.where('zone_code', zoneCode)
+    }
+    if (provinceCode) {
+      sql.where('code', provinceCode)
+    }
+    return sql;
   }
 
   getZoneHospital(db: Knex, zoneCode) {
@@ -187,5 +189,17 @@ export class ReportModel {
       .where('h.province_code', provinceCode)
       .where('vs.generic_id', genericId)
       .groupBy('h.province_code');
+  }
+
+  sumGcsProvince(db: Knex, provinceCode, date) {
+    return db('views_case_dates AS vcl')
+      .sum('* as sum')
+      .select('vcl.gcs_id', 'bg.name as gcs_name')
+      .join('p_patients AS pp', 'pp.id', 'vcl.patient_id')
+      .join('b_hospitals AS bh', 'bh.id', 'pp.hospital_id')
+      .join('b_gcs as bg', 'bg.id', 'vcl.gcs_id')
+      .where('vcl.entry_date', date)
+      .where('bh.code', provinceCode)
+      .groupBy('vcl.gcs_id')
   }
 }

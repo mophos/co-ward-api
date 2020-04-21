@@ -142,11 +142,13 @@ router.get('/get-gcs', async (req: Request, res: Response) => {
       let provinces: any = [];
       let province: any;
       if (provinceCode) {
-        province = await model.getProvinceFromProvinceCode(db, provinceCode);
+        province = await model.getProvince(db, null, provinceCode);
       } else {
-        province = await model.getProvince(db, z);
+        province = await model.getProvince(db, z, null);
       }
       const hospital: any = await model.getHospital(db)
+      let sumProvince = 0;
+      let severe = 0;
       for (const p of province) {
         const _province: any = {};
         _province.province_name = p.name_th;
@@ -166,14 +168,18 @@ router.get('/get-gcs', async (req: Request, res: Response) => {
           for (const g of _gcs) {
             sum += g.count;
             obj[g.gcs_name] = g.count;
-            p[g.gcs_name]+= g.count;
+            p[g.gcs_name] += g.count;
           }
           obj.sum = sum;
+          sumProvince += obj.sum;
           hosp.push(obj);
         }
         _province.hospitals = hosp;
+
         provinces.push(_province);
       }
+      zone.severe
+      zone.sum = sumProvince;
       zone.provinces = provinces;
       data.push(zone);
     }
@@ -217,9 +223,9 @@ router.get('/get-bed', async (req: Request, res: Response) => {
       let provinces: any = [];
       let province: any;
       if (provinceCode) {
-        province = await model.getProvinceFromProvinceCode(db, provinceCode);
+        province = await model.getProvince(db, null, provinceCode);
       } else {
-        province = await model.getProvince(db, z);
+        province = await model.getProvince(db, z, null);
       }
       const hospital: any = await model.getHospital(db)
       for (const p of province) {
@@ -290,9 +296,9 @@ router.get('/get-professional', async (req: Request, res: Response) => {
       let provinces: any = [];
       let province: any;
       if (provinceCode) {
-        province = await model.getProvinceFromProvinceCode(db, provinceCode);
+        province = await model.getProvince(db, null, provinceCode);
       } else {
-        province = await model.getProvince(db, z);
+        province = await model.getProvince(db, z, null);
       }
       const hospital: any = await model.getHospital(db)
       for (const p of province) {
@@ -356,9 +362,9 @@ router.get('/get-supplies', async (req: Request, res: Response) => {
       let provinces: any = [];
       let province: any;
       if (provinceCode) {
-        province = await model.getProvinceFromProvinceCode(db, provinceCode);
+        province = await model.getProvince(db, null, provinceCode);
       } else {
-        province = await model.getProvince(db, z);
+        province = await model.getProvince(db, z, null);
       }
       const hospital: any = await model.getHospital(db)
       for (const p of province) {
