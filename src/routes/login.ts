@@ -26,7 +26,7 @@ router.post('/', async (req: Request, res: Response) => {
 
     if (rs.length) {
       let right: any = await loginModel.rights(db, rs[0].id);
-      let payload = {
+      let payload: any = {
         fullname: `${rs[0].fname || ''} ${rs[0].lname || ''}`,
         fname: `${rs[0].fname}`,
         lname: `${rs[0].lname}`,
@@ -44,7 +44,17 @@ router.post('/', async (req: Request, res: Response) => {
         rights: right,
         hospitalType: rs[0].hospital_type
       }
-
+      if (+rs[0].hospcode >= 41106 && +rs[0].hospcode <= 41118) {
+        payload.providerType = 'ZONE';
+      } else if (rs[0].type_code == '01') {
+        payload.providerType = 'SSJ';
+      }else if (rs[0].type_code == '02') {
+        payload.providerType = 'SSA';
+      } else if(rs[0].hospital_type == 'HOSPITEL'){
+        payload.providerType = 'HOSPITEL';
+      } else{
+        payload.providerType = 'HOSPITAL';
+      }
       let token = jwt.sign(payload);
       res.send({ ok: true, token: token, code: HttpStatus.OK });
     } else {
