@@ -68,7 +68,9 @@ export class CovidCaseModel {
   getCasePresent(db: Knex, hospitalId, query) {
     return db('p_covid_cases as c')
       .select('c.id as covid_case_id', 'c.status', 'c.date_admit', 'pt.hn', 'pt.person_id', 'p.*', 't.name as title_name',
-        'cd.bed_id', 'cd.gcs_id', 'cd.medical_supplie_id', db.raw(`DATE_FORMAT(cd.create_date, "%Y-%m-%d") as create_date`),
+        'cd.bed_id', 'cd.gcs_id', 'cd.medical_supplie_id', db.raw(`ifnull(cd.create_date, null) as create_date`),
+        db.raw(`ifnull(cd.entry_date, null) as entry_date`),
+        db.raw(`ifnull(cd.updated_date, null) as updated_date`),
         db.raw(`(select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 1 or generic_id = 2) limit 1) as set1,
       (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 3 or generic_id = 4) limit 1) as set2,
       (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 7  limit 1) as set3,
@@ -172,8 +174,23 @@ export class CovidCaseModel {
   }
 
   saveCovidCaseDetail(db: Knex, data) {
-    return db('p_covid_case_details')
-      .insert(data);
+    let sql = `
+    INSERT INTO p_covid_case_details
+    (covid_case_id, gcs_id, bed_id, medical_supplie_id, entry_date)
+    VALUES(?,?,?,?,?)
+    ON DUPLICATE KEY UPDATE
+    gcs_id=? , bed_id=? , medical_supplie_id=?, updated_date=now()`;
+    return db.raw(sql, [data.covid_case_id, data.gcs_id, data.bed_id, data.medical_supplie_id, data.entry_date, data.gcs_id, data.bed_id, data.medical_supplie_id])
+  }
+
+  updateCovidCaseDetail(db: Knex, data) {
+    let sql = `
+    INSERT INTO p_covid_case_details
+    (covid_case_id, gcs_id, bed_id, medical_supplie_id, entry_date, status)
+    VALUES(?,?,?,?,?,?)
+    ON DUPLICATE KEY UPDATE
+    gcs_id=? , bed_id=? , medical_supplie_id=?, updated_date=now(), status=?`;
+    return db.raw(sql, [data.covid_case_id, data.gcs_id, data.bed_id, data.medical_supplie_id, data.entry_date, data.status, data.gcs_id, data.bed_id, data.medical_supplie_id, data.status])
   }
   saveCovidCaseDetailItem(db: Knex, data) {
     return db('p_covid_case_detail_items')
@@ -325,6 +342,11 @@ export class CovidCaseModel {
       .where('id', id);
   }
 
+  updateDischargeDetail(db: Knex, id, data) {
+    return db('p_covid_case_details').update(data)
+      .where('id', id);
+  }
+
   isDeleted(db: Knex, id) {
     let sql = db('p_covid_cases')
       .update('is_deleted', 'Y')
@@ -334,20 +356,10 @@ export class CovidCaseModel {
 
   }
 
-  removeCovidCaseDetail(db: Knex, caseId, date) {
-    return db('p_covid_case_details')
-      .delete()
-      .where('covid_case_id', caseId)
-      .whereBetween('create_date', [date + ' 00:00:00', date + ' 23:59:59']);
-  }
-
-  removeCovidCaseDetailItem(db: Knex, caseId, date) {
+  removeCovidCaseDetailItem(db: Knex, id) {
     return db('p_covid_case_detail_items')
       .delete()
-      .whereIn('covid_case_detail_id', db('p_covid_case_details')
-        .select('id')
-        .where('covid_case_id', caseId)
-        .whereBetween('create_date', [date + ' 00:00:00', date + ' 23:59:59']));
+      .where('covid_case_detail_id', id)
   }
 
 }
