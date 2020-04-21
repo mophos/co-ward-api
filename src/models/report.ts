@@ -4,13 +4,14 @@ import * as moment from 'moment';
 export class ReportModel {
 
     getGcs(db: Knex, hospital) {
-        return db('view_case_lasted AS vcl')
+        return db('p_covid_case_details AS vcl')
             .count('* as count')
             .select('vcl.gcs_id', 'bg.name as gcs_name')
             .join('p_patients AS pp', 'pp.id', 'vcl.patient_id')
             .join('b_hospitals AS bh', 'bh.id', 'pp.hospital_id')
             .join('b_gcs as bg', 'bg.id', 'vcl.gcs_id')
             .where('pp.hospital_id', hospital)
+            .where('vcl.entry', hospital)
             .groupBy('vcl.gcs_id')
     }
 
@@ -28,7 +29,7 @@ export class ReportModel {
       return db('b_province')
         .where('code', provinceCode)
     }
-    
+
     getZoneHospital(db: Knex, zoneCode) {
         return db('b_hospitals as h')
             .count('p.id as count')
