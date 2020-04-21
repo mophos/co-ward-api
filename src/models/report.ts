@@ -14,14 +14,12 @@ export class ReportModel {
       .groupBy('vcl.gcs_id')
   }
 
-  getBad(db: Knex, hospital) {
+  getBad(db: Knex) {
     return db('views_bed_hospitals AS vbh')
-      .where('vbh.hospital_id', hospital)
   }
 
-  getHospital(db: Knex, province) {
+  getHospital(db: Knex, province = '') {
     return db('b_hospitals AS bh')
-      .where('bh.province_code', province)
       .whereIn('bh.hosptype_code', ['05', '06', '07'])
   }
 

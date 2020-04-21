@@ -2,6 +2,7 @@ import { ReportModel } from '../models/report';
 /// <reference path="../../typings.d.ts" />
 import { Router, Request, Response } from 'express';
 import * as HttpStatus from 'http-status-codes';
+import * as _ from 'lodash';
 
 const model = new ReportModel();
 
@@ -121,12 +122,14 @@ router.get('/bed', async (req: Request, res: Response) => {
       zone.name = z;
       let provinces: any = [];
       const province: any = await model.getProvince(db, z);
+      const hospital: any = await model.getHospital(db)
       for (const p of province) {
         const _province: any = {};
         _province.province_name = p.name_th;
-        const hospital: any = await model.getHospital(db, p.code)
+        const s = _.filter(hospital, { province_code: p.code })
         const hosp = [];
-        for (const h of hospital) {
+        const bed: any = await model.getBad(db)
+        for (const h of s) {
           const _hospital: any = {};
           _hospital.province_name = p.name_th;
           const obj = {
@@ -134,8 +137,8 @@ router.get('/bed', async (req: Request, res: Response) => {
             hospcode: h.hospcode,
             hospname: h.hospname
           };
-          const bed: any = await model.getBad(db, h.id)
-          for (const b of bed) {
+          const _bed = _.filter(bed, { hospital_id: h.id })
+          for (const b of _bed) {
             obj[b.bed_name + '_qty'] = b.qty;
             obj[b.bed_name + '_covid_qty'] = b.covid_qty;
             obj[b.bed_name + '_usage_qty'] = b.usage_qty;
