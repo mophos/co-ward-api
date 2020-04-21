@@ -114,6 +114,7 @@ router.get('/get-gcs', async (req: Request, res: Response) => {
   const zoneCode = req.decoded.zone_code;
   const type = req.decoded.type;
   const _provinceCode = req.decoded.provinceCode;
+  const date = req.query.date;
 
   try {
     let zoneCodes = [];
@@ -146,7 +147,7 @@ router.get('/get-gcs', async (req: Request, res: Response) => {
         _province.province_name = p.name_th;
         const s = _.filter(hospital, { province_code: p.code })
         const hosp = [];
-        const gcs: any = await model.getGcs(db)
+        const gcs: any = await model.getGcs(db, date)
         for (const h of s) {
           const _hospital: any = {};
           _hospital.province_name = p.name_th;
