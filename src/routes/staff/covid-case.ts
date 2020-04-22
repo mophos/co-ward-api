@@ -201,9 +201,9 @@ router.post('/', async (req: Request, res: Response) => {
       village: data.village,
       village_name: data.villageName,
       road: data.road,
-      tambon_code: data.tambonId,
-      ampur_code: data.ampurId,
-      province_code: data.provinceId,
+      tambon_code: data.tambonCode,
+      ampur_code: data.ampurCode,
+      province_code: data.provinceCode,
       zipcode: data.zipcode,
       country_code: data.countryId,
     }
@@ -214,22 +214,27 @@ router.post('/', async (req: Request, res: Response) => {
       person_id: personId[0]
     }
     const patientId = await covidCaseModel.savePatient(db, patient);
-    const _data = {
+    const timeCut = await basicModel.timeCut();
+    const _data: any = {
       patient_id: patientId,
       status: 'ADMIT',
       an: data.an,
       date_admit: data.admitDate,
-      confirm_date: data.confirmDate,
-      date_entry: moment().format('YYYY-MM-DD')
+      confirm_date: data.confirmDate
+    }
+    if (!timeCut.ok) {
+      _data.date_entry = moment().add(1, 'days').format('YYYY-MM-DD');
+    } else {
+      _data.date_entry = moment().format('YYYY-MM-DD');
     }
     const covidCaseId = await covidCaseModel.saveCovidCase(db, _data);
     const detail: any = {
       covid_case_id: covidCaseId[0],
+      status: 'ADMIT',
       gcs_id: data.gcsId,
       bed_id: data.bedId,
       medical_supplie_id: data.medicalSupplieId || null
     }
-    const timeCut = await basicModel.timeCut();
     if (!timeCut.ok) {
       detail.entry_date = moment().add(1, 'days').format('YYYY-MM-DD');
     } else {
@@ -258,6 +263,74 @@ router.post('/', async (req: Request, res: Response) => {
     // } else {
     //   res.send({ ok: false, error: resu.error, code: HttpStatus.OK });
     // }
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.post('/old', async (req: Request, res: Response) => {
+  const hospitalId = req.decoded.hospitalId;
+  const db = req.db;
+  const data = req.body.data;
+  try {
+    const person = {
+      cid: data.cid,
+      passport: data.passport || null,
+      title_id: data.titleId,
+      first_name: data.fname,
+      last_name: data.lname,
+      gender_id: data.genderId,
+      birth_date: data.birthDate,
+      telephone: data.tel,
+      house_no: data.houseNo,
+      room_no: data.roomNo,
+      village: data.village,
+      village_name: data.villageName,
+      road: data.road,
+      tambon_code: data.tambonId,
+      ampur_code: data.ampurId,
+      province_code: data.provinceId,
+      zipcode: data.zipcode,
+      country_code: data.countryId,
+    }
+    const personId = await covidCaseModel.savePerson(db, person);
+    const patient = {
+      hospital_id: hospitalId,
+      hn: data.hn,
+      person_id: personId[0]
+    }
+    const patientId = await covidCaseModel.savePatient(db, patient);
+    const timeCut = await basicModel.timeCut();
+
+    const _data = {
+      patient_id: patientId,
+      an: data.an,
+      date_admit: data.admitDate,
+      confirm_date: data.confirmDate,
+      date_entry: moment().format('YYYY-MM-DD'),
+      hospital_id_refer: data.hospitalId,
+      reason: data.reason,
+      date_discharge: data.dateDischarge,
+      status: data.status
+    }
+    if (!timeCut.ok) {
+      _data.date_entry = moment().add(1, 'days').format('YYYY-MM-DD');
+    } else {
+      _data.date_entry = moment().format('YYYY-MM-DD');
+    }
+    const covidCaseId = await covidCaseModel.saveCovidCase(db, _data);
+    const detail: any = {
+      covid_case_id: covidCaseId[0],
+      status: data.status
+    }
+    if (!timeCut.ok) {
+      detail.entry_date = moment().add(1, 'days').format('YYYY-MM-DD');
+    } else {
+      detail.entry_date = moment().format('YYYY-MM-DD');
+    }
+    const covidCaseDetailId = await covidCaseModel.saveCovidCaseOldDetail(db, detail);
+    res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
