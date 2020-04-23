@@ -110,14 +110,10 @@ export class SuppliesModel {
     let sql = `
           INSERT INTO wm_supplies
           (date, create_by,hospital_id)
-          VALUES(now(), ?,?)
+          VALUES(?,?,?)
           ON DUPLICATE KEY UPDATE
           update_by=?,update_date=now()`;
-    return db.raw(sql, [data.create_by, data.hospital_id, data.create_by])
-
-    // return db('wm_supplies')
-    // .insert(data, 'id')
-
+    return db.raw(sql, [data.date, data.create_by, data.hospital_id, data.create_by])
   }
 
   saveDetail(db: Knex, data) {
@@ -141,7 +137,7 @@ export class SuppliesModel {
 
   getSuppliesLast(db: Knex, hospitalId: any) {
     return db('b_generics AS bg')
-      .select('bg.id', db.raw('null as qty'), 'vsh.month_usage_qty', 'bu.name as unit_name')
+      .select('bg.id', 'bg.name', db.raw('null as qty'), 'vsh.month_usage_qty', 'bu.name as unit_name')
       .joinRaw(`LEFT JOIN views_supplies_hospitals AS vsh ON vsh.generic_id = bg.id AND vsh.hospital_id = ?`, hospitalId)
       .join('b_units AS bu', 'bu.id', 'bg.unit_id')
       .where('bg.type', 'SUPPLIES')

@@ -100,41 +100,38 @@ router.post('/', async (req: Request, res: Response) => {
   const userId = req.decoded.id;
   const hospitalId = req.decoded.hospitalId;
   const data = req.body.data;
-  const _timeCut = process.env.TIME_CUT;
 
   try {
     const timeCut: any = await basicModel.timeCut();
+    const head: any = {};
     if (timeCut.ok) {
-      const head: any = {};
       head.date = moment().format('YYYY-MM-DD');
-      head.create_by = userId;
-      head.hospital_id = hospitalId;
-
-      let rs: any = await suppliesModel.saveHead(db, head);
-      let id = rs[0].insertId;
-      if (!id) {
-        const _id = await suppliesModel.getId(db, head);
-        id = _id[0].id;
-      }
-
-      let detail: any = [];
-      for (const v of data) {
-        if (v.qty || v.qty == 0) {
-          const objD: any = {};
-          objD.wm_supplie_id = id;
-          objD.generic_id = v.generic_id;
-          objD.qty = v.qty;
-          objD.month_usage_qty = v.month_usage_qty || null;
-          detail.push(objD);
-        }
-      }
-      console.log(detail);
-
-      await suppliesModel.saveDetail(db, detail);
-      res.send({ ok: true, code: HttpStatus.OK });
     } else {
-      res.send({ ok: false, error: `ขณะนี้เกินเวลา ${moment(_timeCut).format('HH:mm').toString()} ไม่สามารถบันทึกได้` });
+      head.date = moment().add(1, 'days').format('YYYY-MM-DD');
     }
+    head.create_by = userId;
+    head.hospital_id = hospitalId;
+    
+    let rs: any = await suppliesModel.saveHead(db, head);
+    let id = rs[0].insertId;
+    if (!id) {
+      const _id = await suppliesModel.getId(db, head);
+      id = _id[0].id;
+    }
+
+    let detail: any = [];
+    for (const v of data) {
+      const objD: any = {};
+      objD.wm_supplie_id = id;
+      objD.generic_id = v.generic_id;
+      objD.qty = v.qty;
+      objD.month_usage_qty = v.month_usage_qty;
+      detail.push(objD);
+    }
+
+    await suppliesModel.saveDetail(db, detail);
+    res.send({ ok: true, code: HttpStatus.OK });
+
   } catch (error) {
     console.log(error);
 
