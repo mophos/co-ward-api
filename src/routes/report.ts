@@ -108,7 +108,7 @@ router.get('/total-zone', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/get-gcs', async (req: Request, res: Response) => {
+router.get('/get-gcs-admit', async (req: Request, res: Response) => {
   const db = req.db;
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
@@ -154,7 +154,7 @@ router.get('/get-gcs', async (req: Request, res: Response) => {
         _province.province_name = p.name_th;
         const s = _.filter(hospital, { province_code: p.code })
         const hosp = [];
-        const gcs: any = await model.getGcs(db, date)
+        const gcs: any = await model.getGcsAdmit(db, date)
         for (const h of s) {
           const _hospital: any = {};
           _hospital.province_name = p.name_th;
@@ -180,6 +180,92 @@ router.get('/get-gcs', async (req: Request, res: Response) => {
       }
       zone.severe
       zone.sum = sumProvince;
+      zone.provinces = provinces;
+      data.push(zone);
+    }
+    res.send({ ok: true, rows: data, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/get-gcs', async (req: Request, res: Response) => {
+  const db = req.db;
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
+  const type = req.decoded.type;
+  const _provinceCode = req.decoded.provinceCode;
+  const date = req.query.date;
+  const zone = req.query.zone;
+
+  try {
+    let zoneCodes = [];
+    let provinceCode = null;
+    if (type == 'MANAGER') {
+      if (zone) {
+        zoneCodes = [zone];
+      } else {
+        zoneCodes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
+      }
+    } else {
+      if (providerType == 'ZONE') {
+        zoneCodes = [zoneCode];
+      } else if (providerType == 'SSJ') {
+        zoneCodes = [zoneCode];
+        provinceCode = _provinceCode;
+      }
+    }
+
+    let data: any = [];
+    for (const z of zoneCodes) {
+      const zone: any = {};
+      zone.name = z;
+      let provinces: any = [];
+      let province: any;
+      if (provinceCode) {
+        province = await model.getProvince(db, null, provinceCode);
+      } else {
+        province = await model.getProvince(db, z, null);
+      }
+      const hospital: any = await model.getHospital(db)
+      // let sumProvince = 0;
+      let severe = 0;
+      for (const p of province) {
+        const _province: any = {};
+        _province.province_name = p.name_th;
+        const s = _.filter(hospital, { province_code: p.code })
+        const hosp = [];
+        const gcs: any = await model.getGcs(db, date)
+        for (const h of s) {
+          const _hospital: any = {};
+          _hospital.province_name = p.name_th;
+          const obj: any = {
+            hospital_id: h.id,
+            hospcode: h.hospcode,
+            hospname: h.hospname
+          };
+          const _gcs = _.filter(gcs, { hospital_id: h.id })
+          console.log(_gcs);
+          
+          obj.details = _gcs;
+
+          let sum = 0;
+          // for (const g of _gcs) {
+          //   sum += g.count;
+          //   obj[g.gcs_name] = g.count;
+          //   p[g.gcs_name] += g.count;
+          // }
+          // obj.sum = sum;
+          // sumProvince += obj.sum;
+          hosp.push(obj);
+        }
+        _province.hospitals = hosp;
+
+        provinces.push(_province);
+      }
+      zone.severe
+      // zone.sum = sumProvince;
       zone.provinces = provinces;
       data.push(zone);
     }
@@ -336,16 +422,22 @@ router.get('/get-professional', async (req: Request, res: Response) => {
 
 router.get('/get-supplies', async (req: Request, res: Response) => {
   const db = req.db;
+  const date = req.query.date;
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
   const type = req.decoded.type;
   const _provinceCode = req.decoded.provinceCode;
+  const zone = req.query.zone;
 
   try {
     let zoneCodes = [];
     let provinceCode = null;
     if (type == 'MANAGER') {
-      zoneCodes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
+      if (zone) {
+        zoneCodes = [zone];
+      } else {
+        zoneCodes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
+      }
     } else {
       if (providerType == 'ZONE') {
         zoneCodes = [zoneCode];
@@ -372,7 +464,7 @@ router.get('/get-supplies', async (req: Request, res: Response) => {
         _province.province_name = p.name_th;
         const _hosp = _.filter(hospital, { province_code: p.code })
         const hosp = [];
-        const sup: any = await model.getSupplies(db)
+        const sup: any = await model.getSupplies(db,date)
         for (const h of _hosp) {
           const _hospital: any = {};
           _hospital.province_name = p.name_th;

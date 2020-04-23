@@ -456,6 +456,7 @@ router.get('/present', async (req: Request, res: Response) => {
 router.put('/present', async (req: Request, res: Response) => {
   const db = req.db;
   const data = req.body.data;
+
   try {
     const timeCut = await basicModel.timeCut();
     const detail: any = {
@@ -469,9 +470,8 @@ router.put('/present', async (req: Request, res: Response) => {
     } else {
       detail.entry_date = moment().format('YYYY-MM-DD');
     }
-    await covidCaseModel.removeCovidCaseDetailItem(db, data.id)
+    await covidCaseModel.removeCovidCaseDetailItem(db, data.covid_case_details_id)
     const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
-    console.log(covidCaseDetailId[0].insertId);
 
     const generic = await basicModel.getGenerics(db);
     const items = []
@@ -489,12 +489,7 @@ router.put('/present', async (req: Request, res: Response) => {
       items.push(item);
     }
     await covidCaseModel.saveCovidCaseDetailItem(db, items);
-    // const resu: any = await saveDrug(db, hospitalId, hospcode, data.drugs, data.gcs_id, hospitalType, covidCaseDetailId);
-    // if (resu.ok) {
     res.send({ ok: true, code: HttpStatus.OK });
-    // } else {
-    //   res.send({ ok: false, error: resu.error, code: HttpStatus.OK });
-    // }
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -596,11 +591,8 @@ router.get('/gcs-bed', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   const hospitalType = req.decoded.hospitalType;
   try {
-    const data: any = [];
-    const rsg = await covidCaseModel.getGcs(db, hospitalId, hospitalType);
     const rsb = await covidCaseModel.getBeds(db, hospitalId, hospitalType);
-    data.push(rsg, rsb)
-    res.send({ ok: true, rows: data });
+    res.send({ ok: true, rows: rsb });
   } catch (error) {
     res.send({ ok: false, error: error });
   }
