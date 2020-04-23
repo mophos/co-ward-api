@@ -72,10 +72,13 @@ router.get('/hospital-center', async (req: Request, res: Response) => {
 });
 
 router.get('/actived', async (req: Request, res: Response) => {
+  let hospitalId = req.decoded.hospitalId
   try {
-    let rs: any = await suppliesModel.getSuppliesActived(req.db);
+    let rs: any = await suppliesModel.getSuppliesLast(req.db, hospitalId);
+    console.log(rs);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
+    console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
@@ -116,15 +119,17 @@ router.post('/', async (req: Request, res: Response) => {
 
       let detail: any = [];
       for (const v of data) {
-        if (v.qty) {
+        if (v.qty || v.qty == 0) {
           const objD: any = {};
           objD.wm_supplie_id = id;
           objD.generic_id = v.generic_id;
-          objD.qty = v.qty || 0;
-          objD.month_usage_qty = v.month_usage_qty || 0;
+          objD.qty = v.qty;
+          objD.month_usage_qty = v.month_usage_qty || null;
           detail.push(objD);
         }
       }
+      console.log(detail);
+
       await suppliesModel.saveDetail(db, detail);
       res.send({ ok: true, code: HttpStatus.OK });
     } else {

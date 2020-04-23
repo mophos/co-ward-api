@@ -139,6 +139,14 @@ export class SuppliesModel {
     //   .insert(data);
   }
 
+  getSuppliesLast(db: Knex, hospitalId: any) {
+    return db('b_generics AS bg')
+      .select('bg.id', db.raw('null as qty'), 'vsh.month_usage_qty', 'bu.name as unit_name')
+      .joinRaw(`LEFT JOIN views_supplies_hospitals AS vsh ON vsh.generic_id = bg.id AND vsh.hospital_id = ?`, hospitalId)
+      .join('b_units AS bu', 'bu.id', 'bg.unit_id')
+      .where('bg.type', 'SUPPLIES')
+  }
+
   getSuppliesActived(db: Knex) {
     return db('b_generics as g')
       .select('g.*', 'u.name as unit_name')
