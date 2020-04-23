@@ -188,26 +188,39 @@ router.post('/', async (req: Request, res: Response) => {
   const data = req.body.data;
   try {
     const person = {
-      cid: data.cid,
+      cid: data.cid || null,
       passport: data.passport || null,
       title_id: data.titleId,
       first_name: data.fname,
+      middle_name: data.mname || null,
       last_name: data.lname,
       gender_id: data.genderId,
+      people_type: data.peopleType,
       birth_date: data.birthDate,
-      telephone: data.tel,
-      house_no: data.houseNo,
-      room_no: data.roomNo,
-      village: data.village,
-      village_name: data.villageName,
-      road: data.road,
-      tambon_code: data.tambonCode,
-      ampur_code: data.ampurCode,
-      province_code: data.provinceCode,
-      zipcode: data.zipcode,
+      telephone: data.tel || null,
+      house_no: data.houseNo || null,
+      room_no: data.roomNo || null,
+      village: data.village || null,
+      village_name: data.villageName || null,
+      road: data.road || null,
+      tambon_code: data.tambonCode || null,
+      ampur_code: data.ampurCode || null,
+      province_code: data.provinceCode || null,
+      zipcode: data.zipcode || null,
       country_code: data.countryId,
     }
-    const personId = await covidCaseModel.savePerson(db, person);
+
+    let personId: any;
+    let pid: any
+    personId = await covidCaseModel.savePerson(db, person);
+    if (personId[0].affectedRows) {
+      if (data.passport) {
+        pid = await covidCaseModel.getPersonByPassport(db, data.passport);
+      } else {
+        pid = await covidCaseModel.getPersonByCid(db, data.cid);
+      }
+      personId[0] = pid[0].id;
+    }
     const patient = {
       hospital_id: hospitalId,
       hn: data.hn,
@@ -279,8 +292,10 @@ router.post('/old', async (req: Request, res: Response) => {
       passport: data.passport || null,
       title_id: data.titleId,
       first_name: data.fname,
+      middle_name: data.mname,
       last_name: data.lname,
       gender_id: data.genderId,
+      people_type: data.peopleType,
       birth_date: data.birthDate,
       telephone: data.tel,
       house_no: data.houseNo,
@@ -288,13 +303,19 @@ router.post('/old', async (req: Request, res: Response) => {
       village: data.village,
       village_name: data.villageName,
       road: data.road,
-      tambon_code: data.tambonId,
-      ampur_code: data.ampurId,
-      province_code: data.provinceId,
+      tambon_code: data.tambonCode,
+      ampur_code: data.ampurCode,
+      province_code: data.provinceCode,
       zipcode: data.zipcode,
       country_code: data.countryId,
     }
-    const personId = await covidCaseModel.savePerson(db, person);
+
+    let personId: any;
+    personId = await covidCaseModel.savePerson(db, person);
+    if (personId[0].affectedRows) {
+      let pid = await covidCaseModel.getPersonByCid(db, data.cid);
+      personId[0] = pid[0].id;
+    }
     const patient = {
       hospital_id: hospitalId,
       hn: data.hn,
@@ -511,7 +532,7 @@ router.post('/check-register', async (req: Request, res: Response) => {
   const passport = req.body.passport;
   const type = req.body.type;
   const db = req.db;
-  const hospname = req.decoded.hospname;
+
   try {
     if (type == 'CID') {
       const rs: any = await covidCaseModel.checkCidSameHospital(db, hospitalId, cid);
@@ -530,7 +551,7 @@ router.post('/check-register', async (req: Request, res: Response) => {
       if (rs.length) {
         res.send({ ok: false, error: 'เคยบันทึก Case นี้ไปแล้ว' });
       } else {
-        const rs: any = await covidCaseModel.checkPassportAllHospital(db, passport);
+        const rs: any = await covidCaseModel.checkPassportAllHospital(db, hospitalId, passport);
         if (rs.length) {
           res.send({ ok: true, case: 'REFER' })
         } else {
