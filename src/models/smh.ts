@@ -8,9 +8,6 @@ export class smhModel {
   }
 
   getZipcode(db: Knex, id: any) {
-    console.log(db('b_subdistrict')
-    .where('id', id).toString());
-    
     return db('b_subdistrict')
       .where('id', id);
   }
