@@ -173,6 +173,15 @@ export class CovidCaseModel {
       .update(data)
   }
 
+  saveCovidCaseOldDetail(db: Knex, data) {
+    let sql = `
+    INSERT INTO p_covid_case_details
+    (covid_case_id, entry_date)
+    VALUES(?,?)
+    ON DUPLICATE KEY UPDATE
+     updated_date=now()`;
+    return db.raw(sql, [data.covid_case_id, data.entry_date])
+  }
   saveCovidCaseDetail(db: Knex, data) {
     let sql = `
     INSERT INTO p_covid_case_details
