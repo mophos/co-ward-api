@@ -17,12 +17,12 @@ export class ReportModel {
 
   getGcs(db: Knex, date) {
     return db('views_case_dates AS vcl')
-      .select('vcl.gcs_id', 'bg.name as gcs_name', 'pp.hospital_id','pp.hn','vcl.date_admit','vcl.status')
+      .select('vcl.gcs_id', 'bg.name as gcs_name', 'pp.hospital_id', 'pp.hn', 'vcl.date_admit', 'vcl.status')
       .join('p_patients AS pp', 'pp.id', 'vcl.patient_id')
       .join('b_hospitals AS bh', 'bh.id', 'pp.hospital_id')
       .leftJoin('b_gcs as bg', 'bg.id', 'vcl.gcs_id')
       .where('vcl.entry_date', date)
-      // .groupBy('pp.hospital_id', )
+    // .groupBy('pp.hospital_id', )
   }
 
   getBad(db: Knex) {
@@ -33,13 +33,20 @@ export class ReportModel {
     return db('views_professional_hospitals AS vph')
   }
 
-  getSupplies(db: Knex) {
-    return db('views_supplies_hospitals AS vsh')
+  getSupplies(db: Knex, date) {
+    const sql = db('wm_supplies_details as sd')
+      .select('sd.id AS id', 'sd.wm_supplie_id AS wm_supplie_id', 'sd.generic_id AS generic_id',
+        'sd.qty AS qty', 'sd.month_usage_qty AS month_usage_qty', 's.hospital_id AS hospital_id')
+      .join('wm_supplies as s', 's.id', 'sd.wm_supplie_id')
+    if (date) {
+      sql.where('s.date', date)
+    }
+    return sql;
   }
 
   getHospital(db: Knex) {
     return db('b_hospitals AS bh')
-      .whereIn('bh.hosptype_code', ['01','05', '06', '07'])
+      .whereIn('bh.hosptype_code', ['01', '05', '06', '07'])
   }
 
   getProvince(db: Knex, zoneCode = null, provinceCode = null) {

@@ -422,16 +422,22 @@ router.get('/get-professional', async (req: Request, res: Response) => {
 
 router.get('/get-supplies', async (req: Request, res: Response) => {
   const db = req.db;
+  const date = req.query.date;
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
   const type = req.decoded.type;
   const _provinceCode = req.decoded.provinceCode;
+  const zone = req.query.zone;
 
   try {
     let zoneCodes = [];
     let provinceCode = null;
     if (type == 'MANAGER') {
-      zoneCodes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
+      if (zone) {
+        zoneCodes = [zone];
+      } else {
+        zoneCodes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
+      }
     } else {
       if (providerType == 'ZONE') {
         zoneCodes = [zoneCode];
@@ -458,7 +464,7 @@ router.get('/get-supplies', async (req: Request, res: Response) => {
         _province.province_name = p.name_th;
         const _hosp = _.filter(hospital, { province_code: p.code })
         const hosp = [];
-        const sup: any = await model.getSupplies(db)
+        const sup: any = await model.getSupplies(db,date)
         for (const h of _hosp) {
           const _hospital: any = {};
           _hospital.province_name = p.name_th;
