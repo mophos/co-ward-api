@@ -67,7 +67,7 @@ export class CovidCaseModel {
 
   getCasePresent(db: Knex, hospitalId, query) {
     return db('p_covid_cases as c')
-      .select('c.id as covid_case_id', 'c.status', 'c.date_admit', 'pt.hn', 'pt.person_id', 'p.*', 't.name as title_name',
+      .select('c.id as covid_case_id', 'c.status', 'c.date_admit', 'pt.hn', 'pt.person_id','cd.id as covid_case_details_id' ,'p.*', 't.name as title_name',
         'cd.bed_id', 'cd.gcs_id', 'cd.medical_supplie_id', db.raw(`ifnull(cd.create_date, null) as create_date`),
         db.raw(`ifnull(cd.entry_date, null) as entry_date`),
         db.raw(`ifnull(cd.updated_date, null) as updated_date`),
@@ -176,11 +176,11 @@ export class CovidCaseModel {
   saveCovidCaseOldDetail(db: Knex, data) {
     let sql = `
     INSERT INTO p_covid_case_details
-    (covid_case_id, entry_date)
-    VALUES(?,?)
+    (covid_case_id, entry_date,status)
+    VALUES(?,?,?)
     ON DUPLICATE KEY UPDATE
      updated_date=now()`;
-    return db.raw(sql, [data.covid_case_id, data.entry_date])
+    return db.raw(sql, [data.covid_case_id, data.entry_date, data.status])
   }
   saveCovidCaseDetail(db: Knex, data) {
     let sql = `
