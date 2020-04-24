@@ -191,7 +191,7 @@ router.post('/', async (req: Request, res: Response) => {
       middle_name: data.mname || null,
       last_name: data.lname,
       gender_id: data.genderId,
-      people_type: data.peopleType,
+      people_type: data.peopleType || null,
       birth_date: data.birthDate,
       telephone: data.tel || null,
       house_no: data.houseNo || null,
@@ -299,7 +299,7 @@ router.post('/old', async (req: Request, res: Response) => {
       middle_name: data.mname || null,
       last_name: data.lname,
       gender_id: data.genderId,
-      people_type: data.peopleType,
+      people_type: data.peopleType || null,
       birth_date: data.birthDate,
       telephone: data.tel || null,
       house_no: data.houseNo || null,
@@ -493,6 +493,8 @@ router.put('/present', async (req: Request, res: Response) => {
         covid_case_detail_id: covidCaseDetailId[0].insertId == 0 ? data.id : covidCaseDetailId[0].insertId,
         generic_id: i.genericId,
       }
+      console.log(item);
+      
       const idx = _.findIndex(generic, { 'id': +i.genericId });
 
       if (idx > -1) {
