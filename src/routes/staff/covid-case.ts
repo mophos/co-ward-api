@@ -77,9 +77,8 @@ router.get('/node/detail', async (req: Request, res: Response) => {
   const right = req.decoded.rights;
   try {
     const type = [];
-    _.findIndex(right, { name: 'STAFF_COVID_CASE_DRUGS_APPROVED' }) > -1 ? type.push('DRUG') : null;
-    _.findIndex(right, { name: 'STAFF_COVID_CASE_SUPPLIES_APPROVEDF' }) > -1 ? type.push('SUPPLIES') : null;
-    console.log(type, _.findIndex(right, { name: 'STAFF_COVID_CASE_DRUGS_APPROVED' }), right);
+    _.findIndex(right, { name: 'STAFF_APPROVED_DRUGS' }) > -1 ? type.push('DRUG') : null;
+    _.findIndex(right, { name: 'STAFF_APPROVED_SUPPLIES' }) > -1 ? type.push('SUPPLIES') : null;
     let rs: any = await covidCaseModel.getListHospDetail(req.db, hospitalIdClient, type);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
@@ -192,7 +191,7 @@ router.post('/', async (req: Request, res: Response) => {
       middle_name: data.mname || null,
       last_name: data.lname,
       gender_id: data.genderId,
-      people_type: data.peopleType,
+      people_type: data.peopleType || null,
       birth_date: data.birthDate,
       telephone: data.tel || null,
       house_no: data.houseNo || null,
@@ -337,7 +336,7 @@ router.post('/old', async (req: Request, res: Response) => {
       middle_name: data.mname || null,
       last_name: data.lname,
       gender_id: data.genderId,
-      people_type: data.peopleType,
+      people_type: data.peopleType || null,
       birth_date: data.birthDate,
       telephone: data.tel || null,
       house_no: data.houseNo || null,
@@ -548,6 +547,8 @@ router.put('/present', async (req: Request, res: Response) => {
         covid_case_detail_id: covidCaseDetailId[0].insertId == 0 ? data.id : covidCaseDetailId[0].insertId,
         generic_id: i.genericId,
       }
+      console.log(item);
+      
       const idx = _.findIndex(generic, { 'id': +i.genericId });
 
       if (idx > -1) {
