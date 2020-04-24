@@ -3,7 +3,7 @@
 import * as HttpStatus from 'http-status-codes';
 
 import { Router, Request, Response } from 'express';
-
+import { replace } from 'lodash';
 import { smhModel } from '../../models/smh';
 import { SerialModel } from '../../models/serial';
 import moment = require('moment');
@@ -97,6 +97,11 @@ router.get('/', async (req: Request, res: Response) => {
       obj.province_name = add[0].province_name;
     }
 
+    const rsm: any = await labCovid(cid);
+    if (rsm) {
+      obj.sat_id = rsm.sat_id;
+      obj.telephone = rsm.telephone;
+    }
     res.send({ ok: true, rows: obj, code: HttpStatus.OK });
   } catch (error) {
     try {
@@ -106,7 +111,7 @@ router.get('/', async (req: Request, res: Response) => {
 
       obj.title_id = +smh.prename;
       obj.first_name = smh.name;
-      obj.last_name = smh.lame;
+      obj.last_name = smh.lname;
       obj.gender_id = smh.sex;
       obj.birth_date = smh.birth;
 
@@ -121,6 +126,11 @@ router.get('/', async (req: Request, res: Response) => {
       obj.tambon_name = add[0].tambon_name;
       obj.province_name = add[0].province_name;
 
+      const rsm: any = await labCovid(cid);
+      if (rsm) {
+        obj.sat_id = rsm.sat_id;
+        obj.telephone = rsm.telephone;
+      }
       res.send({ ok: true, rows: obj, code: HttpStatus.OK });
     } catch (error) {
       res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -128,4 +138,18 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
+async function labCovid(cid) {
+  const rs: any = await model.apiLogin();
+  if (rs.ok) {
+    const lab: any = await model.getLabCovid(cid, rs.token);
+    const obj: any = {};
+    if (lab.ok) {
+      obj.sat_id = lab.res[0].sat_id;
+      obj.telephone = replace(lab.res[0].mobile, /\s/g, '');
+    }
+    return obj;
+  } else {
+    return false;
+  }
+}
 export default router;
