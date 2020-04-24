@@ -200,8 +200,9 @@ export class CovidCaseModel {
     (covid_case_id, gcs_id, bed_id, medical_supplie_id, entry_date,status,create_by)
     VALUES(?,?,?,?,?,?,?)
     ON DUPLICATE KEY UPDATE
-    gcs_id=? , bed_id=? , medical_supplie_id=?, updated_date=now(),updated_by = ?`;
-    return db.raw(sql, [data.covid_case_id, data.gcs_id, data.bed_id, data.medical_supplie_id, data.entry_date, data.status, data.create_by, data.gcs_id, data.bed_id, data.medical_supplie_id, data.create_by])
+    gcs_id=? , bed_id=? , medical_supplie_id=?, updated_date=now(),updated_by = ?`;    
+    return db.raw(sql, [data.covid_case_id, data.gcs_id, data.bed_id, data.medical_supplie_id, data.entry_date, data.status, data.create_by,
+       data.gcs_id, data.bed_id, data.medical_supplie_id, data.create_by])
   }
 
   saveCovidCaseDetailItem(db: Knex, data) {
