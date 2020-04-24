@@ -23,7 +23,7 @@ router.get('/', (req: Request, res: Response) => {
 });
 
 router.get('/version', (req: Request, res: Response) => {
-  res.send({ ok: true, message: '1.1.1', code: HttpStatus.OK });
+  res.send({ ok: true, message: '1.2.0', code: HttpStatus.OK });
 });
 
 router.get('/demo', (req: Request, res: Response) => {
@@ -139,31 +139,33 @@ router.get('/updatereq', async (req: Request, res: Response) => {
     }
 
     const headSupplies: any = await requisition.getHeadCovidCaseSupplies(db);
-    console.log(headSupplies);
-    
+
+    // RS
     for (const i of headSupplies) {
       const supplies = await requisition.getDetailCovidCaseSupplies(db, i.covid_case_id);
-      // RS
-      const currentNoRs = await covidCaseModel.countRequisitionhospital(db, i.hospital_id_client)
-      const newSerialNoRs = await serialModel.paddingNumber(currentNoRs[0].count + 1, 5)
+      if (supplies.length > 0) {
+        const currentNoRs = await covidCaseModel.countRequisitionhospital(db, i.hospital_id_client)
+        const newSerialNoRs = await serialModel.paddingNumber(currentNoRs[0].count + 1, 5)
 
-      const headRs = {
-        hospital_id_node: i.hospital_id_node,
-        hospital_id_client: i.hospital_id_client,
-        covid_case_detail_id: i.covid_case_detail_id,
-        code: 'RS-' + i.hospital_id_client_code + '-' + newSerialNoRs,
-        type: 'SUPPLUES'
-      }
-
-      const requisitionIdRd = await covidCaseModel.saveRequisition(db, headRs);
-      const detailRd = [];
-      for (const d of supplies) {
-        const obj = {
-          requisition_id: requisitionIdRd[0],
-          generic_id: d.generic_id,
-          qty: d.qty
+        const headRs = {
+          hospital_id_node: i.hospital_id_node,
+          hospital_id_client: i.hospital_id_client,
+          covid_case_detail_id: i.covid_case_detail_id,
+          code: 'RS-' + i.hospital_id_client_code + '-' + newSerialNoRs,
+          type: 'SUPPLIES'
         }
-        detailRd.push(obj);
+
+        const requisitionIdRd = await covidCaseModel.saveRequisition(db, headRs);
+        const detailRs = [];
+        for (const d of supplies) {
+          const obj = {
+            requisition_id: requisitionIdRd[0],
+            generic_id: d.generic_id,
+            qty: d.qty
+          }
+          detailRs.push(obj);
+        }
+        await covidCaseModel.saveRequisitionDetail(db, detailRs);
       }
     }
 

@@ -36,7 +36,8 @@ export class Requisition {
             .leftJoin('h_node_supplies_details as nsd', 'nsd.hospital_id', 'pt.hospital_id')
             .leftJoin('h_node_supplies as ns', 'nsd.node_id', 'ns.id')
             .leftJoin('b_hospitals as h', 'h.id', 'pt.hospital_id')
-            .where('ccd.is_requisition', 'N');
+            .where('ccd.is_requisition', 'N')
+            .where('ccd.status', 'ADMIT');
     }
 
     getHeadCovidCaseDrugs(db: Knex) {
@@ -52,7 +53,8 @@ export class Requisition {
             .leftJoin('h_node_drug_details as nsd', 'nsd.hospital_id', 'pt.hospital_id')
             .leftJoin('h_node_drugs as ns', 'nsd.node_id', 'ns.id')
             .leftJoin('b_hospitals as h', 'h.id', 'pt.hospital_id')
-            .where('ccd.is_requisition', 'N');
+            .where('ccd.is_requisition', 'N')
+            .where('ccd.status', 'ADMIT');
     }
 
     getDetailCovidCaseSupplies(db: Knex, id) {
@@ -64,8 +66,13 @@ export class Requisition {
             )
             .join('p_covid_cases as c', 'c.id', 'ccd.covid_case_id')
             .join('p_patients as pt', 'pt.id', 'c.patient_id')
-            .join('b_generic_gcs_qty as ggc', 'ggc.gcs_id', 'ccd.gcs_id')
+            .join('b_hospitals as h','pt.hospital_id','h.id')
+            .join('b_generic_gcs_qty as ggc', (v)=>{
+                v.on('ggc.gcs_id', 'ccd.gcs_id');
+                v.on('ggc.type', 'h.hospital_type');
+            })
             .where('ccd.covid_case_id', id)
+            .where('ccd.status', 'ADMIT')
     }
 
     getDetailCovidCaseDrugs(db: Knex, id) {
@@ -78,10 +85,13 @@ export class Requisition {
             .join('p_covid_case_detail_items as cdi', 'ccd.id', 'cdi.covid_case_detail_id')
             .join('p_patients as pt', 'pt.id', 'c.patient_id')
             .where('ccd.covid_case_id', id)
+            .where('ccd.status', 'ADMIT')
+            .where('cdi.qty', '>', '0')
     }
 
     updateIsRequisition(db: Knex) {
         return db('p_covid_case_details')
             .update('is_requisition', 'Y')
+            .where('status','ADMIT')
     }
 }

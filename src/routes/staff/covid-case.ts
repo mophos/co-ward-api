@@ -159,12 +159,7 @@ router.put('/', async (req: Request, res: Response) => {
         zipcode: data.zipcode,
         country_code: data.countryCode,
       }
-      console.log(person);
-      console.log(data.personId);
-
       const personId = await covidCaseModel.updatePerson(db, data.personId, person);
-
-
       const patient = {
         hn: data.hn
       }
@@ -185,62 +180,94 @@ router.put('/', async (req: Request, res: Response) => {
 router.post('/', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   const db = req.db;
+  const userId = req.decoded.id;
   const data = req.body.data;
   try {
     const person = {
-      cid: data.cid,
+      cid: data.cid || null,
       passport: data.passport || null,
       title_id: data.titleId,
       first_name: data.fname,
+      middle_name: data.mname || null,
       last_name: data.lname,
       gender_id: data.genderId,
+      people_type: data.peopleType,
       birth_date: data.birthDate,
-      telephone: data.tel,
-      house_no: data.houseNo,
-      room_no: data.roomNo,
-      village: data.village,
-      village_name: data.villageName,
-      road: data.road,
-      tambon_code: data.tambonId,
-      ampur_code: data.ampurId,
-      province_code: data.provinceId,
-      zipcode: data.zipcode,
+      telephone: data.tel || null,
+      house_no: data.houseNo || null,
+      room_no: data.roomNo || null,
+      village: data.village || null,
+      village_name: data.villageName || null,
+      road: data.road || null,
+      tambon_code: data.tambonCode || null,
+      ampur_code: data.ampurCode || null,
+      province_code: data.provinceCode || null,
+      zipcode: data.zipcode || null,
       country_code: data.countryId,
     }
-    const personId = await covidCaseModel.savePerson(db, person);
+
+    let personId: any;
+    let pid: any
+    personId = await covidCaseModel.savePerson(db, person);
+    if (personId[0].affectedRows) {
+      if (data.passport) {
+        pid = await covidCaseModel.getPersonByPassport(db, data.passport);
+      } else {
+        pid = await covidCaseModel.getPersonByCid(db, data.cid);
+      }
+      personId[0] = pid[0].id;
+    }
     const patient = {
       hospital_id: hospitalId,
       hn: data.hn,
       person_id: personId[0]
     }
+
+    let _patientId: any;
     const patientId = await covidCaseModel.savePatient(db, patient);
-    const _data = {
-      patient_id: patientId,
+    if (patientId[0].affectedRows) {
+      let patientId = await covidCaseModel.getPatientByPersonId(db, personId[0]);
+      _patientId = patientId[0].id;
+    }
+
+    const timeCut = await basicModel.timeCut();
+
+    const _data: any = {
+      patient_id: _patientId,
       status: 'ADMIT',
       an: data.an,
       date_admit: data.admitDate,
       confirm_date: data.confirmDate,
-      date_entry: moment().format('YYYY-MM-DD')
+      create_by: userId
     }
+
+    if (!timeCut.ok) {
+      _data.date_entry = moment().add(1, 'days').format('YYYY-MM-DD');
+    } else {
+      _data.date_entry = moment().format('YYYY-MM-DD');
+    }
+
     const covidCaseId = await covidCaseModel.saveCovidCase(db, _data);
     const detail: any = {
       covid_case_id: covidCaseId[0],
+      status: 'ADMIT',
       gcs_id: data.gcsId,
       bed_id: data.bedId,
-      medical_supplie_id: data.medicalSupplieId || null
+      medical_supplie_id: data.medicalSupplieId || null,
+      create_by: userId
     }
-    const timeCut = await basicModel.timeCut();
     if (!timeCut.ok) {
       detail.entry_date = moment().add(1, 'days').format('YYYY-MM-DD');
     } else {
       detail.entry_date = moment().format('YYYY-MM-DD');
     }
     const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
+    const _covidCaseDetailId = covidCaseDetailId[0].insertId;
     const generic = await basicModel.getGenerics(db);
     const items = []
     for (const i of data.drugs) {
       const item: any = {
-        covid_case_detail_id: covidCaseDetailId,
+        covid_case_detail_id: _covidCaseDetailId,
         generic_id: i.genericId,
       }
       const idx = _.findIndex(generic, { 'id': +i.genericId });
@@ -251,12 +278,93 @@ router.post('/', async (req: Request, res: Response) => {
       items.push(item);
     }
     await covidCaseModel.saveCovidCaseDetailItem(db, items);
-    // const resu: any = await saveDrug(db, hospitalId, hospcode, data.drugs, data.gcsId, hospitalType, covidCaseDetailId);
-    // if (resu.ok) {
     res.send({ ok: true, code: HttpStatus.OK });
-    // } else {
-    //   res.send({ ok: false, error: resu.error, code: HttpStatus.OK });
-    // }
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.post('/old', async (req: Request, res: Response) => {
+  const hospitalId = req.decoded.hospitalId;
+  const db = req.db;
+  const data = req.body.data;
+  const userId = req.decoded.id;
+  try {
+    const person = {
+      cid: data.cid || null,
+      passport: data.passport || null,
+      title_id: data.titleId,
+      first_name: data.fname,
+      middle_name: data.mname || null,
+      last_name: data.lname,
+      gender_id: data.genderId,
+      people_type: data.peopleType,
+      birth_date: data.birthDate,
+      telephone: data.tel || null,
+      house_no: data.houseNo || null,
+      room_no: data.roomNo || null,
+      village: data.village || null,
+      village_name: data.villageName || null,
+      road: data.road || null,
+      tambon_code: data.tambonCode || null,
+      ampur_code: data.ampurCode || null,
+      province_code: data.provinceCode || null,
+      zipcode: data.zipcode || null,
+      country_code: data.countryId,
+    }
+
+    let personId: any;
+    personId = await covidCaseModel.savePerson(db, person);
+    if (personId[0].affectedRows) {
+      let pid = await covidCaseModel.getPersonByCid(db, data.cid);
+      personId[0] = pid[0].id;
+    }
+    const patient = {
+      hospital_id: hospitalId,
+      hn: data.hn,
+      person_id: personId[0]
+    }
+
+    let _patientId: any;
+    const patientId = await covidCaseModel.savePatient(db, patient);
+    if (patientId[0].affectedRows) {
+      let patientId = await covidCaseModel.getPatientByPersonId(db, personId[0]);
+      _patientId = patientId[0].id;
+    }
+
+    const timeCut = await basicModel.timeCut();
+
+    const _data: any = {
+      patient_id: _patientId,
+      an: data.an,
+      date_admit: data.admitDate,
+      confirm_date: data.confirmDate,
+      date_entry: moment().format('YYYY-MM-DD'),
+      hospital_id_refer: data.hospitalId,
+      reason: data.reason,
+      date_discharge: data.dateDischarge,
+      status: data.status,
+      create_by: userId
+    }
+    if (!timeCut.ok) {
+      _data.date_entry = moment().add(1, 'days').format('YYYY-MM-DD');
+    } else {
+      _data.date_entry = moment().format('YYYY-MM-DD');
+    }
+    const covidCaseId = await covidCaseModel.saveCovidCase(db, _data);
+    const detail: any = {
+      covid_case_id: covidCaseId[0],
+      status: data.status,
+      create_by: userId
+    }
+    if (!timeCut.ok) {
+      detail.entry_date = moment().add(1, 'days').format('YYYY-MM-DD');
+    } else {
+      detail.entry_date = moment().format('YYYY-MM-DD');
+    }
+    const covidCaseDetailId = await covidCaseModel.saveCovidCaseOldDetail(db, detail);
+    res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -361,6 +469,7 @@ router.get('/present', async (req: Request, res: Response) => {
 router.put('/present', async (req: Request, res: Response) => {
   const db = req.db;
   const data = req.body.data;
+
   try {
     const timeCut = await basicModel.timeCut();
     const detail: any = {
@@ -374,9 +483,8 @@ router.put('/present', async (req: Request, res: Response) => {
     } else {
       detail.entry_date = moment().format('YYYY-MM-DD');
     }
-    await covidCaseModel.removeCovidCaseDetailItem(db, data.id)
+    await covidCaseModel.removeCovidCaseDetailItem(db, data.covid_case_details_id)
     const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
-    console.log(covidCaseDetailId[0].insertId);
 
     const generic = await basicModel.getGenerics(db);
     const items = []
@@ -394,12 +502,7 @@ router.put('/present', async (req: Request, res: Response) => {
       items.push(item);
     }
     await covidCaseModel.saveCovidCaseDetailItem(db, items);
-    // const resu: any = await saveDrug(db, hospitalId, hospcode, data.drugs, data.gcs_id, hospitalType, covidCaseDetailId);
-    // if (resu.ok) {
     res.send({ ok: true, code: HttpStatus.OK });
-    // } else {
-    //   res.send({ ok: false, error: resu.error, code: HttpStatus.OK });
-    // }
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -437,7 +540,7 @@ router.post('/check-register', async (req: Request, res: Response) => {
   const passport = req.body.passport;
   const type = req.body.type;
   const db = req.db;
-  const hospname = req.decoded.hospname;
+
   try {
     if (type == 'CID') {
       const rs: any = await covidCaseModel.checkCidSameHospital(db, hospitalId, cid);
@@ -456,7 +559,7 @@ router.post('/check-register', async (req: Request, res: Response) => {
       if (rs.length) {
         res.send({ ok: false, error: 'เคยบันทึก Case นี้ไปแล้ว' });
       } else {
-        const rs: any = await covidCaseModel.checkPassportAllHospital(db, passport);
+        const rs: any = await covidCaseModel.checkPassportAllHospital(db, hospitalId, passport);
         if (rs.length) {
           res.send({ ok: true, case: 'REFER' })
         } else {
@@ -501,11 +604,8 @@ router.get('/gcs-bed', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   const hospitalType = req.decoded.hospitalType;
   try {
-    const data: any = [];
-    const rsg = await covidCaseModel.getGcs(db, hospitalId, hospitalType);
     const rsb = await covidCaseModel.getBeds(db, hospitalId, hospitalType);
-    data.push(rsg, rsb)
-    res.send({ ok: true, rows: data });
+    res.send({ ok: true, rows: rsb });
   } catch (error) {
     res.send({ ok: false, error: error });
   }
@@ -548,6 +648,9 @@ router.post('/requisition-stock', async (req: Request, res: Response) => {
 
 router.post('/update/discharge', async (req: Request, res: Response) => {
   const data = req.body.data;
+  const detail = req.body.detail;
+  const userId = req.decoded.id;
+
   try {
     const obj: any = {};
     obj.status = data.status;
@@ -557,7 +660,23 @@ router.post('/update/discharge', async (req: Request, res: Response) => {
       obj.reason = data.reason;
     }
 
+    const objD: any = {
+      covid_case_id: detail.covid_case_id,
+      gcs_id: detail.gcs_id,
+      bed_id: detail.bed_id,
+      status: data.status,
+      medical_supplie_id: detail.medical_supplie_id || null,
+      create_by: userId
+    }
+    const timeCut = await basicModel.timeCut();
+    if (!timeCut.ok) {
+      objD.entry_date = moment().add(1, 'days').format('YYYY-MM-DD');
+    } else {
+      objD.entry_date = moment().format('YYYY-MM-DD');
+    }
     let rs: any = await covidCaseModel.updateDischarge(req.db, data.covidCaseId, obj);
+    await covidCaseModel.saveCovidCaseDetail(req.db, objD);
+
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -582,6 +701,5 @@ router.post('/requisition', async (req: Request, res: Response) => {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
-
 
 export default router;

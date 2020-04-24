@@ -7,25 +7,35 @@ export class smhModel {
     return db('sys_token_shm').where('is_actived', 'Y');
   }
 
+  getPerson(db: Knex, cid) {
+    return db('p_persons as p')
+      .where('p.cid', cid);
+  }
+
   getZipcode(db: Knex, id: any) {
-    console.log(db('b_subdistrict')
-    .where('id', id).toString());
-    
     return db('b_subdistrict')
       .where('id', id);
   }
-  getProvince(db: Knex, id: any) {
-    return db('b_subdistrict')
-      .where('id', id);
+
+  getAddress(db: Knex, tCode, aCode, pCode) {
+    return db('view_address')
+      .where('tambon_code', tCode)
+      .where('ampur_code', aCode)
+      .where('province_code', pCode)
   }
-  getDistrict(db: Knex, id: any) {
-    return db('b_district')
-      .where('id', id);
-  }
-  getSubdistrict(db: Knex, id: any) {
-    return db('b_province')
-      .where('id', id);
-  }
+
+  // getProvince(db: Knex, id: any) {
+  //   return db('b_province')
+  //     .where('id', id);
+  // }
+  // getDistrict(db: Knex, id: any) {
+  //   return db('b_district')
+  //     .where('id', id);
+  // }
+  // getSubdistrict(db: Knex, id: any) {
+  //   return db('b_province')
+  //     .where('id', id);
+  // }
 
   getSmarthealth(cid, token) {
     return new Promise((resolve: any, reject: any) => {
