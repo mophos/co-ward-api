@@ -469,14 +469,16 @@ router.get('/present', async (req: Request, res: Response) => {
 router.put('/present', async (req: Request, res: Response) => {
   const db = req.db;
   const data = req.body.data;
-
+  const userId = req.decoded.id;
   try {
     const timeCut = await basicModel.timeCut();
     const detail: any = {
       covid_case_id: data.covid_case_id || null,
       gcs_id: data.gcs_id || null,
       bed_id: data.bed_id || null,
-      medical_supplie_id: data.medical_supplie_id || null
+      medical_supplie_id: data.medical_supplie_id || null,
+      create_by: userId,
+      status: data.status
     }
     if (!timeCut.ok) {
       detail.entry_date = moment().add(1, 'days').format('YYYY-MM-DD');
