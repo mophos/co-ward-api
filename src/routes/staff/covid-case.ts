@@ -183,6 +183,7 @@ router.post('/', async (req: Request, res: Response) => {
   const userId = req.decoded.id;
   const data = req.body.data;
   try {
+    const timeCut = await basicModel.timeCut();
     const person = {
       cid: data.cid || null,
       passport: data.passport || null,
@@ -206,34 +207,71 @@ router.post('/', async (req: Request, res: Response) => {
       country_code: data.countryId,
     }
 
+
     let personId: any;
-    let pid: any
-    personId = await covidCaseModel.savePerson(db, person);
-    if (personId[0].affectedRows) {
-      if (data.passport) {
-        pid = await covidCaseModel.getPersonByPassport(db, data.passport);
-      } else {
-        pid = await covidCaseModel.getPersonByCid(db, data.cid);
+    if (data.type == 'REFER') {
+      const dis = {
+        update_by: userId,
+        status: 'REFER'
       }
-      personId[0] = pid[0].id;
+      await covidCaseModel.updateDischarge(db, data.covidCaseId, dis)
+
+      const detail: any = {
+        covid_case_id: data.covidCaseId,
+        status: 'REFER',
+        gcs_id: null,
+        bed_id: null,
+        medical_supplie_id: null,
+        create_by: userId
+      }
+      if (!timeCut.ok) {
+        detail.entry_date = moment().add(1, 'days').format('YYYY-MM-DD');
+      } else {
+        detail.entry_date = moment().format('YYYY-MM-DD');
+      }
+      await covidCaseModel.saveCovidCaseDetail(db, detail);
+
+
+      personId = data.personId;
+    } else {
+      const rs = await covidCaseModel.savePerson(db, person);
+      if (rs[0].insertId == 0) {
+        if (data.type == 'PASSPORT') {
+          const rs = await covidCaseModel.getPersonByPassport(db, data.passport);
+          if (rs.length) {
+            personId = rs[0].id
+          }
+        } else if (data.type == 'CID') {
+          const rs = await covidCaseModel.getPersonByCid(db, data.cid);
+          if (rs.length) {
+            personId = rs[0].id
+          }
+        }
+      } else {
+        personId = rs[0].insertId;
+      }
     }
+
     const patient = {
       hospital_id: hospitalId,
       hn: data.hn,
-      person_id: personId[0]
+      person_id: personId
+    }
+    console.log(personId, hospitalId);
+
+    const rsP = await covidCaseModel.getPatientByPersonId(db, hospitalId, personId);
+    let patientId;
+    if (rsP.length) {
+      patientId = rsP[0].id;
+    } else {
+      const sp = await covidCaseModel.savePatient(db, patient);
+      patientId = sp[0];
     }
 
-    let _patientId: any;
-    const patientId = await covidCaseModel.savePatient(db, patient);
-    if (patientId[0].affectedRows) {
-      let patientId = await covidCaseModel.getPatientByPersonId(db, personId[0]);
-      _patientId = patientId[0].id;
-    }
 
-    const timeCut = await basicModel.timeCut();
 
     const _data: any = {
-      patient_id: _patientId,
+      patient_id: patientId,
       status: 'ADMIT',
       an: data.an,
       date_admit: data.admitDate,
@@ -315,28 +353,43 @@ router.post('/old', async (req: Request, res: Response) => {
     }
 
     let personId: any;
-    personId = await covidCaseModel.savePerson(db, person);
-    if (personId[0].affectedRows) {
-      let pid = await covidCaseModel.getPersonByCid(db, data.cid);
-      personId[0] = pid[0].id;
+    const rs = await covidCaseModel.savePerson(db, person);
+    if (rs[0].insertId == 0) {
+      if (data.type == 'PASSPORT') {
+        const rs = await covidCaseModel.getPersonByPassport(db, data.passport);
+        if (rs.length) {
+          personId = rs[0].id
+        }
+      } else if (data.type == 'CID') {
+        const rs = await covidCaseModel.getPersonByCid(db, data.cid);
+        if (rs.length) {
+          personId = rs[0].id
+        }
+      }
+    } else {
+      personId = rs[0].insertId;
     }
+
     const patient = {
       hospital_id: hospitalId,
       hn: data.hn,
-      person_id: personId[0]
+      person_id: personId
     }
 
-    let _patientId: any;
-    const patientId = await covidCaseModel.savePatient(db, patient);
-    if (patientId[0].affectedRows) {
-      let patientId = await covidCaseModel.getPatientByPersonId(db, personId[0]);
-      _patientId = patientId[0].id;
+    const rsP = await covidCaseModel.getPatientByPersonId(db, hospitalId, personId);
+    let patientId;
+    if (rsP.length) {
+      patientId = rsP[0].id;
+    } else {
+      const sp = await covidCaseModel.savePatient(db, patient);
+      patientId = rs[0];
     }
+
 
     const timeCut = await basicModel.timeCut();
 
     const _data: any = {
-      patient_id: _patientId,
+      patient_id: patientId,
       an: data.an,
       date_admit: data.admitDate,
       confirm_date: data.confirmDate,
@@ -694,7 +747,6 @@ router.post('/requisition', async (req: Request, res: Response) => {
     for (const v of data) {
       await covidCaseModel.updateStockQty(req.db, v.id, v.qty);
     }
-    console.log(dataReqId, 'sdfkasdlfja;lsdkjfal;skdjf');
 
     await covidCaseModel.updateReq(req.db, dataReqId);
     res.send({ ok: true, rows: data, code: HttpStatus.OK });
