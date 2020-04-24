@@ -102,8 +102,6 @@ router.get('/', async (req: Request, res: Response) => {
     try {
       const smh: any = await model.getSmarthealth(cid, token[0].token);
       const smha: any = await model.getSmarthealthAddress(cid, token[0].token);
-      
-      console.log(smha.tambon, smha.ampur, smha.changwat, 'smha');
       const add: any = await model.getAddress(db, smha.tambon, smha.ampur, smha.changwat);
 
       obj.title_id = +smh.prename;

@@ -159,12 +159,7 @@ router.put('/', async (req: Request, res: Response) => {
         zipcode: data.zipcode,
         country_code: data.countryCode,
       }
-      console.log(person);
-      console.log(data.personId);
-
       const personId = await covidCaseModel.updatePerson(db, data.personId, person);
-
-
       const patient = {
         hn: data.hn
       }
@@ -185,6 +180,7 @@ router.put('/', async (req: Request, res: Response) => {
 router.post('/', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   const db = req.db;
+  const userId = req.decoded.id;
   const data = req.body.data;
   try {
     const person = {
@@ -226,11 +222,12 @@ router.post('/', async (req: Request, res: Response) => {
       hn: data.hn,
       person_id: personId[0]
     }
+
     let _patientId: any;
     const patientId = await covidCaseModel.savePatient(db, patient);
     if (patientId[0].affectedRows) {
-      let pid = await covidCaseModel.getPatientByPersonId(db, personId[0]);
-      _patientId = pid[0].id;
+      let patientId = await covidCaseModel.getPatientByPersonId(db, personId[0]);
+      _patientId = patientId[0].id;
     }
 
     const timeCut = await basicModel.timeCut();
@@ -240,20 +237,24 @@ router.post('/', async (req: Request, res: Response) => {
       status: 'ADMIT',
       an: data.an,
       date_admit: data.admitDate,
-      confirm_date: data.confirmDate
+      confirm_date: data.confirmDate,
+      create_by: userId
     }
+
     if (!timeCut.ok) {
       _data.date_entry = moment().add(1, 'days').format('YYYY-MM-DD');
     } else {
       _data.date_entry = moment().format('YYYY-MM-DD');
     }
+
     const covidCaseId = await covidCaseModel.saveCovidCase(db, _data);
     const detail: any = {
       covid_case_id: covidCaseId[0],
       status: 'ADMIT',
       gcs_id: data.gcsId,
       bed_id: data.bedId,
-      medical_supplie_id: data.medicalSupplieId || null
+      medical_supplie_id: data.medicalSupplieId || null,
+      create_by: userId
     }
     if (!timeCut.ok) {
       detail.entry_date = moment().add(1, 'days').format('YYYY-MM-DD');
@@ -277,12 +278,7 @@ router.post('/', async (req: Request, res: Response) => {
       items.push(item);
     }
     await covidCaseModel.saveCovidCaseDetailItem(db, items);
-    // const resu: any = await saveDrug(db, hospitalId, hospcode, data.drugs, data.gcsId, hospitalType, covidCaseDetailId);
-    // if (resu.ok) {
     res.send({ ok: true, code: HttpStatus.OK });
-    // } else {
-    //   res.send({ ok: false, error: resu.error, code: HttpStatus.OK });
-    // }
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -293,7 +289,7 @@ router.post('/old', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   const db = req.db;
   const data = req.body.data;
-
+  const userId = req.decoded.id;
   try {
     const person = {
       cid: data.cid || null,
@@ -333,13 +329,13 @@ router.post('/old', async (req: Request, res: Response) => {
     let _patientId: any;
     const patientId = await covidCaseModel.savePatient(db, patient);
     if (patientId[0].affectedRows) {
-      let pid = await covidCaseModel.getPatientByPersonId(db, personId[0]);
-      _patientId = pid[0].id;
+      let patientId = await covidCaseModel.getPatientByPersonId(db, personId[0]);
+      _patientId = patientId[0].id;
     }
 
     const timeCut = await basicModel.timeCut();
 
-    const _data = {
+    const _data: any = {
       patient_id: _patientId,
       an: data.an,
       date_admit: data.admitDate,
@@ -348,7 +344,8 @@ router.post('/old', async (req: Request, res: Response) => {
       hospital_id_refer: data.hospitalId,
       reason: data.reason,
       date_discharge: data.dateDischarge,
-      status: data.status
+      status: data.status,
+      create_by: userId
     }
     if (!timeCut.ok) {
       _data.date_entry = moment().add(1, 'days').format('YYYY-MM-DD');
@@ -358,7 +355,8 @@ router.post('/old', async (req: Request, res: Response) => {
     const covidCaseId = await covidCaseModel.saveCovidCase(db, _data);
     const detail: any = {
       covid_case_id: covidCaseId[0],
-      status: data.status
+      status: data.status,
+      create_by: userId
     }
     if (!timeCut.ok) {
       detail.entry_date = moment().add(1, 'days').format('YYYY-MM-DD');
@@ -651,6 +649,7 @@ router.post('/requisition-stock', async (req: Request, res: Response) => {
 router.post('/update/discharge', async (req: Request, res: Response) => {
   const data = req.body.data;
   const detail = req.body.detail;
+  const userId = req.decoded.id;
 
   try {
     const obj: any = {};
@@ -666,7 +665,8 @@ router.post('/update/discharge', async (req: Request, res: Response) => {
       gcs_id: detail.gcs_id,
       bed_id: detail.bed_id,
       status: data.status,
-      medical_supplie_id: detail.medical_supplie_id || null
+      medical_supplie_id: detail.medical_supplie_id || null,
+      create_by: userId
     }
     const timeCut = await basicModel.timeCut();
     if (!timeCut.ok) {
@@ -675,7 +675,7 @@ router.post('/update/discharge', async (req: Request, res: Response) => {
       objD.entry_date = moment().format('YYYY-MM-DD');
     }
     let rs: any = await covidCaseModel.updateDischarge(req.db, data.covidCaseId, obj);
-    await covidCaseModel.updateCovidCaseDetail(req.db, objD);
+    await covidCaseModel.saveCovidCaseDetail(req.db, objD);
 
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
@@ -701,6 +701,5 @@ router.post('/requisition', async (req: Request, res: Response) => {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
-
 
 export default router;

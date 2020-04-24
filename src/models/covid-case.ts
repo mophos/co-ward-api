@@ -198,7 +198,7 @@ export class CovidCaseModel {
     let sql = `
     INSERT INTO p_covid_case_details
     (covid_case_id, gcs_id, bed_id, medical_supplie_id, entry_date,status,create_by)
-    VALUES(?,?,?,?,?,?,?,?)
+    VALUES(?,?,?,?,?,?,?)
     ON DUPLICATE KEY UPDATE
     gcs_id=? , bed_id=? , medical_supplie_id=?, updated_date=now(),updated_by = ?`;
     return db.raw(sql, [data.covid_case_id, data.gcs_id, data.bed_id, data.medical_supplie_id, data.entry_date, data.status, data.create_by, data.gcs_id, data.bed_id, data.medical_supplie_id, data.create_by])
@@ -248,8 +248,6 @@ export class CovidCaseModel {
     VALUES(?,?,?)
     ON DUPLICATE KEY UPDATE
     hospital_id=?,hn=?`;
-    console.log(sql, 'sql');
-
     return db.raw(sql, [data.hospital_id, data.hn, data.person_id, data.hospital_id, data.hn]);
   }
   updatePatient(db: Knex, id, data) {
