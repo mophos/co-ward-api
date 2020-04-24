@@ -226,10 +226,17 @@ router.post('/', async (req: Request, res: Response) => {
       hn: data.hn,
       person_id: personId[0]
     }
+    let _patientId: any;
     const patientId = await covidCaseModel.savePatient(db, patient);
+    if (patientId[0].affectedRows) {
+      let pid = await covidCaseModel.getPatientByPersonId(db, personId[0]);
+      _patientId = pid[0].id;
+    }
+
     const timeCut = await basicModel.timeCut();
+
     const _data: any = {
-      patient_id: patientId,
+      patient_id: _patientId,
       status: 'ADMIT',
       an: data.an,
       date_admit: data.admitDate,
@@ -286,27 +293,28 @@ router.post('/old', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   const db = req.db;
   const data = req.body.data;
+
   try {
     const person = {
-      cid: data.cid,
+      cid: data.cid || null,
       passport: data.passport || null,
       title_id: data.titleId,
       first_name: data.fname,
-      middle_name: data.mname,
+      middle_name: data.mname || null,
       last_name: data.lname,
       gender_id: data.genderId,
       people_type: data.peopleType,
       birth_date: data.birthDate,
-      telephone: data.tel,
-      house_no: data.houseNo,
-      room_no: data.roomNo,
-      village: data.village,
-      village_name: data.villageName,
-      road: data.road,
-      tambon_code: data.tambonCode,
-      ampur_code: data.ampurCode,
-      province_code: data.provinceCode,
-      zipcode: data.zipcode,
+      telephone: data.tel || null,
+      house_no: data.houseNo || null,
+      room_no: data.roomNo || null,
+      village: data.village || null,
+      village_name: data.villageName || null,
+      road: data.road || null,
+      tambon_code: data.tambonCode || null,
+      ampur_code: data.ampurCode || null,
+      province_code: data.provinceCode || null,
+      zipcode: data.zipcode || null,
       country_code: data.countryId,
     }
 
@@ -321,11 +329,18 @@ router.post('/old', async (req: Request, res: Response) => {
       hn: data.hn,
       person_id: personId[0]
     }
+
+    let _patientId: any;
     const patientId = await covidCaseModel.savePatient(db, patient);
+    if (patientId[0].affectedRows) {
+      let pid = await covidCaseModel.getPatientByPersonId(db, personId[0]);
+      _patientId = pid[0].id;
+    }
+
     const timeCut = await basicModel.timeCut();
 
     const _data = {
-      patient_id: patientId,
+      patient_id: _patientId,
       an: data.an,
       date_admit: data.admitDate,
       confirm_date: data.confirmDate,

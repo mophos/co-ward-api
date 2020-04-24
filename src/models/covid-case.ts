@@ -67,7 +67,7 @@ export class CovidCaseModel {
 
   getCasePresent(db: Knex, hospitalId, query) {
     return db('p_covid_cases as c')
-      .select('c.id as covid_case_id', 'c.status', 'c.date_admit', 'pt.hn', 'pt.person_id','cd.id as covid_case_details_id' ,'p.*', 't.name as title_name',
+      .select('c.id as covid_case_id', 'c.status', 'c.date_admit', 'pt.hn', 'pt.person_id', 'cd.id as covid_case_details_id', 'p.*', 't.name as title_name',
         'cd.bed_id', 'cd.gcs_id', 'cd.medical_supplie_id', db.raw(`ifnull(cd.create_date, null) as create_date`),
         db.raw(`ifnull(cd.entry_date, null) as entry_date`),
         db.raw(`ifnull(cd.updated_date, null) as updated_date`),
@@ -158,18 +158,6 @@ export class CovidCaseModel {
   }
 
   checkPassportAllHospital(db: Knex, hospitalId, passport) {
-    console.log(db('p_patients as pt')
-    .select('h.hospname', 'p.*', 'pt.hn', 'va.tambon_name', 'va.ampur_name', 'va.province_name', 'c.name as country_name')
-    .join('p_persons as p', 'pt.person_id', 'p.id')
-    .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
-    .leftJoin('view_address as va', (v) => {
-      v.on('va.ampur_code', 'p.ampur_code')
-      v.on('va.tambon_code', 'p.tambon_code')
-      v.on('va.province_code', 'p.province_code')
-    })
-    .leftJoin('b_countries as c', 'c.id', 'p.country_code')
-    .whereNot('pt.hospital_id', hospitalId)
-    .where('p.passport', passport).toString())
     return db('p_patients as pt')
       .select('h.hospname', 'p.*', 'pt.hn', 'va.tambon_name', 'va.ampur_name', 'va.province_name', 'c.name as country_name')
       .join('p_persons as p', 'pt.person_id', 'p.id')
@@ -205,25 +193,17 @@ export class CovidCaseModel {
      updated_date=now()`;
     return db.raw(sql, [data.covid_case_id, data.entry_date, data.status])
   }
+
   saveCovidCaseDetail(db: Knex, data) {
     let sql = `
     INSERT INTO p_covid_case_details
-    (covid_case_id, gcs_id, bed_id, medical_supplie_id, entry_date)
-    VALUES(?,?,?,?,?)
+    (covid_case_id, gcs_id, bed_id, medical_supplie_id, entry_date,status,create_by)
+    VALUES(?,?,?,?,?,?,?,?)
     ON DUPLICATE KEY UPDATE
-    gcs_id=? , bed_id=? , medical_supplie_id=?, updated_date=now()`;
-    return db.raw(sql, [data.covid_case_id, data.gcs_id, data.bed_id, data.medical_supplie_id, data.entry_date, data.gcs_id, data.bed_id, data.medical_supplie_id])
+    gcs_id=? , bed_id=? , medical_supplie_id=?, updated_date=now(),updated_by = ?`;
+    return db.raw(sql, [data.covid_case_id, data.gcs_id, data.bed_id, data.medical_supplie_id, data.entry_date, data.status, data.create_by, data.gcs_id, data.bed_id, data.medical_supplie_id, data.create_by])
   }
 
-  updateCovidCaseDetail(db: Knex, data) {
-    let sql = `
-    INSERT INTO p_covid_case_details
-    (covid_case_id, gcs_id, bed_id, medical_supplie_id, entry_date, status)
-    VALUES(?,?,?,?,?,?)
-    ON DUPLICATE KEY UPDATE
-    gcs_id=? , bed_id=? , medical_supplie_id=?, updated_date=now(), status=?`;
-    return db.raw(sql, [data.covid_case_id, data.gcs_id, data.bed_id, data.medical_supplie_id, data.entry_date, data.status, data.gcs_id, data.bed_id, data.medical_supplie_id, data.status])
-  }
   saveCovidCaseDetailItem(db: Knex, data) {
     return db('p_covid_case_detail_items')
       .insert(data);
@@ -246,6 +226,11 @@ export class CovidCaseModel {
       .where('cid', cid)
   }
 
+  getPatientByPersonId(db: Knex, personId) {
+    return db('p_patients')
+      .where('person_id', personId)
+  }
+
   getPersonByPassport(db: Knex, passport) {
     return db('p_persons')
       .where('passport', passport)
@@ -258,8 +243,14 @@ export class CovidCaseModel {
   }
 
   savePatient(db: Knex, data) {
-    return db('p_patients')
-      .insert(data);
+    let sql = `INSERT INTO p_patients
+    (hospital_id, hn, person_id)
+    VALUES(?,?,?)
+    ON DUPLICATE KEY UPDATE
+    hospital_id=?,hn=?`;
+    console.log(sql, 'sql');
+
+    return db.raw(sql, [data.hospital_id, data.hn, data.person_id, data.hospital_id, data.hn]);
   }
   updatePatient(db: Knex, id, data) {
     return db('p_patients')
