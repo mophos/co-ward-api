@@ -27,6 +27,7 @@ import hospitalAdminRoute from './routes/admin/hospital';
 import restockAdminRoute from './routes/admin/restock';
 import restockCollectionAdminRoute from './routes/admin/restock-collection';
 import drugAdminRoute from './routes/admin/drug';
+import fulfillRoute from './routes/admin/fulfill';
 
 import suppliesStaffRoute from './routes/staff/supplies';
 import balanceStaffRoute from './routes/staff/balance';
@@ -221,6 +222,7 @@ admin.use('/hospital', hospitalAdminRoute)
 admin.use('/restock', restockAdminRoute)
 admin.use('/restock-collection', restockCollectionAdminRoute)
 admin.use('/drugs', drugAdminRoute)
+admin.use('/fulfill', fulfillRoute)
 
 //manager
 api.use('/manager', checkAuth, managerAuth, manager)
