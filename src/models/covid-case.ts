@@ -135,7 +135,7 @@ export class CovidCaseModel {
 
   checkCidAllHospital(db: Knex, hospitalId, cid) {
     return db('p_patients as pt')
-      .select('h.hospname', 'p.*', 'pt.hn', 'va.*', 'c.name as country_name')
+      .select('h.hospname', 'p.*', 'pt.hn', 'va.tambon_name', 'va.ampur_name', 'va.province_name', 'c.name as country_name')
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
       .leftJoin('view_address as va', (v) => {
@@ -151,13 +151,36 @@ export class CovidCaseModel {
   checkPassportSameHospital(db: Knex, hospitalId, passport) {
     return db('p_patients as pt')
       .join('p_persons as p', 'pt.person_id', 'p.id')
+      .join('p_covid_cases as c', 'c.patient_id', 'pt.id')
       .where('pt.hospital_id', hospitalId)
+      .where('c.status', 'ADMIT')
       .where('p.passport', passport)
   }
 
-  checkPassportAllHospital(db: Knex, passport) {
+  checkPassportAllHospital(db: Knex, hospitalId, passport) {
+    console.log(db('p_patients as pt')
+    .select('h.hospname', 'p.*', 'pt.hn', 'va.tambon_name', 'va.ampur_name', 'va.province_name', 'c.name as country_name')
+    .join('p_persons as p', 'pt.person_id', 'p.id')
+    .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
+    .leftJoin('view_address as va', (v) => {
+      v.on('va.ampur_code', 'p.ampur_code')
+      v.on('va.tambon_code', 'p.tambon_code')
+      v.on('va.province_code', 'p.province_code')
+    })
+    .leftJoin('b_countries as c', 'c.id', 'p.country_code')
+    .whereNot('pt.hospital_id', hospitalId)
+    .where('p.passport', passport).toString())
     return db('p_patients as pt')
+      .select('h.hospname', 'p.*', 'pt.hn', 'va.tambon_name', 'va.ampur_name', 'va.province_name', 'c.name as country_name')
       .join('p_persons as p', 'pt.person_id', 'p.id')
+      .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
+      .leftJoin('view_address as va', (v) => {
+        v.on('va.ampur_code', 'p.ampur_code')
+        v.on('va.tambon_code', 'p.tambon_code')
+        v.on('va.province_code', 'p.province_code')
+      })
+      .leftJoin('b_countries as c', 'c.id', 'p.country_code')
+      .whereNot('pt.hospital_id', hospitalId)
       .where('p.passport', passport)
   }
 
@@ -207,8 +230,25 @@ export class CovidCaseModel {
   }
 
   savePerson(db: Knex, data) {
+    let sql = `
+    INSERT INTO p_persons
+    (cid, passport, title_id, first_name, middle_name, last_name, gender_id, birth_date, telephone, people_type, house_no, room_no, village, village_name, road, tambon_code, ampur_code, province_code, zipcode, country_code)
+    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    ON DUPLICATE KEY UPDATE
+    title_id=? , first_name=? , middle_name=?, last_name=?, gender_id=?, birth_date=?, telephone=?, people_type=?, house_no=?, room_no=?, village=?, village_name=?, road=?, tambon_code=?, ampur_code=?, province_code=?, zipcode=?, country_code=?`;
+    console.log('cid', data.cid, 'passport', data.passport, 'title_id', data.title_id, 'first_name', data.first_name, 'middle_name', data.middle_name, 'last_name', data.last_name, 'gender_id', data.gender_id, 'birth_date', data.birth_date, 'telephone', data.telephone, 'people_type', data.people_type, 'house_no', data.house_no, 'room_no', data.room_no, 'village', data.village, 'village_name', data.village_name, 'road', data.road, 'tambon_code', data.tambon_code, 'ampur_code', data.ampur_code, 'province_code', data.province_code, 'zipcode', data.zipcode, 'country_code', data.country_code);
+
+    return db.raw(sql, [data.cid, data.passport, data.title_id, data.first_name, data.middle_name, data.last_name, data.gender_id, data.birth_date, data.telephone, data.people_type, data.house_no, data.room_no, data.village, data.village_name, data.road, data.tambon_code, data.ampur_code, data.province_code, data.zipcode, data.country_code, data.title_id, data.first_name, data.middle_name, data.last_name, data.gender_id, data.birth_date, data.telephone, data.people_type, data.house_no, data.room_no, data.village, data.village_name, data.road, data.tambon_code, data.ampur_code, data.province_code, data.zipcode, data.country_code]);
+  }
+
+  getPersonByCid(db: Knex, cid) {
     return db('p_persons')
-      .insert(data);
+      .where('cid', cid)
+  }
+
+  getPersonByPassport(db: Knex, passport) {
+    return db('p_persons')
+      .where('passport', passport)
   }
 
   updatePerson(db: Knex, id, data) {
