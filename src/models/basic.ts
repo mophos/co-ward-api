@@ -193,4 +193,10 @@ export class BasicModel {
 			.where('node.hospital_id', hospitalId)
 		return sql
 	}
+
+	getSystems(db: Knex) {
+		return db('sys_systems')
+			.orderBy('id', 'DESC')
+			.limit(1);
+	}
 }
