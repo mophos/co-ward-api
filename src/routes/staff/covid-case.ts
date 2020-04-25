@@ -158,11 +158,11 @@ router.put('/', async (req: Request, res: Response) => {
         zipcode: data.zipcode,
         country_code: data.countryCode,
       }
-      const personId = await covidCaseModel.updatePerson(db, data.personId, person);
+      await covidCaseModel.updatePerson(db, data.personId, person);
       const patient = {
         hn: data.hn
       }
-      const patientId = await covidCaseModel.updatePatient(db, data.patientId, patient);
+      await covidCaseModel.updatePatient(db, data.patientId, patient);
 
 
       res.send({ ok: true, code: HttpStatus.OK });
@@ -381,7 +381,7 @@ router.post('/old', async (req: Request, res: Response) => {
       patientId = rsP[0].id;
     } else {
       const sp = await covidCaseModel.savePatient(db, patient);
-      patientId = rs[0];
+      patientId = sp[0];
     }
 
 
