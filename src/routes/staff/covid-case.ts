@@ -730,7 +730,7 @@ router.post('/update/discharge', async (req: Request, res: Response) => {
     } else {
       objD.entry_date = moment().format('YYYY-MM-DD');
     }
-    let rs: any = await covidCaseModel.updateDischarge(req.db, data.covidCaseId, obj);
+    let rs: any = await covidCaseModel.updateDischarge(req.db, detail.covid_case_id, obj);
     await covidCaseModel.saveCovidCaseDetail(req.db, objD);
 
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
