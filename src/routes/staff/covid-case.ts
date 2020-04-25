@@ -190,7 +190,7 @@ router.post('/', async (req: Request, res: Response) => {
       first_name: data.fname,
       middle_name: data.mname || null,
       last_name: data.lname,
-      gender_id: data.genderId,
+      gender_id: data.genderId || null,
       people_type: data.peopleType || null,
       birth_date: data.birthDate,
       telephone: data.tel || null,
