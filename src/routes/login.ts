@@ -43,7 +43,8 @@ router.post('/', async (req: Request, res: Response) => {
         role: rs[0].role,
         rights: right,
         zone_code: rs[0].zone_code,
-        hospitalType: rs[0].hospital_type
+        hospitalType: rs[0].hospital_type,
+        mqttTopic: process.env.MQTT_TOPIC || 'demo'
       }
       if (+rs[0].hospcode >= 41106 && +rs[0].hospcode <= 41118) {
         payload.providerType = 'ZONE';
