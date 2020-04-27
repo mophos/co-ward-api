@@ -30,6 +30,17 @@ export class FullfillModel {
       .orderBy('id', 'DESC')
   }
 
+  getDetailSurgicalMasks(db: Knex, id: any) {
+    return db('wm_fulfill_surgical_mask_details as md')
+      .select('h.hospname', 'mdi.qty', 'g.name as generic_name', 'u.name as unit_name')
+      .join('wm_fulfill_surgical_mask_detail_items as mdi', 'mdi.fulfill_surgical_mask_detail_id', 'md.id')
+      .join('b_generics as g', 'g.id', 'mdi.generic_id')
+      .join('b_units as u', 'u.id', 'g.unit_id')
+      .join('b_hospitals as h', 'h.hospcode', 'md.hospcode')
+      .where('md.fulfill_surgical_mask_id', id)
+      .where(db.raw('mdi.qty > 0'))
+  }
+
   getFulFillDrugs(db: Knex) {
     return db('wm_fulfill_drugs as fd')
       .select('fd.*', 'u.fname', 'u.lname')
@@ -191,11 +202,12 @@ export class FullfillModel {
       .whereIn('fdd.fulfill_drug_id', ids)
       .groupBy('h.id');
 
-      for (const items of drug) {
-        sql.select(db.raw(`sum(case when fddi.generic_id = ? then fddi.qty else 0 end) as ?`,[items.id,items.name]))
-      }
-    return sql
+    for (const items of drug) {
+      sql.select(db.raw(`sum(case when fddi.generic_id = ? then fddi.qty else 0 end) as ?`, [items.id, items.name]))
     }
+    return sql
+  }
+
   saveHeadSurgicalMask(db: Knex, data: any) {
     return db('wm_fulfill_surgical_masks').insert(data);
   }
@@ -207,4 +219,39 @@ export class FullfillModel {
   saveItemSurgicalMask(db: Knex, data: any) {
     return db('wm_fulfill_surgical_mask_detail_items').insert(data);
   }
+
+  getSumGenericsFromFulfill(db: Knex, sId) {
+    return db('wm_fulfill_surgical_mask_details as rd')
+      .select('rdi.generic_id', 'rd.hospcode')
+      .sum('rdi.qty as qty')
+      .join('wm_fulfill_surgical_mask_detail_items as rdi', 'rd.id', 'rdi.fulfill_surgical_mask_detail_id')
+      .join('b_generics as s', 's.id', 'rdi.generic_id')
+      .where('rd.fulfill_surgical_mask_id', sId)
+      .groupBy('generic_id')
+  }
+
+  getFulfillDetails(db: Knex, sId) {
+    return db('wm_fulfill_surgical_mask_details as rd')
+      .select('rd.id as fulfill_surgical_mask_detail_id', 's.hospcode', db.raw('CONCAT(r.code,s.hospcode) as con_no'))
+      .join('b_hospitals as s', 'rd.hospcode', 's.hospcode')
+      .join('wm_fulfill_surgical_masks as r', 'r.id', 'rd.fulfill_surgical_mask_id')
+      .where('rd.fulfill_surgical_mask_id', sId)
+  }
+
+  getFulFillSupplesItems(db: Knex, supplies, ids) {
+    let sql = db('wm_fulfill_supplies_details as fdd')
+      .select('h.hospname')
+      .join('wm_fulfill_supplies_detail_items as fddi', 'fddi.fulfill_supplies_detail_id', 'fdd.id')
+      .join('wm_fulfill_supplies as fd', 'fd.id', 'fdd.fulfill_supplies_id')
+      .join('b_hospitals as h', 'h.id', 'fdd.hospital_id')
+      .where('fd.is_approved', 'N')
+      .whereIn('fdd.fulfill_supplies_id', ids)
+      .groupBy('h.id');
+
+    for (const items of supplies) {
+      sql.select(db.raw(`sum(case when fddi.generic_id = ? then fddi.qty else 0 end) as ?`, [items.id, items.name]))
+    }
+    return sql
+  }
+
 }
