@@ -1,14 +1,13 @@
 // / <reference path="../../typings.d.ts" />
 
 import * as HttpStatus from 'http-status-codes';
-
-import * as moment from "moment"
 import { uniqBy, filter, map } from 'lodash';
 import { Router, Request, Response } from 'express';
 import { FullfillModel } from '../../models/fulfill';
 import { sumBy } from 'lodash';
 import { SerialModel } from '../../models/serial';
 
+const uuidv4 = require('uuid/v4');
 const model = new FullfillModel();
 const serialModel = new SerialModel();
 const router: Router = Router();
@@ -234,6 +233,59 @@ router.post('/min-max/save', async (req: Request, res: Response) => {
 
     await model.removeMinMax(db, hospId);
     await model.saveMinMax(db, data);
+    res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.post('/surgical-mask/save', async (req: Request, res: Response) => {
+  const db = req.db;
+  const data = req.body.data;
+  const week = req.body.week;
+  const id = req.decoded.id;
+
+  let hospData = [];
+  let dataSet = [];
+
+  try {
+    let head = {
+      code: await serialModel.getSerial(db, 'RS'),
+      created_by: id
+    }
+    const rsHead = await model.saveHeadSurgicalMask(db, head);
+    for (const v of data) {
+      console.log(week, v.per1, v.per2, v.per3, v.per4);
+      
+      let detailId = uuidv4();
+      hospData.push({
+        id: detailId,
+        fulfill_sugical_mask_id: rsHead,
+        hospcode: v.hospcode,
+      })
+      let qty = 0;
+      if (week === 1) {
+        qty = v.per1;
+      } else if (week === 2) {
+        qty = v.per2;
+      } else if (week === 3) {
+        qty = v.per3;
+      } else if (week === 4) {
+        qty = v.per4;
+      }
+
+      dataSet.push({
+        fulfill_sugical_mask_detail_id: detailId,
+        generic_id: v.generic_id,
+        qty: qty
+      })
+    }
+
+    await model.saveDetailSurgicalMask(req.db, hospData);
+    await model.saveItemSurgicalMask(req.db, dataSet);
+    
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
