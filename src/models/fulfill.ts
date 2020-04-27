@@ -137,6 +137,18 @@ export class FullfillModel {
       .where('wf.id', id)
       .groupBy('wfdd.generic_id')
   }
+
+  suppliesSumDetails(db: Knex, id) {
+    return db('wm_fulfill_supplies AS wfs')
+      .sum('wfsdi.qty as qty')
+      .select('bg.name as generic_name', 'bu.name as unit_name')
+      .join('wm_fulfill_supplies_details AS wfsd', 'wfsd.fulfill_supplies_id', 'wfs.id')
+      .join('wm_fulfill_supplies_detail_items AS wfsdi', 'wfsdi.fulfill_supplies_detail_id', 'wfsd.id')
+      .join('b_generics AS bg', 'bg.id', 'wfsdi.generic_id')
+      .join('b_units as bu', 'bu.id', 'bg.unit_id')
+      .where('wfs.id', id)
+      .groupBy('wfsdi.generic_id')
+  }
   saveFulFillSupplies(db: Knex, data) {
     return db('wm_fulfill_supplies')
       .insert(data);
