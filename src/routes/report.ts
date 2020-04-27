@@ -882,7 +882,7 @@ router.get('/fulfill-supplies', async (req: Request, res: Response) => {
     id = Array.isArray(id) ? id : [id];
     let supplies: any = await suppliesModel.getSuppliesActived(db)
     let rs: any = await fullfillModel.getFulFillSupplesItems(req.db, supplies, _.map(id, (v) => { return +v }));
-    ws.cell(1, 1).string('ร.พ./รายการยา');
+    ws.cell(1, 1).string('ร.พ./รายการเวชภัณฑ์');
     let col = 2
     for (const items of supplies) {
       ws.cell(1, col++).string(items.name);
