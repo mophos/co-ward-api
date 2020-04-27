@@ -44,11 +44,13 @@ export class FullfillModel {
   }
 
   getFulFillDrugDetailItems(db: Knex, ids) {
-    return db('wm_fulfill_drug_details as fdd')
+    let sql = db('wm_fulfill_drug_details as fdd')
       .join('wm_fulfill_drug_detail_items as fddi', 'fddi.fulfill_drug_detail_id', 'fdd.id')
       .join('wm_fulfill_drugs as fd', 'fd.id', 'fdd.fulfill_drug_id')
       .where('fd.is_approved', 'N')
       .whereIn('fdd.fulfill_drug_id', ids);
+    console.log(sql.toString());
+    return sql
   }
 
   getFulFillSuppliesDetailItems(db: Knex, ids) {
@@ -137,6 +139,18 @@ export class FullfillModel {
       .where('wf.id', id)
       .groupBy('wfdd.generic_id')
   }
+
+  suppliesSumDetails(db: Knex, id) {
+    return db('wm_fulfill_supplies AS wfs')
+      .sum('wfsdi.qty as qty')
+      .select('bg.name as generic_name', 'bu.name as unit_name')
+      .join('wm_fulfill_supplies_details AS wfsd', 'wfsd.fulfill_supplies_id', 'wfs.id')
+      .join('wm_fulfill_supplies_detail_items AS wfsdi', 'wfsdi.fulfill_supplies_detail_id', 'wfsd.id')
+      .join('b_generics AS bg', 'bg.id', 'wfsdi.generic_id')
+      .join('b_units as bu', 'bu.id', 'bg.unit_id')
+      .where('wfs.id', id)
+      .groupBy('wfsdi.generic_id')
+  }
   saveFulFillSupplies(db: Knex, data) {
     return db('wm_fulfill_supplies')
       .insert(data);
@@ -165,6 +179,22 @@ export class FullfillModel {
     });
     let queries = sqls.join(';');
     return db.raw(queries);
+  }
+
+  getFulFillDrugItems(db: Knex, drug, ids) {
+    let sql = db('wm_fulfill_drug_details as fdd')
+      .select('h.hospname')
+      .join('wm_fulfill_drug_detail_items as fddi', 'fddi.fulfill_drug_detail_id', 'fdd.id')
+      .join('wm_fulfill_drugs as fd', 'fd.id', 'fdd.fulfill_drug_id')
+      .join('b_hospitals as h', 'h.id', 'fdd.hospital_id')
+      .where('fd.is_approved', 'N')
+      .whereIn('fdd.fulfill_drug_id', ids)
+      .groupBy('h.id');
+
+    for (const items of drug) {
+      sql.select(db.raw(`sum(case when fddi.generic_id = ? then fddi.qty else 0 end) as ?`, [items.id, items.name]))
+    }
+    return sql
   }
 
   saveHeadSurgicalMask(db: Knex, data: any) {
@@ -196,4 +226,21 @@ export class FullfillModel {
       .join('wm_fulfill_surgical_masks as r', 'r.id', 'rd.fulfill_surgical_mask_id')
       .where('rd.fulfill_surgical_mask_id', sId)
   }
+
+  getFulFillSupplesItems(db: Knex, supplies, ids) {
+    let sql = db('wm_fulfill_supplies_details as fdd')
+      .select('h.hospname')
+      .join('wm_fulfill_supplies_detail_items as fddi', 'fddi.fulfill_supplies_detail_id', 'fdd.id')
+      .join('wm_fulfill_supplies as fd', 'fd.id', 'fdd.fulfill_supplies_id')
+      .join('b_hospitals as h', 'h.id', 'fdd.hospital_id')
+      .where('fd.is_approved', 'N')
+      .whereIn('fdd.fulfill_supplies_id', ids)
+      .groupBy('h.id');
+
+    for (const items of supplies) {
+      sql.select(db.raw(`sum(case when fddi.generic_id = ? then fddi.qty else 0 end) as ?`, [items.id, items.name]))
+    }
+    return sql
+  }
+
 }
