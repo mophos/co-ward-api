@@ -10,6 +10,8 @@ export class smhModel {
 
   getPerson(db: Knex, cid) {
     return db('p_persons as p')
+      .select('p.*', 't.full_name as title_name')
+      .join('um_titles as t', 't.id', 'p.title_id')
       .where('p.cid', cid);
   }
 
