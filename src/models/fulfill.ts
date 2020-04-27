@@ -178,4 +178,22 @@ export class FullfillModel {
   saveItemSurgicalMask(db: Knex, data: any) {
     return db('wm_fulfill_surgical_mask_detail_items').insert(data);
   }
+
+  getSumGenericsFromFulfill(db: Knex, sId) {
+    return db('wm_fulfill_surgical_mask_details as rd')
+      .select('rdi.generic_id', 'rd.hospcode')
+      .sum('rdi.qty as qty')
+      .join('wm_fulfill_surgical_mask_detail_items as rdi', 'rd.id', 'rdi.fulfill_surgical_mask_detail_id')
+      .join('b_generics as s', 's.id', 'rdi.generic_id')
+      .where('rd.fulfill_surgical_mask_id', sId)
+      .groupBy('generic_id')
+  }
+
+  getFulfillDetails(db: Knex, sId) {
+    return db('wm_fulfill_surgical_mask_details as rd')
+      .select('rd.id as fulfill_surgical_mask_detail_id', 's.hospcode', db.raw('CONCAT(r.code,s.hospcode) as con_no'))
+      .join('b_hospitals as s', 'rd.hospcode', 's.hospcode')
+      .join('wm_fulfill_surgical_masks as r', 'r.id', 'rd.fulfill_surgical_mask_id')
+      .where('rd.fulfill_surgical_mask_id', sId)
+  }
 }
