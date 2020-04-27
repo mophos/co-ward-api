@@ -307,5 +307,18 @@ router.get('/drugs-sum-details', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/supplies-sum-details', async (req: Request, res: Response) => {
+  const db = req.db;
+  const id = req.query.id;
+  try {
+    const rs: any = await model.suppliesSumDetails(db, id);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 
 export default router;
