@@ -31,7 +31,7 @@ export class FullfillModel {
       .join('um_users as u', 'u.id', 'fd.created_by')
   }
 
-  getFulFillDetailItems(db: Knex,ids) {
+  getFulFillDetailItems(db: Knex, ids) {
     return db('wm_fulfill_drug_details as fdd')
       .select('fd.*', 'u.fname', 'u.lname')
       .join('wm_fulfill_drug_detail_items as fddi', 'fddi.fulfull_drug_detail_id', 'fd.created_by')
@@ -80,5 +80,17 @@ export class FullfillModel {
   saveFulFillDrugDetailItem(db: Knex, data) {
     return db('wm_fulfill_drug_detail_items')
       .insert(data);
+  }
+
+  drugSumDetails(db: Knex, id) {
+    return db('wm_fulfill_drugs AS wf')
+      .sum('wfdd.qty')
+      .select('bg.name as generic_name', 'bu.name as unit_name')
+      .join('wm_fulfill_drug_details AS wfd', 'wfd.fulfill_drug_id', 'wf.id')
+      .join('wm_fulfill_drug_detail_items AS wfdd', 'wfdd.fulfill_drug_detail_id', 'wfd.id')
+      .join('b_generics as bg', 'bg.id', 'wfdd.generic_id')
+      .join('b_units as bu', 'bu.id', 'bg.unit_id')
+      .where('wf.id', id)
+      .groupBy('wfdd.generic_id')
   }
 }
