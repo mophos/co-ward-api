@@ -32,6 +32,7 @@ import fulfillRoute from './routes/admin/fulfill';
 import suppliesStaffRoute from './routes/staff/supplies';
 import balanceStaffRoute from './routes/staff/balance';
 import smhRoute from './routes/staff/smh';
+import patientInfoRoute from './routes/admin/patient-info';
 import payStaffRoute from './routes/staff/pay';
 import bedStaffRoute from './routes/staff/bed';
 import requisitionStaffRoute from './routes/staff/requisition';
@@ -217,6 +218,7 @@ api.use('/basic-auth', checkAuth, basicAuthRoute);
 api.use('/admin', checkAuth, adminAuth, admin)
 admin.use('/supplies', suppliesAdminRoute)
 admin.use('/user', userAdminRoute)
+admin.use('/patient-info', patientInfoRoute)
 admin.use('/supplies-min-max', userMinMaxAdminRoute)
 admin.use('/hospital', hospitalAdminRoute)
 admin.use('/restock', restockAdminRoute)

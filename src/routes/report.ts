@@ -347,6 +347,53 @@ router.get('/get-medicals', async (req: Request, res: Response) => {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
+router.get('/admin/get-bed', async (req: Request, res: Response) => {
+  const db = req.db;
+  const userId = req.decoded.id;
+  try {
+    const _provinces: any = await model.getProvinces(db, userId);
+    let pCode: any = [];
+    for (const v of _provinces) {
+      pCode.push(v.province_code)
+    }
+
+    let provinces: any = [];
+    for (const z of _provinces) {
+      const province = await model.getProvince(db, null, z.province_code);
+      const hospital: any = await model.getProvinceHospital(db, pCode)
+      for (const p of province) {
+        const _province: any = {};
+        _province.province_name = p.name_th;
+        const _hosp = _.filter(hospital, { province_code: p.code })
+        const hosp = [];
+        const bed: any = await model.getBad(db)
+        for (const h of _hosp) {
+          const _hospital: any = {};
+          _hospital.province_name = p.name_th;
+          const obj = {
+            hospital_id: h.id,
+            hospcode: h.hospcode,
+            hospname: h.hospname
+          };
+          const _bed = _.filter(bed, { hospital_id: h.id })
+          for (const b of _bed) {
+            obj[b.bed_name + '_qty'] = b.qty;
+            obj[b.bed_name + '_covid_qty'] = b.covid_qty;
+            obj[b.bed_name + '_usage_qty'] = b.usage_qty;
+          }
+          hosp.push(obj);
+        }
+        _province.hospitals = hosp;
+        provinces.push(_province);
+      }
+    }
+    res.send({ ok: true, rows: provinces, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, message: error, code: HttpStatus.OK });
+  }
+});
+
 
 router.get('/get-bed', async (req: Request, res: Response) => {
   const db = req.db;
@@ -608,7 +655,7 @@ router.get('/get-supplies', async (req: Request, res: Response) => {
         _province.province_name = p.name_th;
         const _hosp = _.filter(hospital, { province_code: p.code })
         const hosp = [];
-        const sup: any = await model.getSupplies(db,date)
+        const sup: any = await model.getSupplies(db, date)
         for (const h of _hosp) {
           const _hospital: any = {};
           _hospital.province_name = p.name_th;
