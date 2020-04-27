@@ -30,6 +30,17 @@ export class FullfillModel {
       .orderBy('id', 'DESC')
   }
 
+  getDetailSurgicalMasks(db: Knex, id: any) {
+    return db('wm_fulfill_surgical_mask_details as md')
+      .select('h.hospname', 'mdi.qty', 'g.name as generic_name', 'u.name as unit_name')
+      .join('wm_fulfill_surgical_mask_detail_items as mdi', 'mdi.fulfill_surgical_mask_detail_id', 'md.id')
+      .join('b_generics as g', 'g.id', 'mdi.generic_id')
+      .join('b_units as u', 'u.id', 'g.unit_id')
+      .join('b_hospitals as h', 'h.hospcode', 'md.hospcode')
+      .where('md.fulfill_surgical_mask_id', id)
+      .where(db.raw('mdi.qty > 0'))
+  }
+
   getFulFillDrugs(db: Knex) {
     return db('wm_fulfill_drugs as fd')
       .select('fd.*', 'u.fname', 'u.lname')

@@ -27,15 +27,6 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/surgical-mask', async (req: Request, res: Response) => {
-  try {
-    let rs: any = await model.getListSurgicalMasks(req.db);
-    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
-  } catch (error) {
-    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
-  }
-});
-
 router.post('/drugs', async (req: Request, res: Response) => {
   const data = req.body.data;
   const db = req.db;
@@ -187,6 +178,21 @@ router.get('/min-max/get-hopsnode', async (req: Request, res: Response) => {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
+
+router.get('/detail/surgical-mask-details', async (req: Request, res: Response) => {
+  const id = req.query.id;
+  try {
+    let rs: any = await model.getDetailSurgicalMasks(req.db, id);
+    console.log(rs, 'asdfasdfl;kasdlfkaklsdjfalksdjflaksdjf;laskdjfal;ksdjfal;skdjfa;lskdjfasd');
+
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 
 router.post('/surgical-mask', async (req: Request, res: Response) => {
   const hosptypeCode = req.body.hosptypeCode;
@@ -343,6 +349,17 @@ router.get('/supplies-sum-details', async (req: Request, res: Response) => {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
+
+
+router.get('/list/surgical-mask', async (req: Request, res: Response) => {
+  try {
+    let rs: any = await model.getListSurgicalMasks(req.db);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 
 async function sendTHPD(db, start, end) {
   for (let v = start; v < end; v++) {
