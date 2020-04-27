@@ -128,7 +128,7 @@ export class FullfillModel {
 
   drugSumDetails(db: Knex, id) {
     return db('wm_fulfill_drugs AS wf')
-      .sum('wfdd.qty')
+      .sum('wfdd.qty as qty')
       .select('bg.name as generic_name', 'bu.name as unit_name')
       .join('wm_fulfill_drug_details AS wfd', 'wfd.fulfill_drug_id', 'wf.id')
       .join('wm_fulfill_drug_detail_items AS wfdd', 'wfdd.fulfill_drug_detail_id', 'wfd.id')
