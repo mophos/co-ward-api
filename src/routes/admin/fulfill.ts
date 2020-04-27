@@ -43,10 +43,7 @@ router.get('/min-max/get-drug-min-max', async (req: Request, res: Response) => {
 router.post('/min-max/save', async (req: Request, res: Response) => {
   const db = req.db;
   const data = req.body.data;
-  const hospId = data[0].hospital_id;
-
-  console.log(hospId);
-  
+  const hospId = data[0].hospital_id;  
 
   try {
 
