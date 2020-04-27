@@ -32,6 +32,7 @@ import fulfillRoute from './routes/admin/fulfill';
 import suppliesStaffRoute from './routes/staff/supplies';
 import balanceStaffRoute from './routes/staff/balance';
 import smhRoute from './routes/staff/smh';
+import patientInfoRoute from './routes/admin/patient-info';
 import payStaffRoute from './routes/staff/pay';
 import bedStaffRoute from './routes/staff/bed';
 import requisitionStaffRoute from './routes/staff/requisition';
@@ -40,9 +41,9 @@ import requisitionSuppliesRoute from './routes/staff/requisition-supplies';
 import drugStaffRoute from './routes/staff/drug';
 import covidCaseRoute from './routes/staff/covid-case';
 import userRoute from './routes/staff/user';
-import reportRoute from './routes/staff/report';
+import reportStaffRoute from './routes/staff/report';
 
-import reportManagerRoute from './routes/report';
+import reportRoute from './routes/report';
 import basicRoute from './routes/basic';
 import basicAuthRoute from './routes/basicAuth';
 import servicesRoute from './routes/manager/services';
@@ -210,13 +211,14 @@ app.use('/v1', api);
 api.use('/login', loginRoute);
 api.use('/register', registerRoute);
 api.use('/basic', basicRoute);
-api.use('/report', checkAuth, reportManagerRoute)
+api.use('/report', checkAuth, reportRoute)
 api.use('/basic-auth', checkAuth, basicAuthRoute);
 
 //admin
 api.use('/admin', checkAuth, adminAuth, admin)
 admin.use('/supplies', suppliesAdminRoute)
 admin.use('/user', userAdminRoute)
+admin.use('/patient-info', patientInfoRoute)
 admin.use('/supplies-min-max', userMinMaxAdminRoute)
 admin.use('/hospital', hospitalAdminRoute)
 admin.use('/restock', restockAdminRoute)
@@ -236,7 +238,7 @@ staff.use('/users', userRoute)
 staff.use('/smh', smhRoute)
 staff.use('/balance', balanceStaffRoute)
 staff.use('/pay', payStaffRoute)
-staff.use('/report', reportRoute)
+staff.use('/report', reportStaffRoute)
 staff.use('/bed', bedStaffRoute)
 staff.use('/requisition', requisitionStaffRoute)
 staff.use('/requisition-supplies', requisitionSuppliesRoute)

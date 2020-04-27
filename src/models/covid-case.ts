@@ -135,8 +135,9 @@ export class CovidCaseModel {
 
   checkCidAllHospital(db: Knex, hospitalId, cid) {
     return db('p_patients as pt')
-      .select('h.hospname', 'p.*', 'pt.hn', 'va.tambon_name', 'va.ampur_name', 'va.province_name', 'c.name as country_name')
+      .select('h.hospname', 'p.*', 'va.tambon_name', 'va.ampur_name', 'va.province_name', 'c.name as country_name','cc.id as covid_case_id')
       .join('p_persons as p', 'pt.person_id', 'p.id')
+      .join('p_covid_cases as cc', 'cc.patient_id', 'pt.id')
       .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
       .leftJoin('view_address as va', (v) => {
         v.on('va.ampur_code', 'p.ampur_code')
@@ -145,6 +146,7 @@ export class CovidCaseModel {
       })
       .leftJoin('b_countries as c', 'c.id', 'p.country_code')
       .whereNot('pt.hospital_id', hospitalId)
+      .where('cc.status', 'ADMIT')
       .where('p.cid', cid)
   }
 
@@ -159,8 +161,9 @@ export class CovidCaseModel {
 
   checkPassportAllHospital(db: Knex, hospitalId, passport) {
     return db('p_patients as pt')
-      .select('h.hospname', 'p.*', 'pt.hn', 'va.tambon_name', 'va.ampur_name', 'va.province_name', 'c.name as country_name')
+      .select('h.hospname', 'p.*', 'va.tambon_name', 'va.ampur_name', 'va.province_name', 'c.name as country_name','cc.id as covid_case_id')
       .join('p_persons as p', 'pt.person_id', 'p.id')
+      .join('p_covid_cases as cc', 'cc.patient_id', 'pt.id')
       .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
       .leftJoin('view_address as va', (v) => {
         v.on('va.ampur_code', 'p.ampur_code')
@@ -169,6 +172,7 @@ export class CovidCaseModel {
       })
       .leftJoin('b_countries as c', 'c.id', 'p.country_code')
       .whereNot('pt.hospital_id', hospitalId)
+      .where('cc.status', 'ADMIT')
       .where('p.passport', passport)
   }
 
@@ -200,9 +204,9 @@ export class CovidCaseModel {
     (covid_case_id, gcs_id, bed_id, medical_supplie_id, entry_date,status,create_by)
     VALUES(?,?,?,?,?,?,?)
     ON DUPLICATE KEY UPDATE
-    gcs_id=? , bed_id=? , medical_supplie_id=?, updated_date=now(),updated_by = ?`;    
+    gcs_id=? , bed_id=? , medical_supplie_id=?, updated_date=now(),status=?,updated_by = ?`;
     return db.raw(sql, [data.covid_case_id, data.gcs_id, data.bed_id, data.medical_supplie_id, data.entry_date, data.status, data.create_by,
-       data.gcs_id, data.bed_id, data.medical_supplie_id, data.create_by])
+    data.gcs_id, data.bed_id, data.medical_supplie_id, data.status, data.create_by])
   }
 
   saveCovidCaseDetailItem(db: Knex, data) {
@@ -227,9 +231,10 @@ export class CovidCaseModel {
       .where('cid', cid)
   }
 
-  getPatientByPersonId(db: Knex, personId) {
+  getPatientByPersonId(db: Knex, hospitalId, personId) {
     return db('p_patients')
       .where('person_id', personId)
+      .where('hospital_id', hospitalId)
   }
 
   getPersonByPassport(db: Knex, passport) {
@@ -244,12 +249,14 @@ export class CovidCaseModel {
   }
 
   savePatient(db: Knex, data) {
-    let sql = `INSERT INTO p_patients
-    (hospital_id, hn, person_id)
-    VALUES(?,?,?)
-    ON DUPLICATE KEY UPDATE
-    hospital_id=?,hn=?`;
-    return db.raw(sql, [data.hospital_id, data.hn, data.person_id, data.hospital_id, data.hn]);
+    return db('p_patients')
+      .insert(data);
+    // let sql = `INSERT INTO p_patients
+    // (hospital_id, hn, person_id)
+    // VALUES(?,?,?)
+    // ON DUPLICATE KEY UPDATE
+    // hospital_id=?,hn=?`;
+    // return db.raw(sql, [data.hospital_id, data.hn, data.person_id, data.hospital_id, data.hn]);
   }
   updatePatient(db: Knex, id, data) {
     return db('p_patients')

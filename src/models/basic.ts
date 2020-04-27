@@ -193,4 +193,25 @@ export class BasicModel {
 			.where('node.hospital_id', hospitalId)
 		return sql
 	}
+
+	getSystems(db: Knex) {
+		return db('sys_systems')
+			.orderBy('id', 'DESC')
+			.limit(1);
+	}
+
+	closeSystems(db: Knex, userId) {
+		return db('sys_systems')
+			.insert({ 'status': 'CLOSE', 'create_by': userId });
+	}
+
+	openSystems(db: Knex, userId) {
+		return db('sys_systems')
+			.insert({ 'status': 'OPEN', 'create_by': userId });
+	}
+
+	broadcast(db: Knex, text, userId) {
+		return db('sys_broadcasts')
+			.insert({ 'message': text, 'create_by': userId });
+	}
 }

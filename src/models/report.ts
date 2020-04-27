@@ -1,5 +1,6 @@
 import Knex = require('knex');
 import * as moment from 'moment';
+import { join } from 'bluebird';
 
 export class ReportModel {
 
@@ -29,8 +30,17 @@ export class ReportModel {
     return db('views_bed_hospitals AS vbh')
   }
 
+  getMedicals(db: Knex) {
+    return db('views_requisition_hospitals AS vrh')
+  }
+
   getProfessional(db: Knex) {
     return db('views_professional_hospitals AS vph')
+  }
+
+  getProvinces(db: Knex, userId: any) {
+    return db('um_user_report_provinces')
+      .where('user_id', userId);
   }
 
   getSupplies(db: Knex, date) {
@@ -47,6 +57,19 @@ export class ReportModel {
   getHospital(db: Knex) {
     return db('b_hospitals AS bh')
       .whereIn('bh.hosptype_code', ['01', '05', '06', '07'])
+  }
+
+  getProvinceHospital(db: Knex, provinceCode) {
+    return db('b_hospitals AS bh')
+      .select('bh.*')
+      .join('views_bed_hospitals as p', 'p.hospital_id', 'bh.id')
+      .whereIn('bh.province_code', provinceCode)
+      .groupBy('bh.id')
+  }
+
+  getHospitalDrugs(db: Knex) {
+    return db('b_hospitals AS bh')
+      .whereIn('bh.hosptype_code', ['01', '05', '06', '07', '11', '15'])
   }
 
   getProvince(db: Knex, zoneCode = null, provinceCode = null) {

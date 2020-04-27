@@ -102,4 +102,38 @@ router.get('/list-child-node', async (req: Request, res: Response) => {
     res.send({ ok: false, error: error });
   }
 });
+
+router.get('/close-systems', async (req: Request, res: Response) => {
+  const db = req.db;
+  const userId = req.decoded.id;
+  try {
+    const rs = await model.closeSystems(db, userId);
+    res.send({ ok: true });
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
+
+router.get('/open-systems', async (req: Request, res: Response) => {
+  const db = req.db;
+  const userId = req.decoded.id;
+  try {
+    const rs = await model.openSystems(db, userId);
+    res.send({ ok: true });
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
+
+router.post('/broadcast', async (req: Request, res: Response) => {
+  const db = req.db;
+  const userId = req.decoded.id;
+  const message = req.body.message;
+  try {
+    const rs = await model.broadcast(db, message, userId);
+    res.send({ ok: true });
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
 export default router;
