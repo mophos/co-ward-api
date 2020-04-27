@@ -75,7 +75,6 @@ router.get('/actived', async (req: Request, res: Response) => {
   let hospitalId = req.decoded.hospitalId
   try {
     let rs: any = await suppliesModel.getSuppliesLast(req.db, hospitalId);
-    console.log(rs);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);

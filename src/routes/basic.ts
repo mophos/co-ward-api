@@ -161,4 +161,16 @@ router.get('/countries/autocomplete/search', async (req: Request, res: Response)
   }
 });
 
+router.get('/systems', async (req: Request, res: Response) => {
+  try {
+    let rs: any = await model.getSystems(req.db);
+    if (rs.length) {
+      res.send({ ok: true, rows: rs[0].status, code: HttpStatus.OK });
+    } else {
+      res.send({ ok: true, rows: 'OPEN', code: HttpStatus.OK });
+    }
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
 export default router;

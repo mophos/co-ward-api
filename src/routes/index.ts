@@ -23,7 +23,7 @@ router.get('/', (req: Request, res: Response) => {
 });
 
 router.get('/version', (req: Request, res: Response) => {
-  res.send({ ok: true, message: '1.2.0', code: HttpStatus.OK });
+  res.send({ ok: true, message: '1.2.1', code: HttpStatus.OK });
 });
 
 router.get('/demo', (req: Request, res: Response) => {

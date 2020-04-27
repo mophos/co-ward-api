@@ -3,7 +3,7 @@
 import * as HttpStatus from 'http-status-codes';
 
 import { Router, Request, Response } from 'express';
-
+import { replace } from 'lodash';
 import { smhModel } from '../../models/smh';
 import { SerialModel } from '../../models/serial';
 import moment = require('moment');
@@ -97,6 +97,11 @@ router.get('/', async (req: Request, res: Response) => {
       obj.province_name = add[0].province_name;
     }
 
+    const rsm: any = await labCovid(db, cid);
+    if (rsm) {
+      obj.sat_id = rsm.sat_id;
+      obj.telephone = rsm.telephone;
+    }
     res.send({ ok: true, rows: obj, code: HttpStatus.OK });
   } catch (error) {
     try {
@@ -106,7 +111,7 @@ router.get('/', async (req: Request, res: Response) => {
 
       obj.title_id = +smh.prename;
       obj.first_name = smh.name;
-      obj.last_name = smh.lame;
+      obj.last_name = smh.lname;
       obj.gender_id = smh.sex;
       obj.birth_date = smh.birth;
 
@@ -121,6 +126,11 @@ router.get('/', async (req: Request, res: Response) => {
       obj.tambon_name = add[0].tambon_name;
       obj.province_name = add[0].province_name;
 
+      const rsm: any = await labCovid(db, cid);
+      if (rsm) {
+        obj.sat_id = rsm.sat_id;
+        obj.telephone = rsm.telephone;
+      }
       res.send({ ok: true, rows: obj, code: HttpStatus.OK });
     } catch (error) {
       res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -128,4 +138,34 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
+async function labCovid(db, cid) {
+  const rs: any = await model.apiLogin();
+  if (rs.ok) {
+    const lab: any = await model.getLabCovid(cid, rs.token);
+    const obj: any = {};
+    if (lab.ok) {
+      // const tambonCode: any = lab.res[0].sick_sub_district.substring(0, 2);
+      // const ampurCode: any = lab.res[0].sick_sub_district.substring(2, 4);
+      // const provinceCode: any = lab.res[0].sick_sub_district.substring(4, 6);
+      // const add: any = await model.getAddress(db, tambonCode, ampurCode, provinceCode);
+
+      obj.sat_id = lab.res[0].sat_id;
+      obj.telephone = replace(lab.res[0].mobile, /\s/g, '');
+      // if (add.length) {
+      //   obj.ampur_code = ampurCode;
+      //   obj.tambon_code = tambonCode;
+      //   obj.province_code = provinceCode;
+      //   obj.ampur_name = add[0].ampur_name;
+      //   obj.tambon_name = add[0].tambon_name;
+      //   obj.province_name = add[0].province_name;
+      //   obj.house_no = lab.res[0].sick_house_no;
+      //   obj.village = lab.res[0].sick_village;
+      //   obj.road = lab.res[0].sick_road;
+      // }
+    }
+    return obj;
+  } else {
+    return false;
+  }
+}
 export default router;
