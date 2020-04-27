@@ -107,10 +107,13 @@ router.get('/status', async (req: Request, res: Response) => {
 
 router.get('/updatereq', async (req: Request, res: Response) => {
   try {
+
     const db = req.db
+
+    // RD
     const headDrug: any = await requisition.getHeadCovidCaseDrugs(db);
     for (const i of headDrug) {
-      const drugs = await requisition.getDetailCovidCaseDrugs(db, i.covid_case_id);
+      const drugs = await requisition.getDetailCovidCaseDrugs(db, i.covid_case_detail_id);
       if (drugs.length > 0) {
         const currentNoRd = await covidCaseModel.countRequisitionhospital(db, i.hospital_id_client)
         const newSerialNoRd = await serialModel.paddingNumber(currentNoRd[0].count + 1, 5)
@@ -133,16 +136,14 @@ router.get('/updatereq', async (req: Request, res: Response) => {
           }
           detailRd.push(obj);
         }
-
         await covidCaseModel.saveRequisitionDetail(db, detailRd);
       }
     }
 
-    const headSupplies: any = await requisition.getHeadCovidCaseSupplies(db);
-
     // RS
+    const headSupplies: any = await requisition.getHeadCovidCaseSupplies(db);
     for (const i of headSupplies) {
-      const supplies = await requisition.getDetailCovidCaseSupplies(db, i.covid_case_id);
+      const supplies = await requisition.getDetailCovidCaseSupplies(db, i.covid_case_detail_id);
       if (supplies.length > 0) {
         const currentNoRs = await covidCaseModel.countRequisitionhospital(db, i.hospital_id_client)
         const newSerialNoRs = await serialModel.paddingNumber(currentNoRs[0].count + 1, 5)

@@ -71,7 +71,7 @@ export class Requisition {
                 v.on('ggc.gcs_id', 'ccd.gcs_id');
                 v.on('ggc.type', 'h.hospital_type');
             })
-            .where('ccd.covid_case_id', id)
+            .where('ccd.id', id)
             .where('ccd.status', 'ADMIT')
     }
 
@@ -84,7 +84,7 @@ export class Requisition {
             .join('p_covid_cases as c', 'c.id', 'ccd.covid_case_id')
             .join('p_covid_case_detail_items as cdi', 'ccd.id', 'cdi.covid_case_detail_id')
             .join('p_patients as pt', 'pt.id', 'c.patient_id')
-            .where('ccd.covid_case_id', id)
+            .where('ccd.id', id)
             .where('ccd.status', 'ADMIT')
             .where('cdi.qty', '>', '0')
     }
