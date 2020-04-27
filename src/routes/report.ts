@@ -7,6 +7,7 @@ import * as _ from 'lodash';
 import moment = require('moment');
 import { FullfillModel } from '../models/fulfill';
 import { DrugsModel } from '../models/drug';
+import { SuppliesModel } from '../models/supplies';
 const excel4node = require('excel4node');
 const path = require('path')
 const fse = require('fs-extra');
@@ -14,6 +15,7 @@ const fs = require('fs');
 const model = new ReportModel();
 const fullfillModel = new FullfillModel();
 const drugsModel = new DrugsModel();
+const suppliesModel = new SuppliesModel();
 const router: Router = Router();
 
 router.get('/', async (req: Request, res: Response) => {
@@ -871,6 +873,54 @@ router.get('/fulfill-drugs', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/fulfill-supplies', async (req: Request, res: Response) => {
+  const db = req.db;
+  let id = req.query.id
+  var wb = new excel4node.Workbook();
+  var ws = wb.addWorksheet('Sheet 1');
+  try {
+    id = Array.isArray(id) ? id : [id];
+    let supplies: any = await suppliesModel.getSuppliesActived(db)
+    let rs: any = await fullfillModel.getFulFillSupplesItems(req.db, supplies, _.map(id, (v) => { return +v }));
+    ws.cell(1, 1).string('ร.พ./รายการยา');
+    let col = 2
+    for (const items of supplies) {
+      ws.cell(1, col++).string(items.name);
+    }
+    let row = 1
+    for (const items of rs) {
+      col = 2
+      ws.cell(++row, 1).string(items.hospname);
+      for (const itemD of supplies) {
+        if (itemD.name in items)
+          console.log(items[itemD.name]);
+        ws.cell(row, col++).number(items[itemD.name]);
+      }
+    }
+    fse.ensureDirSync(process.env.TMP_PATH);
+
+    let filename = `fulfill` + moment().format('x');
+    let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
+
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+      }
+    });
+    // res.send({ ok: true, rows: data, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
 
 
 
