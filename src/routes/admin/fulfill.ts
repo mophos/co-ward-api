@@ -258,7 +258,7 @@ router.post('/surgical-mask/save', async (req: Request, res: Response) => {
     const rsHead = await model.saveHeadSurgicalMask(db, head);
     for (const v of data) {
       console.log(week, v.per1, v.per2, v.per3, v.per4);
-      
+
       let detailId = uuidv4();
       hospData.push({
         id: detailId,
@@ -285,8 +285,21 @@ router.post('/surgical-mask/save', async (req: Request, res: Response) => {
 
     await model.saveDetailSurgicalMask(req.db, hospData);
     await model.saveItemSurgicalMask(req.db, dataSet);
-    
+
     res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/drugs-sum-details', async (req: Request, res: Response) => {
+  const db = req.db;
+  const id = req.query.id;
+  try {
+    const rs: any = await model.drugSumDetails(db, id);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
 

@@ -126,6 +126,17 @@ export class FullfillModel {
       .insert(data);
   }
 
+  drugSumDetails(db: Knex, id) {
+    return db('wm_fulfill_drugs AS wf')
+      .sum('wfdd.qty as qty')
+      .select('bg.name as generic_name', 'bu.name as unit_name')
+      .join('wm_fulfill_drug_details AS wfd', 'wfd.fulfill_drug_id', 'wf.id')
+      .join('wm_fulfill_drug_detail_items AS wfdd', 'wfdd.fulfill_drug_detail_id', 'wfd.id')
+      .join('b_generics as bg', 'bg.id', 'wfdd.generic_id')
+      .join('b_units as bu', 'bu.id', 'bg.unit_id')
+      .where('wf.id', id)
+      .groupBy('wfdd.generic_id')
+  }
   saveFulFillSupplies(db: Knex, data) {
     return db('wm_fulfill_supplies')
       .insert(data);

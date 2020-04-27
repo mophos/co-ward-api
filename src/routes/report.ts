@@ -250,7 +250,6 @@ router.get('/get-gcs', async (req: Request, res: Response) => {
             hospname: h.hospname
           };
           const _gcs = _.filter(gcs, { hospital_id: h.id })
-          console.log(_gcs);
 
           obj.details = _gcs;
 
@@ -697,7 +696,6 @@ router.get('/get-gcs/export', async (req: Request, res: Response) => {
   const zone = req.query.zone;
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
-console.log('ssssss');
 
   try {
     let zoneCodes = [];
