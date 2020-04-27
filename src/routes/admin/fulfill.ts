@@ -65,7 +65,7 @@ router.get('/drugs', async (req: Request, res: Response) => {
 
   const db = req.db;
   try {
-    const rs: any = await model.getFulFill(db);
+    const rs: any = await model.getFulFillDrugs(db);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -78,11 +78,89 @@ router.post('/drugs/approved', async (req: Request, res: Response) => {
 
   const db = req.db;
   const data = req.body.data;
+  const userId = req.decoded.id;
   try {
     const ids = map(data, 'id');
-    const rs: any = await model.getFulFillDetailItems(db, ids);
-    await model.approved(db, ids);
+    const rs: any = await model.getFulFillDrugDetailItems(db, ids);
+    if (rs.length) {
+      await model.saveQTY(db, rs);
+      await model.approved(db, ids, userId);
+      res.send({ ok: true, code: HttpStatus.OK });
+    } else {
+      res.send({ ok: false, error: 'ไม่มีรายการให้อนุมัติ', code: HttpStatus.OK });
+    }
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.post('/supplies', async (req: Request, res: Response) => {
+  const data = req.body.data;
+  const db = req.db;
+  const userId = req.decoded.id;
+  try {
+    const head = {
+      created_by: userId,
+      code: await serialModel.getSerial(db, 'FS')
+    }
+    const fulfillId = await model.saveFulFillSupplies(db, head);
+    const hospitals = uniqBy(data, 'hospital_id');
+    for (const h of hospitals) {
+      const obj: any = {
+        fulfill_supplies_id: fulfillId[0],
+        hospital_id: h.hospital_id
+      }
+      const fulfillDetailId = await model.saveFulFillSuppliesDetail(db, obj);
+      const _data = filter(data, { 'hospital_id': h.hospital_id });
+      const items = [];
+      for (const d of _data) {
+        const item: any = {
+          fulfill_supplies_detail_id: fulfillDetailId,
+          generic_id: d.generic_id,
+          qty: d.fill_qty
+        }
+        items.push(item);
+      }
+      await model.saveFulFillSuppliesDetailItem(db, items);
+    }
     res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/supplies', async (req: Request, res: Response) => {
+
+  const db = req.db;
+  try {
+    const rs: any = await model.getFulFillSupplies(db);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.post('/supplies/approved', async (req: Request, res: Response) => {
+
+  const db = req.db;
+  const data = req.body.data;
+  const userId = req.decoded.id;
+  try {
+    const ids = map(data, 'id');
+    const rs: any = await model.getFulFillSuppliesDetailItems(db, ids);
+    if (rs.length) {
+      await model.saveQTY(db, rs);
+      await model.approved(db, ids, userId);
+      res.send({ ok: true, code: HttpStatus.OK });
+    } else {
+      res.send({ ok: false, error: 'ไม่มีรายการให้อนุมัติ', code: HttpStatus.OK });
+    }
   } catch (error) {
     console.log(error);
 

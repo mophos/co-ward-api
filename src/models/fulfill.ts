@@ -25,21 +25,43 @@ export class FullfillModel {
     return sql;
   }
 
-  getFulFill(db: Knex) {
+  getFulFillDrugs(db: Knex) {
     return db('wm_fulfill_drugs as fd')
       .select('fd.*', 'u.fname', 'u.lname')
       .join('um_users as u', 'u.id', 'fd.created_by')
+      .orderBy('id','DESC')
   }
-
-  getFulFillDetailItems(db: Knex,ids) {
-    return db('wm_fulfill_drug_details as fdd')
+  getFulFillSupplies(db: Knex) {
+    return db('wm_fulfill_supplies as fd')
       .select('fd.*', 'u.fname', 'u.lname')
-      .join('wm_fulfill_drug_detail_items as fddi', 'fddi.fulfull_drug_detail_id', 'fd.created_by')
+      .join('um_users as u', 'u.id', 'fd.created_by')
+      .orderBy('id','DESC')
   }
 
-  approved(db: Knex, data: []) {
+  getFulFillDrugDetailItems(db: Knex, ids) {
+    return db('wm_fulfill_drug_details as fdd')
+      .join('wm_fulfill_drug_detail_items as fddi', 'fddi.fulfill_drug_detail_id', 'fdd.id')
+      .join('wm_fulfill_drugs as fd', 'fd.id', 'fdd.fulfill_drug_id')
+      .where('fd.is_approved', 'N')
+      .whereIn('fdd.fulfill_drug_id', ids);
+  }
+  
+  getFulFillSuppliesDetailItems(db: Knex, ids) {
+    return db('wm_fulfill_supplies_details as fdd')
+      .join('wm_fulfill_supplies_detail_items as fddi', 'fddi.fulfill_supplies_detail_id', 'fdd.id')
+      .join('wm_fulfill_supplies as fd', 'fd.id', 'fdd.fulfill_supplies_id')
+      .where('fd.is_approved', 'N')
+      .whereIn('fdd.fulfill_supplies_id', ids);
+
+  }
+
+  approved(db: Knex, data: [], userId) {
     return db('wm_fulfill_drugs as fd')
-      .update('is_approved', 'Y')
+      .update({
+        'is_approved': 'Y',
+        'approved_by': userId,
+        'approved_date': db.raw('now()')
+      })
       .whereIn('id', data);
   }
 
@@ -80,5 +102,35 @@ export class FullfillModel {
   saveFulFillDrugDetailItem(db: Knex, data) {
     return db('wm_fulfill_drug_detail_items')
       .insert(data);
+  }
+
+  saveFulFillSupplies(db: Knex, data) {
+    return db('wm_fulfill_supplies')
+      .insert(data);
+  }
+
+  saveFulFillSuppliesDetail(db: Knex, data) {
+    return db('wm_fulfill_supplies_details')
+      .insert(data);
+  }
+  saveFulFillSuppliesDetailItem(db: Knex, data) {
+    return db('wm_fulfill_supplies_detail_items')
+      .insert(data);
+  }
+
+  saveQTY(db: Knex, data) {
+    let sqls = [];
+    data.forEach(v => {
+      let sql = `
+          INSERT INTO wm_generics
+          (hospital_id, generic_id,qty)
+          VALUES('${v.hospital_id}', '${v.generic_id}',${v.qty})
+          ON DUPLICATE KEY UPDATE
+          qty=qty+${v.qty}
+        `;
+      sqls.push(sql);
+    });
+    let queries = sqls.join(';');
+    return db.raw(queries);
   }
 }
