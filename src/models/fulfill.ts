@@ -25,6 +25,11 @@ export class FullfillModel {
     return sql;
   }
 
+  getListSurgicalMasks(db: Knex) {
+    return db('wm_fulfill_surgical_masks')
+      .orderBy('id', 'DESC')
+  }
+  
   getFulFillDrugs(db: Knex) {
     return db('wm_fulfill_drugs as fd')
       .select('fd.*', 'u.fname', 'u.lname')
@@ -69,6 +74,23 @@ export class FullfillModel {
     return db('h_node_drugs AS hn')
       .select('bh.*')
       .join('b_hospitals AS bh', 'bh.id', 'hn.hospital_id')
+  }
+
+  getHospital(db: Knex, hospitalTypeCode) {
+    return db('views_supplies_hospitals AS v')
+      .select('v.*', 'h.hospname', 'h.province_name',
+        db.raw(`(( ( - 1 * DATEDIFF( s.date, now( ) ) ) * IFNULL( v.month_usage_qty, 0 ) ) + v.qty) - IFNULL( v.month_usage_qty / 4, 0 ) as week1`),
+        db.raw(`(( ( - 1 * DATEDIFF( s.date, now( ) ) ) * IFNULL( v.month_usage_qty, 0 ) ) + v.qty) - IFNULL( v.month_usage_qty / 4, 0 ) * 2 as week2`),
+        db.raw(`(( ( - 1 * DATEDIFF( s.date, now( ) ) ) * IFNULL( v.month_usage_qty, 0 ) ) + v.qty) - IFNULL( v.month_usage_qty / 4, 0 ) * 3 as week3`),
+        db.raw(`(( ( - 1 * DATEDIFF( s.date, now( ) ) ) * IFNULL( v.month_usage_qty, 0 ) ) + v.qty) - IFNULL( v.month_usage_qty / 4, 0 ) * 4 as week4`),
+        db.raw(`( ( - 1 * DATEDIFF( s.date, now( ) ) ) * v.month_usage_qty ) + v.qty AS datecal`))
+      .join('b_hospitals AS h', 'h.id', 'v.hospital_id')
+      .join('wm_supplies AS s', 's.id', 'v.wm_supplie_id')
+      .whereIn('h.hosptype_code', hospitalTypeCode)
+      .where('v.generic_id', 17)
+      .whereNotNull('v.qty')
+      .having(db.raw('week1 < 0'))
+      .orderBy('h.hosptype_code', 'h.province_name');
   }
 
   getDrugMinMax(db: Knex, hospitalId) {
