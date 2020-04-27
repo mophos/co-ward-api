@@ -29,6 +29,7 @@ export class DrugsModel {
       .where('is_deleted', 'N')
       .where('is_actived', 'Y')
       .where('type', 'DRUG')
+      .orderBy('id')
   }
 
   updateDrugs(db: Knex, id: any, data = {}) {
