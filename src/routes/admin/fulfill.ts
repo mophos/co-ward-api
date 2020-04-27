@@ -1,14 +1,13 @@
 // / <reference path="../../typings.d.ts" />
 
 import * as HttpStatus from 'http-status-codes';
-
-import * as moment from "moment"
 import { uniqBy, filter, map } from 'lodash';
 import { Router, Request, Response } from 'express';
-
 import { FullfillModel } from '../../models/fulfill';
+import { sumBy } from 'lodash';
 import { SerialModel } from '../../models/serial';
 
+const uuidv4 = require('uuid/v4');
 const model = new FullfillModel();
 const serialModel = new SerialModel();
 const router: Router = Router();
@@ -18,6 +17,15 @@ router.get('/', async (req: Request, res: Response) => {
   const type = req.query.type;
   try {
     let rs: any = await model.getProducts(req.db, type);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/surgical-mask', async (req: Request, res: Response) => {
+  try {
+    let rs: any = await model.getListSurgicalMasks(req.db);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -163,7 +171,6 @@ router.post('/supplies/approved', async (req: Request, res: Response) => {
     }
   } catch (error) {
     console.log(error);
-
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
@@ -173,6 +180,36 @@ router.get('/min-max/get-hopsnode', async (req: Request, res: Response) => {
     let rs: any = await model.getHospNode(req.db);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.post('/surgical-mask', async (req: Request, res: Response) => {
+  const hosptypeCode = req.body.hosptypeCode;
+  const totalQty = req.body.totalQty;
+
+  try {
+    let rs: any = await model.getHospital(req.db, hosptypeCode);
+    let totalWeek1 = sumBy(rs, 'week1');
+    let totalWeek2 = sumBy(rs, 'week2');
+    let totalWeek3 = sumBy(rs, 'week3');
+    let totalWeek4 = sumBy(rs, 'week4');
+
+    for (const v of rs) {
+      v.month_usage_qty = v.month_usage_qty === null ? 0 : v.month_usage_qty;
+      v.per1 = (((((100 * v.week1) / totalWeek1) * totalQty) / 100) / 50);
+      v.per2 = (((((100 * v.week2) / totalWeek2) * totalQty) / 100) / 50);
+      v.per3 = (((((100 * v.week3) / totalWeek3) * totalQty) / 100) / 50);
+      v.per4 = (((((100 * v.week4) / totalWeek4) * totalQty) / 100) / 50);
+
+      v.per1 = v.per1.toFixed(0) * 50;
+      v.per2 = v.per2.toFixed(0) * 50;
+      v.per3 = v.per3.toFixed(0) * 50;
+      v.per4 = v.per4.toFixed(0) * 50;
+    }
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
@@ -197,6 +234,72 @@ router.post('/min-max/save', async (req: Request, res: Response) => {
     await model.removeMinMax(db, hospId);
     await model.saveMinMax(db, data);
     res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.post('/surgical-mask/save', async (req: Request, res: Response) => {
+  const db = req.db;
+  const data = req.body.data;
+  const week = req.body.week;
+  const id = req.decoded.id;
+
+  let hospData = [];
+  let dataSet = [];
+
+  try {
+    let head = {
+      code: await serialModel.getSerial(db, 'RS'),
+      created_by: id
+    }
+    const rsHead = await model.saveHeadSurgicalMask(db, head);
+    for (const v of data) {
+      console.log(week, v.per1, v.per2, v.per3, v.per4);
+
+      let detailId = uuidv4();
+      hospData.push({
+        id: detailId,
+        fulfill_sugical_mask_id: rsHead,
+        hospcode: v.hospcode,
+      })
+      let qty = 0;
+      if (week === 1) {
+        qty = v.per1;
+      } else if (week === 2) {
+        qty = v.per2;
+      } else if (week === 3) {
+        qty = v.per3;
+      } else if (week === 4) {
+        qty = v.per4;
+      }
+
+      dataSet.push({
+        fulfill_sugical_mask_detail_id: detailId,
+        generic_id: v.generic_id,
+        qty: qty
+      })
+    }
+
+    await model.saveDetailSurgicalMask(req.db, hospData);
+    await model.saveItemSurgicalMask(req.db, dataSet);
+
+    res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/drugs-sum-details', async (req: Request, res: Response) => {
+  const db = req.db;
+  const id = req.query.id;
+  try {
+    const rs: any = await model.drugSumDetails(db, id);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
 

@@ -862,7 +862,6 @@ router.get('/fulfill-drugs', async (req: Request, res: Response) => {
         res.sendfile(filenamePath, (v) => {
           fse.removeSync(filenamePath);
         })
-
       }
     });
     // res.send({ ok: true, rows: data, code: HttpStatus.OK });
