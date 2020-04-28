@@ -360,9 +360,9 @@ router.get('/get-medicals', async (req: Request, res: Response) => {
 });
 router.get('/admin/get-bed', async (req: Request, res: Response) => {
   const db = req.db;
-  const userId = req.decoded.id;
+  
   try {
-    const _provinces: any = await model.getProvinces(db, userId);
+    const _provinces: any = await model.getProvinces(db);
     let pCode: any = [];
     for (const v of _provinces) {
       pCode.push(v.province_code)

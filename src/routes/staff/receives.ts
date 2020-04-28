@@ -22,6 +22,8 @@ router.get('/fulfill', async (req: Request, res: Response) => {
         detail = await receiveModel.getFulFillDetailDrugs(db, i.id);
       } else if (i.type == 'SUPPLIES') {
         detail = await receiveModel.getFulFillDetailSupplies(db, i.id);
+      } else if (i.type == 'SURGICALMASK') {
+        detail = await receiveModel.getFulFillDetailSupplies(db, i.id);
       }
       i.details = detail;
 
