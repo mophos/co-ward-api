@@ -747,20 +747,20 @@ router.post('/requisition', async (req: Request, res: Response) => {
     dataReqId = Array.isArray(dataReqId) ? dataReqId : [dataReqId];
     const _data: any = [];
     for (const v of data) {
+      console.log(v);
+      
       if (v.stock_qty - v.requisition_qty < 0) {
       } else {
         const obj: any = {};
-        obj.id = v.wm_id;
-        obj.qty = v.stock_qty - v.requisition_qty;
+        obj.hospital_id = v.hospital_id;
+        obj.generic_id = v.generic_id;
+        obj.qty = v.requisition_qty
         _data.push(obj);
       }
     }
     const approveDate = moment().format('YYYY-MM-DD');
     if (data.length == _data.length) {
-      for (const v of _data) {
-        await covidCaseModel.updateStockQty(req.db, v.id, v.qty);
-      }
-
+      await covidCaseModel.decreaseStockQty(req.db, _data);
       await covidCaseModel.updateReq(req.db, dataReqId, approveDate);
       res.send({ ok: true, message: 'ดำเนินการสำเร็จ', code: HttpStatus.OK });
     } else {

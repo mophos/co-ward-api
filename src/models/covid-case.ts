@@ -25,7 +25,6 @@ export class CovidCaseModel {
   getListHospDetail(db: Knex, hospitalIdClient, type) {
     return db('wm_requisitions as r')
       .select('r.*')
-      // .join('wm_requisition_details as rd', 'rd.requisition_id', 'r.id')
       .where('hospital_id_client', hospitalIdClient)
       .whereIn('type', type)
       .where('is_approved', 'N')
@@ -357,7 +356,7 @@ export class CovidCaseModel {
 
   getRequisitionStock(db: Knex, id, hospitalId) {
     return db('b_generics AS bg')
-      .select('u.name as unit_name', 'bg.*', 'wg.id as wm_id', db.raw('sum( ifnull(wrd.qty, 0 ) ) as requisition_qty, ifnull(wg.qty, 0 ) as stock_qty'))
+      .select('u.name as unit_name', 'bg.*', 'bg.id as generic_id', 'wg.hospital_id', 'wg.id as wm_id', db.raw('sum( ifnull(wrd.qty, 0 ) ) as requisition_qty, ifnull(wg.qty, 0 ) as stock_qty'))
       .join('wm_requisition_details as wrd', 'wrd.generic_id', 'bg.id')
       .leftJoin('wm_generics as wg', (v) => {
         v.on('wg.generic_id', 'bg.id').andOn('wg.hospital_id', hospitalId)
@@ -367,9 +366,36 @@ export class CovidCaseModel {
       .groupBy('bg.id')
   }
 
-  updateStockQty(db: Knex, id, qty) {
-    return db('wm_generics').update('qty', qty)
-      .where('id', id);
+  increaseStockQty(db: Knex, data) {
+    let sqls = [];
+    data.forEach(v => {
+      let sql = `
+          INSERT INTO wm_generics
+          (hospital_id, generic_id,qty)
+          VALUES('${v.hospital_id}', '${v.generic_id}',${v.qty})
+          ON DUPLICATE KEY UPDATE
+          qty=qty+${v.qty}
+        `;
+      sqls.push(sql);
+    });
+    let queries = sqls.join(';');
+    return db.raw(queries);
+  }
+
+  decreaseStockQty(db: Knex, data) {
+    let sqls = [];
+    data.forEach(v => {
+      let sql = `
+          INSERT INTO wm_generics
+          (hospital_id, generic_id,qty)
+          VALUES('${v.hospital_id}', '${v.generic_id}',${v.qty})
+          ON DUPLICATE KEY UPDATE
+          qty=qty-${v.qty}
+        `;
+      sqls.push(sql);
+    });
+    let queries = sqls.join(';');
+    return db.raw(queries);
   }
 
   updateReq(db: Knex, id, approveDate) {
