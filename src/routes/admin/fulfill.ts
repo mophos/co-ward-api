@@ -87,7 +87,7 @@ router.post('/drugs/approved', async (req: Request, res: Response) => {
     const rs: any = await model.getFulFillDrugDetailItems(db, ids);
     if (rs.length) {
       // await model.saveQTY(db, rs);
-      await model.approvedSupplies(db, ids, userId);
+      await model.approvedDrugs(db, ids, userId);
       res.send({ ok: true, code: HttpStatus.OK });
     } else {
       res.send({ ok: false, error: 'ไม่มีรายการให้อนุมัติ', code: HttpStatus.OK });
@@ -259,7 +259,7 @@ router.post('/surgical-mask/save', async (req: Request, res: Response) => {
   const hospData = [];
   const dataSet = [];
   let head = {
-    code: await serialModel.getSerial(db, 'RS'),
+    code: await serialModel.getSerial(db, 'FSM'),
     created_by: id
   }
   const rsHead = await model.saveHeadSurgicalMask(db, head);
