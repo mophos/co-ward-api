@@ -259,7 +259,7 @@ router.post('/surgical-mask/save', async (req: Request, res: Response) => {
   const hospData = [];
   const dataSet = [];
   let head = {
-    code: await serialModel.getSerial(db, 'RS'),
+    code: await serialModel.getSerial(db, 'FSM'),
     created_by: id
   }
   const rsHead = await model.saveHeadSurgicalMask(db, head);

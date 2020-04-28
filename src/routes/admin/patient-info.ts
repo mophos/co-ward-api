@@ -14,6 +14,8 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const rs: any = await model.apiLogin();
     const lab: any = await model.getLabCovid(keys, rs.token);
+    console.log(lab);
+    
     const data: any = [];
     if (lab.ok) {
       for (const v of lab.res) {
