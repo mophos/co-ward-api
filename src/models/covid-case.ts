@@ -372,8 +372,12 @@ export class CovidCaseModel {
       .where('id', id);
   }
 
-  updateReq(db: Knex, id) {
-    return db('wm_requisitions').update('is_approved', 'Y')
+  updateReq(db: Knex, id, approveDate) {
+    return db('wm_requisitions')
+      .update({
+        'is_approved': 'Y',
+        'approve_date': approveDate
+      })
       .whereIn('id', id);
   }
 

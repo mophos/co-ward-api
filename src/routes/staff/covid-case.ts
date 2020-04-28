@@ -548,7 +548,7 @@ router.put('/present', async (req: Request, res: Response) => {
         generic_id: i.genericId,
       }
       console.log(item);
-      
+
       const idx = _.findIndex(generic, { 'id': +i.genericId });
 
       if (idx > -1) {
@@ -745,12 +745,28 @@ router.post('/requisition', async (req: Request, res: Response) => {
   let dataReqId = req.body.dataReqId;
   try {
     dataReqId = Array.isArray(dataReqId) ? dataReqId : [dataReqId];
+    const _data: any = [];
     for (const v of data) {
-      await covidCaseModel.updateStockQty(req.db, v.id, v.qty);
+      if (v.stock_qty - v.requisition_qty < 0) {
+      } else {
+        const obj: any = {};
+        obj.id = v.wm_id;
+        obj.qty = v.stock_qty - v.requisition_qty;
+        _data.push(obj);
+      }
+    }
+    const approveDate = moment().format('YYYY-MM-DD');
+    if (data.length == _data.length) {
+      for (const v of _data) {
+        await covidCaseModel.updateStockQty(req.db, v.id, v.qty);
+      }
+
+      await covidCaseModel.updateReq(req.db, dataReqId, approveDate);
+      res.send({ ok: true, message: 'ดำเนินการสำเร็จ', code: HttpStatus.OK });
+    } else {
+      res.send({ ok: true, message: 'จำนวนยาไม่พอจ่าย', code: HttpStatus.OK });
     }
 
-    await covidCaseModel.updateReq(req.db, dataReqId);
-    res.send({ ok: true, rows: data, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });

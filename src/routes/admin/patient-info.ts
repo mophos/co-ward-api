@@ -19,11 +19,19 @@ router.get('/', async (req: Request, res: Response) => {
       data.tname = lab.res[0].title_name;
       data.fname = lab.res[0].first_name;
       data.lname = lab.res[0].last_name;
+      data.tel = lab.res[0].mobile;
+      data.sat_id = lab.res[0].sat_id;
+
+      // data.sick_house_no = ;
+      // data.sick_village_no = ;
+      // data.sick_village = ;
     } else {
       const rs: any = await model.getPerson(db, cid);
       data.tname = rs[0].title_name;
       data.fname = rs[0].first_name;
       data.lname = rs[0].last_name;
+      data.tel = rs[0].telephone;
+      // data.sat_id = lab.res[0].sat_id;
     }
 
     res.send({ ok: true, rows: data, code: HttpStatus.OK });
