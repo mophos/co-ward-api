@@ -160,8 +160,6 @@ router.post('/receive', async (req: Request, res: Response) => {
     const rs: any = await balanceModel.updateFulfill(req.db, data.type, data.id);
     if (rs) {
       for (const v of data.details) {
-        console.log(v);
-        
         const obj: any = {};
         obj.hospital_id = v.hospital_id;
         obj.generic_id = v.generic_id;

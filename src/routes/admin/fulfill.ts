@@ -86,7 +86,7 @@ router.post('/drugs/approved', async (req: Request, res: Response) => {
     const ids = map(data, 'id');
     const rs: any = await model.getFulFillDrugDetailItems(db, ids);
     if (rs.length) {
-      await model.saveQTY(db, rs);
+      // await model.saveQTY(db, rs);
       await model.approvedSupplies(db, ids, userId);
       res.send({ ok: true, code: HttpStatus.OK });
     } else {
@@ -158,7 +158,7 @@ router.post('/supplies/approved', async (req: Request, res: Response) => {
     const ids = map(data, 'id');
     const rs: any = await model.getFulFillSuppliesDetailItems(db, ids);
     if (rs.length) {
-      await model.saveQTY(db, rs);
+      // await model.saveQTY(db, rs);
       await model.approvedSupplies(db, ids, userId);
       res.send({ ok: true, code: HttpStatus.OK });
     } else {
