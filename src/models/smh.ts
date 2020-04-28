@@ -87,6 +87,7 @@ export class smhModel {
   }
 
   getLabCovid(keys, token) {
+    keys = encodeURIComponent(keys);
     return new Promise((resolve: any, reject: any) => {
       var options = {
         method: 'GET',
@@ -99,7 +100,6 @@ export class smhModel {
         },
         json: true
       };
-
       request(options, function (error, response, body) {
         if (error) {
           reject(error);

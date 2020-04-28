@@ -12,9 +12,10 @@ router.get('/', async (req: Request, res: Response) => {
   const db = req.db;
   const keys = req.query.keys;
   try {
+    console.log(keys);
+    
     const rs: any = await model.apiLogin();
     const lab: any = await model.getLabCovid(keys, rs.token);
-    console.log(lab);
     
     const data: any = [];
     if (lab.ok) {

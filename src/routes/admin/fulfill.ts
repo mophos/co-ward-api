@@ -321,20 +321,24 @@ router.get('/approved-surgicak-mask', async (req: Request, res: Response) => {
   const userId = req.decoded.id;
 
   try {
-    let detail: any = await model.getFulfillDetails(db, id);
-    let payId = await payModel.saveHead(db, detail);
-    let start = payId[0];
-    let end = detail.length + payId[0];
-    await payModel.selectInsertDetail(db, start, end);
-    let rs = await sendTHPD(db, start, end);
-    for (const v of id) {
-      const obj: any = {};
-      obj.is_approved = 'Y';
-      obj.approved_by = userId;
-      obj.approved_date = moment().format('YYYY-MM-DD HH:mm:ss');
-      await payModel.updateFulfillSurgicalMask(db, v, obj);
+    if (id.length > 0) {
+      let detail: any = await model.getFulfillDetails(db, id);
+      let payId = await payModel.saveHead(db, detail);
+      let start = payId[0];
+      let end = detail.length + payId[0];
+      await payModel.selectInsertDetail(db, start, end);
+      let rs = await sendTHPD(db, start, end);
+      for (const v of id) {
+        const obj: any = {};
+        obj.is_approved = 'Y';
+        obj.approved_by = userId;
+        obj.approved_date = moment().format('YYYY-MM-DD HH:mm:ss');
+        await payModel.updateFulfillSurgicalMask(db, v, obj);
+      }
+      res.send({ ok: true, rows: [rs, start, end], code: HttpStatus.OK });
+    } else {
+      res.send({ ok: false, error: 'ไม่มีรายการอนุมัติ', code: HttpStatus.OK });
     }
-    res.send({ ok: true, rows: [rs, start, end], code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
