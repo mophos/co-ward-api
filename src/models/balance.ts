@@ -149,11 +149,11 @@ export class BalanceModel {
 
   updateFulfill(db: Knex, type, id) {
     if (type === 'DRUG') {
-      return db('wm_fulfill_drugs').update('is_received', 'Y').where('id', id);
+      return db('wm_fulfill_drugs').update('is_received', 'Y').where('id', id).where('is_approved','N');
     } else if (type === 'SUPPLIES') {
-      return db('wm_fulfill_supplies').update('is_received', 'Y').where('id', id);
+      return db('wm_fulfill_supplies').update('is_received', 'Y').where('id', id).where('is_approved','N');
     } else if (type === 'SURGICALMASK') {
-      return db('wm_fulfill_surgical_masks').update('is_received', 'Y').where('id', id);
+      return db('wm_fulfill_surgical_masks').update('is_received', 'Y').where('id', id).where('is_approved','N');
     }
   }
 
