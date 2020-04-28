@@ -214,4 +214,86 @@ export class BasicModel {
 		return db('sys_broadcasts')
 			.insert({ 'message': text, 'create_by': userId });
 	}
+
+	getPerson(db: Knex, query: any, TypeQ = 'ID') {
+		console.log(query);
+
+		let sql = db('p_persons')
+		if (TypeQ === 'ID') {
+			sql.where('id', +query.id)
+		}
+		if (TypeQ === 'CID') {
+			sql.where('cid', 'like', `%${query.cid}%`)
+		}
+		if (TypeQ === 'FNAME') {
+			sql.where('first_name', 'like', `${query.name}`)
+		}
+		return sql
+	}
+
+	getPatient(db: Knex, personId) {
+		return db('p_patients')
+			.whereIn('person_id', personId)
+	}
+
+	getCoCase(db: Knex, patientId) {
+		return db('p_covid_cases')
+			.whereIn('patient_id', patientId)
+	}
+
+	getCoCaseDetail(db: Knex, coCaseId) {
+		return db('p_covid_case_details')
+			.whereIn('covid_case_id', coCaseId)
+	}
+
+	getReqDrug(db: Knex, coCaseDetaialId) {
+		return db('wm_requisitions')
+			.whereIn('covid_case_detail_id', coCaseDetaialId)
+			.where('type', 'DRUG');
+	}
+
+	getReqSupplies(db: Knex, coCaseDetaialId) {
+		return db('wm_requisitions')
+			.whereIn('covid_case_detail_id', coCaseDetaialId)
+			.where('type', 'SUPPLIES');
+	}
+
+	getReqDetail(db: Knex, ReqId) {
+		return db('wm_requisition_details')
+			.whereIn('requisition_id', ReqId)
+	}
+
+	deletedPerson(db: Knex, id) {
+		return db('p_persons')
+			.delete()
+			.whereIn('id', id)
+	}
+
+	deletedPatient(db: Knex, id) {
+		return db('p_patients')
+			.whereIn('id', id)
+	}
+
+	deletedCoCase(db: Knex, id) {
+		return db('p_covid_cases')
+			.delete().whereIn('id', id)
+	}
+
+	deletedCoCaseDatail(db: Knex, id) {
+		return db('p_covid_case_details')
+			.delete().whereIn('id', id)
+	}
+
+	deletedReq(db: Knex, id) {
+		return db('wm_requisitions')
+			.delete().whereIn('id', id)
+	}
+
+	deletedReqDetail(db: Knex, id) {
+		return db('wm_requisition_details')
+			.delete().whereIn('id', id)
+	}
+
+
+
 }
