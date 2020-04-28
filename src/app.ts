@@ -43,6 +43,7 @@ import drugStaffRoute from './routes/staff/drug';
 import covidCaseRoute from './routes/staff/covid-case';
 import userRoute from './routes/staff/user';
 import reportStaffRoute from './routes/staff/report';
+import receiveRoute from './routes/staff/receives';
 
 import reportRoute from './routes/report';
 import basicRoute from './routes/basic';
@@ -241,6 +242,7 @@ staff.use('/smh', smhRoute)
 staff.use('/balance', balanceStaffRoute)
 staff.use('/pay', payStaffRoute)
 staff.use('/report', reportStaffRoute)
+staff.use('/receives', receiveRoute)
 staff.use('/bed', bedStaffRoute)
 staff.use('/requisition', requisitionStaffRoute)
 staff.use('/requisition-supplies', requisitionSuppliesRoute)

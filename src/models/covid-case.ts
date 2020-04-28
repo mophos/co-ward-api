@@ -36,8 +36,7 @@ export class CovidCaseModel {
       .select('r.*')
       // .join('wm_requisition_details as rd', 'rd.requisition_id', 'r.id')
       .where('hospital_id_client', hospitalIdClient)
-
-    // .where('is_approved', 'N')
+      .where('is_deleted', 'N')
   }
 
   getListDrug(db: Knex, reqId) {
@@ -47,6 +46,7 @@ export class CovidCaseModel {
       .join('b_generics as g', 'g.id', 'rd.generic_id')
       .join('b_units as u', 'u.id', 'g.unit_id')
       .where('r.id', reqId)
+      .where('r.is_deleted', 'N')
   }
 
   getListApproved(db: Knex, hospitalId) {
@@ -135,7 +135,7 @@ export class CovidCaseModel {
 
   checkCidAllHospital(db: Knex, hospitalId, cid) {
     return db('p_patients as pt')
-      .select('h.hospname', 'p.*', 'va.tambon_name', 'va.ampur_name', 'va.province_name', 'c.name as country_name','cc.id as covid_case_id')
+      .select('h.hospname', 'p.*', 'va.tambon_name', 'va.ampur_name', 'va.province_name', 'c.name as country_name', 'cc.id as covid_case_id')
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .join('p_covid_cases as cc', 'cc.patient_id', 'pt.id')
       .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
@@ -161,7 +161,7 @@ export class CovidCaseModel {
 
   checkPassportAllHospital(db: Knex, hospitalId, passport) {
     return db('p_patients as pt')
-      .select('h.hospname', 'p.*', 'va.tambon_name', 'va.ampur_name', 'va.province_name', 'c.name as country_name','cc.id as covid_case_id')
+      .select('h.hospname', 'p.*', 'va.tambon_name', 'va.ampur_name', 'va.province_name', 'c.name as country_name', 'cc.id as covid_case_id')
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .join('p_covid_cases as cc', 'cc.patient_id', 'pt.id')
       .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
