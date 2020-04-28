@@ -176,6 +176,23 @@ router.put('/', async (req: Request, res: Response) => {
   }
 });
 
+router.put('/confirm-date', async (req: Request, res: Response) => {
+  const hospitalId = req.decoded.hospitalId;
+  const date = req.body.date;
+  const id = req.body.id;
+  const db = req.db;
+  try {
+    const _data = {
+      confirm_date: date
+    }
+    const covidCase = await covidCaseModel.updateCovidCaseAllow(db, id, _data);
+    res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.post('/', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   const db = req.db;
@@ -548,7 +565,7 @@ router.put('/present', async (req: Request, res: Response) => {
         generic_id: i.genericId,
       }
       console.log(item);
-      
+
       const idx = _.findIndex(generic, { 'id': +i.genericId });
 
       if (idx > -1) {
@@ -745,12 +762,28 @@ router.post('/requisition', async (req: Request, res: Response) => {
   let dataReqId = req.body.dataReqId;
   try {
     dataReqId = Array.isArray(dataReqId) ? dataReqId : [dataReqId];
+    const _data: any = [];
     for (const v of data) {
-      await covidCaseModel.updateStockQty(req.db, v.id, v.qty);
+      console.log(v);
+
+      if (v.stock_qty - v.requisition_qty < 0) {
+      } else {
+        const obj: any = {};
+        obj.hospital_id = v.hospital_id;
+        obj.generic_id = v.generic_id;
+        obj.qty = v.requisition_qty
+        _data.push(obj);
+      }
+    }
+    const approveDate = moment().format('YYYY-MM-DD');
+    if (data.length == _data.length) {
+      await covidCaseModel.decreaseStockQty(req.db, _data);
+      await covidCaseModel.updateReq(req.db, dataReqId, approveDate);
+      res.send({ ok: true, message: 'ดำเนินการสำเร็จ', code: HttpStatus.OK });
+    } else {
+      res.send({ ok: true, message: 'จำนวนยาไม่พอจ่าย', code: HttpStatus.OK });
     }
 
-    await covidCaseModel.updateReq(req.db, dataReqId);
-    res.send({ ok: true, rows: data, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
