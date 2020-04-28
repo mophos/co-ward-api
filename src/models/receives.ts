@@ -12,6 +12,12 @@ export class ReceivesModel {
           .join('wm_fulfill_supplies', 'wm_fulfill_supplies_details.fulfill_supplies_id', 'wm_fulfill_supplies.id')
           .where('hospital_id', hospitalId).where('is_approved', 'Y');
       })
+      .unionAll(function () {
+        this.select('r.*', db.raw(`'SURGICALMASK' as type`))
+          .from('wm_fulfill_surgical_mask_details as rd')
+          .join('wm_fulfill_surgical_masks as r', 'rd.fulfill_surgical_mask_id', 'r.id')
+          .where('rd.hospital_id', hospitalId).where('is_approved', 'Y');
+      })
   }
 
   getFulFillDetailDrugs(db: Knex, id, hospitalId) {
@@ -36,6 +42,18 @@ export class ReceivesModel {
       .where('wfsd.fulfill_supplies_id', id)
       .where('wfsd.hospital_id', hospitalId)
       .groupBy('wfsdi.generic_id')
+  }
+
+  getFulFillDetailSurgicalMask(db: Knex, id, hospitalId) {
+    return db('wm_fulfill_surgical_mask_details as wfsmd')
+      .sum('wfsmdi.qty as qty')
+      .select('bg.name as generic_name', 'bu.name as unit_name')
+      .join('wm_fulfill_surgical_mask_detail_items as wfsmdi', 'wfsmdi.fulfill_surgical_mask_detail_id', 'wfsmd.id')
+      .join('b_generics AS bg', 'bg.id', 'wfsmdi.generic_id')
+      .join('b_units as bu', 'bu.id', 'bg.unit_id')
+      .where('wfsmd.fulfill_surgical_mask_id', id)
+      .where('wfsmd.hospital_id', hospitalId)
+      .groupBy('wfsmdi.generic_id')
   }
 
 

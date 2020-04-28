@@ -105,7 +105,7 @@ export class PayModel {
       wm_pays AS p
       JOIN wm_fulfill_surgical_mask_details rd ON rd.id = p.fulfill_surgical_mask_detail_id
       JOIN wm_fulfill_surgical_masks r ON r.id = rd.fulfill_surgical_mask_id
-      JOIN b_hospitals h ON h.hospcode = rd.hospcode
+      JOIN b_hospitals h ON h.id = rd.hospital_id
       LEFT JOIN um_users u ON u.id = r.created_by
       LEFT JOIN um_titles t ON t.id = u.title_id 
     WHERE
@@ -130,8 +130,8 @@ export class PayModel {
     return db('wm_restocks').update('is_approved', 'Y').where('id', id);
   }
 
-  updateFulfillSurgicalMask(db: Knex, id: any) {
-    return db('wm_fulfill_surgical_masks').update('is_approved', 'Y').where('id', id);
+  updateFulfillSurgicalMask(db: Knex, id: any, data) {
+    return db('wm_fulfill_surgical_masks').update(data).where('id', id);
   }
 
 

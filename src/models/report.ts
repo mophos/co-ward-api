@@ -38,9 +38,11 @@ export class ReportModel {
     return db('views_professional_hospitals AS vph')
   }
 
-  getProvinces(db: Knex, userId: any) {
-    return db('um_user_report_provinces')
-      .where('user_id', userId);
+  getProvinces(db: Knex) {
+    return db('views_hospital_types as v')
+      .where('v.type', 'B')
+      .orWhere('v.type', 'A')
+      .groupBy('v.province_code')
   }
 
   getSupplies(db: Knex, date) {
@@ -63,6 +65,7 @@ export class ReportModel {
     return db('b_hospitals AS bh')
       .select('bh.*')
       .join('views_bed_hospitals as p', 'p.hospital_id', 'bh.id')
+      .join('views_hospital_types as v', 'v.hospital_id', 'bh.id')
       .whereIn('bh.province_code', provinceCode)
       .groupBy('bh.id')
   }
