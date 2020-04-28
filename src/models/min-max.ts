@@ -20,6 +20,7 @@ export class MinMaxModel {
       .joinRaw(`LEFT JOIN b_generic_plannings AS bgp ON bgp.generic_id = bg.id AND bgp.hospital_id = ?`, hospitalId)
       .join('b_units AS bu', 'bu.id', 'bg.unit_id')
       .where('bg.type', type)
+      .where('bg.sub_type', 'COVID')
       .where('bg.is_actived', 'Y')
   }
 
