@@ -14,16 +14,28 @@ export class ReceivesModel {
       })
   }
 
-  getFulFillDetailDrugs(db: Knex, fulfillDrugId) {
-    return db('wm_fulfill_drug_details as fdd')
-      .join('wm_fulfill_drug_detail_items as fddi', 'fdd.id', 'fddi.fulfill_drug_detail_id')
-      .where('fdd.fulfill_drug_id', fulfillDrugId)
+  getFulFillDetailDrugs(db: Knex, id, hospitalId) {
+    return db('wm_fulfill_drug_details AS wfd')
+      .sum('wfdd.qty as qty')
+      .select('bg.name as generic_name', 'bu.name as unit_name')
+      .join('wm_fulfill_drug_detail_items AS wfdd', 'wfdd.fulfill_drug_detail_id', 'wfd.id')
+      .join('b_generics AS bg', 'bg.id', 'wfdd.generic_id')
+      .join('b_units as bu', 'bu.id', 'bg.unit_id')
+      .where('wfd.fulfill_drug_id', id)
+      .where('wfd.hospital_id', hospitalId)
+      .groupBy('wfdd.generic_id')
   }
 
-  getFulFillDetailSupplies(db: Knex, fulfillSuppliseId) {
-    return db('wm_fulfill_supplies_details as fdd')
-      .join('wm_fulfill_supplies_detail_items as fddi', 'fdd.id', 'fddi.fulfill_supplies_detail_id')
-      .where('fdd.fulfill_supplies_id', fulfillSuppliseId)
+  getFulFillDetailSupplies(db: Knex, id, hospitalId) {
+    return db('wm_fulfill_supplies_details as wfsd')
+      .sum('wfsdi.qty as qty')
+      .select('bg.name as generic_name', 'bu.name as unit_name')
+      .join('wm_fulfill_supplies_detail_items as wfsdi', 'wfsdi.fulfill_supplies_detail_id', 'wfsd.id')
+      .join('b_generics AS bg', 'bg.id', 'wfsdi.generic_id')
+      .join('b_units as bu', 'bu.id', 'bg.unit_id')
+      .where('wfsd.fulfill_supplies_id', id)
+      .where('wfsd.hospital_id', hospitalId)
+      .groupBy('wfsdi.generic_id')
   }
 
 

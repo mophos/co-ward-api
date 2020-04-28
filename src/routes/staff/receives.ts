@@ -19,9 +19,9 @@ router.get('/fulfill', async (req: Request, res: Response) => {
     for (const i of rs) {
       let detail: any;
       if (i.type == 'DRUG') {
-        detail = await receiveModel.getFulFillDetailDrugs(db, i.id);
+        detail = await receiveModel.getFulFillDetailDrugs(db, i.id, hospitalId);
       } else if (i.type == 'SUPPLIES') {
-        detail = await receiveModel.getFulFillDetailSupplies(db, i.id);
+        detail = await receiveModel.getFulFillDetailSupplies(db, i.id, hospitalId);
       }
       i.details = detail;
 
