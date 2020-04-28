@@ -87,7 +87,7 @@ router.post('/drugs/approved', async (req: Request, res: Response) => {
     const rs: any = await model.getFulFillDrugDetailItems(db, ids);
     if (rs.length) {
       await model.saveQTY(db, rs);
-      await model.approved(db, ids, userId);
+      await model.approvedSupplies(db, ids, userId);
       res.send({ ok: true, code: HttpStatus.OK });
     } else {
       res.send({ ok: false, error: 'ไม่มีรายการให้อนุมัติ', code: HttpStatus.OK });
@@ -159,7 +159,7 @@ router.post('/supplies/approved', async (req: Request, res: Response) => {
     const rs: any = await model.getFulFillSuppliesDetailItems(db, ids);
     if (rs.length) {
       await model.saveQTY(db, rs);
-      await model.approved(db, ids, userId);
+      await model.approvedSupplies(db, ids, userId);
       res.send({ ok: true, code: HttpStatus.OK });
     } else {
       res.send({ ok: false, error: 'ไม่มีรายการให้อนุมัติ', code: HttpStatus.OK });
@@ -206,10 +206,10 @@ router.post('/surgical-mask', async (req: Request, res: Response) => {
 
     for (const v of rs) {
       v.month_usage_qty = v.month_usage_qty === null ? 0 : v.month_usage_qty;
-      v.per1 = (((((100 * v.week1) / totalWeek1) * totalQty) / 100) / 50);
-      v.per2 = (((((100 * v.week2) / totalWeek2) * totalQty) / 100) / 50);
-      v.per3 = (((((100 * v.week3) / totalWeek3) * totalQty) / 100) / 50);
-      v.per4 = (((((100 * v.week4) / totalWeek4) * totalQty) / 100) / 50);
+      v.per1 = (((v.week1 / totalWeek1) * totalQty) / 50);
+      v.per2 = (((v.week2 / totalWeek2) * totalQty) / 50);
+      v.per3 = (((v.week3 / totalWeek3) * totalQty) / 50);
+      v.per4 = (((v.week4 / totalWeek4) * totalQty) / 50);
 
       v.per1 = v.per1.toFixed(0) * 50;
       v.per2 = v.per2.toFixed(0) * 50;
@@ -258,7 +258,6 @@ router.post('/surgical-mask/save', async (req: Request, res: Response) => {
 
   const hospData = [];
   const dataSet = [];
-  const wmGenerincs = [];
   let head = {
     code: await serialModel.getSerial(db, 'RS'),
     created_by: id
@@ -290,15 +289,7 @@ router.post('/surgical-mask/save', async (req: Request, res: Response) => {
         generic_id: v.generic_id,
         qty: qty
       })
-
-      wmGenerincs.push({
-        hospital_id: v.hospital_id,
-        generic_id: v.generic_id,
-        qty: qty
-      })
     }
-
-    await model.saveWmGenerics(req.db, wmGenerincs);
     await model.saveDetailSurgicalMask(req.db, hospData);
     await model.saveItemSurgicalMask(req.db, dataSet);
 

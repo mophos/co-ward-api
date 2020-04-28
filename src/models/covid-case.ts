@@ -4,7 +4,7 @@ export class CovidCaseModel {
 
   getCase(db: Knex, hospitalId) {
     return db('p_covid_cases as c')
-      .select('c.id as covid_case_id', 'c.an', 'c.status', 'c.date_admit', 'pt.hn', 'pt.person_id', 'p.*', 't.name as title_name')
+      .select('c.id as covid_case_id', 'c.an', 'c.confirm_date', 'c.status', 'c.date_admit', 'pt.hn', 'pt.person_id', 'p.*', 't.name as title_name')
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .leftJoin('um_titles as t', 'p.title_id', 't.id')
@@ -116,7 +116,7 @@ export class CovidCaseModel {
 
   getHistory(db: Knex, personId) {
     return db('p_covid_cases as c')
-      .select('c.id as covid_case_id', 'c.status', 'c.date_admit', 'h.hospname')
+      .select('c.id as covid_case_id', 'c.confirm_date', 'c.status', 'c.date_admit', 'h.hospname')
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .join('b_hospitals as h', 'pt.hospital_id', 'h.id')
@@ -184,6 +184,12 @@ export class CovidCaseModel {
     return db('p_covid_cases')
       .where('id', id)
       .whereRaw('date_entry=CURRENT_DATE()')
+      .update(data)
+  }
+
+  updateCovidCaseAllow(db: Knex, id, data) {
+    return db('p_covid_cases')
+      .where('id', id)
       .update(data)
   }
 

@@ -147,5 +147,30 @@ export class BalanceModel {
     return db.raw(queries);
   }
 
+  updateFulfill(db: Knex, type, id) {
+    if (type === 'DRUG') {
+      return db('wm_fulfill_drugs').update('is_received', 'Y').where('id', id);
+    } else if (type === 'SUPPLIES') {
+      return db('wm_fulfill_supplies').update('is_received', 'Y').where('id', id);
+    } else if (type === 'SURGICALMASK') {
+      return db('wm_fulfill_surgical_masks').update('is_received', 'Y').where('id', id);
+    }
+  }
+
+  insertWmGenerics(db: Knex, data) {
+    let sqls = [];
+    data.forEach(v => {
+      let sql = `
+          INSERT INTO wm_generics
+          (hospital_id, generic_id,qty)
+          VALUES(${v.hospital_id},${v.generic_id},${v.qty})
+          ON DUPLICATE KEY UPDATE
+          qty=qty+${v.qty}
+        `;
+      sqls.push(sql);
+    });
+    let queries = sqls.join(';');
+    return db.raw(queries);
+  }
 
 }
