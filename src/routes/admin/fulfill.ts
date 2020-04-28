@@ -183,12 +183,11 @@ router.get('/detail/surgical-mask-details', async (req: Request, res: Response) 
   const id = req.query.id;
   try {
     let rs: any = await model.getDetailSurgicalMasks(req.db, id);
-    console.log(rs, 'asdfasdfl;kasdlfkaklsdjfalksdjflaksdjf;laskdjfal;ksdjfal;skdjfa;lskdjfasd');
 
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
-    
+
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
@@ -207,10 +206,10 @@ router.post('/surgical-mask', async (req: Request, res: Response) => {
 
     for (const v of rs) {
       v.month_usage_qty = v.month_usage_qty === null ? 0 : v.month_usage_qty;
-      v.per1 = (((((100 * v.week1) / totalWeek1) * totalQty) / 100) / 50);
-      v.per2 = (((((100 * v.week2) / totalWeek2) * totalQty) / 100) / 50);
-      v.per3 = (((((100 * v.week3) / totalWeek3) * totalQty) / 100) / 50);
-      v.per4 = (((((100 * v.week4) / totalWeek4) * totalQty) / 100) / 50);
+      v.per1 = (((v.week1 / totalWeek1) * totalQty) / 50);
+      v.per2 = (((v.week2 / totalWeek2) * totalQty) / 50);
+      v.per3 = (((v.week3 / totalWeek3) * totalQty) / 50);
+      v.per4 = (((v.week4 / totalWeek4) * totalQty) / 50);
 
       v.per1 = v.per1.toFixed(0) * 50;
       v.per2 = v.per2.toFixed(0) * 50;
@@ -257,22 +256,22 @@ router.post('/surgical-mask/save', async (req: Request, res: Response) => {
   const week = req.body.week;
   const id = req.decoded.id;
 
-  let hospData = [];
-  let dataSet = [];
+  const hospData = [];
+  const dataSet = [];
+  let head = {
+    code: await serialModel.getSerial(db, 'RS'),
+    created_by: id
+  }
+  const rsHead = await model.saveHeadSurgicalMask(db, head);
 
   try {
-    let head = {
-      code: await serialModel.getSerial(db, 'RS'),
-      created_by: id
-    }
-    const rsHead = await model.saveHeadSurgicalMask(db, head);
     let qty = 0;
     for (const v of data) {
       let detailId = uuidv4();
       hospData.push({
         id: detailId,
         fulfill_surgical_mask_id: rsHead,
-        hospcode: v.hospcode,
+        hospital_id: v.hospital_id,
       })
 
       if (week == 1) {
@@ -291,12 +290,12 @@ router.post('/surgical-mask/save', async (req: Request, res: Response) => {
         qty: qty
       })
     }
-
     await model.saveDetailSurgicalMask(req.db, hospData);
     await model.saveItemSurgicalMask(req.db, dataSet);
 
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
+    await model.delHeadSurgicalMask(req.db, rsHead)
     console.log(error);
 
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -319,6 +318,7 @@ router.get('/drugs-sum-details', async (req: Request, res: Response) => {
 router.get('/approved-surgicak-mask', async (req: Request, res: Response) => {
   const db = req.db;
   const id = req.query.data;
+  const userId = req.decoded.id;
 
   try {
     let detail: any = await model.getFulfillDetails(db, id);
@@ -328,7 +328,11 @@ router.get('/approved-surgicak-mask', async (req: Request, res: Response) => {
     await payModel.selectInsertDetail(db, start, end);
     let rs = await sendTHPD(db, start, end);
     for (const v of id) {
-      await payModel.updateFulfillSurgicalMask(db, v);
+      const obj: any = {};
+      obj.is_approved = 'Y';
+      obj.approved_by = userId;
+      obj.approved_date = moment().format('YYYY-MM-DD HH:mm:ss');
+      await payModel.updateFulfillSurgicalMask(db, v, obj);
     }
     res.send({ ok: true, rows: [rs, start, end], code: HttpStatus.OK });
   } catch (error) {

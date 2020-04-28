@@ -8,11 +8,15 @@ export class smhModel {
     return db('sys_token_shm').where('is_actived', 'Y');
   }
 
-  getPerson(db: Knex, cid) {
+  getPerson(db: Knex, keys) {
     return db('p_persons as p')
       .select('p.*', 't.full_name as title_name')
       .join('um_titles as t', 't.id', 'p.title_id')
-      .where('p.cid', cid);
+      .where((v) => {
+        v.where('p.cid', 'like', '%' + keys + '%')
+        v.orWhere('p.first_name', 'like', '%' + keys + '%')
+        v.orWhere('p.last_name', 'like', '%' + keys + '%')
+      });
   }
 
   getZipcode(db: Knex, id: any) {
@@ -82,11 +86,11 @@ export class smhModel {
     });
   }
 
-  getLabCovid(cid, token) {
+  getLabCovid(keys, token) {
     return new Promise((resolve: any, reject: any) => {
       var options = {
         method: 'GET',
-        url: `https://indev.moph.go.th/ncov-2019-api/patient/getPatientByCid/${cid}?token`,
+        url: `https://indev.moph.go.th/ncov-2019-api/patient/getPatient/${keys}`,
         agentOptions: {
           rejectUnauthorized: false
         },
