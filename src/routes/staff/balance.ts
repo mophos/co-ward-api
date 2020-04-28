@@ -167,6 +167,8 @@ router.post('/receive', async (req: Request, res: Response) => {
 
         items.push(obj);
       }
+      console.log(items);
+      
       await balanceModel.insertWmGenerics(req.db, items);
     }
     res.send({ ok: true, code: HttpStatus.OK });
