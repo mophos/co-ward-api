@@ -257,7 +257,6 @@ router.get('/get-gcs', async (req: Request, res: Response) => {
             hospname: h.hospname
           };
           const _gcs = _.filter(gcs, { hospital_id: h.id })
-          console.log(_gcs);
 
           obj.details = _gcs;
 
