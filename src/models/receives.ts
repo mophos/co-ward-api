@@ -3,6 +3,22 @@ import * as Knex from 'knex';
 export class ReceivesModel {
 
   getFulFill(db: Knex, hospitalId) {
+    console.log(db.select('wm_fulfill_drugs.*', db.raw(`'DRUG' as type`)).from('wm_fulfill_drug_details')
+    .join('wm_fulfill_drugs', 'wm_fulfill_drug_details.fulfill_drug_id', 'wm_fulfill_drugs.id')
+    .where('hospital_id', hospitalId).where('is_approved', 'Y')
+    .unionAll(function () {
+      this.select('wm_fulfill_supplies.*', db.raw(`'SUPPLIES' as type`))
+        .from('wm_fulfill_supplies_details')
+        .join('wm_fulfill_supplies', 'wm_fulfill_supplies_details.fulfill_supplies_id', 'wm_fulfill_supplies.id')
+        .where('hospital_id', hospitalId).where('is_approved', 'Y');
+    })
+    .unionAll(function () {
+      this.select('r.*', db.raw(`'SURGICALMASK' as type`))
+        .from('wm_fulfill_surgical_mask_details as rd')
+        .join('wm_fulfill_surgical_masks as r', 'rd.fulfill_surgical_mask_id', 'r.id')
+        .where('rd.hospital_id', hospitalId).where('is_approved', 'Y');
+    }).toString());
+    
     return db.select('wm_fulfill_drugs.*', db.raw(`'DRUG' as type`)).from('wm_fulfill_drug_details')
       .join('wm_fulfill_drugs', 'wm_fulfill_drug_details.fulfill_drug_id', 'wm_fulfill_drugs.id')
       .where('hospital_id', hospitalId).where('is_approved', 'Y')
