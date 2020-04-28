@@ -35,7 +35,7 @@ export class ReceivesModel {
   getFulFillDetailSupplies(db: Knex, id, hospitalId) {
     return db('wm_fulfill_supplies_details as wfsd')
       .sum('wfsdi.qty as qty')
-      .select('bg.name as generic_name', 'bu.name as unit_name', 'bg.id as generic_id', 'wfds.hospital_id')
+      .select('bg.name as generic_name', 'bu.name as unit_name', 'bg.id as generic_id', 'wfsd.hospital_id')
       .join('wm_fulfill_supplies_detail_items as wfsdi', 'wfsdi.fulfill_supplies_detail_id', 'wfsd.id')
       .join('b_generics AS bg', 'bg.id', 'wfsdi.generic_id')
       .join('b_units as bu', 'bu.id', 'bg.unit_id')

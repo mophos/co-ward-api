@@ -176,6 +176,23 @@ router.put('/', async (req: Request, res: Response) => {
   }
 });
 
+router.put('/confirm-date', async (req: Request, res: Response) => {
+  const hospitalId = req.decoded.hospitalId;
+  const date = req.body.date;
+  const id = req.body.id;
+  const db = req.db;
+  try {
+    const _data = {
+      confirm_date: date
+    }
+    const covidCase = await covidCaseModel.updateCovidCaseAllow(db, id, _data);
+    res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.post('/', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   const db = req.db;
@@ -748,7 +765,7 @@ router.post('/requisition', async (req: Request, res: Response) => {
     const _data: any = [];
     for (const v of data) {
       console.log(v);
-      
+
       if (v.stock_qty - v.requisition_qty < 0) {
       } else {
         const obj: any = {};

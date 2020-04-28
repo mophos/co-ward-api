@@ -73,8 +73,17 @@ export class FullfillModel {
 
   }
 
-  approved(db: Knex, data: [], userId) {
+  approvedDrugs(db: Knex, data: [], userId) {
     return db('wm_fulfill_drugs as fd')
+      .update({
+        'is_approved': 'Y',
+        'approved_by': userId,
+        'approved_date': db.raw('now()')
+      })
+      .whereIn('id', data);
+  }
+  approvedSupplies(db: Knex, data: [], userId) {
+    return db('wm_fulfill_supplies as fd')
       .update({
         'is_approved': 'Y',
         'approved_by': userId,
