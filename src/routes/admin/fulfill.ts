@@ -87,7 +87,7 @@ router.post('/drugs/approved', async (req: Request, res: Response) => {
     const rs: any = await model.getFulFillDrugDetailItems(db, ids);
     if (rs.length) {
       await model.saveQTY(db, rs);
-      await model.approvedSupplies(db, ids, userId);
+      await model.approvedDrugs(db, ids, userId);
       res.send({ ok: true, code: HttpStatus.OK });
     } else {
       res.send({ ok: false, error: 'ไม่มีรายการให้อนุมัติ', code: HttpStatus.OK });
