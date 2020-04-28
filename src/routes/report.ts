@@ -17,7 +17,7 @@ const fullfillModel = new FullfillModel();
 const drugsModel = new DrugsModel();
 const suppliesModel = new SuppliesModel();
 const router: Router = Router();
-
+import { json2csv } from 'json-2-csv';
 router.get('/', async (req: Request, res: Response) => {
   try {
     let rs: any = await model.getCovidCase(req.db);
@@ -379,6 +379,97 @@ router.get('/admin/get-bed', async (req: Request, res: Response) => {
       hosp.push(obj);
     }
     res.send({ ok: true, rows: hosp, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, message: error, code: HttpStatus.OK });
+  }
+});
+
+router.get('/admin/get-bed/excel', async (req: Request, res: Response) => {
+  const db = req.db;
+  try {
+    var wb = new excel4node.Workbook();
+    var ws = wb.addWorksheet('Sheet 1');
+
+    ws.cell(1, 1).string('รหัสโรงพยาบาล');
+    ws.cell(1, 2).string('โรงพยาบาล');
+    ws.cell(1, 3).string('AIIR ทั้งหมด');
+    ws.cell(1, 4).string('AIIR ใช้ไปแล้ว');
+    ws.cell(1, 5).string('AIIR คงเหลือ');
+    ws.cell(1, 6).string('Modified AIIR ทั้งหมด');
+    ws.cell(1, 7).string('Modified AIIR ใช้ไปแล้ว');
+    ws.cell(1, 8).string('Modified AIIR คงเหลือ');
+    ws.cell(1, 9).string('Isolate ทั้งหมด');
+    ws.cell(1, 10).string('Isolate ใช้ไปแล้ว');
+    ws.cell(1, 11).string('Isolate คงเหลือ');
+    ws.cell(1, 12).string('Cohort ทั้งหมด');
+    ws.cell(1, 13).string('Cohort ใช้ไปแล้ว');
+    ws.cell(1, 14).string('Cohort คงเหลือ');
+    ws.cell(1, 15).string('Hospitel ทั้งหมด');
+    ws.cell(1, 16).string('Hospitel ใช้ไปแล้ว');
+    ws.cell(1, 17).string('Hospitel คงเหลือ');
+
+    let row = 2;
+    const hospital: any = await model.getHospitalByType(db);
+    const hosp = [];
+    const bed: any = await model.getBad(db)
+    for (const h of hospital) {
+      const obj = {
+        hospital_id: h.id,
+        hospcode: h.hospcode,
+        hospname: h.hospname
+      };
+      const _bed = _.filter(bed, { hospital_id: h.id })
+      for (const b of _bed) {
+        obj[b.bed_name + '_qty'] = b.qty;
+        obj[b.bed_name + '_covid_qty'] = b.covid_qty;
+        obj[b.bed_name + '_usage_qty'] = b.usage_qty;
+      }
+      hosp.push(obj);
+    }
+    for (const h of hosp) {
+      ws.cell(row, 1).string(h.hospcode.toString());
+      ws.cell(row, 2).string(h.hospname);
+
+      ws.cell(row, 3).string(toString(h['AIIR_qty']));
+      ws.cell(row, 4).string(toString(h['AIIR_usage_qty']));
+      ws.cell(row, 5).string(toString(h['AIIR_qty'] - h['AIIR_usage_qty']));
+
+      ws.cell(row, 6).string(toString(h['Modified AIIR_qty']));
+      ws.cell(row, 7).string(toString(h['Modified AIIR_usage_qty']));
+      ws.cell(row, 8).string(toString(h['Modified AIIR_qty'] - h['Modified AIIR_usage_qty']));
+
+      ws.cell(row, 9).string(toString(h['Isolate_qty']));
+      ws.cell(row, 10).string(toString(h['Isolate_usage_qty']));
+      ws.cell(row, 11).string(toString(h['Isolate_qty'] - h['Isolate_usage_qty']));
+
+      ws.cell(row, 12).string(toString(h['Cohort_qty']));
+      ws.cell(row, 13).string(toString(h['Cohort_usage_qty']));
+      ws.cell(row, 14).string(toString(h['Cohort_qty'] - h['Cohort_usage_qty']));
+
+      ws.cell(row, 15).string(toString(h['Hospitel_qty']));
+      ws.cell(row, 16).string(toString(h['Hospitel_usage_qty']));
+      ws.cell(row, 17).string(toString(h['Hospitel_qty'] - h['Hospitel_usage_qty']));
+      row++;
+    }
+
+    fse.ensureDirSync(process.env.TMP_PATH);
+    let filename = `get_bed` + moment().format('x') + '.xlsx'
+    let filenamePath = path.join(process.env.TMP_PATH, filename);
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+
+      }
+    });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, message: error, code: HttpStatus.OK });
@@ -902,7 +993,13 @@ router.get('/fulfill-supplies', async (req: Request, res: Response) => {
   }
 });
 
-
+function toString(value) {
+  if (value || value == 0) {
+    return value.toString();
+  } else {
+    return '';
+  }
+}
 
 
 export default router;
