@@ -46,7 +46,7 @@ import reportStaffRoute from './routes/staff/report';
 import receiveRoute from './routes/staff/receives';
 
 import reportRoute from './routes/report';
-import reportManagerRoute from './routes/manager/report';
+import reportDmsRoute from './routes/manager/report-dms';
 import basicRoute from './routes/basic';
 import basicAuthRoute from './routes/basicAuth';
 import servicesRoute from './routes/manager/services';
@@ -232,7 +232,7 @@ admin.use('/min-max', minMaxRoute)
 //manager
 api.use('/manager', checkAuth, managerAuth, manager)
 manager.use('/patient-info', patientInfoRoute)
-manager.use('/report', reportManagerRoute)
+manager.use('/report-dms', reportDmsRoute)
 manager.use('/services', servicesRoute)
 manager.use('/eoc', eocRoute)
 
