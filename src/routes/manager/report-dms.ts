@@ -180,23 +180,41 @@ router.get('/report2/excel', async (req: Request, res: Response) => {
   var ws = wb.addWorksheet('Sheet 1');
   try {
     const rs: any = await model.report2(db, date);
+    ws.cell(1, 1, 2, 1, true).string('โรงพยาบาล');
+    ws.cell(1, 2, 1, 5, true).string('ผู้ป่วยยืนยัน (Confirm Case)');
+    ws.cell(1, 6, 2, 6, true).string('ผู้ป่วยเข้าเกณฑ์สงสัย PUI');
+    ws.cell(1, 7, 2, 7, true).string('หน่วยงาน');
 
-    ws.cell(1, 1).string('ชื่อสถานบริการ')
-    ws.cell(1, 2).string('วันที่บันทึกข้อมูล')
-    ws.cell(1, 3).string('อาการรุนแรง (Severe Case)')
-    ws.cell(1, 4).string('อาการรุนแรงปานกลาง (Moderate Case)')
-    ws.cell(1, 5).string('อาการไม่รุนแรง (Mild Case)')
-    ws.cell(1, 6).string('ผู้ป่วยผลบวกไม่มีอาการ (Asymptomatic)')
-    let row = 2
-    for (const s of rs) {
-      ws.cell(row, 1).string(toString(s.hospname));
-      ws.cell(row, 2).string(toString(moment(s.entry_date).format('YYYY-MM-DD')));
-      ws.cell(row, 3).string(toString(s.severe));
-      ws.cell(row, 4).string(toString(s.moderate));
-      ws.cell(row, 5).string(toString(s.mild));
-      ws.cell(row, 6).string(toString(s.asymptomatic));
-      row++;
+    ws.cell(2, 2).string('อาการรุนแรง\n(Severe Case)');
+    ws.cell(2, 3).string('อาการรุนแรงปานกลาง\n(Moderate Case)');
+    ws.cell(2, 4).string('อาการไม่รุนแรง\n(Mild Case)');
+    ws.cell(2, 5).string('ผู้ป่วยผลบวกไม่มีอาการ\n(Asymptomatic)');
+
+    ws.cell(3, 1).string('รวม');
+    ws.cell(3, 2).string(toString(sumBy(rs, 'severe')));
+    ws.cell(3, 3).string(toString(sumBy(rs, 'moderate')));
+    ws.cell(3, 4).string(toString(sumBy(rs, 'mild')));
+    ws.cell(3, 5).string(toString(sumBy(rs, 'asymptomatic')));
+    ws.cell(3, 6).string(toString(sumBy(rs, 'ip_pui')));
+    ws.cell(3, 7).string('');
+    let row = 4;
+    for (const items of rs) {
+      console.log(items);
+      ws.cell(row, 1).string(toString(items['hospname']));
+      ws.cell(row, 2).string(toString(items['severe']));
+      ws.cell(row, 3).string(toString(items['moderate']));
+      ws.cell(row, 4).string(toString(items['mild']));
+      ws.cell(row, 5).string(toString(items['asymptomatic']));
+      ws.cell(row, 6).string(toString(items['ip_pui']));
+      ws.cell(row++, 7).string(toString(items['hosp_sub_min_name']));
     }
+    ws.cell(row, 1).string('รวม');
+    ws.cell(row, 2).string(toString(sumBy(rs, 'severe')));
+    ws.cell(row, 3).string(toString(sumBy(rs, 'moderate')));
+    ws.cell(row, 4).string(toString(sumBy(rs, 'mild')));
+    ws.cell(row, 5).string(toString(sumBy(rs, 'asymptomatic')));
+    ws.cell(row, 6).string(toString(sumBy(rs, 'ip_pui')));
+    ws.cell(row, 7).string('');
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
@@ -232,23 +250,24 @@ router.get('/report3/excel', async (req: Request, res: Response) => {
     ws.cell(1, 2, 1, 5, true).string('ผู้ป่วยยืนยัน (Confirm Case)');
     ws.cell(1, 6, 2, 6, true).string('ผู้ป่วยเข้าเกณฑ์สงสัย PUI');
     ws.cell(1, 7, 2, 7, true).string('หน่วยงาน');
-    
+
     ws.cell(2, 2).string('อาการรุนแรง\n(Severe Case)');
     ws.cell(2, 3).string('อาการรุนแรงปานกลาง\n(Moderate Case)');
     ws.cell(2, 4).string('อาการไม่รุนแรง\n(Mild Case)');
     ws.cell(2, 5).string('ผู้ป่วยผลบวกไม่มีอาการ\n(Asymptomatic)');
 
     ws.cell(3, 1).string('รวม');
-    ws.cell(3, 2).string(toString(sumBy(rs,'severe')));
-    ws.cell(3, 3).string(toString(sumBy(rs,'moderate')));
-    ws.cell(3, 4).string(toString(sumBy(rs,'mild')));
-    ws.cell(3, 5).string(toString(sumBy(rs,'asymptomatic')));
-    ws.cell(3, 6).string(toString(sumBy(rs,'ip_pui')));
+    ws.cell(3, 2).string(toString(sumBy(rs, 'severe')));
+    ws.cell(3, 3).string(toString(sumBy(rs, 'moderate')));
+    ws.cell(3, 4).string(toString(sumBy(rs, 'mild')));
+    ws.cell(3, 5).string(toString(sumBy(rs, 'asymptomatic')));
+    ws.cell(3, 6).string(toString(sumBy(rs, 'ip_pui')));
     ws.cell(3, 7).string('');
     let row = 4;
-    for (const items of rs) {console.log(items);
+    for (const items of rs) {
+      console.log(items);
       ws.cell(row, 1).string(toString(items['hospname']));
-      ws.cell(row, 2).string(toString(items['severe'] ));
+      ws.cell(row, 2).string(toString(items['severe']));
       ws.cell(row, 3).string(toString(items['moderate']));
       ws.cell(row, 4).string(toString(items['mild']));
       ws.cell(row, 5).string(toString(items['asymptomatic']));
@@ -256,11 +275,11 @@ router.get('/report3/excel', async (req: Request, res: Response) => {
       ws.cell(row++, 7).string(toString(items['hosp_sub_min_name']));
     }
     ws.cell(row, 1).string('รวม');
-    ws.cell(row, 2).string(toString(sumBy(rs,'severe')));
-    ws.cell(row, 3).string(toString(sumBy(rs,'moderate')));
-    ws.cell(row, 4).string(toString(sumBy(rs,'mild')));
-    ws.cell(row, 5).string(toString(sumBy(rs,'asymptomatic')));
-    ws.cell(row, 6).string(toString(sumBy(rs,'ip_pui')));
+    ws.cell(row, 2).string(toString(sumBy(rs, 'severe')));
+    ws.cell(row, 3).string(toString(sumBy(rs, 'moderate')));
+    ws.cell(row, 4).string(toString(sumBy(rs, 'mild')));
+    ws.cell(row, 5).string(toString(sumBy(rs, 'asymptomatic')));
+    ws.cell(row, 6).string(toString(sumBy(rs, 'ip_pui')));
     ws.cell(row, 7).string('');
 
     fse.ensureDirSync(process.env.TMP_PATH);
