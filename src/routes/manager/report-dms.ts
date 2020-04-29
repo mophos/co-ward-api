@@ -190,7 +190,7 @@ router.get('/report2/excel', async (req: Request, res: Response) => {
     let row = 2
     for (const s of rs) {
       ws.cell(row, 1).string(toString(s.hospname));
-      ws.cell(row, 2).string(toString(s.entry_date));
+      ws.cell(row, 2).string(toString(moment(s.entry_date).format('YYYY-MM-DD')));
       ws.cell(row, 3).string(toString(s.severe));
       ws.cell(row, 4).string(toString(s.moderate));
       ws.cell(row, 5).string(toString(s.mild));
