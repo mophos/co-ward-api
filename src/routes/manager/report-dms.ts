@@ -310,9 +310,20 @@ router.get('/report4/excel', async (req: Request, res: Response) => {
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
   try {
-    const rs: any = await model.report3(db, date);
+    const rs: any = await model.report4(db, date);
+    ws.cell(1, 1, 2, 1, true).string('โรงพยาบาล');
+    ws.cell(1, 2, 1, 5, true).string('Positive ยอดสะสม');
+    ws.cell(1, 6, 1, 9, true).string('PUI ยอดสะสม');
+    ws.cell(1, 10, 2, 10, true).string('หน่วยงาน');
 
-    ws.cell(1, 1).string('Head');
+    ws.cell(2, 2).string('Admit');
+    ws.cell(2, 3).string('Discharge รวมสะสม');
+    ws.cell(2, 4).string('Discharge\nส่ง Hospitel');
+    ws.cell(2, 5).string('Discharge ตายสะสม');
+    ws.cell(2, 6).string('Admit');
+    ws.cell(2, 7).string('Discharge รวมสะสม');
+    ws.cell(2, 8).string('Discharge\nส่ง Hospitel');
+    ws.cell(2, 9).string('Discharge ตายสะสม');
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
