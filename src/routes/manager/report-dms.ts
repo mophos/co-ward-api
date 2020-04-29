@@ -14,13 +14,11 @@ const router: Router = Router();
 
 router.get('/report1', async (req: Request, res: Response) => {
   const db = req.db;
-  const date = req.query.date;
-
   try {
-    const rs: any = await model.report2(db, date);
+    const rs: any = await model.report1(db);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
-
+    console.log(error);
     res.send({ ok: false, code: HttpStatus.OK });
   }
 });
