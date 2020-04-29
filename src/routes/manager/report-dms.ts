@@ -179,13 +179,28 @@ router.get('/report2/excel', async (req: Request, res: Response) => {
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
   try {
-    const rs: any = await model.report3(db, date);
+    const rs: any = await model.report2(db, date);
 
-    ws.cell(1, 1).string('Head');
+    ws.cell(1, 1).string('ชื่อสถานบริการ')
+    ws.cell(1, 2).string('วันที่บันทึกข้อมูล')
+    ws.cell(1, 3).string('อาการรุนแรง (Severe Case)')
+    ws.cell(1, 4).string('อาการรุนแรงปานกลาง (Moderate Case)')
+    ws.cell(1, 5).string('อาการไม่รุนแรง (Mild Case)')
+    ws.cell(1, 6).string('ผู้ป่วยผลบวกไม่มีอาการ (Asymptomatic)')
+    let row = 2
+    for (const s of rs) {
+      ws.cell(row, 1).string(toString(s.hospname));
+      ws.cell(row, 2).string(toString(s.entry_date));
+      ws.cell(row, 3).string(toString(s.severe));
+      ws.cell(row, 4).string(toString(s.moderate));
+      ws.cell(row, 5).string(toString(s.mild));
+      ws.cell(row, 6).string(toString(s.asymptomatic));
+      row++;
+    }
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
-    let filename = `report3` + moment().format('x');
+    let filename = `report2` + moment().format('x');
     let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
     wb.write(filenamePath, function (err, stats) {
       if (err) {
@@ -502,5 +517,13 @@ router.get('/report10/excel', async (req: Request, res: Response) => {
     res.send({ ok: false, code: HttpStatus.OK });
   }
 });
+
+function toString(value) {
+  if (value || value == 0) {
+    return value.toString();
+  } else {
+    return '';
+  }
+}
 
 export default router;
