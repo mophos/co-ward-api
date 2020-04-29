@@ -191,12 +191,10 @@ router.get('/report2/excel', async (req: Request, res: Response) => {
     for (const s of rs) {
       ws.cell(row, 1).string(toString(s.hospname));
       ws.cell(row, 2).string(toString(s.entry_date));
-      ws.cell(row, 3).string(toString(moment(s.created_at).format('DD-MM-YYYY')));
-      ws.cell(row, 4).string(toString(s.tracking));
-      ws.cell(row, 5).string(toString(s.co_no));
-      ws.cell(row, 6).string(toString(s.status_code));
-      ws.cell(row, 7).string(toString(s.status_name));
-      ws.cell(row, 8).string(toString(moment(s.status_update).format('DD-MM-YYYY')));
+      ws.cell(row, 3).string(toString(s.severe));
+      ws.cell(row, 4).string(toString(s.moderate));
+      ws.cell(row, 5).string(toString(s.mild));
+      ws.cell(row, 6).string(toString(s.asymptomatic));
       row++;
     }
 
