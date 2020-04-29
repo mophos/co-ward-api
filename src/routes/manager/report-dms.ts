@@ -239,30 +239,28 @@ router.get('/report3/excel', async (req: Request, res: Response) => {
     ws.cell(2, 5).string('ผู้ป่วยผลบวกไม่มีอาการ\n(Asymptomatic)');
 
     ws.cell(3, 1).string('รวม');
-    ws.cell(3, 2).string(sumBy(rs,'severe')+'');
-    ws.cell(3, 3).string(sumBy(rs,'moderate')+'');
-    ws.cell(3, 4).string(sumBy(rs,'mild')+'');
-    ws.cell(3, 5).string(sumBy(rs,'asymptomatic')+'');
-    ws.cell(3, 6).string(sumBy(rs,'ip_pui')+'');
+    ws.cell(3, 2).string(toString(sumBy(rs,'severe')));
+    ws.cell(3, 3).string(toString(sumBy(rs,'moderate')));
+    ws.cell(3, 4).string(toString(sumBy(rs,'mild')));
+    ws.cell(3, 5).string(toString(sumBy(rs,'asymptomatic')));
+    ws.cell(3, 6).string(toString(sumBy(rs,'ip_pui')));
     ws.cell(3, 7).string('');
     let row = 4;
-    // let col = 1;
     for (const items of rs) {console.log(items);
-    
-      ws.cell(row, 1).string(items['hospname']+'');
-      ws.cell(row, 2).string(items['severe']+'' || '-');
-      ws.cell(row, 3).string(items['moderate']+''|| '-');
-      ws.cell(row, 4).string(items['mild']+''|| '-');
-      ws.cell(row, 5).string(items['asymptomatic']+''|| '-');
-      ws.cell(row, 6).string(items['ip_pui']+''|| '-');
-      ws.cell(row++, 7).string(items['hosp_sub_min_name']+'');
+      ws.cell(row, 1).string(toString(items['hospname']));
+      ws.cell(row, 2).string(toString(items['severe'] ));
+      ws.cell(row, 3).string(toString(items['moderate']));
+      ws.cell(row, 4).string(toString(items['mild']));
+      ws.cell(row, 5).string(toString(items['asymptomatic']));
+      ws.cell(row, 6).string(toString(items['ip_pui']));
+      ws.cell(row++, 7).string(toString(items['hosp_sub_min_name']));
     }
     ws.cell(row, 1).string('รวม');
-    ws.cell(row, 2).string(sumBy(rs,'severe')+'');
-    ws.cell(row, 3).string(sumBy(rs,'moderate')+'');
-    ws.cell(row, 4).string(sumBy(rs,'mild')+'');
-    ws.cell(row, 5).string(sumBy(rs,'asymptomatic')+'');
-    ws.cell(row, 6).string(sumBy(rs,'ip_pui')+'');
+    ws.cell(row, 2).string(toString(sumBy(rs,'severe')));
+    ws.cell(row, 3).string(toString(sumBy(rs,'moderate')));
+    ws.cell(row, 4).string(toString(sumBy(rs,'mild')));
+    ws.cell(row, 5).string(toString(sumBy(rs,'asymptomatic')));
+    ws.cell(row, 6).string(toString(sumBy(rs,'ip_pui')));
     ws.cell(row, 7).string('');
 
     fse.ensureDirSync(process.env.TMP_PATH);
