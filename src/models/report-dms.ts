@@ -97,4 +97,14 @@ export class ReportDmsModel {
       .where('v.entry_date', date)
   }
 
+  getHospitalByType(db: Knex) {
+    return db('b_hospitals AS bh')
+      .join('views_hospital_types as vht', 'vht.hospcode', 'bh.hospcode')
+      .where('vht.type', 'B')
+  }
+
+  getBad(db: Knex) {
+    return db('views_bed_hospitals AS vbh')
+  }
+
 }

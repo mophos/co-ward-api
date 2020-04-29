@@ -2,7 +2,7 @@
 
 import * as HttpStatus from 'http-status-codes';
 import { Router, Request, Response } from 'express';
-import { sumBy } from 'lodash';
+import { sumBy, filter } from 'lodash';
 import { ReportDmsModel } from '../../models/report-dms';
 const excel4node = require('excel4node');
 const path = require('path')
@@ -78,11 +78,27 @@ router.get('/report6', async (req: Request, res: Response) => {
   const date = req.query.date;
 
   try {
-    const rs: any = await model.report2(db, date);
-    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    const hospital: any = await model.getHospitalByType(db);
+    const hosp = [];
+    const bed: any = await model.getBad(db)
+    for (const h of hospital) {
+      const obj = {
+        hospital_id: h.id,
+        hospcode: h.hospcode,
+        hospname: h.hospname
+      };
+      const _bed = filter(bed, { hospital_id: h.id })
+      for (const b of _bed) {
+        obj[b.bed_name + '_qty'] = b.qty;
+        obj[b.bed_name + '_covid_qty'] = b.covid_qty;
+        obj[b.bed_name + '_usage_qty'] = b.usage_qty;
+      }
+      hosp.push(obj);
+    }
+    res.send({ ok: true, rows: hosp, code: HttpStatus.OK });
   } catch (error) {
-
-    res.send({ ok: false, code: HttpStatus.OK });
+    console.log(error);
+    res.send({ ok: false, message: error, code: HttpStatus.OK });
   }
 });
 
