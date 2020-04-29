@@ -74,7 +74,8 @@ router.post('/upload-supplie', upload.any(), async (req: Request, res: Response)
   res.send({ ok: true, code: HttpStatus.OK });
 });
 
-router.post('/supplie', async (req: Request, res: Response) => {
+
+router.post('/', async (req: Request, res: Response) => {
 
   let data = req.body.data;
 
@@ -119,6 +120,54 @@ router.post('/supplie', async (req: Request, res: Response) => {
         data.right = _.map(rs, 'name')
       }
       
+      let rs: any = await registerModel.insertUser(req.db, _data);
+      let rsRight: any = await registerModel.getRights(req.db, data.right)
+      let userRight: any = []
+      for (const i of rsRight) {
+        userRight.push({
+          user_id: rs[0],
+          right_id: i.id
+        })
+      }
+      await registerModel.insertUserRights(req.db, userRight)
+      res.send({ ok: true, code: HttpStatus.OK });
+    } else {
+      res.send({ ok: false, error: 'ข้อมูลไม่ครบ', code: HttpStatus.OK });
+    }
+  } catch (error) {
+    if (error.errno === 1062) {
+      res.send({ ok: false, error: 'username หริอ เลขบัตรประชาชน นี้ถูกใช้งานแล้ว', code: HttpStatus.OK });
+    } else {
+      res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+    }
+  }
+});
+
+router.post('/2', async (req: Request, res: Response) => {
+
+  let data = req.body.data;
+
+  try {
+    if (('username' in data) && ('password' in data) && ('hospcode' in data) && ('titleId' in data)
+      && ('fname' in data) && ('cid' in data) && ('lname' in data) && ('positionId' in data) && ('email' in data) && ('type' in data)
+      && ('isProvince' in data) && ('telephone' in data)) {
+      let _data = {
+        username: data.username,
+        password: crypto.createHash('md5').update(data.password).digest('hex'),
+        hospcode: data.hospcode,
+        title_id: data.titleId,
+        cid: data.cid,
+        fname: data.fname,
+        lname: data.lname,
+        position_id: data.positionId,
+        email: data.email,
+        type: data.type,
+        telephone: data.telephone,
+        is_province: data.isProvince,
+        app_register:'MS-NCD'
+      }
+
+      data.right = ['STAFF_DRUG_NCD'];
       let rs: any = await registerModel.insertUser(req.db, _data);
       let rsRight: any = await registerModel.getRights(req.db, data.right)
       let userRight: any = []
