@@ -2,13 +2,14 @@
 
 import * as HttpStatus from 'http-status-codes';
 import { Router, Request, Response } from 'express';
-import { ManagerReportModel } from '../../models/manager-report';
 import { sumBy } from 'lodash';
+import { ReportDmsModel } from '../../models/report-dms';
 const excel4node = require('excel4node');
 const path = require('path')
 const fse = require('fs-extra');
 import moment = require('moment');
-const model = new ManagerReportModel();
+
+const model = new ReportDmsModel();
 const router: Router = Router();
 
 router.get('/report1', async (req: Request, res: Response) => {

@@ -2,7 +2,7 @@ import Knex = require('knex');
 import * as moment from 'moment';
 import { join } from 'bluebird';
 
-export class ManagerReportModel {
+export class ReportDmsModel {
   report1(db: Knex, date) {
     return db('views_case_hospital_date_cross as v')
       .select('v.*', 'h.hospname')
