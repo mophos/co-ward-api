@@ -52,7 +52,7 @@ router.get('/report4', async (req: Request, res: Response) => {
   const date = req.query.date;
 
   try {
-    const rs: any = await model.report2(db, date);
+    const rs: any = await model.report4(db, date);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
 
