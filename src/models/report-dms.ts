@@ -89,7 +89,7 @@ export class ReportDmsModel {
   }
 
   report6(db: Knex, date) {
-    return db('views_case_hospital_date_cross as v')
+    return db('views_bed_hospital_date_cross as v')
       .select('v.*', 'h.hospname')
       .join('b_hospitals as h', 'h.id', 'v.hospital_id')
       .where('v.entry_date', date)
@@ -121,16 +121,6 @@ export class ReportDmsModel {
       .select('v.*', 'h.hospname')
       .join('b_hospitals as h', 'h.id', 'v.hospital_id')
       .where('v.entry_date', date)
-  }
-
-  getHospitalByType(db: Knex) {
-    return db('b_hospitals AS bh')
-      .join('views_hospital_types as vht', 'vht.hospcode', 'bh.hospcode')
-      .where('vht.type', 'B')
-  }
-
-  getBad(db: Knex) {
-    return db('views_bed_hospitals AS vbh')
   }
 
 }

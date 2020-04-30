@@ -76,24 +76,8 @@ router.get('/report6', async (req: Request, res: Response) => {
   const date = req.query.date;
 
   try {
-    const hospital: any = await model.getHospitalByType(db);
-    const hosp = [];
-    const bed: any = await model.getBad(db)
-    for (const h of hospital) {
-      const obj = {
-        hospital_id: h.id,
-        hospcode: h.hospcode,
-        hospname: h.hospname
-      };
-      const _bed = filter(bed, { hospital_id: h.id })
-      for (const b of _bed) {
-        obj[b.bed_name + '_qty'] = b.qty;
-        obj[b.bed_name + '_covid_qty'] = b.covid_qty;
-        obj[b.bed_name + '_usage_qty'] = b.usage_qty;
-      }
-      hosp.push(obj);
-    }
-    res.send({ ok: true, rows: hosp, code: HttpStatus.OK });
+    const rs: any = await model.report6(db, date);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, message: error, code: HttpStatus.OK });
