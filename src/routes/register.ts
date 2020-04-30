@@ -178,6 +178,7 @@ router.post('/2', async (req: Request, res: Response) => {
         })
       }
       await registerModel.insertUserRights(req.db, userRight)
+      await registerModel.sendMS(data);
       res.send({ ok: true, code: HttpStatus.OK });
     } else {
       res.send({ ok: false, error: 'ข้อมูลไม่ครบ', code: HttpStatus.OK });

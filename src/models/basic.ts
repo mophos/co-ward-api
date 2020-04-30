@@ -119,6 +119,7 @@ export class BasicModel {
 			.orWhere('hospname', 'like', _q)
 			.orWhere('hospcode', 'like', _q)
 			.orderBy('hospname')
+			.limit(30);
 	}
 
 	autocompleteCountry(db: Knex, query) {

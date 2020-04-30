@@ -9,10 +9,13 @@ import { BasicModel } from '../models/basic';
 import { Requisition } from '../models/requisition';
 import { CovidCaseModel } from '../models/covid-case';
 import { SerialModel } from '../models/serial';
+import { BedModel } from '../models/setting';
+import { cloneDeep } from 'lodash';
 const jwt = new Jwt();
 const basicModel = new BasicModel();
 const covidCaseModel = new CovidCaseModel();
 const serialModel = new SerialModel();
+const settingModel = new BedModel();
 import * as moment from 'moment';
 const model = new Login();
 const router: Router = Router();
@@ -106,78 +109,189 @@ router.get('/status', async (req: Request, res: Response) => {
 
 router.get('/updatereq', async (req: Request, res: Response) => {
   try {
+    const timeKey = req.query.timeKey;
+    if (process.env.TIME_KEY == timeKey) {
+      const db = req.db
+      const userId = req.decoded.id || 0;
 
-    const db = req.db
-    const userId = req.decoded.id || 0;
+      // RD
+      const headDrug: any = await requisition.getHeadCovidCaseDrugs(db);
+      for (const i of headDrug) {
+        const drugs = await requisition.getDetailCovidCaseDrugs(db, i.covid_case_detail_id);
+        if (drugs.length > 0) {
+          const currentNoRd = await covidCaseModel.countRequisitionhospital(db, i.hospital_id_client)
+          const newSerialNoRd = await serialModel.paddingNumber(currentNoRd[0].count + 1, 5)
 
-    // RD
-    const headDrug: any = await requisition.getHeadCovidCaseDrugs(db);
-    for (const i of headDrug) {
-      const drugs = await requisition.getDetailCovidCaseDrugs(db, i.covid_case_detail_id);
-      if (drugs.length > 0) {
-        const currentNoRd = await covidCaseModel.countRequisitionhospital(db, i.hospital_id_client)
-        const newSerialNoRd = await serialModel.paddingNumber(currentNoRd[0].count + 1, 5)
-
-        const headRd = {
-          hospital_id_node: i.hospital_id_node,
-          hospital_id_client: i.hospital_id_client,
-          covid_case_detail_id: i.covid_case_detail_id,
-          code: 'RD-' + i.hospital_id_client_code + '-' + newSerialNoRd,
-          type: 'DRUG'
-        }
-
-        const requisitionIdRd = await covidCaseModel.saveRequisition(db, headRd);
-        const detailRd = [];
-        for (const d of drugs) {
-          const obj = {
-            requisition_id: requisitionIdRd[0],
-            generic_id: d.generic_id,
-            qty: d.qty
+          const headRd = {
+            hospital_id_node: i.hospital_id_node,
+            hospital_id_client: i.hospital_id_client,
+            covid_case_detail_id: i.covid_case_detail_id,
+            code: 'RD-' + i.hospital_id_client_code + '-' + newSerialNoRd,
+            type: 'DRUG'
           }
-          detailRd.push(obj);
-        }
-        await covidCaseModel.saveRequisitionDetail(db, detailRd);
-      }
-    }
 
-    // RS
-    const headSupplies: any = await requisition.getHeadCovidCaseSupplies(db);
-    for (const i of headSupplies) {
-      const supplies = await requisition.getDetailCovidCaseSupplies(db, i.covid_case_detail_id);
-      if (supplies.length > 0) {
-        const currentNoRs = await covidCaseModel.countRequisitionhospital(db, i.hospital_id_client)
-        const newSerialNoRs = await serialModel.paddingNumber(currentNoRs[0].count + 1, 5)
-
-        const headRs = {
-          hospital_id_node: i.hospital_id_node,
-          hospital_id_client: i.hospital_id_client,
-          covid_case_detail_id: i.covid_case_detail_id,
-          code: 'RS-' + i.hospital_id_client_code + '-' + newSerialNoRs,
-          type: 'SUPPLIES'
-        }
-
-        const requisitionIdRd = await covidCaseModel.saveRequisition(db, headRs);
-        const detailRs = [];
-        for (const d of supplies) {
-          const obj = {
-            requisition_id: requisitionIdRd[0],
-            generic_id: d.generic_id,
-            qty: d.qty
+          const requisitionIdRd = await covidCaseModel.saveRequisition(db, headRd);
+          const detailRd = [];
+          for (const d of drugs) {
+            const obj = {
+              requisition_id: requisitionIdRd[0],
+              generic_id: d.generic_id,
+              qty: d.qty
+            }
+            detailRd.push(obj);
           }
-          detailRs.push(obj);
+          await covidCaseModel.saveRequisitionDetail(db, detailRd);
         }
-        await covidCaseModel.saveRequisitionDetail(db, detailRs);
       }
-    }
 
-    await requisition.updateIsRequisition(db, userId);
-    res.send({ ok: true, code: HttpStatus.OK });
+      // RS
+      const headSupplies: any = await requisition.getHeadCovidCaseSupplies(db);
+      for (const i of headSupplies) {
+        const supplies = await requisition.getDetailCovidCaseSupplies(db, i.covid_case_detail_id);
+        if (supplies.length > 0) {
+          const currentNoRs = await covidCaseModel.countRequisitionhospital(db, i.hospital_id_client)
+          const newSerialNoRs = await serialModel.paddingNumber(currentNoRs[0].count + 1, 5)
+
+          const headRs = {
+            hospital_id_node: i.hospital_id_node,
+            hospital_id_client: i.hospital_id_client,
+            covid_case_detail_id: i.covid_case_detail_id,
+            code: 'RS-' + i.hospital_id_client_code + '-' + newSerialNoRs,
+            type: 'SUPPLIES'
+          }
+
+          const requisitionIdRd = await covidCaseModel.saveRequisition(db, headRs);
+          const detailRs = [];
+          for (const d of supplies) {
+            const obj = {
+              requisition_id: requisitionIdRd[0],
+              generic_id: d.generic_id,
+              qty: d.qty
+            }
+            detailRs.push(obj);
+          }
+          await covidCaseModel.saveRequisitionDetail(db, detailRs);
+        }
+      }
+
+      await requisition.updateIsRequisition(db, userId);
+      res.send({ ok: true, code: HttpStatus.OK });
+    } else {
+      res.send({ ok: false, error: 'token ไม่ถูกต้อง' });
+    }
   } catch (error) {
     res.send({ ok: false, error: error });
   }
 });
 
+router.get('/close-systems', async (req: Request, res: Response) => {
+  const db = req.db;
+  const timeKey = req.query.timeKey;
+  const userId = 0;
+  try {
+    if (process.env.TIME_KEY == timeKey) {
+      await basicModel.closeSystems(db, userId);
+      res.send({ ok: true });
+    } else {
+      res.send({ ok: false, error: 'token ไม่ถูกต้อง' });
+    }
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
 
+router.get('/open-systems', async (req: Request, res: Response) => {
+  const db = req.db;
+  const userId = 0;
+  const timeKey = req.query.timeKey;
+  try {
+    if (process.env.TIME_KEY == timeKey) {
+      await basicModel.openSystems(db, userId);
+      res.send({ ok: true });
+    } else {
+      res.send({ ok: false, error: 'token ไม่ถูกต้อง' });
+    }
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
 
+router.post('/broadcast', async (req: Request, res: Response) => {
+  const db = req.db;
+  const userId = 0;
+  const timeKey = req.query.timeKey;
+  const message = req.body.message;
+  try {
+    if (process.env.TIME_KEY == timeKey) {
+      await basicModel.broadcast(db, message, userId);
+      res.send({ ok: true });
+    } else {
+      res.send({ ok: false, error: 'token ไม่ถูกต้อง' });
+    }
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
+
+router.get('/systemUpdate', async (req: Request, res: Response) => {
+  let db = req.db
+  const timeKey = req.query.timeKey;
+  try {
+    if (process.env.TIME_KEY == timeKey) {
+      let rs: any = await systemUpdate(db);
+      if (rs.ok) {
+        res.send({ ok: true, rows: rs.rows, code: HttpStatus.OK });
+      } else {
+        res.send({ ok: false, error: rs.error, code: HttpStatus.OK });
+      }
+    } else {
+      res.send({ ok: false, error: 'token ไม่ถูกต้อง' });
+    }
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+async function systemUpdate(db) {
+  try {
+    var items = [];
+    let lcd = await settingModel.getLastCaseDetails(db)
+    let nowDate = moment(moment(), 'YYYY-MM-DD')
+    for (const item of lcd) {
+      let _items = await settingModel.getLastCaseDetailItems(db, item.id)
+      let startDate = moment(moment(item.entry_date), 'YYYY-MM-DD');
+      let _detail = cloneDeep(item)
+      while (startDate.isBefore(nowDate)) {
+        startDate = startDate.add(1, 'days');
+        let set_date = moment(startDate).format('YYYY-MM-DD')
+        const caseDetailId = await covidCaseModel.saveCovidCaseDetail(db, {
+          covid_case_id: _detail.covid_case_id,
+          gcs_id: _detail.gcs_id,
+          bed_id: _detail.bed_id,
+          medical_supplie_id: _detail.medical_supplie_id,
+          patient_id: _detail.patient_id,
+          entry_date: set_date,
+          status: _detail.status,
+          date_admit: _detail.date_admit,
+          hospital_id: _detail.hospital_id,
+          is_requisition: _detail.is_requisition,
+          create_by: 0
+        });
+        const _covidCaseDetailId = caseDetailId[0].insertId == 0 ? _detail.id : caseDetailId[0].insertId
+        items.push({
+          covid_case_detail_id: cloneDeep(_covidCaseDetailId),
+          generic_id: _items.generic_id,
+          qty: _items.qty,
+          created_by: 0
+        });
+      }
+      await covidCaseModel.saveCovidCaseDetailItem(db, items);
+    }
+    return { ok: true, rows: lcd.length }
+  } catch (error) {
+    console.log(error)
+    return { ok: false, error: error.message }
+  }
+}
 
 export default router;

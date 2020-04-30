@@ -82,6 +82,7 @@ router.post('/beds', async (req: Request, res: Response) => {
         bed_id: i.bed_id,
         qty: i.qty,
         covid_qty: i.covid_qty,
+        spare_qty: i.spare_qty,
         created_by: id
       });
 
@@ -89,7 +90,8 @@ router.post('/beds', async (req: Request, res: Response) => {
         wm_bed_id: rs,
         bed_id: i.bed_id,
         qty: i.qty,
-        covid_qty: i.covid_qty
+        covid_qty: i.covid_qty,
+        spare_qty: i.spare_qty
       });
     }
     await model.saveBeds(db, _data);
@@ -282,7 +284,6 @@ router.put('/change-right-sup-user', async (req: Request, res: Response) => {
     console.log(status);
     if (status) {
       await model.addRightSupUser(db, userId, userIdUpdate);
-
     } else {
       await model.deleteRightSupUser(db, userId);
 

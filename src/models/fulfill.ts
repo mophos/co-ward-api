@@ -20,7 +20,7 @@ export class FullfillModel {
       })
       .where('bg.type', type)
       .orderByRaw('(g.qty+ifnull(vf.qty,0))*100/gp.max')
-      .havingRaw('fill_qty > 0')
+      .havingRaw('fill_qty > 0 and (qty+reserve_qty) < min')
     // console.log(sql.toString());
     return sql;
   }
