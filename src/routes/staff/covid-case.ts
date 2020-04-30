@@ -294,13 +294,13 @@ router.post('/', async (req: Request, res: Response) => {
       confirm_date: data.confirmDate,
       create_by: userId
     }
-
+    _data.updated_entry = moment().format('YYYY-MM-DD');
     if (!timeCut.ok) {
-      _data.date_entry = moment().add(1, 'days').format('YYYY-MM-DD');
+      _data.updated_entry = _data.date_entry = moment().add(1, 'days').format('YYYY-MM-DD');
     } else {
-      _data.date_entry = moment().format('YYYY-MM-DD');
+      _data.updated_entry =  _data.date_entry = moment().format('YYYY-MM-DD');
     }
-
+    
     const covidCaseId = await covidCaseModel.saveCovidCase(db, _data);
     const detail: any = {
       covid_case_id: covidCaseId[0],
@@ -416,10 +416,12 @@ router.post('/old', async (req: Request, res: Response) => {
       status: data.status,
       create_by: userId
     }
+    _data.updated_entry = moment().format('YYYY-MM-DD');
+
     if (!timeCut.ok) {
-      _data.date_entry = moment().add(1, 'days').format('YYYY-MM-DD');
+      _data.updated_entry = _data.date_entry = moment().add(1, 'days').format('YYYY-MM-DD');
     } else {
-      _data.date_entry = moment().format('YYYY-MM-DD');
+      _data.updated_entry = _data.date_entry = moment().format('YYYY-MM-DD');
     }
     const covidCaseId = await covidCaseModel.saveCovidCase(db, _data);
     const detail: any = {
