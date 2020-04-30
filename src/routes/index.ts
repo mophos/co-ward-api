@@ -26,7 +26,7 @@ router.get('/', (req: Request, res: Response) => {
 });
 
 router.get('/version', (req: Request, res: Response) => {
-  res.send({ ok: true, message: '1.2.1', code: HttpStatus.OK });
+  res.send({ ok: true, message: '1.3.0', code: HttpStatus.OK });
 });
 
 router.get('/demo', (req: Request, res: Response) => {
@@ -36,7 +36,6 @@ router.get('/demo', (req: Request, res: Response) => {
     res.send({ ok: false });
   }
 });
-
 
 router.get('/date', (req: Request, res: Response) => {
   res.send({ ok: true, rows: moment().format('YYYY-MM-DD HH:mm:ss'), code: HttpStatus.OK });
