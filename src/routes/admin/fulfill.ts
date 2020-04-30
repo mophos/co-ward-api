@@ -239,7 +239,8 @@ router.post('/min-max/save', async (req: Request, res: Response) => {
   const hospId = data[0].hospital_id;
 
   try {
-
+    const decoded = req.decoded;
+    data.created_by = decoded.id || 0;
     await model.removeMinMax(db, hospId);
     await model.saveMinMax(db, data);
     res.send({ ok: true, code: HttpStatus.OK });

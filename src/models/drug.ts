@@ -35,6 +35,7 @@ export class DrugsModel {
   updateDrugs(db: Knex, id: any, data = {}) {
     return db('b_generics')
       .update(data)
+      .update('update_date', db.fn.now())
       .where('id', id);
   }
 
@@ -43,9 +44,11 @@ export class DrugsModel {
       .insert(data);
   }
 
-  deleteDrugs(db: Knex, id: any) {
+  deleteDrugs(db: Knex, id: any, userId) {
     return db('b_generics')
       .update('is_deleted', 'Y')
+      .update('updated_by', userId)
+      .update('update_date', db.fn.now())
       .where('id', id);
   }
 

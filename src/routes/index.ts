@@ -23,7 +23,7 @@ router.get('/', (req: Request, res: Response) => {
 });
 
 router.get('/version', (req: Request, res: Response) => {
-  res.send({ ok: true, message: '1.2.1', code: HttpStatus.OK });
+  res.send({ ok: true, message: '1.3.0', code: HttpStatus.OK });
 });
 
 router.get('/demo', (req: Request, res: Response) => {
@@ -33,7 +33,6 @@ router.get('/demo', (req: Request, res: Response) => {
     res.send({ ok: false });
   }
 });
-
 
 router.get('/date', (req: Request, res: Response) => {
   res.send({ ok: true, rows: moment().format('YYYY-MM-DD HH:mm:ss'), code: HttpStatus.OK });
@@ -109,6 +108,7 @@ router.get('/updatereq', async (req: Request, res: Response) => {
   try {
 
     const db = req.db
+    const userId = req.decoded.id || 0;
 
     // RD
     const headDrug: any = await requisition.getHeadCovidCaseDrugs(db);
@@ -170,7 +170,7 @@ router.get('/updatereq', async (req: Request, res: Response) => {
       }
     }
 
-    await requisition.updateIsRequisition(db);
+    await requisition.updateIsRequisition(db, userId);
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error });

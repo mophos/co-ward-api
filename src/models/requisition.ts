@@ -90,9 +90,11 @@ export class Requisition {
             .where('cdi.qty', '>', '0')
     }
 
-    updateIsRequisition(db: Knex) {
+    updateIsRequisition(db: Knex, userId) {
         return db('p_covid_case_details')
             .update('is_requisition', 'Y')
+            .update('updated_by', userId)
+            .update('update_date', db.fn.now())
             .where('status', 'ADMIT')
     }
 }

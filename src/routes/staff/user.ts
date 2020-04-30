@@ -28,7 +28,8 @@ router.delete('/remove/:id', async (req: Request, res: Response) => {
   let db = req.db;
   const id = req.params.id
   try {
-    let rs: any = await userModel.deleteUser(db, id);
+    const userId = req.decoded.id || 0;
+    let rs: any = await userModel.deleteUser(db, id, userId);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });

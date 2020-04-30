@@ -52,7 +52,7 @@ export class BedModel {
 	getMedicalSupplies(db: Knex, hospitalId: any) {
 		return db('b_medical_supplies AS b')
 			.select('b.id', 'b.name', 'bh.qty', 'bh.covid_qty', 'vms.qty as usage_qty')
-			.joinRaw(`LEFT JOIN b_medical_supplie_hospitals AS bh on bh.medical_supplie_id = b.id and bh.hospital_id = ?`,hospitalId)
+			.joinRaw(`LEFT JOIN b_medical_supplie_hospitals AS bh on bh.medical_supplie_id = b.id and bh.hospital_id = ?`, hospitalId)
 			.joinRaw(`LEFT JOIN view_medical_supplie_sum_hospitals as vms ON vms.medical_supplie_id = b.id AND vms.hospital_id = '?'`, hospitalId)
 			.where('b.is_deleted', 'N')
 	}
@@ -105,12 +105,17 @@ export class BedModel {
 			.where('u.id', userId);
 	}
 
-	update(db: Knex, data, hospcode: any) {
-		return db('b_hospitals').update(data).where('hospcode', hospcode);
+	update(db: Knex, data, hospcode: any, userId) {
+		return db('b_hospitals').update(data)
+			.update('updated_by', userId)
+			.update('update_date', db.fn.now())
+			.where('hospcode', hospcode);
 	}
 
 	updateUser(db: Knex, data, userId: any) {
-		return db('um_users').update(data).where('id', userId);
+		return db('um_users').update(data)
+			.update('update_date', db.fn.now())
+			.where('id', userId);
 	}
 
 	saveHead(db: Knex, data) {
@@ -143,7 +148,7 @@ export class BedModel {
 			.insert(data);
 	}
 
-	getProvinceUser(db: Knex, provinceCode, userId){
+	getProvinceUser(db: Knex, provinceCode, userId) {
 		return db.raw(`SELECT
 		uu.id,
 		uu.cid,
@@ -161,20 +166,23 @@ export class BedModel {
 		and uu.id <> ? `, [provinceCode, userId])
 	}
 
-	changeApproved(db: Knex, id, status){
+	changeApproved(db: Knex, id, status) {
 		return db('um_users')
-		.update('is_approved', status)
-		.where('id', id)
+			.update('is_approved', status)
+			.update('updated_by', id)
+			.update('update_date', db.fn.now())
+
+			.where('id', id)
 	}
 
-	deleteRightSupUser(db: Knex, id){
+	deleteRightSupUser(db: Knex, id) {
 		return db('um_user_rights')
-		.delete()
-		.where({user_id: id, right_id: 25});
+			.delete()
+			.where({ user_id: id, right_id: 25 });
 	}
 
-	addRightSupUser(db: Knex, id){
+	addRightSupUser(db: Knex, id, userId) {
 		return db('um_user_rights')
-		.insert({user_id: id, right_id: 25});
+			.insert({ user_id: id, right_id: 25 ,created_by: userId});
 	}
 }

@@ -82,7 +82,8 @@ router.post('/beds', async (req: Request, res: Response) => {
         bed_id: i.bed_id,
         qty: i.qty,
         covid_qty: i.covid_qty,
-        spare_qty: i.spare_qty
+        spare_qty: i.spare_qty,
+        created_by: id
       });
 
       detail.push({
@@ -135,7 +136,8 @@ router.post('/medical-supplies', async (req: Request, res: Response) => {
         hospital_id: hospitalId,
         medical_supplie_id: i.id,
         qty: i.qty,
-        covid_qty: i.covid_qty
+        covid_qty: i.covid_qty,
+        created_by: id
       });
 
       detail.push({
@@ -185,7 +187,8 @@ router.post('/professional', async (req: Request, res: Response) => {
       _data.push({
         hospital_id: hospitalId,
         professional_id: i.professional_id,
-        qty: i.qty
+        qty: i.qty,
+        created_by: id
       });
 
       detail.push({
@@ -208,8 +211,9 @@ router.post('/', async (req: Request, res: Response) => {
   const db = req.db;
   const data = req.body.data;
   const hospcode = req.decoded.hospcode;
+  const userId = req.decoded.id || 0;
   try {
-    const rs = await model.update(db, data[0], hospcode);
+    const rs = await model.update(db, data[0], hospcode, userId);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -260,9 +264,11 @@ router.put('/change-approve-user', async (req: Request, res: Response) => {
     status = status ? 'Y' : 'N';
     const rs = await model.changeApproved(db, userId, status);
     if (status == 'N') {
+<<<<<<< HEAD
 
+=======
+>>>>>>> 8817f4c7bf2db8779731c3949c5e4ea3aaef017b
       await model.deleteRightSupUser(db, userId);
-
     }
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
@@ -277,9 +283,15 @@ router.put('/change-right-sup-user', async (req: Request, res: Response) => {
   const userId = req.body.id;
   let status = req.body.status;
   try {
+    const userIdUpdate = req.decoded.id || 0;
+
     console.log(status);
     if (status) {
+<<<<<<< HEAD
       await model.addRightSupUser(db, userId);
+=======
+      await model.addRightSupUser(db, userId, userIdUpdate);
+>>>>>>> 8817f4c7bf2db8779731c3949c5e4ea3aaef017b
 
     } else {
       await model.deleteRightSupUser(db, userId);
