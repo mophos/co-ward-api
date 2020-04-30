@@ -38,13 +38,15 @@ router.post('/', async (req: Request, res: Response) => {
   try {
     const data = req.body.data;
     const items: any = [];
-    const rs: any = await receiveModel.updateFulfill(req.db, data.type, data.id);
+    const userId = req.decoded.id || 0;
+    const rs: any = await receiveModel.updateFulfill(req.db, data.type, data.id, userId);
     if (rs) {
       for (const v of data.details) {
         const obj: any = {};
         obj.hospital_id = v.hospital_id;
         obj.generic_id = v.generic_id;
         obj.qty = v.qty;
+        obj.created_by = userId;
 
         items.push(obj);
       }

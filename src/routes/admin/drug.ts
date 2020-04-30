@@ -48,7 +48,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     } else {
       res.send({ ok: false, error: 'ข้อมูลไม่ครบ', code: HttpStatus.OK });
     }
-  } catch (error) {    
+  } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
@@ -72,7 +72,8 @@ router.post('/', async (req: Request, res: Response) => {
 router.delete('/:id', async (req: Request, res: Response) => {
   const id: any = req.params.id
   try {
-    let rs: any = await drugsModel.deleteDrugs(req.db, id);
+    const userId = req.decoded.id || 0;
+    let rs: any = await drugsModel.deleteDrugs(req.db, id, userId);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });

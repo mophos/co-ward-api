@@ -66,8 +66,8 @@ export class Requisition {
             )
             .join('p_covid_cases as c', 'c.id', 'ccd.covid_case_id')
             .join('p_patients as pt', 'pt.id', 'c.patient_id')
-            .join('b_hospitals as h','pt.hospital_id','h.id')
-            .join('b_generic_gcs_qty as ggc', (v)=>{
+            .join('b_hospitals as h', 'pt.hospital_id', 'h.id')
+            .join('b_generic_gcs_qty as ggc', (v) => {
                 v.on('ggc.gcs_id', 'ccd.gcs_id');
                 v.on('ggc.type', 'h.hospital_type');
             })
@@ -89,9 +89,11 @@ export class Requisition {
             .where('cdi.qty', '>', '0')
     }
 
-    updateIsRequisition(db: Knex) {
+    updateIsRequisition(db: Knex, userId) {
         return db('p_covid_case_details')
             .update('is_requisition', 'Y')
-            .where('status','ADMIT')
+            .update('updated_by', userId)
+            .update('update_date', db.fn.now())
+            .where('status', 'ADMIT')
     }
 }

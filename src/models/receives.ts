@@ -56,13 +56,23 @@ export class ReceivesModel {
       .groupBy('wfsmdi.generic_id')
   }
 
-  updateFulfill(db: Knex, type, id) {
+  updateFulfill(db: Knex, type, id, userId) {
     if (type === 'DRUG') {
-      return db('wm_fulfill_drugs').update('is_received', 'Y').where('id', id).where('is_approved','N');
+      return db('wm_fulfill_drugs')
+        .update('is_received', 'Y')
+        .update('updated_by', userId)
+        .update('update_date', db.fn.now())
+        .where('id', id).where('is_approved', 'N');
     } else if (type === 'SUPPLIES') {
-      return db('wm_fulfill_supplies').update('is_received', 'Y').where('id', id).where('is_approved','N');
+      return db('wm_fulfill_supplies').update('is_received', 'Y')
+        .update('updated_by', userId)
+        .update('update_date', db.fn.now())
+        .where('id', id).where('is_approved', 'N');
     } else if (type === 'SURGICALMASK') {
-      return db('wm_fulfill_surgical_masks').update('is_received', 'Y').where('id', id).where('is_approved','N');
+      return db('wm_fulfill_surgical_masks').update('is_received', 'Y')
+        .update('updated_by', userId)
+        .update('update_date', db.fn.now())
+        .where('id', id).where('is_approved', 'N');
     }
   }
 
@@ -72,10 +82,10 @@ export class ReceivesModel {
     data.forEach(v => {
       let sql = `
           INSERT INTO wm_generics
-          (hospital_id, generic_id,qty)
-          VALUES(${v.hospital_id},${v.generic_id},${v.qty})
+          (hospital_id, generic_id,qty, created_by)
+          VALUES(${v.hospital_id},${v.generic_id},${v.qty},${v.created_by})
           ON DUPLICATE KEY UPDATE
-          qty=qty+${v.qty}
+          qty=qty+${v.qty},updated_by=${v.created_by},update_date=now()
         `;
       sqls.push(sql);
     });

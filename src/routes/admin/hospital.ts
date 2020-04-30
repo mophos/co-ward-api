@@ -49,18 +49,18 @@ router.get('/total', async (req: Request, res: Response) => {
 router.put('/:id', async (req: Request, res: Response) => {
   const id: any = +req.params.id
   const data: any = req.body.data
+  const userId = req.decoded.id || 0;
 
   try {
     if (typeof id === 'number' && typeof data === 'object' && id && data) {
 
       const dupCode: any = await hospitalModel.checkHospCode(req.db, data.hospcode)
       if (dupCode.length == 0 && data.hospcode.length === 5) {
-        let rs: any = await hospitalModel.updateHospital(req.db, id, data);
+        let rs: any = await hospitalModel.updateHospital(req.db, id, data, userId);
         res.send({ ok: true, rows: rs, code: HttpStatus.OK });
       } else {
         if (dupCode[0].id == id) {
-          
-          let rs: any = await hospitalModel.updateHospital(req.db, id, data);
+          let rs: any = await hospitalModel.updateHospital(req.db, id, data, userId);
           res.send({ ok: true, rows: rs, code: HttpStatus.OK });
         } else {
           res.send({ ok: false, error: 'รหัสสถานบริการไม่ถูกต้อง หรือ ซ้ำ', code: HttpStatus.OK });
@@ -77,9 +77,11 @@ router.put('/:id', async (req: Request, res: Response) => {
 
 router.post('/', async (req: Request, res: Response) => {
   const data: any = req.body.data || {}
+  const decoded = req.decoded;
   try {
     if (typeof data === 'object' && data) {
       const dupCode: any = await hospitalModel.checkHospCode(req.db, data.hospcode)
+      data.created_by = decoded.id || 0;
       if (dupCode.length == 0 && data.hospcode.length === 5) {
         let rs: any = await hospitalModel.insertHospital(req.db, data);
         res.send({ ok: true, rows: rs, code: HttpStatus.OK });
@@ -97,7 +99,9 @@ router.post('/', async (req: Request, res: Response) => {
 router.delete('/:id', async (req: Request, res: Response) => {
   const id = req.params.id
   try {
-    let rs: any = await hospitalModel.deleteHospital(req.db, id);
+    const userId = req.decoded.id || 0;
+
+    let rs: any = await hospitalModel.deleteHospital(req.db, id, userId);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
