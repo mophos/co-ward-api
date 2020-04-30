@@ -82,6 +82,7 @@ router.post('/beds', async (req: Request, res: Response) => {
         bed_id: i.bed_id,
         qty: i.qty,
         covid_qty: i.covid_qty,
+        spare_qty: i.spare_qty,
         created_by: id
       });
 
@@ -89,7 +90,8 @@ router.post('/beds', async (req: Request, res: Response) => {
         wm_bed_id: rs,
         bed_id: i.bed_id,
         qty: i.qty,
-        covid_qty: i.covid_qty
+        covid_qty: i.covid_qty,
+        spare_qty: i.spare_qty
       });
     }
     await model.saveBeds(db, _data);
@@ -262,6 +264,10 @@ router.put('/change-approve-user', async (req: Request, res: Response) => {
     status = status ? 'Y' : 'N';
     const rs = await model.changeApproved(db, userId, status);
     if (status == 'N') {
+<<<<<<< HEAD
+
+=======
+>>>>>>> 8817f4c7bf2db8779731c3949c5e4ea3aaef017b
       await model.deleteRightSupUser(db, userId);
     }
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
@@ -281,7 +287,11 @@ router.put('/change-right-sup-user', async (req: Request, res: Response) => {
 
     console.log(status);
     if (status) {
+<<<<<<< HEAD
+      await model.addRightSupUser(db, userId);
+=======
       await model.addRightSupUser(db, userId, userIdUpdate);
+>>>>>>> 8817f4c7bf2db8779731c3949c5e4ea3aaef017b
 
     } else {
       await model.deleteRightSupUser(db, userId);

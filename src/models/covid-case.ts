@@ -28,15 +28,16 @@ export class CovidCaseModel {
       .select('r.*')
       .where('hospital_id_client', hospitalIdClient)
       .whereIn('type', type)
-      .where('is_approved', 'N')
+      .where('r.is_deleted', 'N')
+      .where('r.is_approved', 'N')
   }
 
   getListHospDetailClient(db: Knex, hospitalIdClient) {
     return db('wm_requisitions as r')
       .select('r.*')
       // .join('wm_requisition_details as rd', 'rd.requisition_id', 'r.id')
-      .where('hospital_id_client', hospitalIdClient)
-      .where('is_deleted', 'N')
+      .where('r.hospital_id_client', hospitalIdClient)
+      .where('r.is_deleted', 'N')
   }
 
   getListDrug(db: Knex, reqId) {
@@ -54,6 +55,7 @@ export class CovidCaseModel {
       .select('r.*', 'h1.hospname as hospital_name_node', 'h2.hospname as hospital_name_client')
       .join('b_hospitals as h1', 'h1.id', 'r.hospital_id_node')
       .join('b_hospitals as h2', 'h2.id', 'r.hospital_id_client')
+      .where('r.is_deleted', 'N')
       .where('hospital_id_node', hospitalId)
   }
 
@@ -85,6 +87,7 @@ export class CovidCaseModel {
       // .leftJoin('p_covid_case_details as cd','ccs.covid_case_detail_id','cd.id')
       .where('pt.hospital_id', hospitalId)
       .where('c.status', 'ADMIT')
+      .where('c.is_deleted', 'N')
       .where((v) => {
         v.where('pt.hn', 'like', '%' + query + '%')
         v.orWhere('p.first_name', 'like', '%' + query + '%')
