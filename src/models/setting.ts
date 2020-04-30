@@ -183,6 +183,17 @@ export class BedModel {
 
 	addRightSupUser(db: Knex, id, userId) {
 		return db('um_user_rights')
-			.insert({ user_id: id, right_id: 25 ,created_by: userId});
+			.insert({ user_id: id, right_id: 25, created_by: userId });
+	}
+
+	getLastCaseDetails(db) {
+		let s = db('view_covid_case_last ').where('status', 'ADMIT').where('entry_date', '<',  db.raw("now()")) // db.raw('date(now())') )
+		console.log(s.toString());
+		
+		return s
+	}
+
+	getLastCaseDetailItems(db, caseDetailId) {
+		return db('p_covid_case_detail_items').where('covid_case_detail_id', caseDetailId)
 	}
 }
