@@ -127,6 +127,7 @@ router.post('/center', async (req: Request, res: Response) => {
   const data: any = req.body.data
 
   try {
+    const decoded = req.decoded;
     let _data: any = [];
     for (const v of data.items) {
       const obj: any = {};
@@ -134,6 +135,7 @@ router.post('/center', async (req: Request, res: Response) => {
       obj.generic_id = v.id;
       obj.min = v.min;
       obj.max = v.max;
+      obj.created_by = decoded.id || 0;
       obj.safety_stock = v.safety_stock;
       _data.push(obj);
     }

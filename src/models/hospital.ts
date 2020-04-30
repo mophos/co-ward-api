@@ -35,9 +35,11 @@ export class HospitalModel {
     return sql
   }
 
-  updateHospital(db: Knex, id: any, data = {}) {
+  updateHospital(db: Knex, id: any, data = {}, userId) {
     return db('l_hospitals')
       .update(data)
+      .update('updated_by', userId)
+      .update('update_date', db.fn.now())
       .where('id', id);
   }
 
@@ -46,9 +48,11 @@ export class HospitalModel {
       .insert(data);
   }
 
-  deleteHospital(db: Knex, id: any) {
+  deleteHospital(db: Knex, id: any, userId) {
     return db('l_hospitals')
       .update('is_deleted', 'Y')
+      .update('updated_by', userId)
+      .update('update_date', db.fn.now())
       .where('id', id);
   }
 

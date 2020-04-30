@@ -43,10 +43,12 @@ router.post('/save', async (req: Request, res: Response) => {
   const data = req.body.data;
   const hospId = data[0].hospital_id;
   const type = req.query.type;
+  const decoded = req.decoded;
 
   try {
     const genericIds = map(data, 'generic_id');
     await model.removeMinMax(db, hospId, genericIds);
+    data.created_by = decoded.id || 0;
     await model.saveMinMax(db, data);
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {

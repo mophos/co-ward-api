@@ -167,7 +167,7 @@ router.put('/:id', async (req: Request, res: Response) => {
         update_by: userId
       }
       logs.push(log);
-      await balanceModel.update(req.db, i.id, i.qty);
+      await balanceModel.update(req.db, i.id, i.qty, userId);
     }
     await balanceModel.updateLog(req.db, logs);
     await balanceModel.updateHead(req.db, id, userId);
