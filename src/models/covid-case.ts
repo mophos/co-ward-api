@@ -195,31 +195,34 @@ export class CovidCaseModel {
       .where('id', id)
       .whereRaw('date_entry=CURRENT_DATE()')
       .update(data)
+      .update('updated_entry', db.fn.now())
+
   }
 
   updateCovidCaseAllow(db: Knex, id, data) {
     return db('p_covid_cases')
       .where('id', id)
+      .update('updated_entry', db.fn.now())
       .update(data)
   }
 
   saveCovidCaseOldDetail(db: Knex, data) {
     let sql = `
     INSERT INTO p_covid_case_details
-    (covid_case_id, entry_date,status)
-    VALUES(?,?,?)
+    (covid_case_id, entry_date,status,updated_entry)
+    VALUES(?,?,?,now())
     ON DUPLICATE KEY UPDATE
-     updated_date=now()`;
+     updated_date=now(),updated_entry=now()`;
     return db.raw(sql, [data.covid_case_id, data.entry_date, data.status])
   }
 
   saveCovidCaseDetail(db: Knex, data) {
     let sql = `
     INSERT INTO p_covid_case_details
-    (covid_case_id, gcs_id, bed_id, medical_supplie_id, entry_date,status,create_by)
-    VALUES(?,?,?,?,?,?,?)
+    (covid_case_id, gcs_id, bed_id, medical_supplie_id, entry_date,status,create_by,updated_entry)
+    VALUES(?,?,?,?,?,?,?,now())
     ON DUPLICATE KEY UPDATE
-    gcs_id=? , bed_id=? , medical_supplie_id=?, updated_date=now(),status=?,updated_by = ?`;
+    gcs_id=? , bed_id=? , medical_supplie_id=?, updated_date=now(),status=?,updated_by = ?,updated_entry=now()`;
     return db.raw(sql, [data.covid_case_id, data.gcs_id, data.bed_id, data.medical_supplie_id, data.entry_date, data.status, data.create_by,
     data.gcs_id, data.bed_id, data.medical_supplie_id, data.status, data.create_by])
   }
@@ -403,10 +406,10 @@ export class CovidCaseModel {
     data.forEach(v => {
       let sql = `
           INSERT INTO wm_generics
-          (hospital_id, generic_id,qty)
-          VALUES('${v.hospital_id}', '${v.generic_id}',${v.qty})
+          (hospital_id, generic_id,qty,update_entry,created_by)
+          VALUES('${v.hospital_id}', '${v.generic_id}',${v.qty}, now(),${v.created_by})
           ON DUPLICATE KEY UPDATE
-          qty=qty-${v.qty}
+          qty=qty-${v.qty},update_date=now()updated_by,${v.created_by}
         `;
       sqls.push(sql);
     });
@@ -414,12 +417,14 @@ export class CovidCaseModel {
     return db.raw(queries);
   }
 
-  updateReq(db: Knex, id, approveDate) {
+  updateReq(db: Knex, id, approveDate, userId) {
     return db('wm_requisitions')
       .update({
         'is_approved': 'Y',
         'approve_date': approveDate
       })
+      .update('updated_by', userId)
+      .update('update_date', db.fn.now())
       .whereIn('id', id);
   }
 
@@ -430,18 +435,22 @@ export class CovidCaseModel {
   }
 
   updateDischarge(db: Knex, id, data) {
-    return db('p_covid_cases').update(data)
+    return db('p_covid_cases')
+      .update(data)
+      .update('updated_entry', db.fn.now())
       .where('id', id);
   }
 
   updateDischargeDetail(db: Knex, id, data) {
     return db('p_covid_case_details').update(data)
+      .update('updated_entry', db.fn.now())
       .where('id', id);
   }
 
   isDeleted(db: Knex, id) {
     let sql = db('p_covid_cases')
       .update('is_deleted', 'Y')
+      .update('updated_entry', db.fn.now())
       .where('id', id)
       .whereRaw('date_entry=CURRENT_DATE()');
     return sql;

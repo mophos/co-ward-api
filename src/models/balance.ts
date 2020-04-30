@@ -61,15 +61,18 @@ export class BalanceModel {
       .insert(data);
   }
 
-  update(db: Knex, id, qty) {
+  update(db: Knex, id, qty, userId) {
     return db('wm_supplies_details')
       .update('qty', qty)
+      .update('updated_by', userId)
+      .update('update_date', db.fn.now())
       .where('id', id);
   }
 
   updateHead(db: Knex, id, userId) {
     return db('wm_supplies')
       .update('updated_by', userId)
+      .update('update_date', db.fn.now())
       .where('id', id);
   }
 

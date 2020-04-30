@@ -74,11 +74,18 @@ export class ReportDmsModel {
       .groupBy('v.hospital_id', 'v.entry_date')
   }
 
-  report5(db: Knex, date) {
-    return db('views_case_hospital_date_cross as v')
-      .select('v.*', 'h.hospname')
-      .join('b_hospitals as h', 'h.id', 'v.hospital_id')
-      .where('v.entry_date', date)
+  report5(db: Knex) {
+    return db('views_hospital_types as vh')
+      .select('vh.hospital_id', 'ht.name as hosp_sub_min_name', 'vh.hospcode', 'vh.hospname', db.raw('sum( v.qty ) AS total'), db.raw('sum( s.usage_qty ) AS admit'), db.raw('sum( v.qty )- sum( s.usage_qty ) AS blank'))
+      .leftJoin('b_bed_hospitals AS v', 'vh.hospital_id ', ' v.hospital_id')
+      .leftJoin('views_bed_sum_hospitals AS s', (v) => {
+        v.on('s.hospital_id ', 'v.hospital_id')
+          .on('s.bed_id', ' v.bed_id ')
+      })
+      .join('b_hospitals as h', 'h.id', 'vh.hospital_id')
+      .leftJoin('b_hospital_subministry as ht', 'ht.code', 'h.sub_ministry_code')
+      .where('	vh.type', 'B')
+      .groupBy('v.hospital_id');
   }
 
   report6(db: Knex, date) {

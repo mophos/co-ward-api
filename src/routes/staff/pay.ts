@@ -34,6 +34,8 @@ router.get('/surgical-mask', async (req: Request, res: Response) => {
 router.post('/', async (req: Request, res: Response) => {
   const data = req.body.data;
   const srcHospitalId = req.decoded.hospitalId;
+const userId = req.decoded.id || 0;
+
   try {
     const timeCut: any = await basicModel.timeCut();
     const obj: any = {};
@@ -46,6 +48,7 @@ router.post('/', async (req: Request, res: Response) => {
     obj.dst_hospital_id = data.hospitalId;
     obj.qty = data.qty;
     obj.created_at = moment().format('YYYY-MM-DD HH:mm:ss');
+    obj.created_by = userId;
     let rs: any = await payModel.insertSergicalMask(req.db, obj);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
@@ -59,9 +62,11 @@ router.put('/', async (req: Request, res: Response) => {
   const data = req.body.data;
   const id = req.query.id;
   try {
+const userId = req.decoded.id || 0;
+
     const obj: any = {};
     obj.qty = data.qty;
-    let rs: any = await payModel.updateSergicalMask(req.db, obj, id);
+    let rs: any = await payModel.updateSergicalMask(req.db, obj, id, userId);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);

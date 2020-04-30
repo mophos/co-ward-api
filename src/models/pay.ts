@@ -22,9 +22,11 @@ export class PayModel {
       .insert(data);
   }
 
-  updateSergicalMask(db: Knex, data, id) {
+  updateSergicalMask(db: Knex, data, id, userId) {
     return db('pay_surgical_masks')
-      .update(data).where('id', id);
+      .update(data).update('updated_by', userId)
+      .update('update_date', db.fn.now())
+      .where('id', id);
   }
 
   getPayDetail(db: Knex, id) {
@@ -126,8 +128,10 @@ export class PayModel {
     return db('wm_pays').update(data).where('id', payId);
   }
 
-  updateRestock(db: Knex, id: any) {
-    return db('wm_restocks').update('is_approved', 'Y').where('id', id);
+  updateRestock(db: Knex, id: any, userId) {
+    return db('wm_restocks').update('is_approved', 'Y')
+      .update('updated_by', userId)
+      .update('update_date', db.fn.now()).where('id', id);
   }
 
   updateFulfillSurgicalMask(db: Knex, id: any, data) {

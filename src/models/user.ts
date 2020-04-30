@@ -37,6 +37,7 @@ export class UserModel {
   updateUser(db: Knex, id: any, data = {}) {
     return db('um_users')
       .update(data)
+      .update('update_date', db.fn.now())
       .where('id', id);
   }
 
@@ -45,9 +46,11 @@ export class UserModel {
       .insert(data);
   }
 
-  deleteUser(db: Knex, id: any) {
+  deleteUser(db: Knex, id: any, userId) {
     return db('um_users')
       .update('is_deleted', 'Y')
+      .update('updated_by', userId)
+      .update('update_date', db.fn.now())
       .where('id', id);
   }
 

@@ -136,11 +136,12 @@ router.post('/import', async (req: Request, res: Response) => {
   const data: any = req.body.data
 
   try {
+    const decoded = req.decoded;
     await restockModel.removeTemp(req.db);
     let rm = map(groupBy(data, 'restock_detail_id'), (k, v) => {
       return v
     });
-
+    data.created_by = decoded.id || 0;
     await restockModel.insert(req.db, data);
     await restockModel.remove(req.db, rm);
     let rs = await restockModel.update(req.db);
@@ -218,6 +219,8 @@ router.put('/update-supplies/:id', async (req: Request, res: Response) => {
   const data: any = req.body.data
 
   try {
+    const decoded = req.decoded;
+    data.updated_by = decoded.id || 0;
     await restockModel.deleteRestockDetailItem(req.db, id);
     await restockModel.insertRestockDetailItem(req.db, data);
     res.send({ ok: true, code: HttpStatus.OK });
@@ -230,9 +233,10 @@ router.put('/update-supplies/:id', async (req: Request, res: Response) => {
 
 router.put('/remove-restock/:id', async (req: Request, res: Response) => {
   const id: any = req.params.id
+  const userId = req.decoded.id || 0;
 
   try {
-    await restockModel.removeRestock(req.db, id);
+    await restockModel.removeRestock(req.db, id, userId);
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -409,6 +413,7 @@ router.get('/approved-all', async (req: Request, res: Response) => {
   const restockId = req.query.data;
 
   try {
+    const userId = req.decoded.id || 0;
     let balanceTHPD = await restockModel.getBalanceFromTHPD(db);
     let qtyRequest = await restockModel.getSumSuppliesFromRestockId(db, restockId);
     let enough = await checkBalanceFromTHPD(qtyRequest, balanceTHPD);
@@ -420,7 +425,7 @@ router.get('/approved-all', async (req: Request, res: Response) => {
       let end = detail.length + payId[0];
       await payModel.selectInsertDetail(db, start, end);
       let rs = await sendTHPD(db, start, end);
-      await payModel.updateRestock(db, restockId);
+      await payModel.updateRestock(db, restockId, userId);
       res.send({ ok: true, rows: [rs, start, end], code: HttpStatus.OK });
     } else {
       // ไม่พอ ทำค้างจ่าย

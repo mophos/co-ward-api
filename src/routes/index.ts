@@ -109,6 +109,7 @@ router.get('/updatereq', async (req: Request, res: Response) => {
   try {
 
     const db = req.db
+    const userId = req.decoded.id || 0;
 
     // RD
     const headDrug: any = await requisition.getHeadCovidCaseDrugs(db);
@@ -170,7 +171,7 @@ router.get('/updatereq', async (req: Request, res: Response) => {
       }
     }
 
-    await requisition.updateIsRequisition(db);
+    await requisition.updateIsRequisition(db, userId);
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error });

@@ -33,6 +33,7 @@ export class SuppliesModel {
   updateSupplies(db: Knex, id: any, data = {}) {
     return db('mm_supplies')
       .update(data)
+      .update('update_date', db.fn.now())
       .where('id', id);
   }
 
@@ -41,9 +42,11 @@ export class SuppliesModel {
       .insert(data);
   }
 
-  deleteSupplies(db: Knex, id: any) {
+  deleteSupplies(db: Knex, id: any, userId) {
     return db('mm_supplies')
       .update('is_deleted', 'Y')
+      .update('updated_by', userId)
+      .update('update_date', db.fn.now())
       .where('id', id);
   }
 
