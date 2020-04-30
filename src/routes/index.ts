@@ -240,7 +240,7 @@ router.get('/systemUpdate', async (req: Request, res: Response) => {
     if (process.env.TIME_KEY == timeKey) {
       let rs: any = await systemUpdate(db);
       if (rs.ok) {
-        res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+        res.send({ ok: true, rows: rs.rows, code: HttpStatus.OK });
       } else {
         res.send({ ok: false, error: rs.error, code: HttpStatus.OK });
       }
@@ -275,7 +275,7 @@ async function systemUpdate(db) {
           date_admit: _detail.date_admit,
           hospital_id: _detail.hospital_id,
           is_requisition: _detail.is_requisition,
-          created_by: 0
+          create_by: 0
         });
         const _covidCaseDetailId = caseDetailId[0].insertId == 0 ? _detail.id : caseDetailId[0].insertId
         items.push({
@@ -287,10 +287,10 @@ async function systemUpdate(db) {
       }
       await covidCaseModel.saveCovidCaseDetailItem(db, items);
     }
-    return { ok: true, row: lcd.length }
+    return { ok: true, rows: lcd.length }
   } catch (error) {
     console.log(error)
-    return { ok: false, error: error }
+    return { ok: false, error: error.message }
   }
 }
 
