@@ -607,6 +607,18 @@ router.get('/history', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/details', async (req: Request, res: Response) => {
+  const covidCaseId = req.query.covidCaseId;
+  try {
+    let rs: any = await covidCaseModel.getDetails(req.db, covidCaseId);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.post('/check-register', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   const cid = req.body.cid;

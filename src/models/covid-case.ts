@@ -116,11 +116,21 @@ export class CovidCaseModel {
 
   getHistory(db: Knex, personId) {
     return db('p_covid_cases as c')
-      .select('c.id as covid_case_id', 'c.confirm_date', 'c.status', 'c.date_admit', 'h.hospname')
+      .select('c.id as covid_case_id', 'c.confirm_date', 'c.status', 'c.date_admit', 'h.hospname', 'c.an', 'c.date_discharge')
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .join('b_hospitals as h', 'pt.hospital_id', 'h.id')
       .where('pt.person_id', personId)
+  }
+
+  getDetails(db: Knex, covidCaseId) {
+    return db('p_covid_case_details AS pc')
+      .select('bg.name as gcs_name', 'bb.name as bed_name', 'bm.name as medical_supplie_name', 'pc.status', 'pc.entry_date', 'uu.fname', 'uu.lname')
+      .leftJoin('b_gcs as bg', 'bg.id', 'pc.gcs_id')
+      .leftJoin('b_beds as bb', 'bb.id', 'pc.bed_id')
+      .leftJoin('b_medical_supplies as bm', 'bm.id', 'pc.medical_supplie_id')
+      .leftJoin('um_users as uu', 'uu.id', 'pc.create_by')
+      .where('pc.covid_case_id', covidCaseId)
   }
 
   checkCidSameHospital(db: Knex, hospitalId, cid) {
