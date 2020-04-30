@@ -186,7 +186,7 @@ router.post('/professional', async (req: Request, res: Response) => {
         hospital_id: hospitalId,
         professional_id: i.professional_id,
         qty: i.qty,
-        create_by: id
+        created_by: id
       });
 
       detail.push({
