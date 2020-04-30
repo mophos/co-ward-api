@@ -1,5 +1,6 @@
 import * as Knex from 'knex';
 var request = require("request");
+import * as crypto from 'crypto';
 
 export class Register {
 
@@ -100,5 +101,40 @@ export class Register {
             .join('um_rights as ur', 'ur.id', 'ugrd.right_id')
             .where('ug.name', groupName)
             .whereNot('ur.name', 'STAFF_SETTING_USERS')
+    }
+
+    sendMS(data) {
+        return new Promise((resolve, reject) => {
+            var options = {
+                method: 'POST',
+                url: 'https://test-api-menagement.azure-api.net/regisapi/moph-cubika/moph/v1/register.action',
+                headers: {
+                    'ocp-apim-subscription-key': 'fcce9158dc0f43f2bc48ae1cda642761',
+                    'content-type': 'application/json'
+                }, body: {
+                    hospital: data.hospname,
+                    hospcodeConfirm: data.hospcode,
+                    cid: data.cid,
+                    position: data.positionId,
+                    title: data.titleId,
+                    firstName: data.fname,
+                    lastName: data.lname,
+                    username: data.username,
+                    password: crypto.createHash('md5').update(data.password).digest('hex'),
+                    email: data.email,
+                    phoneNumber: data.telephone
+                },
+                json: true
+            };
+
+            request(options, function (error, response, body) {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(body);
+                }
+            });
+        });
+
     }
 }
