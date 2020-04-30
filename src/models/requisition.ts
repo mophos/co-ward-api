@@ -43,8 +43,9 @@ export class Requisition {
     getHeadCovidCaseDrugs(db: Knex) {
         return db('p_covid_case_details as ccd')
             .select('ccd.id AS covid_case_detail_id',
-                'ccd.covid_case_id'
-                , 'pt.hospital_id AS hospital_id_client',
+                'ccd.covid_case_id',
+                'ccd.entry_date',
+                 'pt.hospital_id AS hospital_id_client',
                 'h.hospcode as hospital_id_client_code',
                 db.raw(`ifnull( ns.hospital_id, pt.hospital_id ) AS hospital_id_node`)
             )
@@ -66,8 +67,8 @@ export class Requisition {
             )
             .join('p_covid_cases as c', 'c.id', 'ccd.covid_case_id')
             .join('p_patients as pt', 'pt.id', 'c.patient_id')
-            .join('b_hospitals as h','pt.hospital_id','h.id')
-            .join('b_generic_gcs_qty as ggc', (v)=>{
+            .join('b_hospitals as h', 'pt.hospital_id', 'h.id')
+            .join('b_generic_gcs_qty as ggc', (v) => {
                 v.on('ggc.gcs_id', 'ccd.gcs_id');
                 v.on('ggc.type', 'h.hospital_type');
             })
@@ -92,6 +93,6 @@ export class Requisition {
     updateIsRequisition(db: Knex) {
         return db('p_covid_case_details')
             .update('is_requisition', 'Y')
-            .where('status','ADMIT')
+            .where('status', 'ADMIT')
     }
 }

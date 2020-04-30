@@ -177,7 +177,54 @@ router.get('/updatereq', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/close-systems', async (req: Request, res: Response) => {
+  const db = req.db;
+  const timeKey = req.query.timeKey;
+  const userId = 0;
+  try {
+    if (process.env.TIME_KEY == timeKey) {
+      await basicModel.closeSystems(db, userId);
+      res.send({ ok: true });
+    } else {
+      res.send({ ok: false, error: 'token ไม่ถูกต้อง' });
+    }
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
 
+router.get('/open-systems', async (req: Request, res: Response) => {
+  const db = req.db;
+  const userId = 0;
+  const timeKey = req.query.timeKey;
+  try {
+    if (process.env.TIME_KEY == timeKey) {
+      await basicModel.openSystems(db, userId);
+      res.send({ ok: true });
+    } else {
+      res.send({ ok: false, error: 'token ไม่ถูกต้อง' });
+    }
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
+
+router.post('/broadcast', async (req: Request, res: Response) => {
+  const db = req.db;
+  const userId = 0;
+  const timeKey = req.query.timeKey;
+  const message = req.body.message;
+  try {
+    if (process.env.TIME_KEY == timeKey) {
+      await basicModel.broadcast(db, message, userId);
+      res.send({ ok: true });
+    } else {
+      res.send({ ok: false, error: 'token ไม่ถูกต้อง' });
+    }
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
 
 
 export default router;

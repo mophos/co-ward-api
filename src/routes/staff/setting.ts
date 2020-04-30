@@ -81,14 +81,16 @@ router.post('/beds', async (req: Request, res: Response) => {
         hospital_id: hospitalId,
         bed_id: i.bed_id,
         qty: i.qty,
-        covid_qty: i.covid_qty
+        covid_qty: i.covid_qty,
+        spare_qty: i.spare_qty
       });
 
       detail.push({
         wm_bed_id: rs,
         bed_id: i.bed_id,
         qty: i.qty,
-        covid_qty: i.covid_qty
+        covid_qty: i.covid_qty,
+        spare_qty: i.spare_qty
       });
     }
     await model.saveBeds(db, _data);
@@ -257,7 +259,7 @@ router.put('/change-approve-user', async (req: Request, res: Response) => {
     console.log(status);
     status = status ? 'Y' : 'N';
     const rs = await model.changeApproved(db, userId, status);
-    if(status == 'N'){
+    if (status == 'N') {
 
       await model.deleteRightSupUser(db, userId);
 
@@ -276,7 +278,7 @@ router.put('/change-right-sup-user', async (req: Request, res: Response) => {
   let status = req.body.status;
   try {
     console.log(status);
-    if(status){
+    if (status) {
       await model.addRightSupUser(db, userId);
 
     } else {
