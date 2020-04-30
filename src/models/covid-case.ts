@@ -19,6 +19,7 @@ export class CovidCaseModel {
       .join('b_hospitals as h1', 'h1.id', 'r.hospital_id_client')
       .where('hospital_id_node', hospitalId)
       .where('r.is_approved', 'N')
+      .where('r.is_deleted', 'N')
       .groupBy('hospital_id_client')
   }
 
