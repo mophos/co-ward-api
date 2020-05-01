@@ -19,7 +19,7 @@ router.get('/report1', async (req: Request, res: Response) => {
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
-    res.send({ ok: false, code: HttpStatus.OK });
+    res.send({ ok: false, error: error });
   }
 });
 
@@ -32,7 +32,7 @@ router.get('/report2', async (req: Request, res: Response) => {
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
 
-    res.send({ ok: false, code: HttpStatus.OK });
+    res.send({ ok: false, error: error });
   }
 });
 
@@ -55,8 +55,9 @@ router.get('/report4', async (req: Request, res: Response) => {
     const rs: any = await model.report4(db, date);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
+    console.log(error);
 
-    res.send({ ok: false, code: HttpStatus.OK });
+    res.send({ ok: false, error: error });
   }
 });
 
@@ -67,7 +68,7 @@ router.get('/report5', async (req: Request, res: Response) => {
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
 
-    res.send({ ok: false, code: HttpStatus.OK });
+    res.send({ ok: false, error: error });
   }
 });
 
@@ -109,7 +110,7 @@ router.get('/report7', async (req: Request, res: Response) => {
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
 
-    res.send({ ok: false, code: HttpStatus.OK });
+    res.send({ ok: false, error: error });
   }
 });
 
@@ -122,7 +123,7 @@ router.get('/report8', async (req: Request, res: Response) => {
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
 
-    res.send({ ok: false, code: HttpStatus.OK });
+    res.send({ ok: false, error: error });
   }
 });
 
@@ -135,7 +136,7 @@ router.get('/report9', async (req: Request, res: Response) => {
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
 
-    res.send({ ok: false, code: HttpStatus.OK });
+    res.send({ ok: false, error: error });
   }
 });
 
@@ -148,7 +149,7 @@ router.get('/report10', async (req: Request, res: Response) => {
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
 
-    res.send({ ok: false, code: HttpStatus.OK });
+    res.send({ ok: false, error: error });
   }
 });
 
@@ -233,7 +234,7 @@ router.get('/report1/excel', async (req: Request, res: Response) => {
     });
   } catch (error) {
 
-    res.send({ ok: false, code: HttpStatus.OK });
+    res.send({ ok: false, error: error });
   }
 });
 
@@ -299,7 +300,7 @@ router.get('/report2/excel', async (req: Request, res: Response) => {
     });
   } catch (error) {
 
-    res.send({ ok: false, code: HttpStatus.OK });
+    res.send({ ok: false, error: error });
   }
 });
 
@@ -364,7 +365,7 @@ router.get('/report3/excel', async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    res.send({ ok: false, code: HttpStatus.OK });
+    res.send({ ok: false, error: error });
   }
 });
 
@@ -408,7 +409,7 @@ router.get('/report4/excel', async (req: Request, res: Response) => {
     });
   } catch (error) {
 
-    res.send({ ok: false, code: HttpStatus.OK });
+    res.send({ ok: false, error: error });
   }
 });
 
@@ -441,7 +442,7 @@ router.get('/report5/excel', async (req: Request, res: Response) => {
     });
   } catch (error) {
 
-    res.send({ ok: false, code: HttpStatus.OK });
+    res.send({ ok: false, error: error });
   }
 });
 
@@ -474,7 +475,7 @@ router.get('/report6/excel', async (req: Request, res: Response) => {
     });
   } catch (error) {
 
-    res.send({ ok: false, code: HttpStatus.OK });
+    res.send({ ok: false, error: error });
   }
 });
 
@@ -507,7 +508,7 @@ router.get('/report7/excel', async (req: Request, res: Response) => {
     });
   } catch (error) {
 
-    res.send({ ok: false, code: HttpStatus.OK });
+    res.send({ ok: false, error: error });
   }
 });
 
@@ -540,7 +541,7 @@ router.get('/report8/excel', async (req: Request, res: Response) => {
     });
   } catch (error) {
 
-    res.send({ ok: false, code: HttpStatus.OK });
+    res.send({ ok: false, error: error });
   }
 });
 
@@ -573,7 +574,7 @@ router.get('/report9/excel', async (req: Request, res: Response) => {
     });
   } catch (error) {
 
-    res.send({ ok: false, code: HttpStatus.OK });
+    res.send({ ok: false, error: error });
   }
 });
 
@@ -606,7 +607,31 @@ router.get('/report10/excel', async (req: Request, res: Response) => {
     });
   } catch (error) {
 
-    res.send({ ok: false, code: HttpStatus.OK });
+    res.send({ ok: false, error: error });
+  }
+});
+
+
+router.get('/report-homework-gov', async (req: Request, res: Response) => {
+  const db = req.db;
+
+  try {
+    const rs: any = await model.homeworkGov(db);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+
+    res.send({ ok: false, error: error });
+  }
+});
+router.get('/report-homework-comp', async (req: Request, res: Response) => {
+  const db = req.db;
+
+  try {
+    const rs: any = await model.homeworkComp(db);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+
+    res.send({ ok: false, error: error });
   }
 });
 

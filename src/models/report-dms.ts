@@ -133,4 +133,12 @@ export class ReportDmsModel {
     return db('views_bed_hospitals AS vbh')
   }
 
+  homeworkComp(db: Knex) {
+    return db('views_review_homework_dms')
+      .where('hosptype_code', '15')
+  }
+  homeworkGov(db: Knex) {
+    return db('views_review_homework_dms')
+      .whereNot('hosptype_code', '15')
+  }
 }
