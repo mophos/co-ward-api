@@ -89,7 +89,7 @@ export class ReportDmsModel {
   }
 
   report6(db: Knex, date) {
-    return db('views_case_hospital_date_cross as v')
+    return db('views_bed_hospital_date_cross as v')
       .select('v.*', 'h.hospname')
       .join('b_hospitals as h', 'h.id', 'v.hospital_id')
       .where('v.entry_date', date)
