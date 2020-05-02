@@ -6,10 +6,12 @@ import * as HttpStatus from 'http-status-codes';
 import * as crypto from 'crypto';
 
 import { Login } from '../models/login';
+import { Register } from '../models/register';
 
 import { Jwt } from '../models/jwt';
 
 const loginModel = new Login();
+const registerModel = new Register();
 const jwt = new Jwt();
 
 const router: Router = Router();
@@ -88,6 +90,30 @@ router.post('/update-password', async (req: Request, res: Response) => {
   let encPassword = crypto.createHash('md5').update(passwordNew).digest('hex');
   try {
     await loginModel.updatePassword(db, id, encPassword)
+    res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.post('/update-password2', async (req: Request, res: Response) => {
+  const db = req.db;
+  const id = req.body.id;
+  const cid = req.body.cid;
+  const passwordNew = req.body.passwordNew;
+  let encPassword = crypto.createHash('md5').update(passwordNew).digest('hex');
+  try {
+    await loginModel.updatePassword(db, id, encPassword)
+    const data = {
+      cid,
+      password: encPassword
+    }
+    await registerModel.sendMS(data).then((result) => {
+      console.log(result)
+    }).catch((err) => {
+      console.log(err);
+    });
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
