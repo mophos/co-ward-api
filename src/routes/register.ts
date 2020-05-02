@@ -119,7 +119,7 @@ router.post('/', async (req: Request, res: Response) => {
         const rs: any = await registerModel.getGroupRight(req.db, 'c')
         data.right = _.map(rs, 'name')
       }
-      
+
       let rs: any = await registerModel.insertUser(req.db, _data);
       let rsRight: any = await registerModel.getRights(req.db, data.right)
       let userRight: any = []
@@ -164,7 +164,7 @@ router.post('/2', async (req: Request, res: Response) => {
         type: data.type,
         telephone: data.telephone,
         is_province: data.isProvince,
-        app_register:'MS-NCD'
+        app_register: 'MS-NCD'
       }
 
       data.right = ['STAFF_DRUG_NCD'];
@@ -178,7 +178,11 @@ router.post('/2', async (req: Request, res: Response) => {
         })
       }
       await registerModel.insertUserRights(req.db, userRight)
-      await registerModel.sendMS(data);
+      await registerModel.sendMS(data).then((result) => {
+        console.log(result)
+      }).catch((err) => {
+        console.log(err);
+      });
       res.send({ ok: true, code: HttpStatus.OK });
     } else {
       res.send({ ok: false, error: 'ข้อมูลไม่ครบ', code: HttpStatus.OK });
