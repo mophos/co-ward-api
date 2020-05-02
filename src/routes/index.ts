@@ -279,13 +279,16 @@ async function systemUpdate(db) {
           is_requisition: _detail.is_requisition,
           create_by: 0
         });
-        const _covidCaseDetailId = caseDetailId[0].insertId == 0 ? _detail.id : caseDetailId[0].insertId
-        items.push({
-          covid_case_detail_id: cloneDeep(_covidCaseDetailId),
-          generic_id: _items.generic_id,
-          qty: _items.qty,
-          created_by: 0
-        });
+        const _covidCaseDetailId = caseDetailId[0].insertId == 0 ? _detail.id : caseDetailId[0].insertId;
+        for (const i of _items) {
+          items.push({
+            covid_case_detail_id: cloneDeep(_covidCaseDetailId),
+            generic_id: i.generic_id,
+            qty: i.qty,
+            created_by: 0
+          });
+        
+        }
       }
       await covidCaseModel.saveCovidCaseDetailItem(db, items);
     }
