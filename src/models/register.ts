@@ -107,7 +107,7 @@ export class Register {
         return new Promise((resolve, reject) => {
             var options = {
                 method: 'POST',
-                url: 'https://test-api-menagement.azure-api.net/regisapi/moph-cubika/moph/v1/register.action',
+                url: 'https://test-api-menagement.azure-api.net/regisapi/med-covid-moph/moph/v1/register.action',
                 headers: {
                     'ocp-apim-subscription-key': 'fcce9158dc0f43f2bc48ae1cda642761',
                     'content-type': 'application/json'
@@ -136,5 +136,10 @@ export class Register {
             });
         });
 
+    }
+
+    getUserMedicine(db: Knex) {
+        return db('um_users as u')
+            .where('u.position_id', '8')
     }
 }
