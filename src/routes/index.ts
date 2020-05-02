@@ -112,7 +112,7 @@ router.get('/updatereq', async (req: Request, res: Response) => {
     const timeKey = req.query.timeKey;
     if (process.env.TIME_KEY == timeKey) {
       const db = req.db
-      const userId = req.decoded.id || 0;
+      const userId = req.decoded ? req.decoded.id : 0;
 
       // RD
       const headDrug: any = await requisition.getHeadCovidCaseDrugs(db);
@@ -180,6 +180,8 @@ router.get('/updatereq', async (req: Request, res: Response) => {
       res.send({ ok: false, error: 'token ไม่ถูกต้อง' });
     }
   } catch (error) {
+    console.log(error);
+    
     res.send({ ok: false, error: error });
   }
 });
