@@ -266,7 +266,7 @@ async function systemUpdate(db) {
       while (startDate.isBefore(nowDate)) {
         startDate = startDate.add(1, 'days');
         let set_date = moment(startDate).format('YYYY-MM-DD')
-        const caseDetailId = await covidCaseModel.saveCovidCaseDetail(db, {
+        const caseDetailId = await covidCaseModel.saveCovidCaseDetailGenerate(db, {
           covid_case_id: _detail.covid_case_id,
           gcs_id: _detail.gcs_id,
           bed_id: _detail.bed_id,

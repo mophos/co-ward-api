@@ -93,7 +93,6 @@ export class Requisition {
     updateIsRequisition(db: Knex, userId) {
         return db('p_covid_case_details')
             .update('is_requisition', 'Y')
-            .update('updated_by', userId)
             .update('update_date', db.fn.now())
             .where('status', 'ADMIT')
     }

@@ -14,8 +14,9 @@ const router: Router = Router();
 
 router.get('/report1', async (req: Request, res: Response) => {
   const db = req.db;
+  const sector = req.query.sector;
   try {
-    const rs: any = await model.report1(db);
+    const rs: any = await model.report1(db, sector);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -26,9 +27,9 @@ router.get('/report1', async (req: Request, res: Response) => {
 router.get('/report2', async (req: Request, res: Response) => {
   const db = req.db;
   const date = req.query.date;
-
+  const sector = req.query.sector;
   try {
-    const rs: any = await model.report2(db, date);
+    const rs: any = await model.report2(db, date, sector);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
 
@@ -39,8 +40,9 @@ router.get('/report2', async (req: Request, res: Response) => {
 router.get('/report3', async (req: Request, res: Response) => {
   const db = req.db;
   const date = req.query.date;
+  const sector = req.query.sector;
   try {
-    const rs: any = await model.report3(db, date);
+    const rs: any = await model.report3(db, date, sector);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error, code: HttpStatus.OK });
@@ -63,8 +65,10 @@ router.get('/report4', async (req: Request, res: Response) => {
 
 router.get('/report5', async (req: Request, res: Response) => {
   const db = req.db;
+  const sector = req.query.sector;
+  const date = req.query.date;
   try {
-    const rs: any = await model.report5(db);
+    const rs: any = await model.report5(db, date, sector);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
 
@@ -75,9 +79,9 @@ router.get('/report5', async (req: Request, res: Response) => {
 router.get('/report6', async (req: Request, res: Response) => {
   const db = req.db;
   const date = req.query.date;
-
+  const sector = req.query.sector;
   try {
-    const rs: any = await model.report6(db, date);
+    const rs: any = await model.report6(db, date, sector);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -88,9 +92,9 @@ router.get('/report6', async (req: Request, res: Response) => {
 router.get('/report7', async (req: Request, res: Response) => {
   const db = req.db;
   const date = req.query.date;
-
+  const sector = req.query.sector;
   try {
-    const rs: any = await model.report2(db, date);
+    const rs: any = await model.report7(db, date, sector);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
 
@@ -101,9 +105,9 @@ router.get('/report7', async (req: Request, res: Response) => {
 router.get('/report8', async (req: Request, res: Response) => {
   const db = req.db;
   const date = req.query.date;
-
+  const sector = req.query.sector;
   try {
-    const rs: any = await model.report2(db, date);
+    const rs: any = await model.report8(db, date, sector);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
 
@@ -114,9 +118,9 @@ router.get('/report8', async (req: Request, res: Response) => {
 router.get('/report9', async (req: Request, res: Response) => {
   const db = req.db;
   const date = req.query.date;
-
+  const sector = req.query.sector;
   try {
-    const rs: any = await model.report2(db, date);
+    const rs: any = await model.report2(db, date, sector);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
 
@@ -127,9 +131,9 @@ router.get('/report9', async (req: Request, res: Response) => {
 router.get('/report10', async (req: Request, res: Response) => {
   const db = req.db;
   const date = req.query.date;
-
+  const sector = req.query.sector;
   try {
-    const rs: any = await model.report2(db, date);
+    const rs: any = await model.report2(db, date, sector);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
 
@@ -140,6 +144,7 @@ router.get('/report10', async (req: Request, res: Response) => {
 router.get('/report1/excel', async (req: Request, res: Response) => {
   const db = req.db;
   const date = req.query.date;
+  const sector = req.query.sector;
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
   var center = wb.createStyle({
@@ -155,7 +160,7 @@ router.get('/report1/excel', async (req: Request, res: Response) => {
     },
   });
   try {
-    const rs: any = await model.report1(db);
+    const rs: any = await model.report1(db, sector);
     ws.cell(1, 1, 3, 1, true).string('หน่วยงาน');
     ws.cell(1, 2, 3, 2, true).string('จำนวนโรงพยาบาล ');
     ws.cell(1, 3, 3, 3, true).string('เตียงทั้งหมด');
@@ -225,10 +230,11 @@ router.get('/report1/excel', async (req: Request, res: Response) => {
 router.get('/report2/excel', async (req: Request, res: Response) => {
   const db = req.db;
   const date = req.query.date;
+  const sector = req.query.sector;
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
   try {
-    const rs: any = await model.report2(db, date);
+    const rs: any = await model.report2(db, date, sector);
     ws.cell(1, 1, 2, 1, true).string('โรงพยาบาล');
     ws.cell(1, 2, 1, 5, true).string('ผู้ป่วยยืนยัน (Confirm Case)');
     ws.cell(1, 6, 2, 6, true).string('ผู้ป่วยเข้าเกณฑ์สงสัย PUI');
@@ -291,10 +297,11 @@ router.get('/report2/excel', async (req: Request, res: Response) => {
 router.get('/report3/excel', async (req: Request, res: Response) => {
   const db = req.db;
   const date = req.query.date;
+  const sector = req.query.sector;
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
   try {
-    const rs: any = await model.report3(db, date);
+    const rs: any = await model.report3(db, date, sector);
     ws.cell(1, 1, 2, 1, true).string('โรงพยาบาล');
     ws.cell(1, 2, 1, 5, true).string('ผู้ป่วยยืนยัน (Confirm Case)');
     ws.cell(1, 6, 2, 6, true).string('ผู้ป่วยเข้าเกณฑ์สงสัย PUI');
@@ -356,6 +363,7 @@ router.get('/report3/excel', async (req: Request, res: Response) => {
 router.get('/report4/excel', async (req: Request, res: Response) => {
   const db = req.db;
   const date = req.query.date;
+  const sector = req.query.sector;
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
   try {
@@ -400,10 +408,11 @@ router.get('/report4/excel', async (req: Request, res: Response) => {
 router.get('/report5/excel', async (req: Request, res: Response) => {
   const db = req.db;
   const date = req.query.date;
+  const sector = req.query.sector;
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
   try {
-    const rs: any = await model.report3(db, date);
+    const rs: any = await model.report3(db, date, sector);
 
     ws.cell(1, 1).string('Head');
 
@@ -433,10 +442,11 @@ router.get('/report5/excel', async (req: Request, res: Response) => {
 router.get('/report6/excel', async (req: Request, res: Response) => {
   const db = req.db;
   const date = req.query.date;
+  const sector = req.query.sector;
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
   try {
-    const rs: any = await model.report3(db, date);
+    const rs: any = await model.report3(db, date, sector);
 
     ws.cell(1, 1).string('Head');
 
@@ -466,10 +476,11 @@ router.get('/report6/excel', async (req: Request, res: Response) => {
 router.get('/report7/excel', async (req: Request, res: Response) => {
   const db = req.db;
   const date = req.query.date;
+  const sector = req.query.sector;
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
   try {
-    const rs: any = await model.report3(db, date);
+    const rs: any = await model.report3(db, date, sector);
 
     ws.cell(1, 1).string('Head');
 
@@ -499,10 +510,11 @@ router.get('/report7/excel', async (req: Request, res: Response) => {
 router.get('/report8/excel', async (req: Request, res: Response) => {
   const db = req.db;
   const date = req.query.date;
+  const sector = req.query.sector;
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
   try {
-    const rs: any = await model.report3(db, date);
+    const rs: any = await model.report3(db, date, sector);
 
     ws.cell(1, 1).string('Head');
 
@@ -532,10 +544,11 @@ router.get('/report8/excel', async (req: Request, res: Response) => {
 router.get('/report9/excel', async (req: Request, res: Response) => {
   const db = req.db;
   const date = req.query.date;
+  const sector = req.query.sector;
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
   try {
-    const rs: any = await model.report3(db, date);
+    const rs: any = await model.report3(db, date, sector);
 
     ws.cell(1, 1).string('Head');
 
@@ -565,10 +578,11 @@ router.get('/report9/excel', async (req: Request, res: Response) => {
 router.get('/report10/excel', async (req: Request, res: Response) => {
   const db = req.db;
   const date = req.query.date;
+  const sector = req.query.sector;
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
   try {
-    const rs: any = await model.report3(db, date);
+    const rs: any = await model.report3(db, date, sector);
 
     ws.cell(1, 1).string('Head');
 
@@ -596,28 +610,18 @@ router.get('/report10/excel', async (req: Request, res: Response) => {
 });
 
 
-router.get('/report-homework-gov', async (req: Request, res: Response) => {
+router.get('/report-homework', async (req: Request, res: Response) => {
   const db = req.db;
-
+  const sector = req.query.sector;
   try {
-    const rs: any = await model.homeworkGov(db);
+    const rs: any = await model.homework(db, sector);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
 
     res.send({ ok: false, error: error });
   }
 });
-router.get('/report-homework-comp', async (req: Request, res: Response) => {
-  const db = req.db;
 
-  try {
-    const rs: any = await model.homeworkComp(db);
-    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
-  } catch (error) {
-
-    res.send({ ok: false, error: error });
-  }
-});
 
 function toString(value) {
   if (value || value == 0) {

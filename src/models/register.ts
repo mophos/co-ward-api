@@ -138,8 +138,47 @@ export class Register {
 
     }
 
+    sendMS2(data) {
+        
+        return new Promise((resolve, reject) => {
+            var options = {
+                method: 'POST',
+                url: 'https://test-api-menagement.azure-api.net/regisapi/med-covid-moph/moph/v1/register.action',
+                headers: {
+                    'ocp-apim-subscription-key': 'fcce9158dc0f43f2bc48ae1cda642761',
+                    'content-type': 'application/json'
+                }, body: {
+                    hospital: data.hospital_id,
+                    hospcodeConfirm: data.hospcode,
+                    cid: data.cid,
+                    position: data.position_id,
+                    title: data.title_id,
+                    firstName: data.fname,
+                    lastName: data.lname,
+                    username: data.username,
+                    password: data.password,
+                    email: data.email,
+                    phoneNumber: data.telephone
+                },
+                json: true
+            };
+
+            request(options, function (error, response, body) {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(body);
+                }
+            });
+        });
+
+    }
+
     getUserMedicine(db: Knex) {
         return db('um_users as u')
+            .select('u.*', 'h.hospname','h.id as hospital_id')
+            .join('b_hospitals as h', 'h.hospcode', 'u.hospcode')
             .where('u.position_id', '8')
+            // .offset(1);
     }
 }
