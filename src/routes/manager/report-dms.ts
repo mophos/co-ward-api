@@ -15,8 +15,9 @@ const router: Router = Router();
 router.get('/report1', async (req: Request, res: Response) => {
   const db = req.db;
   const sector = req.query.sector;
+  const date = req.query.date;
   try {
-    const rs: any = await model.report1(db, sector);
+    const rs: any = await model.report1(db, date, sector);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -52,9 +53,10 @@ router.get('/report3', async (req: Request, res: Response) => {
 router.get('/report4', async (req: Request, res: Response) => {
   const db = req.db;
   const date = req.query.date;
+  const sector = req.query.sector;
 
   try {
-    const rs: any = await model.report4(db, date);
+    const rs: any = await model.report4(db, date, sector);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -120,10 +122,11 @@ router.get('/report9', async (req: Request, res: Response) => {
   const date = req.query.date;
   const sector = req.query.sector;
   try {
-    const rs: any = await model.report2(db, date, sector);
+    const rs: any = await model.report9(db, date, sector);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
-
+    console.log(error);
+    
     res.send({ ok: false, error: error });
   }
 });
@@ -133,10 +136,11 @@ router.get('/report10', async (req: Request, res: Response) => {
   const date = req.query.date;
   const sector = req.query.sector;
   try {
-    const rs: any = await model.report2(db, date, sector);
+    const rs: any = await model.report10(db, date, sector);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
-
+    console.log(error);
+    
     res.send({ ok: false, error: error });
   }
 });
@@ -160,7 +164,7 @@ router.get('/report1/excel', async (req: Request, res: Response) => {
     },
   });
   try {
-    const rs: any = await model.report1(db, sector);
+    const rs: any = await model.report1(db, date, sector);
     ws.cell(1, 1, 3, 1, true).string('หน่วยงาน');
     ws.cell(1, 2, 3, 2, true).string('จำนวนโรงพยาบาล ');
     ws.cell(1, 3, 3, 3, true).string('เตียงทั้งหมด');
@@ -367,7 +371,7 @@ router.get('/report4/excel', async (req: Request, res: Response) => {
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
   try {
-    const rs: any = await model.report4(db, date);
+    const rs: any = await model.report4(db, date, sector);
     ws.cell(1, 1, 2, 1, true).string('โรงพยาบาล');
     ws.cell(1, 2, 1, 5, true).string('Positive ยอดสะสม');
     ws.cell(1, 6, 1, 9, true).string('PUI ยอดสะสม');

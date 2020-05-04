@@ -143,6 +143,7 @@ export class CovidCaseModel {
       .join('p_covid_cases as c', 'c.patient_id', 'pt.id')
       .where('pt.hospital_id', hospitalId)
       .where('c.status', 'ADMIT')
+      .where('c.is_deleted', 'N')
       .where('p.cid', cid)
   }
 
@@ -160,6 +161,7 @@ export class CovidCaseModel {
       .leftJoin('b_countries as c', 'c.id', 'p.country_code')
       .whereNot('pt.hospital_id', hospitalId)
       .where('cc.status', 'ADMIT')
+      .where('cc.is_deleted', 'N')
       .where('p.cid', cid)
   }
 
@@ -169,6 +171,7 @@ export class CovidCaseModel {
       .join('p_covid_cases as c', 'c.patient_id', 'pt.id')
       .where('pt.hospital_id', hospitalId)
       .where('c.status', 'ADMIT')
+      .where('c.is_deleted', 'N')
       .where('p.passport', passport)
   }
 
@@ -186,6 +189,7 @@ export class CovidCaseModel {
       .leftJoin('b_countries as c', 'c.id', 'p.country_code')
       .whereNot('pt.hospital_id', hospitalId)
       .where('cc.status', 'ADMIT')
+      .where('cc.is_deleted', 'N')
       .where('p.passport', passport)
   }
 
