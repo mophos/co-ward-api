@@ -235,8 +235,8 @@ export class CovidCaseModel {
     let sql = `
     INSERT INTO p_covid_case_details
     (covid_case_id, gcs_id, bed_id, medical_supplie_id, entry_date,status,create_by)
-    VALUES(?,?,?,?,?,?,?,now())`;
-    return db.raw(sql, [data.covid_case_id, data.gcs_id, data.bed_id, data.medical_supplie_id, data.entry_date, data.status])
+    VALUES(?,?,?,?,?,?,?)`;
+    return db.raw(sql, [data.covid_case_id, data.gcs_id, data.bed_id, data.medical_supplie_id, data.entry_date, data.status, data.create_by])
   }
 
   saveCovidCaseDetailItem(db: Knex, data) {
