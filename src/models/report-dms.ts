@@ -145,20 +145,18 @@ export class ReportDmsModel {
       .where('vh.sector', sector)
   }
 
-
-
-  report9(db: Knex, date) {
-    return db('views_case_hospital_date_cross as v')
-      .select('v.*', 'h.hospname')
-      .join('b_hospitals as h', 'h.id', 'v.hospital_id')
-      .where('v.entry_date', date)
+  report9(db: Knex, date, sector) {
+    return db('views_professional_hospital_cross as v')
+      .select('v.*', 'vh.hospname', 'vh.sub_ministry_name')
+      .join('views_hospital_dms as vh', 'vh.id', 'v.hospital_id')
+      .where('vh.sector', sector)
   }
 
-  report10(db: Knex, date) {
-    return db('views_case_hospital_date_cross as v')
-      .select('v.*', 'h.hospname')
-      .join('b_hospitals as h', 'h.id', 'v.hospital_id')
-      .where('v.entry_date', date)
+  report10(db: Knex, date, sector) {
+    return db('views_professional_hospital_cross as v')
+      .select('v.*', 'vh.hospname', 'vh.sub_ministry_name')
+      .join('views_hospital_dms as vh', 'vh.id', 'v.hospital_id')
+      .where('vh.sector', sector)
   }
 
   getHospitalByType(db: Knex) {

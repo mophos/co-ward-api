@@ -120,10 +120,11 @@ router.get('/report9', async (req: Request, res: Response) => {
   const date = req.query.date;
   const sector = req.query.sector;
   try {
-    const rs: any = await model.report2(db, date, sector);
+    const rs: any = await model.report9(db, date, sector);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
-
+    console.log(error);
+    
     res.send({ ok: false, error: error });
   }
 });
@@ -133,10 +134,11 @@ router.get('/report10', async (req: Request, res: Response) => {
   const date = req.query.date;
   const sector = req.query.sector;
   try {
-    const rs: any = await model.report2(db, date, sector);
+    const rs: any = await model.report10(db, date, sector);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
-
+    console.log(error);
+    
     res.send({ ok: false, error: error });
   }
 });
