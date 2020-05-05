@@ -44,6 +44,7 @@ router.get('/report3', async (req: Request, res: Response) => {
   const sector = req.query.sector;
   try {
     const rs: any = await model.report3(db, date, sector);
+    console.log(rs);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error, code: HttpStatus.OK });
@@ -122,9 +123,10 @@ router.get('/report9', async (req: Request, res: Response) => {
   const date = req.query.date;
   const sector = req.query.sector;
   try {
-    const rs: any = await model.report2(db, date, sector);
+    const rs: any = await model.report9(db, date, sector);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
+    console.log(error);
 
     res.send({ ok: false, error: error });
   }
@@ -135,9 +137,10 @@ router.get('/report10', async (req: Request, res: Response) => {
   const date = req.query.date;
   const sector = req.query.sector;
   try {
-    const rs: any = await model.report2(db, date, sector);
+    const rs: any = await model.report10(db, date, sector);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
+    console.log(error);
 
     res.send({ ok: false, error: error });
   }
@@ -235,10 +238,16 @@ router.get('/report2/excel', async (req: Request, res: Response) => {
   const sector = req.query.sector;
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
+  var center = wb.createStyle({
+    alignment: {
+      wrapText: true,
+      horizontal: 'center',
+    },
+  });
   try {
     const rs: any = await model.report2(db, date, sector);
     ws.cell(1, 1, 2, 1, true).string('โรงพยาบาล');
-    ws.cell(1, 2, 1, 5, true).string('ผู้ป่วยยืนยัน (Confirm Case)');
+    ws.cell(1, 2, 1, 5, true).string('ผู้ป่วยยืนยัน (Confirm Case)').style(center);
     ws.cell(1, 6, 2, 6, true).string('ผู้ป่วยเข้าเกณฑ์สงสัย PUI');
     ws.cell(1, 7, 2, 7, true).string('หน่วยงาน');
 
@@ -302,10 +311,17 @@ router.get('/report3/excel', async (req: Request, res: Response) => {
   const sector = req.query.sector;
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
+  var center = wb.createStyle({
+    alignment: {
+      wrapText: true,
+      horizontal: 'center',
+    },
+  });
   try {
     const rs: any = await model.report3(db, date, sector);
+
     ws.cell(1, 1, 2, 1, true).string('โรงพยาบาล');
-    ws.cell(1, 2, 1, 5, true).string('ผู้ป่วยยืนยัน (Confirm Case)');
+    ws.cell(1, 2, 1, 5, true).string('ผู้ป่วยยืนยัน (Confirm Case)').style(center);
     ws.cell(1, 6, 2, 6, true).string('ผู้ป่วยเข้าเกณฑ์สงสัย PUI');
     ws.cell(1, 7, 2, 7, true).string('หน่วยงาน');
 
@@ -323,7 +339,6 @@ router.get('/report3/excel', async (req: Request, res: Response) => {
     ws.cell(3, 7).string('');
     let row = 4;
     for (const items of rs) {
-      console.log(items);
       ws.cell(row, 1).string(toString(items['hospname']));
       ws.cell(row, 2).string(toString(items['severe']));
       ws.cell(row, 3).string(toString(items['moderate']));
@@ -368,11 +383,17 @@ router.get('/report4/excel', async (req: Request, res: Response) => {
   const sector = req.query.sector;
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
+  var center = wb.createStyle({
+    alignment: {
+      wrapText: true,
+      horizontal: 'center',
+    },
+  });
   try {
     const rs: any = await model.report4(db, date, sector);
     ws.cell(1, 1, 2, 1, true).string('โรงพยาบาล');
-    ws.cell(1, 2, 1, 5, true).string('Positive ยอดสะสม');
-    ws.cell(1, 6, 1, 9, true).string('PUI ยอดสะสม');
+    ws.cell(1, 2, 1, 5, true).string('Positive ยอดสะสม').style(center);
+    ws.cell(1, 6, 1, 9, true).string('PUI ยอดสะสม').style(center);
     ws.cell(1, 10, 2, 10, true).string('หน่วยงาน');
 
     ws.cell(2, 2).string('Admit');
@@ -383,6 +404,39 @@ router.get('/report4/excel', async (req: Request, res: Response) => {
     ws.cell(2, 7).string('Discharge รวมสะสม');
     ws.cell(2, 8).string('Discharge\nส่ง Hospitel');
     ws.cell(2, 9).string('Discharge ตายสะสม');
+
+    ws.cell(3, 1).string('รวม');
+    ws.cell(3, 2).string(toString(sumBy(rs, 'admit')));
+    ws.cell(3, 3).string(toString(sumBy(rs, 'discharge')));
+    ws.cell(3, 4).string(toString(sumBy(rs, 'discharge_hospitel')));
+    ws.cell(3, 5).string(toString(sumBy(rs, 'discharge_death')));
+    ws.cell(3, 6).string(toString(sumBy(rs, 'pui_admit')));
+    ws.cell(3, 7).string(toString(sumBy(rs, 'pui_discharge')));
+    ws.cell(3, 8).string(toString(sumBy(rs, 'pui_discharge_hospitel')));
+    ws.cell(3, 9).string('');
+
+    let row = 4
+    for (const items of rs) {
+      ws.cell(row, 1).string(toString(items['hospname']));
+      ws.cell(row, 2).string(toString(items['admit']));
+      ws.cell(row, 3).string(toString(items['discharge']));
+      ws.cell(row, 4).string(toString(items['discharge_hospitel']));
+      ws.cell(row, 5).string(toString(items['discharge_death']));
+      ws.cell(row, 6).string(toString(items['pui_admit']));
+      ws.cell(row, 7).string(toString(items['pui_discharge']));
+      ws.cell(row, 8).string(toString(items['pui_discharge_hospitel']));
+      ws.cell(row++, 9).string(toString(items['sub_ministry_name']));
+    }
+
+    ws.cell(row, 1).string('รวม');
+    ws.cell(row, 2).string(toString(sumBy(rs, 'admit')));
+    ws.cell(row, 3).string(toString(sumBy(rs, 'discharge')));
+    ws.cell(row, 4).string(toString(sumBy(rs, 'discharge_hospitel')));
+    ws.cell(row, 5).string(toString(sumBy(rs, 'discharge_death')));
+    ws.cell(row, 6).string(toString(sumBy(rs, 'pui_admit')));
+    ws.cell(row, 7).string(toString(sumBy(rs, 'pui_discharge')));
+    ws.cell(row, 8).string(toString(sumBy(rs, 'pui_discharge_hospitel')));
+    ws.cell(row, 9).string('');
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
@@ -413,10 +467,49 @@ router.get('/report5/excel', async (req: Request, res: Response) => {
   const sector = req.query.sector;
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
+  var center = wb.createStyle({
+    alignment: {
+      wrapText: true,
+      horizontal: 'center',
+    },
+  });
   try {
-    const rs: any = await model.report3(db, date, sector);
+    const rs: any = await model.report5(db, date, sector);
+    console.log(rs);
 
-    ws.cell(1, 1).string('Head');
+    ws.cell(1, 1, 2, 1, true).string('โรงพยาบาล');
+    ws.cell(1, 2, 1, 5, true).string('จำนวนเตียง (ไม่รวม Hospitel)').style(center);
+    ws.cell(1, 6, 2, 6, true).string('หน่วยงาน');
+
+    ws.cell(2, 2).string('จำนวนเตียงทั้งหมด');
+    ws.cell(2, 3).string('Admit รวม');
+    ws.cell(2, 4).string('สำรองเตียงรอรับย้าย');
+    ws.cell(2, 5).string('ว่าง');
+
+    ws.cell(3, 1).string('รวม');
+    ws.cell(3, 2).string(toString(sumBy(rs, 'admit')));
+    ws.cell(3, 3).string(toString(sumBy(rs, 'aiir_qty' || 0) + sumBy(rs, 'modified_aiir_qty') + sumBy(rs, 'isolate_qty') + sumBy(rs, 'cohort_qty')));
+    ws.cell(3, 4).string(toString(sumBy(rs, 'aiir_usage_qty' || 0) + sumBy(rs, 'modified_aiir_usage_qty') + sumBy(rs, 'isolate_usage_qty') + sumBy(rs, 'cohort_usage_qty')));
+    ws.cell(3, 5).string(toString(sumBy(rs, 'aiir_spare_qty' || 0) + sumBy(rs, 'modified_aiir_spare_qty') + sumBy(rs, 'isolate_spare_qty') + sumBy(rs, 'cohort_spare_qty')));
+    ws.cell(3, 6).string(toString(sumBy(rs, 'aiir_qty' || 0) + sumBy(rs, 'modified_aiir_qty') + sumBy(rs, 'isolate_qty') + sumBy(rs, 'cohort_qty') + sumBy(rs, 'aiir_usage_qty') + sumBy(rs, 'modified_aiir_usage_qty') + sumBy(rs, 'isolate_usage_qty') + sumBy(rs, 'cohort_usage_qty') + sumBy(rs, 'aiir_spare_qty') + sumBy(rs, 'modified_aiir_spare_qty') + sumBy(rs, 'isolate_spare_qty') + sumBy(rs, 'cohort_spare_qty')));
+
+    let row = 4;
+    for (const items of rs) {
+      ws.cell(row, 1).string(toString(items['hospname']));
+      ws.cell(row, 1).string(toString(items['hospname']));
+      ws.cell(row, 2).string(toString(items.aiir_qty || 0 + items.modified_aiir_qty || 0 + items.isolate_qty || 0 + items.cohort_qty || 0))
+      ws.cell(row, 3).string(toString(items.aiir_usage_qty || 0 + items.modified_aiir_usage_qty || 0 + items.isolate_usage_qty || 0 + items.cohort_usage_qty || 0))
+      ws.cell(row, 4).string(toString(items.aiir_spare_qty || 0 + items.modified_aiir_spare_qty || 0 + items.isolate_spare_qty || 0 + items.cohort_spare_qty || 0))
+      ws.cell(row, 5).string(toString(items.aiir_qty || 0 + items.modified_aiir_qty || 0 + items.isolate_qty || 0 + items.cohort_qty || 0 + items.aiir_usage_qty || 0 + items.modified_aiir_usage_qty || 0 + items.isolate_usage_qty || 0 + items.cohort_usage_qty || 0 + items.aiir_spare_qty || 0 + items.modified_aiir_spare_qty || 0 + items.isolate_spare_qty || 0 + items.cohort_spare_qty || 0))
+      ws.cell(row++, 6).string(toString(items['sub_ministry_name']));
+    }
+
+    ws.cell(row, 1).string('รวม');
+    ws.cell(row, 2).string(toString(sumBy(rs, 'admit')));
+    ws.cell(row, 3).string(toString(sumBy(rs, 'aiir_qty' || 0) + sumBy(rs, 'modified_aiir_qty') + sumBy(rs, 'isolate_qty') + sumBy(rs, 'cohort_qty')));
+    ws.cell(row, 4).string(toString(sumBy(rs, 'aiir_usage_qty' || 0) + sumBy(rs, 'modified_aiir_usage_qty') + sumBy(rs, 'isolate_usage_qty') + sumBy(rs, 'cohort_usage_qty')));
+    ws.cell(row, 5).string(toString(sumBy(rs, 'aiir_spare_qty' || 0) + sumBy(rs, 'modified_aiir_spare_qty') + sumBy(rs, 'isolate_spare_qty') + sumBy(rs, 'cohort_spare_qty')));
+    ws.cell(row, 6).string(toString(sumBy(rs, 'aiir_qty' || 0) + sumBy(rs, 'modified_aiir_qty') + sumBy(rs, 'isolate_qty') + sumBy(rs, 'cohort_qty') + sumBy(rs, 'aiir_usage_qty') + sumBy(rs, 'modified_aiir_usage_qty') + sumBy(rs, 'isolate_usage_qty') + sumBy(rs, 'cohort_usage_qty') + sumBy(rs, 'aiir_spare_qty') + sumBy(rs, 'modified_aiir_spare_qty') + sumBy(rs, 'isolate_spare_qty') + sumBy(rs, 'cohort_spare_qty')));
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
@@ -624,6 +717,54 @@ router.get('/report-homework', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/report-homework/excel', async (req: Request, res: Response) => {
+  const db = req.db;
+  const sector = req.query.sector;
+  var wb = new excel4node.Workbook();
+  var ws = wb.addWorksheet('Sheet 1');
+  try {
+    const rs: any = await model.homework(db, sector);
+
+    ws.cell(1, 1).string('โรงพยาบาล');
+    ws.cell(1, 2).string('วันที่ลงทะเบียนล่าสุด');
+    ws.cell(1, 3).string('สังกัด');
+    ws.cell(1, 4).string('จังหวัด');
+
+    let row = 2;
+    for (const items of rs) {
+      if (items.register_last_date) {
+        items.register_last_date = moment(items.register_last_date).format('DD-MM-YYYY');
+      } else {
+        items.register_last_date = '-'
+      }
+      ws.cell(row, 1).string(toString(items['hospname']));
+      ws.cell(row, 2).string(toString(items['register_last_date']));
+      ws.cell(row, 3).string(toString(items['sub_ministry_name']));
+      ws.cell(row, 4).string(toString(items['province_name']));
+      row += 1;
+    }
+    fse.ensureDirSync(process.env.TMP_PATH);
+
+    let filename = `report-homework` + moment().format('x');
+    let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+      }
+    });
+  } catch (error) {
+
+    res.send({ ok: false, error: error });
+  }
+});
 
 function toString(value) {
   if (value || value == 0) {
