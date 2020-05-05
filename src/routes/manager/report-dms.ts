@@ -126,7 +126,7 @@ router.get('/report9', async (req: Request, res: Response) => {
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
-    
+
     res.send({ ok: false, error: error });
   }
 });
@@ -140,7 +140,7 @@ router.get('/report10', async (req: Request, res: Response) => {
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
-    
+
     res.send({ ok: false, error: error });
   }
 });
@@ -626,6 +626,54 @@ router.get('/report-homework', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/report-homework/excel', async (req: Request, res: Response) => {
+  const db = req.db;
+  const sector = req.query.sector;
+  var wb = new excel4node.Workbook();
+  var ws = wb.addWorksheet('Sheet 1');
+  try {
+    const rs: any = await model.homework(db, sector);
+
+    ws.cell(1, 1).string('โรงพยาบาล');
+    ws.cell(1, 2).string('วันที่ลงทะเบียนล่าสุด');
+    ws.cell(1, 3).string('สังกัด');
+    ws.cell(1, 4).string('จังหวัด');
+
+    let row = 2;
+    for (const items of rs) {
+      if(items.register_last_date){
+        items.register_last_date = moment(items.register_last_date).format('DD-MM-YYYY');
+      }else{
+        items.register_last_date = '-'
+      }
+      ws.cell(row, 1).string(toString(items['hospname']));
+      ws.cell(row, 2).string(toString(items['register_last_date']));
+      ws.cell(row, 3).string(toString(items['sub_ministry_name']));
+      ws.cell(row, 4).string(toString(items['province_name']));
+      row += 1;
+    }
+    fse.ensureDirSync(process.env.TMP_PATH);
+
+    let filename = `report-homework` + moment().format('x');
+    let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+      }
+    });
+  } catch (error) {
+
+    res.send({ ok: false, error: error });
+  }
+});
 
 function toString(value) {
   if (value || value == 0) {
