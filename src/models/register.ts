@@ -178,7 +178,8 @@ export class Register {
         return db('um_users as u')
             .select('u.*', 'h.hospname','h.id as hospital_id')
             .join('b_hospitals as h', 'h.hospcode', 'u.hospcode')
-            .where('u.position_id', '8')
+            // .where('u.position_id', '8')
+            .where('u.id', '1227')
             // .offset(1);
     }
 }

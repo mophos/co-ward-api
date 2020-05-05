@@ -1,9 +1,11 @@
 // / <reference path="../../typings.d.ts" />
-
+const excel4node = require('excel4node');
 import * as HttpStatus from 'http-status-codes';
 import { Router, Request, Response } from 'express';
 import { ReportModel } from '../../models/report';
-
+const path = require('path')
+const fse = require('fs-extra');
+import moment = require('moment');
 const model = new ReportModel();
 const router: Router = Router();
 
@@ -53,7 +55,54 @@ router.get('/supplies', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/bed', async (req: Request, res: Response) => {
+  const db = req.db;
+  const date = req.query.date;
+  const sector = req.query.sector;
+  const provinceCode = req.decoded.provinceCode;
+  try {
+    const rs: any = await model.beds(db, date,provinceCode);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, message: error, code: HttpStatus.OK });
+  }
+});
 
+router.get('/bed/excel', async (req: Request, res: Response) => {
+  const db = req.db;
+  const date = req.query.date;
+  const sector = req.query.sector;
+  const provinceCode = req.decoded.provinceCode;
+  var wb = new excel4node.Workbook();
+  var ws = wb.addWorksheet('Sheet 1');
+  try {
+    const rs: any = await model.beds(db, date,provinceCode);
+
+    ws.cell(1, 1).string('Head');
+
+    fse.ensureDirSync(process.env.TMP_PATH);
+
+    let filename = `report3` + moment().format('x');
+    let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+      }
+    });
+  } catch (error) {
+
+    res.send({ ok: false, error: error });
+  }
+});
 
 // router.get('/hosp/excel', async (req: Request, res: Response) => {
 //   const db = req.db;

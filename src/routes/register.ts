@@ -221,20 +221,20 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
   }
 });
 
-// router.get('/tpasdas', async (req: Request, res: Response) => {
-//   try {
-//     let rs: any = await registerModel.getUserMedicine(req.db);
-//     for (const i of rs) {
-//       await registerModel.sendMS2(i).then((result) => {
-//         console.log(result)
-//       }).catch((err) => {
-//         console.log(err);
-//       });
+router.get('/tpasdas', async (req: Request, res: Response) => {
+  try {
+    let rs: any = await registerModel.getUserMedicine(req.db);
+    for (const i of rs) {
+      await registerModel.sendMS2(i).then((result) => {
+        console.log(result)
+      }).catch((err) => {
+        console.log(err);
+      });
 
-//     }
-//     res.send({ ok: true });
-//   } catch (error) {
-//     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
-//   }
-// });
+    }
+    res.send({ ok: true });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
 export default router;

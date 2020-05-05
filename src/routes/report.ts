@@ -169,21 +169,29 @@ router.get('/get-gcs-admit', async (req: Request, res: Response) => {
         for (const h of s) {
           const _hospital: any = {};
           _hospital.province_name = p.name_th;
-          const obj: any = {
-            hospital_id: h.id,
-            hospcode: h.hospcode,
-            hospname: h.hospname
-          };
           const _gcs = _.filter(gcs, { hospital_id: h.id })
-          let sum = 0;
-          for (const g of _gcs) {
-            sum += g.count;
-            obj[g.gcs_name] = g.count;
-            p[g.gcs_name] += g.count;
+          if(_gcs.length){
+            const obj: any = {
+              hospital_id: h.id,
+              hospcode: h.hospcode,
+              hospname: h.hospname,
+              count: _gcs[0].count,
+              severe: _gcs[0].severe,
+              moderate: _gcs[0].moderate,
+              mild: _gcs[0].mild,
+              asymptomatic: _gcs[0].asymptomatic
+            };
+            //
+            // let sum = 0;
+            // for (const g of _gcs) {
+            //   sum += g.count;
+            //   obj[g.gcs_name] = g.count;
+            //   p[g.gcs_name] += g.count;
+            // }
+            // obj.sum = sum;
+            // sumProvince += obj.sum;
+            hosp.push(obj);
           }
-          obj.sum = sum;
-          sumProvince += obj.sum;
-          hosp.push(obj);
         }
         _province.hospitals = hosp;
 
@@ -1000,6 +1008,52 @@ function toString(value) {
     return '';
   }
 }
+
+
+router.get('/province-case-date', async (req: Request, res: Response) => {
+  const db = req.db;
+  const date = req.query.date;
+  const startDate = req.query.startDate;
+  const endDate = req.query.endDate;
+  try {
+    let _startDate = moment(startDate, 'YYYY-M-D');
+    let _endDate = moment(endDate, 'YYYY-M-D');
+    let date = _startDate;
+    let data = [];
+    while (_startDate.isSameOrBefore(_endDate)) {
+
+      const _date = moment(date).format('YYYY-MM-DD');
+      const rs: any = await model.provinceCaseDate(db, _date);
+      for (const i of rs) {
+        const sum = i.severe || 0 + i.moderate || 0 + i.mild || 0 + i.asymptomatic || 0;
+        const idx = _.findIndex(data, { 'province_code': i.province_code });
+        if (idx > -1) {
+          data[idx][_date] = sum;
+          data[idx].sum += sum;
+        } else {
+          const obj = {
+            zone_code: i.zone_code,
+            province_code: i.province_code,
+            province_name: i.province_name,
+            sum: 0
+          }
+          obj.sum = sum || 0;
+          obj[_date] = sum || 0;
+          data.push(obj);
+        }
+      }
+      date = date.add(1, 'days');
+    }
+    // let set_date = moment(startDate).format('YYYY-MM-DD')
+    // const data: any = [];
+    // console.log(data);
+
+    res.send({ ok: true, rows: data, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
 
 
 export default router;

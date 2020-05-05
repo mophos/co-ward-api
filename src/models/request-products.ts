@@ -1,12 +1,12 @@
 import * as Knex from 'knex';
 
-export class RequisitionSuppilesModel {
+export class RequestProductModel {
 
-    getlist(db: Knex, hospcode) {
-        return db('wm_requisition_supplies as r')
+    getlist(db: Knex, hospitalId) {
+        return db('wm_request_products as r')
             .select('r.*', 'h.hospname as hospname_req')
-            .join('l_hospitals as h', 'h.hospcode', 'r.hospcode_req')
-            .where('r.hospcode', hospcode)
+            .join('b_hospitals as h', 'h.id', 'r.hosppital_id')
+            .where('r.hospital_id', hospitalId)
     }
 
     saveHead(db: Knex, data: any) {
