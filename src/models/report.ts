@@ -5,15 +5,28 @@ import { join } from 'bluebird';
 export class ReportModel {
 
   getGcsAdmit(db: Knex, date) {
-    return db('views_case_dates AS vcl')
+    // return db('views_case_dates AS vcl')
+    //   .count('* as count')
+    //   .select('vcl.gcs_id', 'bg.name as gcs_name', 'pp.hospital_id')
+    //   .join('p_patients AS pp', 'pp.id', 'vcl.patient_id')
+    //   .join('b_hospitals AS bh', 'bh.id', 'pp.hospital_id')
+    //   .join('b_gcs as bg', 'bg.id', 'vcl.gcs_id')
+    //   .where('vcl.entry_date', date)
+    //   .where('vcl.status', 'ADMIT')
+    //   .groupBy('pp.hospital_id', 'vcl.gcs_id')
+    return db('views_case_hospital_date_cross as v')
+      .select('h.province_code', 'h.province_name', 'h.zone_code', 'h.hospcode', 'h.hospname', 'h.id as hospital_id')
+      .sum('severe as severe')
+      .sum('mild as mild')
+      .sum('moderate as moderate')
+      .sum('asymptomatic as asymptomatic')
       .count('* as count')
-      .select('vcl.gcs_id', 'bg.name as gcs_name', 'pp.hospital_id')
-      .join('p_patients AS pp', 'pp.id', 'vcl.patient_id')
-      .join('b_hospitals AS bh', 'bh.id', 'pp.hospital_id')
-      .join('b_gcs as bg', 'bg.id', 'vcl.gcs_id')
-      .where('vcl.entry_date', date)
-      .where('vcl.status', 'ADMIT')
-      .groupBy('pp.hospital_id', 'vcl.gcs_id')
+      .join('b_hospitals as h', 'h.id', 'v.hospital_id')
+      .where('v.entry_date', date)
+      .where('v.status', 'ADMIT')
+      .groupBy('h.id')
+      .orderBy('h.zone_code')
+      .orderBy('h.province_code')
   }
 
   getGcs(db: Knex, date) {
@@ -51,7 +64,7 @@ export class ReportModel {
 
   getHospital(db: Knex) {
     return db('b_hospitals AS bh')
-      .whereIn('bh.hosptype_code', ['01', '05', '06', '07'])
+      .whereIn('bh.hosptype_code', ['01', '05', '06', '07', '11', '12'])
   }
 
   getHospitalByType(db: Knex) {
@@ -235,5 +248,36 @@ export class ReportModel {
       .where('vcl.entry_date', date)
       .where('bh.code', provinceCode)
       .groupBy('vcl.gcs_id')
+  }
+
+  beds(db: Knex, date, provinceCode) {
+    return db('views_bed_hopital_cross as vc')
+      .leftJoin('views_bed_hospital_date_cross AS vb', (v) => {
+        v.on('vc.hospital_id ', 'vb.hospital_id')
+          .on('vb.entry_date', db.raw(`${date}`))
+      })
+      .join('b_hospitals as vh', 'vh.id', 'vc.hospital_id')
+      .whereIn('vh.hosptype_code', ['01', '02', '05', '06', '07', '11', '12'])
+      .where('vh.province_code', provinceCode)
+      .orderBy('vh.province_code')
+  }
+
+  provinceCaseDate(db: Knex, date) {
+    return db('b_province as p')
+      .select('p.code as province_code', 'p.name_th as province_name', 'h.zone_code')
+      .sum('v.severe as severe')
+      .sum('v.mild as mild')
+      .sum('v.moderate as moderate')
+      .sum('v.asymptomatic as asymptomatic')
+      .leftJoin('b_hospitals as h', 'h.province_code', 'p.code')
+      .leftJoin('views_case_hospital_date_cross as v', (v) => {
+        v.on('v.hospital_id', 'h.id')
+        v.on('v.entry_date', db.raw(`'${date}'`))
+        v.on('v.status', db.raw(`'ADMIT'`))
+      })
+      .groupBy('p.code')
+      .orderBy('h.zone_code')
+      .orderBy('p.code');
+      
   }
 }

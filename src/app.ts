@@ -38,7 +38,7 @@ import payStaffRoute from './routes/staff/pay';
 import bedStaffRoute from './routes/staff/bed';
 import requisitionStaffRoute from './routes/staff/requisition';
 import settingStaffRoute from './routes/staff/setting';
-import requisitionSuppliesRoute from './routes/staff/requisition-supplies';
+import requestProductRoute from './routes/staff/request-product';
 import drugStaffRoute from './routes/staff/drug';
 import covidCaseRoute from './routes/staff/covid-case';
 import userRoute from './routes/staff/user';
@@ -247,7 +247,7 @@ staff.use('/report', reportStaffRoute)
 staff.use('/receives', receiveRoute)
 staff.use('/bed', bedStaffRoute)
 staff.use('/requisition', requisitionStaffRoute)
-staff.use('/requisition-supplies', requisitionSuppliesRoute)
+staff.use('/request-products', requestProductRoute)
 staff.use('/setting', settingStaffRoute)
 staff.use('/drugs', drugStaffRoute)
 staff.use('/covid-case', covidCaseRoute)
