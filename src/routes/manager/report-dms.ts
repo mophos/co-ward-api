@@ -475,6 +475,7 @@ router.get('/report5/excel', async (req: Request, res: Response) => {
   });
   try {
     const rs: any = await model.report5(db, date, sector);
+    console.log(rs);
 
     ws.cell(1, 1, 2, 1, true).string('โรงพยาบาล');
     ws.cell(1, 2, 1, 5, true).string('จำนวนเตียง (ไม่รวม Hospitel)').style(center);
@@ -485,9 +486,30 @@ router.get('/report5/excel', async (req: Request, res: Response) => {
     ws.cell(2, 4).string('สำรองเตียงรอรับย้าย');
     ws.cell(2, 5).string('ว่าง');
 
+    ws.cell(3, 1).string('รวม');
+    ws.cell(3, 2).string(toString(sumBy(rs, 'admit')));
+    ws.cell(3, 3).string(toString(sumBy(rs, 'aiir_qty' || 0) + sumBy(rs, 'modified_aiir_qty') + sumBy(rs, 'isolate_qty') + sumBy(rs, 'cohort_qty')));
+    ws.cell(3, 4).string(toString(sumBy(rs, 'aiir_usage_qty' || 0) + sumBy(rs, 'modified_aiir_usage_qty') + sumBy(rs, 'isolate_usage_qty') + sumBy(rs, 'cohort_usage_qty')));
+    ws.cell(3, 5).string(toString(sumBy(rs, 'aiir_spare_qty' || 0) + sumBy(rs, 'modified_aiir_spare_qty') + sumBy(rs, 'isolate_spare_qty') + sumBy(rs, 'cohort_spare_qty')));
+    ws.cell(3, 6).string(toString(sumBy(rs, 'aiir_qty' || 0) + sumBy(rs, 'modified_aiir_qty') + sumBy(rs, 'isolate_qty') + sumBy(rs, 'cohort_qty') + sumBy(rs, 'aiir_usage_qty') + sumBy(rs, 'modified_aiir_usage_qty') + sumBy(rs, 'isolate_usage_qty') + sumBy(rs, 'cohort_usage_qty') + sumBy(rs, 'aiir_spare_qty') + sumBy(rs, 'modified_aiir_spare_qty') + sumBy(rs, 'isolate_spare_qty') + sumBy(rs, 'cohort_spare_qty')));
+
+    let row = 4;
     for (const items of rs) {
-      
+      ws.cell(row, 1).string(toString(items['hospname']));
+      ws.cell(row, 1).string(toString(items['hospname']));
+      ws.cell(row, 2).string(toString(items.aiir_qty || 0 + items.modified_aiir_qty || 0 + items.isolate_qty || 0 + items.cohort_qty || 0))
+      ws.cell(row, 3).string(toString(items.aiir_usage_qty || 0 + items.modified_aiir_usage_qty || 0 + items.isolate_usage_qty || 0 + items.cohort_usage_qty || 0))
+      ws.cell(row, 4).string(toString(items.aiir_spare_qty || 0 + items.modified_aiir_spare_qty || 0 + items.isolate_spare_qty || 0 + items.cohort_spare_qty || 0))
+      ws.cell(row, 5).string(toString(items.aiir_qty || 0 + items.modified_aiir_qty || 0 + items.isolate_qty || 0 + items.cohort_qty || 0 + items.aiir_usage_qty || 0 + items.modified_aiir_usage_qty || 0 + items.isolate_usage_qty || 0 + items.cohort_usage_qty || 0 + items.aiir_spare_qty || 0 + items.modified_aiir_spare_qty || 0 + items.isolate_spare_qty || 0 + items.cohort_spare_qty || 0))
+      ws.cell(row++, 6).string(toString(items['sub_ministry_name']));
     }
+
+    ws.cell(row, 1).string('รวม');
+    ws.cell(row, 2).string(toString(sumBy(rs, 'admit')));
+    ws.cell(row, 3).string(toString(sumBy(rs, 'aiir_qty' || 0) + sumBy(rs, 'modified_aiir_qty') + sumBy(rs, 'isolate_qty') + sumBy(rs, 'cohort_qty')));
+    ws.cell(row, 4).string(toString(sumBy(rs, 'aiir_usage_qty' || 0) + sumBy(rs, 'modified_aiir_usage_qty') + sumBy(rs, 'isolate_usage_qty') + sumBy(rs, 'cohort_usage_qty')));
+    ws.cell(row, 5).string(toString(sumBy(rs, 'aiir_spare_qty' || 0) + sumBy(rs, 'modified_aiir_spare_qty') + sumBy(rs, 'isolate_spare_qty') + sumBy(rs, 'cohort_spare_qty')));
+    ws.cell(row, 6).string(toString(sumBy(rs, 'aiir_qty' || 0) + sumBy(rs, 'modified_aiir_qty') + sumBy(rs, 'isolate_qty') + sumBy(rs, 'cohort_qty') + sumBy(rs, 'aiir_usage_qty') + sumBy(rs, 'modified_aiir_usage_qty') + sumBy(rs, 'isolate_usage_qty') + sumBy(rs, 'cohort_usage_qty') + sumBy(rs, 'aiir_spare_qty') + sumBy(rs, 'modified_aiir_spare_qty') + sumBy(rs, 'isolate_spare_qty') + sumBy(rs, 'cohort_spare_qty')));
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
