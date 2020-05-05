@@ -181,7 +181,7 @@ router.get('/updatereq', async (req: Request, res: Response) => {
     }
   } catch (error) {
     console.log(error);
-    
+
     res.send({ ok: false, error: error });
   }
 });
@@ -256,14 +256,14 @@ router.get('/systemUpdate', async (req: Request, res: Response) => {
 
 async function systemUpdate(db) {
   try {
-    var items = [];
     let lcd = await settingModel.getLastCaseDetails(db)
     let nowDate = moment(moment(), 'YYYY-MM-DD')
     for (const item of lcd) {
+      var items = [];
       let _items = await settingModel.getLastCaseDetailItems(db, item.id)
       let startDate = moment(moment(item.entry_date), 'YYYY-MM-DD');
       let _detail = cloneDeep(item)
-      while (startDate.isBefore(nowDate)) {
+      while (startDate.isBefore(nowDate, 'day')) {
         startDate = startDate.add(1, 'days');
         let set_date = moment(startDate).format('YYYY-MM-DD')
         const caseDetailId = await covidCaseModel.saveCovidCaseDetailGenerate(db, {
@@ -287,7 +287,6 @@ async function systemUpdate(db) {
             qty: i.qty,
             created_by: 0
           });
-        
         }
       }
       await covidCaseModel.saveCovidCaseDetailItem(db, items);
