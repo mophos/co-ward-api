@@ -70,9 +70,11 @@ export class RestockModel {
       .where('restock_detail_id', id)
   }
 
-  removeRestock(db: Knex, id) {
+  removeRestock(db: Knex, id, userId) {
     return db('wm_restocks')
       .update('is_deleted', 'Y')
+      .update('updated_by', userId)
+      .update('update_date', db.fn.now())
       .where('id', id);
   }
 
@@ -115,8 +117,8 @@ export class RestockModel {
   }
 
   update(db: Knex) {
-    let sql = `insert wm_restock_detail_items (supplies_id,qty,restock_detail_id)
-      select s.id,r.qty,r.restock_detail_id from wm_restock_detail_items_temp as r
+    let sql = `insert wm_restock_detail_items (supplies_id,qty,restock_detail_id,updated_entry)
+      select s.id,r.qty,r.restock_detail_id,now() from wm_restock_detail_items_temp as r
       join mm_supplies as s on r.supplies_code = s.code`
     return db.raw(sql);
   }

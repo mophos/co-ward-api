@@ -33,6 +33,7 @@ export class SuppliesModel {
   updateSupplies(db: Knex, id: any, data = {}) {
     return db('mm_supplies')
       .update(data)
+      .update('update_date', db.fn.now())
       .where('id', id);
   }
 
@@ -41,9 +42,11 @@ export class SuppliesModel {
       .insert(data);
   }
 
-  deleteSupplies(db: Knex, id: any) {
+  deleteSupplies(db: Knex, id: any, userId) {
     return db('mm_supplies')
       .update('is_deleted', 'Y')
+      .update('updated_by', userId)
+      .update('update_date', db.fn.now())
       .where('id', id);
   }
 
@@ -59,23 +62,44 @@ export class SuppliesModel {
     return sql;
   }
 
-
-
-  getSuppliesStock(db: Knex, hospitalId) {
+  getSuppliesStock(db: Knex, hospitalId: any) {
     return db('wm_supplies as sp')
       .select('sp.*', 't.name', 'u.fname', 'u.lname')
       .leftJoin('um_users as u', 'u.id', 'sp.create_by')
       .leftJoin('um_titles as t', 't.id', 'u.title_id')
       .where('sp.hospital_id', hospitalId)
-      .orderBy('sp.create_date','DESC')
+      .orderBy('sp.create_date', 'DESC')
+  }
+
+  getType(db: Knex, provinceCode: any, hospitalId: any) {
+    return db('b_hospitals as h')
+      .select('h.hosptype_code', 'ht.name')
+      .join('b_hospital_types as ht', 'ht.id', 'h.hosptype_code')
+      .where('h.province_code', provinceCode)
+      .whereNot('h.id', hospitalId)
+      .groupBy('h.hosptype_code')
+      .orderBy('h.hosptype_code')
+  }
+
+  getHospital(db: Knex, hosptypeCode: any, provinceCode: any) {
+    return db('b_hospitals as h')
+      .select('h.id as hospital_id', 'h.hospname')
+      .where('h.province_code', provinceCode)
+      .where('h.hosptype_code', hosptypeCode)
+      .orderBy('h.hosptype_code')
   }
 
   getSuppliesStockDetails(db: Knex, id: any) {
-    return db('wm_supplies_details as  dsd')
+    return db('b_generics as mg')
       .select('dsd.*', 'mg.name', 'u.name as unit_name')
-      .join('b_generics as mg', 'mg.id', 'dsd.generic_id')
+      // .leftJoin('wm_supplies_details as dsd', 'mg.id', 'dsd.generic_id')
+      .leftJoin('wm_supplies_details as dsd', (v) => {
+        v.on('mg.id', 'dsd.generic_id')
+        v.on('dsd.wm_supplie_id', db.raw(`${id}`))
+      })
       .leftJoin('b_units as u', 'u.id', 'mg.unit_id')
-      .where('dsd.wm_supplie_id', id);
+      .where('mg.type', 'SUPPLIES')
+      .orderBy('mg.id');
   }
 
   getId(db: Knex, data) {
@@ -89,14 +113,10 @@ export class SuppliesModel {
     let sql = `
           INSERT INTO wm_supplies
           (date, create_by,hospital_id)
-          VALUES(?, ?,?)
+          VALUES(?,?,?)
           ON DUPLICATE KEY UPDATE
-          update_by=?`;
+          update_by=?,update_date=now()`;
     return db.raw(sql, [data.date, data.create_by, data.hospital_id, data.create_by])
-
-    // return db('wm_supplies')
-    // .insert(data, 'id')
-
   }
 
   saveDetail(db: Knex, data) {
@@ -107,11 +127,10 @@ export class SuppliesModel {
           (wm_supplie_id, generic_id,qty,month_usage_qty)
           VALUES(${v.wm_supplie_id},${v.generic_id},${v.qty},${v.month_usage_qty})
           ON DUPLICATE KEY UPDATE
-          qty=${v.qty}
+          qty=${v.qty},month_usage_qty=${v.month_usage_qty}
         `;
       sqls.push(sql);
     });
-
     let queries = sqls.join(';');
 
     return db.raw(queries);
@@ -119,11 +138,22 @@ export class SuppliesModel {
     //   .insert(data);
   }
 
+  getSuppliesLast(db: Knex, hospitalId: any) {
+    return db('b_generics AS bg')
+      .select('bg.id', 'bg.name', db.raw('null as qty'), 'vsh.month_usage_qty', 'bu.name as unit_name')
+      .joinRaw(`LEFT JOIN views_supplies_hospitals AS vsh ON vsh.generic_id = bg.id AND vsh.hospital_id = ?`, hospitalId)
+      .join('b_units AS bu', 'bu.id', 'bg.unit_id')
+      .where('bg.type', 'SUPPLIES')
+  }
+
   getSuppliesActived(db: Knex) {
-    return db('b_generics')
-      .where('is_deleted', 'N')
-      .where('is_actived', 'Y')
-      .where('type', 'SUPPLIES')
+    return db('b_generics as g')
+      .select('g.*', 'u.name as unit_name')
+      .leftJoin('b_units as u', 'u.id', 'g.unit_id')
+      .where('g.is_deleted', 'N')
+      .where('g.is_actived', 'Y')
+      .where('g.type', 'SUPPLIES')
+      .orderBy('g.id');
   }
 
 }

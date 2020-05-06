@@ -27,22 +27,34 @@ import hospitalAdminRoute from './routes/admin/hospital';
 import restockAdminRoute from './routes/admin/restock';
 import restockCollectionAdminRoute from './routes/admin/restock-collection';
 import drugAdminRoute from './routes/admin/drug';
+import fulfillRoute from './routes/admin/fulfill';
+import minMaxRoute from './routes/admin/min-max';
 
 import suppliesStaffRoute from './routes/staff/supplies';
 import balanceStaffRoute from './routes/staff/balance';
+import smhRoute from './routes/staff/smh';
+import patientInfoRoute from './routes/manager/patient-info';
 import payStaffRoute from './routes/staff/pay';
 import bedStaffRoute from './routes/staff/bed';
 import requisitionStaffRoute from './routes/staff/requisition';
 import settingStaffRoute from './routes/staff/setting';
-import requisitionSuppliesRoute from './routes/staff/requisition-supplies';
+import requestProductRoute from './routes/staff/request-product';
 import drugStaffRoute from './routes/staff/drug';
 import covidCaseRoute from './routes/staff/covid-case';
 import userRoute from './routes/staff/user';
+import reportStaffRoute from './routes/staff/report';
+import receiveRoute from './routes/staff/receives';
 
+import reportRoute from './routes/report';
+import reportDmsRoute from './routes/manager/report-dms';
 import basicRoute from './routes/basic';
 import basicAuthRoute from './routes/basicAuth';
 import servicesRoute from './routes/manager/services';
 import eocRoute from './routes/eoc';
+import approveDrugsRoute from './routes/staff/approve-drugs';
+import approveSuppliesRoute from './routes/staff/approve-supplies';
+
+
 // Assign router to the express.Router() instance
 const app: express.Application = express();
 
@@ -202,6 +214,7 @@ app.use('/v1', api);
 api.use('/login', loginRoute);
 api.use('/register', registerRoute);
 api.use('/basic', basicRoute);
+api.use('/report', checkAuth, reportRoute)
 api.use('/basic-auth', checkAuth, basicAuthRoute);
 
 //admin
@@ -213,9 +226,13 @@ admin.use('/hospital', hospitalAdminRoute)
 admin.use('/restock', restockAdminRoute)
 admin.use('/restock-collection', restockCollectionAdminRoute)
 admin.use('/drugs', drugAdminRoute)
+admin.use('/fulfill', fulfillRoute)
+admin.use('/min-max', minMaxRoute)
 
 //manager
 api.use('/manager', checkAuth, managerAuth, manager)
+manager.use('/patient-info', patientInfoRoute)
+manager.use('/report-dms', reportDmsRoute)
 manager.use('/services', servicesRoute)
 manager.use('/eoc', eocRoute)
 
@@ -223,14 +240,19 @@ manager.use('/eoc', eocRoute)
 api.use('/staff', checkAuth, staffAuth, staff)
 staff.use('/supplies', suppliesStaffRoute)
 staff.use('/users', userRoute)
+staff.use('/smh', smhRoute)
 staff.use('/balance', balanceStaffRoute)
 staff.use('/pay', payStaffRoute)
+staff.use('/report', reportStaffRoute)
+staff.use('/receives', receiveRoute)
 staff.use('/bed', bedStaffRoute)
 staff.use('/requisition', requisitionStaffRoute)
-staff.use('/requisition-supplies', requisitionSuppliesRoute)
+staff.use('/request-products', requestProductRoute)
 staff.use('/setting', settingStaffRoute)
 staff.use('/drugs', drugStaffRoute)
 staff.use('/covid-case', covidCaseRoute)
+staff.use('/approve-drugs', approveDrugsRoute)
+staff.use('/approve-supplies', approveSuppliesRoute)
 
 //index
 app.use('/', indexRoute);

@@ -86,5 +86,54 @@ router.get('/generic-set', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/list-child-node', async (req: Request, res: Response) => {
+  const db = req.db;
+  const hospitalId = req.decoded.hospitalId
+  // const query = req.query.q;
+  // const length = req.query.length || 2;
+  try {
+    const rs = await model.getListChildNode(db, hospitalId);
+    if (rs.length) {
+      res.send({ ok: true, rows: rs })
+    } else {
+      res.send({ ok: true, rows: [] })
+    }
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
 
+router.get('/close-systems', async (req: Request, res: Response) => {
+  const db = req.db;
+  const userId = req.decoded.id;
+  try {
+    const rs = await model.closeSystems(db, userId);
+    res.send({ ok: true });
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
+
+router.get('/open-systems', async (req: Request, res: Response) => {
+  const db = req.db;
+  const userId = req.decoded.id;
+  try {
+    const rs = await model.openSystems(db, userId);
+    res.send({ ok: true });
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
+
+router.post('/broadcast', async (req: Request, res: Response) => {
+  const db = req.db;
+  const userId = req.decoded.id;
+  const message = req.body.message;
+  try {
+    const rs = await model.broadcast(db, message, userId);
+    res.send({ ok: true });
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
 export default router;

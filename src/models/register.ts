@@ -1,5 +1,6 @@
 import * as Knex from 'knex';
 var request = require("request");
+import * as crypto from 'crypto';
 
 export class Register {
 
@@ -91,5 +92,94 @@ export class Register {
     getNodeSupplies(db: Knex, id = '') {
         return db('h_node_supplies')
             .where('hospital_id', id)
+    }
+
+    getGroupRight(db: Knex, groupName: any) {
+        return db('um_group_right AS ug')
+            .select('ur.name')
+            .join('um_group_rights_details as ugrd', 'ugrd.group_id', 'ug.id')
+            .join('um_rights as ur', 'ur.id', 'ugrd.right_id')
+            .where('ug.name', groupName)
+            .whereNot('ur.name', 'STAFF_SETTING_USERS')
+    }
+
+    sendMS(data) {
+        return new Promise((resolve, reject) => {
+            var options = {
+                method: 'POST',
+                url: 'https://test-api-menagement.azure-api.net/regisapi/med-covid-moph/moph/v1/register.action',
+                headers: {
+                    'ocp-apim-subscription-key': 'fcce9158dc0f43f2bc48ae1cda642761',
+                    'content-type': 'application/json'
+                }, body: {
+                    hospital: data.hospname,
+                    hospcodeConfirm: data.hospcode,
+                    cid: data.cid,
+                    position: data.positionId,
+                    title: data.titleId,
+                    firstName: data.fname,
+                    lastName: data.lname,
+                    username: data.username,
+                    password: crypto.createHash('md5').update(data.password).digest('hex'),
+                    email: data.email,
+                    phoneNumber: data.telephone
+                },
+                json: true
+            };
+
+            request(options, function (error, response, body) {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(body);
+                }
+            });
+        });
+
+    }
+
+    sendMS2(data) {
+        
+        return new Promise((resolve, reject) => {
+            var options = {
+                method: 'POST',
+                url: 'https://test-api-menagement.azure-api.net/regisapi/med-covid-moph/moph/v1/register.action',
+                headers: {
+                    'ocp-apim-subscription-key': 'fcce9158dc0f43f2bc48ae1cda642761',
+                    'content-type': 'application/json'
+                }, body: {
+                    hospital: data.hospital_id,
+                    hospcodeConfirm: data.hospcode,
+                    cid: data.cid,
+                    position: data.position_id,
+                    title: data.title_id,
+                    firstName: data.fname,
+                    lastName: data.lname,
+                    username: data.username,
+                    password: data.password,
+                    email: data.email,
+                    phoneNumber: data.telephone
+                },
+                json: true
+            };
+
+            request(options, function (error, response, body) {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(body);
+                }
+            });
+        });
+
+    }
+
+    getUserMedicine(db: Knex) {
+        return db('um_users as u')
+            .select('u.*', 'h.hospname','h.id as hospital_id')
+            .join('b_hospitals as h', 'h.hospcode', 'u.hospcode')
+            // .where('u.position_id', '8')
+            .where('u.id', '1227')
+            // .offset(1);
     }
 }

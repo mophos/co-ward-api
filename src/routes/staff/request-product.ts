@@ -4,19 +4,19 @@ import * as HttpStatus from 'http-status-codes';
 import * as moment from "moment"
 import { Router, Request, Response } from 'express';
 
-import { RequisitionSuppilesModel } from '../../models/requisition-supplies';
+import { RequestProductModel } from '../../models/request-products';
 import { SerialModel } from '../../models/serial';
 const serialModel = new SerialModel();
 
-const model = new RequisitionSuppilesModel();
+const model = new RequestProductModel();
 const router: Router = Router();
 
 
 router.get('/', async (req: Request, res: Response) => {
   let db = req.db;
-  let hospcode = req.decoded.hospcode
+  let hospitalId = req.decoded.hospitalId
   try {
-    let rs: any = await model.getlist(db, hospcode);
+    let rs: any = await model.getlist(db, hospitalId);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });

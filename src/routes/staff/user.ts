@@ -28,9 +28,36 @@ router.delete('/remove/:id', async (req: Request, res: Response) => {
   let db = req.db;
   const id = req.params.id
   try {
-    let rs: any = await userModel.deleteUser(db, id);
+    const userId = req.decoded.id || 0;
+    let rs: any = await userModel.deleteUser(db, id, userId);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/get-user-right', async (req: Request, res: Response) => {
+  let db = req.db;
+  let userId = req.query.userId
+  let groupName = req.query.groupName
+  try {
+    let rs: any = await userModel.getUserRight(db, userId, groupName);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.put('/update-user-right/:id', async (req: Request, res: Response) => {
+  const id: any = req.params.id
+  const data: any = req.body.data
+
+  try {
+    await userModel.deleteUserRight(req.db, id);
+    await userModel.insertUserRight(req.db, data);
+    res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });

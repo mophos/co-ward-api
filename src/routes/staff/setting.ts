@@ -81,14 +81,17 @@ router.post('/beds', async (req: Request, res: Response) => {
         hospital_id: hospitalId,
         bed_id: i.bed_id,
         qty: i.qty,
-        covid_qty: i.covid_qty
+        covid_qty: i.covid_qty,
+        spare_qty: i.spare_qty,
+        created_by: id
       });
 
       detail.push({
         wm_bed_id: rs,
         bed_id: i.bed_id,
         qty: i.qty,
-        covid_qty: i.covid_qty
+        covid_qty: i.covid_qty,
+        spare_qty: i.spare_qty
       });
     }
     await model.saveBeds(db, _data);
@@ -133,7 +136,8 @@ router.post('/medical-supplies', async (req: Request, res: Response) => {
         hospital_id: hospitalId,
         medical_supplie_id: i.id,
         qty: i.qty,
-        covid_qty: i.covid_qty
+        covid_qty: i.covid_qty,
+        created_by: id
       });
 
       detail.push({
@@ -183,7 +187,8 @@ router.post('/professional', async (req: Request, res: Response) => {
       _data.push({
         hospital_id: hospitalId,
         professional_id: i.professional_id,
-        qty: i.qty
+        qty: i.qty,
+        created_by: id
       });
 
       detail.push({
@@ -206,8 +211,9 @@ router.post('/', async (req: Request, res: Response) => {
   const db = req.db;
   const data = req.body.data;
   const hospcode = req.decoded.hospcode;
+  const userId = req.decoded.id || 0;
   try {
-    const rs = await model.update(db, data[0], hospcode);
+    const rs = await model.update(db, data[0], hospcode, userId);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -257,10 +263,8 @@ router.put('/change-approve-user', async (req: Request, res: Response) => {
     console.log(status);
     status = status ? 'Y' : 'N';
     const rs = await model.changeApproved(db, userId, status);
-    if(status == 'N'){
-
+    if (status == 'N') {
       await model.deleteRightSupUser(db, userId);
-
     }
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
@@ -275,10 +279,11 @@ router.put('/change-right-sup-user', async (req: Request, res: Response) => {
   const userId = req.body.id;
   let status = req.body.status;
   try {
-    console.log(status);
-    if(status){
-      await model.addRightSupUser(db, userId);
+    const userIdUpdate = req.decoded.id || 0;
 
+    console.log(status);
+    if (status) {
+      await model.addRightSupUser(db, userId, userIdUpdate);
     } else {
       await model.deleteRightSupUser(db, userId);
 

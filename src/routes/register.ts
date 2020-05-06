@@ -4,6 +4,7 @@ import * as express from 'express';
 import { Router, Request, Response } from 'express';
 import * as HttpStatus from 'http-status-codes';
 import * as crypto from 'crypto';
+import * as _ from 'lodash';
 
 import { Register } from '../models/register';
 
@@ -73,7 +74,8 @@ router.post('/upload-supplie', upload.any(), async (req: Request, res: Response)
   res.send({ ok: true, code: HttpStatus.OK });
 });
 
-router.post('/supplie', async (req: Request, res: Response) => {
+
+router.post('/', async (req: Request, res: Response) => {
 
   let data = req.body.data;
 
@@ -96,21 +98,28 @@ router.post('/supplie', async (req: Request, res: Response) => {
         is_province: data.isProvince,
       }
 
-      if (data.isProvince === 'N') {
-        if (data.isNodeDrugs || data.isNodeSupplies) {
-          data.right = ['STAFF_COVID_CASE', 'STAFF_COVID_CASE_STATUS', 'STAFF_COVID_CASE_REQUISITION', 'STAFF_PAY', 'STAFF_STOCK_SUPPLIES', 'STAFF_SETTING_BASIC', 'STAFF_SETTING_BEDS', 'STAFF_SETTING_MEDICALSUPPLIE', 'STAFF_SETTING_PROFESSIONAL', 'STAFF_PRODUCT_RESRRVE']
-          if (data.isDRUGS) {
-            data.right.push('STAFF_COVID_CASE_DRUGS_APPROVED')
-          }
-        } else {
-          data.right = ['STAFF_COVID_CASE', 'STAFF_COVID_CASE_STATUS', 'STAFF_COVID_CASE_REQUISITION', 'STAFF_PAY', 'STAFF_STOCK_SUPPLIES', 'STAFF_SETTING_BASIC', 'STAFF_SETTING_BEDS', 'STAFF_SETTING_MEDICALSUPPLIE', 'STAFF_SETTING_PROFESSIONAL']
+      data.right = [];
+      if (data.isNodeSupplies) {
+        const rs: any = await registerModel.getGroupRight(req.db, 's')
+        data.right = _.map(rs, 'name')
+        if (!data.isSupplies) {
+          data.right = _.remove(data.right, function (n) {
+            return n !== 'STAFF_APPROVED_SUPPLIES';
+          });
+        }
+      } else if (data.isNodeDrugs) {
+        const rs: any = await registerModel.getGroupRight(req.db, 'n')
+        data.right = _.map(rs, 'name')
+        if (!data.isDRUGS) {
+          data.right = _.remove(data.right, function (n) {
+            return n !== 'STAFF_APPROVED_DRUGS';
+          });
         }
       } else {
-        data.right = ['STAFF_CHECK_DRUGS', 'STAFF_CHECK_SUPPLIES', 'STAFF_CHECK_BEDS', 'STAFF_SETTING_BASIC', 'STAFF_PROVINCE_SET_SUPER_USER', 'STAFF_COVID_CASE_REQUISITION']
-        if (data.isSupplies) {
-          data.right.push('STAFF_COVID_CASE_SUPPLIES_APPROVED')
-        }
+        const rs: any = await registerModel.getGroupRight(req.db, 'c')
+        data.right = _.map(rs, 'name')
       }
+
       let rs: any = await registerModel.insertUser(req.db, _data);
       let rsRight: any = await registerModel.getRights(req.db, data.right)
       let userRight: any = []
@@ -121,6 +130,59 @@ router.post('/supplie', async (req: Request, res: Response) => {
         })
       }
       await registerModel.insertUserRights(req.db, userRight)
+      res.send({ ok: true, code: HttpStatus.OK });
+    } else {
+      res.send({ ok: false, error: 'ข้อมูลไม่ครบ', code: HttpStatus.OK });
+    }
+  } catch (error) {
+    if (error.errno === 1062) {
+      res.send({ ok: false, error: 'username หริอ เลขบัตรประชาชน นี้ถูกใช้งานแล้ว', code: HttpStatus.OK });
+    } else {
+      res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+    }
+  }
+});
+
+router.post('/2', async (req: Request, res: Response) => {
+
+  let data = req.body.data;
+
+  try {
+    if (('username' in data) && ('password' in data) && ('hospcode' in data) && ('titleId' in data)
+      && ('fname' in data) && ('cid' in data) && ('lname' in data) && ('positionId' in data) && ('email' in data) && ('type' in data)
+      && ('isProvince' in data) && ('telephone' in data)) {
+      let _data = {
+        username: data.username,
+        password: crypto.createHash('md5').update(data.password).digest('hex'),
+        hospcode: data.hospcode,
+        title_id: data.titleId,
+        cid: data.cid,
+        fname: data.fname,
+        lname: data.lname,
+        position_id: data.positionId,
+        email: data.email,
+        type: data.type,
+        telephone: data.telephone,
+        is_province: data.isProvince,
+        app_register: 'MS-NCD'
+      }
+
+      data.right = ['STAFF_DRUG_NCD'];
+      let rs: any = await registerModel.insertUser(req.db, _data);
+      let rsRight: any = await registerModel.getRights(req.db, data.right)
+      let userRight: any = []
+      for (const i of rsRight) {
+        userRight.push({
+          user_id: rs[0],
+          right_id: i.id
+        })
+      }
+      await registerModel.insertUserRights(req.db, userRight)
+      await registerModel.sendMS(data).then((result) => {
+        console.log(result)
+      }).catch((err) => {
+        console.log(err);
+      });
       res.send({ ok: true, code: HttpStatus.OK });
     } else {
       res.send({ ok: false, error: 'ข้อมูลไม่ครบ', code: HttpStatus.OK });
@@ -154,6 +216,23 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
     let rs: any = await registerModel.verifyOTP(refCode, otp);
     console.log(rs);
     res.send(rs);
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/tpasdas', async (req: Request, res: Response) => {
+  try {
+    let rs: any = await registerModel.getUserMedicine(req.db);
+    for (const i of rs) {
+      await registerModel.sendMS2(i).then((result) => {
+        console.log(result)
+      }).catch((err) => {
+        console.log(err);
+      });
+
+    }
+    res.send({ ok: true });
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }

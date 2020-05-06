@@ -119,6 +119,7 @@ export class BasicModel {
 			.orWhere('hospname', 'like', _q)
 			.orWhere('hospcode', 'like', _q)
 			.orderBy('hospname')
+			.limit(30);
 	}
 
 	autocompleteCountry(db: Knex, query) {
@@ -173,4 +174,127 @@ export class BasicModel {
 			.join('b_generics as g', 'g.id', 'sdi.generic_id')
 			.where('set_detail_id', id)
 	}
+
+	timeCut() {
+		const timeCut = moment(process.env.TIME_CUT, 'HH:mm');
+		const cut = moment().diff(timeCut, 'minutes');
+		if (cut < 0) {
+			// true = บันทึกได้
+			return { ok: true };
+		} else {
+			return { ok: false, error: `ขณะนี้เกินเวลา ${moment(timeCut).format('HH:mm').toString()} ไม่สามารถบันทึกได้` };
+		}
+	}
+
+	getListChildNode(db: Knex, hospitalId) {
+		let sql = db('h_node_surgical_details as cnode')
+			.select('h.id', 'h.hospname', 'h.hospcode')
+			.join('h_node_surgicals as node', 'node.id', 'cnode.node_id')
+			.join('b_hospitals as h', 'h.id', 'cnode.hospital_id')
+			.where('node.hospital_id', hospitalId)
+		return sql
+	}
+
+	getSystems(db: Knex) {
+		return db('sys_systems')
+			.orderBy('id', 'DESC')
+			.limit(1);
+	}
+
+	closeSystems(db: Knex, userId) {
+		return db('sys_systems')
+			.insert({ 'status': 'CLOSE', 'create_by': userId });
+	}
+
+	openSystems(db: Knex, userId) {
+		return db('sys_systems')
+			.insert({ 'status': 'OPEN', 'create_by': userId });
+	}
+
+	broadcast(db: Knex, text, userId) {
+		return db('sys_broadcasts')
+			.insert({ 'message': text, 'create_by': userId });
+	}
+
+	getPerson(db: Knex, query: any, TypeQ = 'ID') {
+		console.log(query);
+
+		let sql = db('p_persons')
+		if (TypeQ === 'ID') {
+			sql.where('id', +query.id)
+		}
+		if (TypeQ === 'CID') {
+			sql.where('cid', 'like', `%${query.cid}%`)
+		}
+		if (TypeQ === 'FNAME') {
+			sql.where('first_name', 'like', `${query.name}`)
+		}
+		return sql
+	}
+
+	getPatient(db: Knex, personId) {
+		return db('p_patients')
+			.whereIn('person_id', personId)
+	}
+
+	getCoCase(db: Knex, patientId) {
+		return db('p_covid_cases')
+			.whereIn('patient_id', patientId)
+	}
+
+	getCoCaseDetail(db: Knex, coCaseId) {
+		return db('p_covid_case_details')
+			.whereIn('covid_case_id', coCaseId)
+	}
+
+	getReqDrug(db: Knex, coCaseDetaialId) {
+		return db('wm_requisitions')
+			.whereIn('covid_case_detail_id', coCaseDetaialId)
+			.where('type', 'DRUG');
+	}
+
+	getReqSupplies(db: Knex, coCaseDetaialId) {
+		return db('wm_requisitions')
+			.whereIn('covid_case_detail_id', coCaseDetaialId)
+			.where('type', 'SUPPLIES');
+	}
+
+	getReqDetail(db: Knex, ReqId) {
+		return db('wm_requisition_details')
+			.whereIn('requisition_id', ReqId)
+	}
+
+	deletedPerson(db: Knex, id) {
+		return db('p_persons')
+			.delete()
+			.whereIn('id', id)
+	}
+
+	deletedPatient(db: Knex, id) {
+		return db('p_patients')
+			.whereIn('id', id)
+	}
+
+	deletedCoCase(db: Knex, id) {
+		return db('p_covid_cases')
+			.delete().whereIn('id', id)
+	}
+
+	deletedCoCaseDatail(db: Knex, id) {
+		return db('p_covid_case_details')
+			.delete().whereIn('id', id)
+	}
+
+	deletedReq(db: Knex, id) {
+		return db('wm_requisitions')
+			.delete().whereIn('id', id)
+	}
+
+	deletedReqDetail(db: Knex, id) {
+		return db('wm_requisition_details')
+			.delete().whereIn('id', id)
+	}
+
+
+
 }

@@ -3,10 +3,14 @@
 import * as HttpStatus from 'http-status-codes';
 
 import { Router, Request, Response } from 'express';
-
+import { BasicModel } from '../../models/basic';
 import { SuppliesModel } from '../../models/supplies';
+import { CovidCaseModel } from '../../models/covid-case';
 import * as moment from 'moment';
+
+const basicModel = new BasicModel();
 const suppliesModel = new SuppliesModel();
+const covidCaseModel = new CovidCaseModel();
 const router: Router = Router();
 
 
@@ -23,11 +27,57 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 
-router.get('/actived', async (req: Request, res: Response) => {
+router.get('/hospital-center', async (req: Request, res: Response) => {
+  const db = req.db;
+  const hospitalId = req.decoded.hospitalId;
+  const provinceCode = req.decoded.provinceCode;
   try {
-    let rs: any = await suppliesModel.getSuppliesActived(req.db);
+    const data: any = [];
+    const rs: any = await suppliesModel.getType(db, provinceCode, hospitalId);
+    for (const v of rs) {
+      const obj: any = {};
+      obj.head = v.name;
+      obj.hosptype_code = v.hosptype_code;
+
+      const detail: any = [];
+      const rsh: any = await suppliesModel.getHospital(db, v.hosptype_code, provinceCode);
+      for (const y of rsh) {
+        const objd: any = {};
+        objd.hospname = y.hospname;
+        objd.hospital_id = y.hospital_id;
+        objd.hospital_type = y.hospital_type;
+
+        const detailBeds: any = [];
+        const detailGcs: any = [];
+        const rsd: any = await covidCaseModel.getBeds(db, y.hospital_id, y.hospital_type);
+        const rsg: any = await covidCaseModel.getGcs(db, y.hospital_id, y.hospital_type);
+        for (const x of rsd) {
+          detailBeds.push(x);
+          objd.detailBed = detailBeds;
+        }
+        for (const j of rsg) {
+          detailGcs.push(j);
+          objd.detailGcs = detailGcs;
+        }
+        detail.push(objd);
+      }
+      obj.detail = detail;
+      data.push(obj);
+    }
+    res.send({ ok: true, rows: data, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/actived', async (req: Request, res: Response) => {
+  let hospitalId = req.decoded.hospitalId
+  try {
+    let rs: any = await suppliesModel.getSuppliesLast(req.db, hospitalId);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
+    console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
@@ -51,43 +101,40 @@ router.post('/', async (req: Request, res: Response) => {
   const data = req.body.data;
 
   try {
-    const timeCut = moment(process.env.TIME_CUT, 'HH:mm');
-    const cut = moment().diff(timeCut, 'minutes');
-
-    if (cut < 0) {
-      const head: any = {};
+    const timeCut: any = await basicModel.timeCut();
+    const head: any = {};
+    if (timeCut.ok) {
       head.date = moment().format('YYYY-MM-DD');
-      head.create_by = userId;
-      head.hospital_id = hospitalId;
-
-      let rs: any = await suppliesModel.saveHead(db, head);
-      let id = rs[0].insertId;
-      if (!id) {
-        const _id = await suppliesModel.getId(db, head);
-        id = _id[0].id;
-      }
-
-      let detail: any = [];
-      for (const v of data) {
-        if (v.qty) {
-          const objD: any = {};
-          objD.wm_supplie_id = id;
-          objD.generic_id = v.generic_id;
-          objD.qty = v.qty || 0;
-          objD.month_usage_qty = v.month_usage_qty || 0;
-          detail.push(objD);
-        }
-      }
-      await suppliesModel.saveDetail(db, detail);
-      res.send({ ok: true, code: HttpStatus.OK });
     } else {
-      res.send({ ok: false, error: `ขณะนี้เกินเวลา ${moment(timeCut).format('HH:mm').toString()} ไม่สามารถบันทึกได้` });
+      head.date = moment().add(1, 'days').format('YYYY-MM-DD');
     }
+    head.create_by = userId;
+    head.hospital_id = hospitalId;
+    
+    let rs: any = await suppliesModel.saveHead(db, head);
+    let id = rs[0].insertId;
+    if (!id) {
+      const _id = await suppliesModel.getId(db, head);
+      id = _id[0].id;
+    }
+
+    let detail: any = [];
+    for (const v of data) {
+      const objD: any = {};
+      objD.wm_supplie_id = id;
+      objD.generic_id = v.generic_id;
+      objD.qty = v.qty;
+      objD.month_usage_qty = v.month_usage_qty;
+      detail.push(objD);
+    }
+
+    await suppliesModel.saveDetail(db, detail);
+    res.send({ ok: true, code: HttpStatus.OK });
+
   } catch (error) {
     console.log(error);
 
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
-
 export default router;

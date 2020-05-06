@@ -99,8 +99,6 @@ router.post('/', async (req: Request, res: Response) => {
   const dataD = req.body.data;
 
   try {
-    console.log(dataD);
-
     const objH: any = {};
     objH.date = dataD.created_at;
     objH.create_by = id;
