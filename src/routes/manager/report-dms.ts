@@ -525,7 +525,7 @@ router.get('/report5/excel', async (req: Request, res: Response) => {
     ws.cell(3, 2).string(toString(sumBy(rs, 'aiir_qty' || 0) + sumBy(rs, 'modified_aiir_qty' || 0) + sumBy(rs, 'isolate_qty' || 0) + sumBy(rs, 'cohort_qty' || 0))).style(right);
     ws.cell(3, 3).string(toString(sumBy(rs, 'aiir_usage_qty' || 0) + sumBy(rs, 'modified_aiir_usage_qty' || 0) + sumBy(rs, 'isolate_usage_qty' || 0) + sumBy(rs, 'cohort_usage_qty' || 0))).style(right);
     ws.cell(3, 4).string(toString(sumBy(rs, 'aiir_spare_qty' || 0) + sumBy(rs, 'modified_aiir_spare_qty' || 0) + sumBy(rs, 'isolate_spare_qty' || 0) + sumBy(rs, 'cohort_spare_qty' || 0))).style(right);
-    ws.cell(3, 5).string(toString(sumBy(rs, 'aiir_qty' || 0) + sumBy(rs, 'modified_aiir_qty' || 0) + sumBy(rs, 'isolate_qty' || 0) + sumBy(rs, 'cohort_qty' || 0) + sumBy(rs, 'aiir_usage_qty' || 0) + sumBy(rs, 'modified_aiir_usage_qty' || 0) + sumBy(rs, 'isolate_usage_qty' || 0) + sumBy(rs, 'cohort_usage_qty' || 0) + sumBy(rs, 'aiir_spare_qty' || 0) + sumBy(rs, 'modified_aiir_spare_qty' || 0) + sumBy(rs, 'isolate_spare_qty' || 0) + sumBy(rs, 'cohort_spare_qty' || 0))).style(right);
+    ws.cell(3, 5).string(toString((sumBy(rs, 'aiir_qty' || 0) + sumBy(rs, 'modified_aiir_qty' || 0) + sumBy(rs, 'isolate_qty' || 0) + sumBy(rs, 'cohort_qty' || 0)) - (sumBy(rs, 'aiir_usage_qty' || 0) + sumBy(rs, 'modified_aiir_usage_qty' || 0) + sumBy(rs, 'isolate_usage_qty' || 0) + sumBy(rs, 'cohort_usage_qty' || 0)) - (sumBy(rs, 'aiir_spare_qty' || 0) + sumBy(rs, 'modified_aiir_spare_qty' || 0) + sumBy(rs, 'isolate_spare_qty' || 0) + sumBy(rs, 'cohort_spare_qty' || 0)))).style(right);
     ws.cell(3, 6).string('');
 
     let row = 4;
@@ -534,7 +534,7 @@ router.get('/report5/excel', async (req: Request, res: Response) => {
       ws.cell(row, 2).string(toString(items.aiir_qty || 0 + items.modified_aiir_qty || 0 + items.isolate_qty || 0 + items.cohort_qty || 0)).style(right);
       ws.cell(row, 3).string(toString(items.aiir_usage_qty || 0 + items.modified_aiir_usage_qty || 0 + items.isolate_usage_qty || 0 + items.cohort_usage_qty || 0)).style(right);
       ws.cell(row, 4).string(toString(items.aiir_spare_qty || 0 + items.modified_aiir_spare_qty || 0 + items.isolate_spare_qty || 0 + items.cohort_spare_qty || 0)).style(right);
-      ws.cell(row, 5).string(toString(items.aiir_qty || 0 + items.modified_aiir_qty || 0 + items.isolate_qty || 0 + items.cohort_qty || 0 + items.aiir_usage_qty || 0 + items.modified_aiir_usage_qty || 0 + items.isolate_usage_qty || 0 + items.cohort_usage_qty || 0 + items.aiir_spare_qty || 0 + items.modified_aiir_spare_qty || 0 + items.isolate_spare_qty || 0 + items.cohort_spare_qty || 0)).style(right);
+      ws.cell(row, 5).string(toString((items.aiir_qty || 0 + items.modified_aiir_qty || 0 + items.isolate_qty || 0 + items.cohort_qty || 0) - (items.aiir_usage_qty || 0 + items.modified_aiir_usage_qty || 0 + items.isolate_usage_qty || 0 + items.cohort_usage_qty || 0) - (items.aiir_spare_qty || 0 + items.modified_aiir_spare_qty || 0 + items.isolate_spare_qty || 0 + items.cohort_spare_qty || 0))).style(right);
       ws.cell(row++, 6).string(toString(items['sub_ministry_name']));
     }
 
