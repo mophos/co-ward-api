@@ -24,7 +24,7 @@ export class MinMaxModel {
       .where('bg.is_actived', 'Y')
   }
 
-  removeMinMax(db: Knex, hospId, genericIds: []) {
+  removeMinMax(db: Knex, hospId, genericIds) {
     return db('b_generic_plannings')
       .where('hospital_id', hospId)
       .whereIn('generic_id', genericIds)

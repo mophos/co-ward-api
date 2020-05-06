@@ -532,12 +532,12 @@ router.get('/report5/excel', async (req: Request, res: Response) => {
 
     let row = 4;
     for (const items of rs) {
-      if(items.updated_entry){
+      if (items.updated_entry) {
         items.updated_entry = moment(items.updated_entry).format('DD/MM/YYYY')
-      }else{
+      } else {
         items.updated_entry = '-'
       }
-      ws.cell(row, 1).string(toString(items['hospname'])).style(right);
+      ws.cell(row, 1).string(toString(items['hospname']));
       ws.cell(row, 2).string(toString(items.aiir_qty || 0 + items.modified_aiir_qty || 0 + items.isolate_qty || 0 + items.cohort_qty || 0)).style(right);
       ws.cell(row, 3).string(toString(items.aiir_usage_qty || 0 + items.modified_aiir_usage_qty || 0 + items.isolate_usage_qty || 0 + items.cohort_usage_qty || 0)).style(right);
       ws.cell(row, 4).string(toString(items.aiir_spare_qty || 0 + items.modified_aiir_spare_qty || 0 + items.isolate_spare_qty || 0 + items.cohort_spare_qty || 0)).style(right);
@@ -598,7 +598,101 @@ router.get('/report6/excel', async (req: Request, res: Response) => {
   try {
     const rs: any = await model.report6(db, date, sector);
 
-    ws.cell(1, 1).string('Head');
+    ws.cell(1, 1, 2, 1, true).string('โรงพยาบาล');
+    ws.cell(1, 2, 1, 4, true).string('AIIR').style(center);
+    ws.cell(1, 5, 1, 7, true).string('Modified AIIR').style(center);
+    ws.cell(1, 8, 1, 10, true).string('Isolate').style(center);
+    ws.cell(1, 11, 1, 13, true).string('Cohort').style(center);
+    ws.cell(1, 14, 1, 16, true).string('Hospitel').style(center);
+    ws.cell(1, 17, 2, 17, true).string('หน่วยงาน');
+    ws.cell(1, 18, 2, 18, true).string('ข้อมูลล่าสุด');
+
+    ws.cell(2, 2).string('ทั้งหมด');
+    ws.cell(2, 3).string('ใช้ไปแล้ว');
+    ws.cell(2, 4).string('คงเหลือ');
+
+    ws.cell(2, 5).string('ทั้งหมด');
+    ws.cell(2, 6).string('ใช้ไปแล้ว');
+    ws.cell(2, 7).string('คงเหลือ');
+
+    ws.cell(2, 8).string('ทั้งหมด');
+    ws.cell(2, 9).string('ใช้ไปแล้ว');
+    ws.cell(2, 10).string('คงเหลือ');
+
+    ws.cell(2, 11).string('ทั้งหมด');
+    ws.cell(2, 12).string('ใช้ไปแล้ว');
+    ws.cell(2, 13).string('คงเหลือ');
+
+    ws.cell(2, 14).string('ทั้งหมด');
+    ws.cell(2, 15).string('ใช้ไปแล้ว');
+    ws.cell(2, 16).string('คงเหลือ');
+
+    ws.cell(3, 1).string('รวม');
+    ws.cell(3, 2).string(toString(sumBy(rs, 'aiir_qty'))).style(right);
+    ws.cell(3, 3).string(toString(sumBy(rs, 'aiir_usage_qty'))).style(right);
+    ws.cell(3, 4).string(toString((sumBy(rs, 'aiir_qty') + sumBy(rs, 'aiir_usage_qty')) || 0)).style(right);
+    ws.cell(3, 5).string(toString(sumBy(rs, 'modified_aiir_qty'))).style(right);
+    ws.cell(3, 6).string(toString(sumBy(rs, 'modified_aiir_usage_qty'))).style(right);
+    ws.cell(3, 7).string(toString((sumBy(rs, 'modified_aiir_qty') + sumBy(rs, 'modified_aiir_usage_qty')) || 0)).style(right);
+    ws.cell(3, 8).string(toString(sumBy(rs, 'isolate_qty'))).style(right);
+    ws.cell(3, 9).string(toString(sumBy(rs, 'isolate_usage_qty'))).style(right);
+    ws.cell(3, 10).string(toString((sumBy(rs, 'isolate_qty') + sumBy(rs, 'isolate_usage_qty')) || 0)).style(right);
+    ws.cell(3, 11).string(toString(sumBy(rs, 'cohort_qty'))).style(right);
+    ws.cell(3, 12).string(toString(sumBy(rs, 'cohort_usage_qty'))).style(right);
+    ws.cell(3, 13).string(toString((sumBy(rs, 'cohort_qty') + sumBy(rs, 'cohort_usage_qty')) || 0)).style(right);
+    ws.cell(3, 14).string(toString(sumBy(rs, 'hospitel_qty'))).style(right);
+    ws.cell(3, 15).string(toString(sumBy(rs, 'hospitel_usage_qty'))).style(right);
+    ws.cell(3, 16).string(toString((sumBy(rs, 'hospitel_qty') + sumBy(rs, 'hospitel_usage_qty')) || 0)).style(right);
+
+    let row = 4;
+    for (const items of rs) {
+      if (items.entry_date) {
+        items.entry_date = moment(items.entry_date).format('DD/MM/YYYY')
+      } else {
+        items.entry_date = '-'
+      }
+      ws.cell(row, 1).string(toString(items['hospname']));
+
+      ws.cell(row, 2).string(toString(items['aiir_qty'])).style(right);
+      ws.cell(row, 3).string(toString((items['aiir_usage_qty']) || 0)).style(right);
+      ws.cell(row, 4).string(toString((items.aiir_qty - items.aiir_usage_qty) || 0)).style(right);
+
+      ws.cell(row, 5).string(toString(items['modified_aiir_qty'])).style(right);
+      ws.cell(row, 6).string(toString((items['modified_aiir_usage_qty']) || 0)).style(right);
+      ws.cell(row, 7).string(toString((items.modified_aiir_qty - items.modified_aiir_usage_qty) || 0)).style(right);
+
+      ws.cell(row, 8).string(toString(items['isolate_qty'])).style(right);
+      ws.cell(row, 9).string(toString((items['isolate_usage_qty']) || 0)).style(right);
+      ws.cell(row, 10).string(toString((items.isolate_qty - items.isolate_usage_qty) || 0)).style(right);
+
+      ws.cell(row, 11).string(toString(items['cohort_qty'])).style(right);
+      ws.cell(row, 12).string(toString((items['cohort_usage_qty']) || 0)).style(right);
+      ws.cell(row, 13).string(toString((items.cohort_qty - items.cohort_usage_qty) || 0)).style(right);
+
+      ws.cell(row, 14).string(toString(items['hospitel_qty'])).style(right);
+      ws.cell(row, 15).string(toString((items['hospitel_usage_qty']) || 0)).style(right);
+      ws.cell(row, 16).string(toString((items.hospitel_qty - items.hospitel_usage_qty) || 0)).style(right);
+
+      ws.cell(row, 17).string(toString(items['sub_ministry_name'])).style(right);
+      ws.cell(row++, 18).string(toString(items['entry_date'])).style(right);
+    }
+
+    ws.cell(row, 1).string('รวม');
+    ws.cell(row, 2).string(toString(sumBy(rs, 'aiir_qty'))).style(right);
+    ws.cell(row, 3).string(toString(sumBy(rs, 'aiir_usage_qty'))).style(right);
+    ws.cell(row, 4).string(toString((sumBy(rs, 'aiir_qty') + sumBy(rs, 'aiir_usage_qty')) || 0)).style(right);
+    ws.cell(row, 5).string(toString(sumBy(rs, 'modified_aiir_qty'))).style(right);
+    ws.cell(row, 6).string(toString(sumBy(rs, 'modified_aiir_usage_qty'))).style(right);
+    ws.cell(row, 7).string(toString((sumBy(rs, 'modified_aiir_qty') + sumBy(rs, 'modified_aiir_usage_qty')) || 0)).style(right);
+    ws.cell(row, 8).string(toString(sumBy(rs, 'isolate_qty'))).style(right);
+    ws.cell(row, 9).string(toString(sumBy(rs, 'isolate_usage_qty'))).style(right);
+    ws.cell(row, 10).string(toString((sumBy(rs, 'isolate_qty') + sumBy(rs, 'isolate_usage_qty')) || 0)).style(right);
+    ws.cell(row, 11).string(toString(sumBy(rs, 'cohort_qty'))).style(right);
+    ws.cell(row, 12).string(toString(sumBy(rs, 'cohort_usage_qty'))).style(right);
+    ws.cell(row, 13).string(toString((sumBy(rs, 'cohort_qty') + sumBy(rs, 'cohort_usage_qty')) || 0)).style(right);
+    ws.cell(row, 14).string(toString(sumBy(rs, 'hospitel_qty'))).style(right);
+    ws.cell(row, 15).string(toString(sumBy(rs, 'hospitel_usage_qty'))).style(right);
+    ws.cell(row, 16).string(toString((sumBy(rs, 'hospitel_qty') + sumBy(rs, 'hospitel_usage_qty')) || 0)).style(right);
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
@@ -629,10 +723,67 @@ router.get('/report7/excel', async (req: Request, res: Response) => {
   const sector = req.query.sector;
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
+  var center = wb.createStyle({
+    alignment: {
+      wrapText: true,
+      horizontal: 'center',
+    },
+  });
+  var right = wb.createStyle({
+    alignment: {
+      wrapText: true,
+      horizontal: 'right',
+    },
+  });
   try {
-    const rs: any = await model.report3(db, date, sector);
+    const rs: any = await model.report7(db, date, sector);
+    ws.cell(1, 1, 2, 1, true).string('โรงพยาบาล');
+    ws.cell(1, 2, 1, 4, true).string('Non-invasive ventilator (NIV)').style(center);
+    ws.cell(1, 5, 1, 7, true).string('Invasive ventilator').style(center);
+    ws.cell(1, 8, 2, 8, true).string('หน่วยงาน');
+    ws.cell(1, 9, 2, 9, true).string('ข้อมูลล่าสุด');
 
-    ws.cell(1, 1).string('Head');
+    ws.cell(2, 2).string('ใช้กับผู้ป่วย Covid');
+    ws.cell(2, 3).string('ว่างพร้อมใช้งานทั้งโรงพยาบาล');
+    ws.cell(2, 4).string('ทั้งหมด');
+
+    ws.cell(2, 5).string('ใช้กับผู้ป่วย Covid');
+    ws.cell(2, 6).string('ว่างพร้อมใช้งานทั้งโรงพยาบาล');
+    ws.cell(2, 7).string('ทั้งหมด');
+
+    ws.cell(3, 1).string('รวม');
+    ws.cell(3, 2).string(toString(sumBy(rs, 'non_invasive_covid_qty'))).style(right);
+    ws.cell(3, 3).string(toString(sumBy(rs, 'non_invasive_qty'))).style(right);
+    ws.cell(3, 4).string(toString((sumBy(rs, 'non_invasive_covid_qty') + sumBy(rs, 'non_invasive_qty')) || 0)).style(right);
+    ws.cell(3, 5).string(toString(sumBy(rs, 'invasive_covid_qty'))).style(right);
+    ws.cell(3, 6).string(toString(sumBy(rs, 'invasive_qty'))).style(right);
+    ws.cell(3, 7).string(toString((sumBy(rs, 'invasive_covid_qty') + sumBy(rs, 'invasive_qty')) || 0)).style(right);
+
+    let row = 4;
+    for (const items of rs) {
+      if (items.updated_entry) {
+        items.updated_entry = moment(items.updated_entry).format('DD/MM/YYYY')
+      } else {
+        items.updated_entry = '-'
+      }
+      ws.cell(row, 1).string(toString(items['hospname']));
+      ws.cell(row, 2).string(toString(sumBy(rs, 'non_invasive_covid_qty'))).style(right);
+      ws.cell(row, 3).string(toString(sumBy(rs, 'non_invasive_qty'))).style(right);
+      ws.cell(row, 4).string(toString((sumBy(rs, 'non_invasive_covid_qty') + sumBy(rs, 'non_invasive_qty')) || 0)).style(right);
+      ws.cell(row, 5).string(toString(sumBy(rs, 'invasive_covid_qty'))).style(right);
+      ws.cell(row, 6).string(toString(sumBy(rs, 'invasive_qty'))).style(right);
+      ws.cell(row, 7).string(toString((sumBy(rs, 'invasive_covid_qty') + sumBy(rs, 'invasive_qty')) || 0)).style(right);
+      ws.cell(row, 8).string(toString(items['sub_ministry_name'])).style(right);
+      ws.cell(row++, 9).string(toString(items['updated_entry'])).style(right);
+    }
+
+    ws.cell(row, 1).string('รวม');
+    ws.cell(row, 2).string(toString(sumBy(rs, 'non_invasive_covid_qty'))).style(right);
+    ws.cell(row, 3).string(toString(sumBy(rs, 'non_invasive_qty'))).style(right);
+    ws.cell(row, 4).string(toString((sumBy(rs, 'non_invasive_covid_qty') + sumBy(rs, 'non_invasive_qty')) || 0)).style(right);
+    ws.cell(row, 5).string(toString(sumBy(rs, 'invasive_covid_qty'))).style(right);
+    ws.cell(row, 6).string(toString(sumBy(rs, 'invasive_qty'))).style(right);
+    ws.cell(row, 7).string(toString((sumBy(rs, 'invasive_covid_qty') + sumBy(rs, 'invasive_qty')) || 0)).style(right);
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
@@ -663,14 +814,65 @@ router.get('/report8/excel', async (req: Request, res: Response) => {
   const sector = req.query.sector;
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
+  var center = wb.createStyle({
+    alignment: {
+      wrapText: true,
+      horizontal: 'center',
+    },
+  });
+  var right = wb.createStyle({
+    alignment: {
+      wrapText: true,
+      horizontal: 'right',
+    },
+  });
   try {
-    const rs: any = await model.report3(db, date, sector);
+    const rs: any = await model.report8(db, date, sector);
+    ws.cell(1, 1, 2, 1, true).string('โรงพยาบาล');
+    ws.cell(1, 6, 2, 6, true).string('หน่วยงาน');
+    ws.cell(1, 7, 2, 7, true).string('ข้อมูลล่าสุด');
 
-    ws.cell(1, 1).string('Head');
+    ws.cell(1, 2).string('Mask N95');
+    ws.cell(1, 3).string('Surgical mask');
+    ws.cell(1, 4).string('Cover All');
+    ws.cell(1, 5).string('Surgical gown (ชุด)');
+
+    ws.cell(2, 2).string('ปริมาณคงคลัง(ชิ้น)');
+    ws.cell(2, 3).string('ปริมาณคงคลัง(ชิ้น)');
+    ws.cell(2, 4).string('ปริมาณคงคลัง(ชิ้น)');
+    ws.cell(2, 5).string('ปริมาณคงคลัง(ชิ้น)');
+
+    ws.cell(3, 1).string('รวม');
+    ws.cell(3, 2).string(toString(sumBy(rs, 'n95_qty'))).style(right);
+    ws.cell(3, 3).string(toString(sumBy(rs, 'surgical_mask_qty'))).style(right);
+    ws.cell(3, 4).string(toString(sumBy(rs, 'cover_all2_qty'))).style(right);
+    ws.cell(3, 5).string(toString(sumBy(rs, 'surgical_gown_qty'))).style(right);
+
+    let row = 4;
+    for (const items of rs) {
+      if (items.update_date) {
+        items.update_date = moment(items.update_date).format('DD/MM/YYYY')
+      } else {
+        items.update_date = '-'
+      }
+      ws.cell(row, 1).string(toString(items['hospname']));
+      ws.cell(row, 2).string(toString(items['n95_qty'])).style(right);
+      ws.cell(row, 3).string(toString(items['surgical_mask_qty'])).style(right);
+      ws.cell(row, 4).string(toString(items['cover_all2_qty'])).style(right);
+      ws.cell(row, 5).string(toString(items['surgical_gown_qty'])).style(right);
+      ws.cell(row, 6).string(toString(items['sub_ministry_name'])).style(right);
+      ws.cell(row++, 7).string(toString(items['update_date'])).style(right);
+    }
+
+    ws.cell(row, 1).string('รวม');
+    ws.cell(row, 2).string(toString(sumBy(rs, 'n95_qty'))).style(right);
+    ws.cell(row, 3).string(toString(sumBy(rs, 'surgical_mask_qty'))).style(right);
+    ws.cell(row, 4).string(toString(sumBy(rs, 'cover_all2_qty'))).style(right);
+    ws.cell(row, 5).string(toString(sumBy(rs, 'surgical_gown_qty'))).style(right);
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
-    let filename = `report3` + moment().format('x');
+    let filename = `report8` + moment().format('x');
     let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
     wb.write(filenamePath, function (err, stats) {
       if (err) {
@@ -697,14 +899,127 @@ router.get('/report9/excel', async (req: Request, res: Response) => {
   const sector = req.query.sector;
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
+  var center = wb.createStyle({
+    alignment: {
+      wrapText: true,
+      horizontal: 'center',
+    },
+  });
+  var right = wb.createStyle({
+    alignment: {
+      wrapText: true,
+      horizontal: 'right',
+    },
+  });
   try {
-    const rs: any = await model.report3(db, date, sector);
+    const rs: any = await model.report9(db, date, sector);
+    ws.cell(1, 1, 2, 1, true).string('โรงพยาบาล');
+    ws.cell(1, 2, 1, 4, true).string('อายุรแพทย์โรคติดเชื้อ').style(center);
+    ws.cell(1, 5, 1, 7, true).string('อายุรแพทย์ระบบทางเดินหายใจ').style(center);
+    ws.cell(1, 8, 1, 10, true).string('แพทย์ Critical care').style(center);
+    ws.cell(1, 11, 1, 13, true).string('อายุรแพทย์ทั้งหมด').style(center);
+    ws.cell(1, 14, 1, 16, true).string('วิสัญญีแพทย์').style(center);
+    ws.cell(1, 17, 2, 17, true).string('หน่วยงาน');
+    ws.cell(1, 18, 2, 18, true).string('ข้อมูลล่าสุด');
 
-    ws.cell(1, 1).string('Head');
+    ws.cell(2, 2).string('รวม');
+    ws.cell(2, 3).string('ปฎิบัติจริง');
+    ws.cell(2, 4).string('รับการสนับสนุน');
+
+    ws.cell(2, 5).string('รวม');
+    ws.cell(2, 6).string('ปฎิบัติจริง');
+    ws.cell(2, 7).string('รับการสนับสนุน');
+
+    ws.cell(2, 8).string('รวม');
+    ws.cell(2, 9).string('ปฎิบัติจริง');
+    ws.cell(2, 10).string('รับการสนับสนุน');
+
+    ws.cell(2, 11).string('รวม');
+    ws.cell(2, 12).string('ปฎิบัติจริง');
+    ws.cell(2, 13).string('รับการสนับสนุน');
+
+    ws.cell(2, 14).string('รวม');
+    ws.cell(2, 15).string('ปฎิบัติจริง');
+    ws.cell(2, 16).string('รับการสนับสนุน');
+
+    ws.cell(3, 1).string('รวม');
+    ws.cell(3, 2).string(toString((sumBy(rs, 'infectious_disease_qty') || 0) + (sumBy(rs, 'infectious_disease_support_qty') || 0))).style(right);
+    ws.cell(3, 3).string(toString(sumBy(rs, 'infectious_disease_qty') || 0)).style(right);
+    ws.cell(3, 4).string(toString(sumBy(rs, 'infectious_disease_support_qty') || 0)).style(right);
+
+    ws.cell(3, 5).string(toString((sumBy(rs, 'pulmonary_medicine_qty') || 0) + (sumBy(rs, 'pulmonary_medicine_support_qty') || 0))).style(right);
+    ws.cell(3, 6).string(toString(sumBy(rs, 'pulmonary_medicine_qty') || 0)).style(right);
+    ws.cell(3, 7).string(toString(sumBy(rs, 'pulmonary_medicine_support_qty') || 0)).style(right);
+
+    ws.cell(3, 8).string(toString((sumBy(rs, 'division_of_critical_care_qty') || 0) + (sumBy(rs, 'division_of_critical_care_support_qty') || 0))).style(right);
+    ws.cell(3, 9).string(toString(sumBy(rs, 'division_of_critical_care_qty') || 0)).style(right);
+    ws.cell(3, 10).string(toString(sumBy(rs, 'division_of_critical_care_support_qty') || 0)).style(right);
+
+    ws.cell(3, 11).string(toString((sumBy(rs, 'internal_medicine_total_qty') || 0) + (sumBy(rs, 'internal_medicine_support_total_qty') || 0))).style(right);
+    ws.cell(3, 12).string(toString(sumBy(rs, 'internal_medicine_total_qty') || 0)).style(right);
+    ws.cell(3, 13).string(toString(sumBy(rs, 'internal_medicine_support_total_qty') || 0)).style(right);
+
+    ws.cell(3, 14).string(toString((sumBy(rs, 'anesthesiologist_qty') || 0) + (sumBy(rs, 'anesthesiologist_support_qty') || 0))).style(right);
+    ws.cell(3, 15).string(toString(sumBy(rs, 'anesthesiologist_qty') || 0)).style(right);
+    ws.cell(3, 16).string(toString(sumBy(rs, 'anesthesiologist_support_qty') || 0)).style(right);
+
+    let row = 4;
+    for (const items of rs) {
+      if (items.update_date) {
+        items.update_date = moment(items.update_date).format('DD/MM/YYYY')
+      } else {
+        items.update_date = '-'
+      }
+      ws.cell(row, 1).string(toString(items['hospname']));
+
+      ws.cell(row, 2).string(toString((items.infectious_disease_qty || 0) + (items.infectious_disease_support_qty || 0))).style(right);
+      ws.cell(row, 3).string(toString(items.infectious_disease_qty || 0)).style(right);
+      ws.cell(row, 4).string(toString(items.infectious_disease_support_qty || 0)).style(right);
+
+      ws.cell(row, 5).string(toString((items.pulmonary_medicine_qty || 0) + (items.pulmonary_medicine_support_qty || 0))).style(right);
+      ws.cell(row, 6).string(toString(items.pulmonary_medicine_qty || 0)).style(right);
+      ws.cell(row, 7).string(toString(items.pulmonary_medicine_support_qty || 0)).style(right);
+
+      ws.cell(row, 8).string(toString((items.division_of_critical_care_qty || 0) + (items.division_of_critical_care_support_qty || 0))).style(right);
+      ws.cell(row, 9).string(toString(items.division_of_critical_care_qty || 0)).style(right);
+      ws.cell(row, 10).string(toString(items.division_of_critical_care_support_qty || 0)).style(right);
+
+      ws.cell(row, 11).string(toString((items.internal_medicine_total_qty || 0) + (items.internal_medicine_support_total_qty || 0))).style(right);
+      ws.cell(row, 12).string(toString(items.internal_medicine_total_qty || 0)).style(right);
+      ws.cell(row, 13).string(toString(items.internal_medicine_support_total_qty || 0)).style(right);
+
+      ws.cell(row, 14).string(toString((items.anesthesiologist_qty || 0) + (items.anesthesiologist_support_qty || 0))).style(right);
+      ws.cell(row, 15).string(toString(items.anesthesiologist_qty || 0)).style(right);
+      ws.cell(row, 16).string(toString(items.anesthesiologist_support_qty || 0)).style(right);
+
+      ws.cell(row, 17).string(toString(items['sub_ministry_name']));
+      ws.cell(row++, 18).string(toString(items['update_date']));
+    }
+
+    ws.cell(row, 1).string('รวม');
+    ws.cell(row, 2).string(toString((sumBy(rs, 'infectious_disease_qty') || 0) + (sumBy(rs, 'infectious_disease_support_qty') || 0))).style(right);
+    ws.cell(row, 3).string(toString(sumBy(rs, 'infectious_disease_qty') || 0)).style(right);
+    ws.cell(row, 4).string(toString(sumBy(rs, 'infectious_disease_support_qty') || 0)).style(right);
+
+    ws.cell(row, 5).string(toString((sumBy(rs, 'pulmonary_medicine_qty') || 0) + (sumBy(rs, 'pulmonary_medicine_support_qty') || 0))).style(right);
+    ws.cell(row, 6).string(toString(sumBy(rs, 'pulmonary_medicine_qty') || 0)).style(right);
+    ws.cell(row, 7).string(toString(sumBy(rs, 'pulmonary_medicine_support_qty') || 0)).style(right);
+
+    ws.cell(row, 8).string(toString((sumBy(rs, 'division_of_critical_care_qty') || 0) + (sumBy(rs, 'division_of_critical_care_support_qty') || 0))).style(right);
+    ws.cell(row, 9).string(toString(sumBy(rs, 'division_of_critical_care_qty') || 0)).style(right);
+    ws.cell(row, 10).string(toString(sumBy(rs, 'division_of_critical_care_support_qty') || 0)).style(right);
+
+    ws.cell(row, 11).string(toString((sumBy(rs, 'internal_medicine_total_qty') || 0) + (sumBy(rs, 'internal_medicine_support_total_qty') || 0))).style(right);
+    ws.cell(row, 12).string(toString(sumBy(rs, 'internal_medicine_total_qty') || 0)).style(right);
+    ws.cell(row, 13).string(toString(sumBy(rs, 'internal_medicine_support_total_qty') || 0)).style(right);
+
+    ws.cell(row, 14).string(toString((sumBy(rs, 'anesthesiologist_qty') || 0) + (sumBy(rs, 'anesthesiologist_support_qty') || 0))).style(right);
+    ws.cell(row, 15).string(toString(sumBy(rs, 'anesthesiologist_qty') || 0)).style(right);
+    ws.cell(row, 16).string(toString(sumBy(rs, 'anesthesiologist_support_qty') || 0)).style(right);
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
-    let filename = `report3` + moment().format('x');
+    let filename = `report9` + moment().format('x');
     let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
     wb.write(filenamePath, function (err, stats) {
       if (err) {
@@ -731,14 +1046,128 @@ router.get('/report10/excel', async (req: Request, res: Response) => {
   const sector = req.query.sector;
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
+  var center = wb.createStyle({
+    alignment: {
+      wrapText: true,
+      horizontal: 'center',
+    },
+  });
+  var right = wb.createStyle({
+    alignment: {
+      wrapText: true,
+      horizontal: 'right',
+    },
+  });
   try {
-    const rs: any = await model.report3(db, date, sector);
+    const rs: any = await model.report10(db, date, sector);
 
-    ws.cell(1, 1).string('Head');
+    ws.cell(1, 1, 2, 1, true).string('โรงพยาบาล');
+    ws.cell(1, 2, 1, 4, true).string('พยาบาลวิสัญญี').style(center);
+    ws.cell(1, 5, 1, 7, true).string('พยาบาล IC').style(center);
+    ws.cell(1, 8, 1, 10, true).string('พยาบาล ICU').style(center);
+    ws.cell(1, 11, 1, 13, true).string('พยาบาล Critical Care').style(center);
+    ws.cell(1, 14, 1, 16, true).string('พยาบาลทั่วไป').style(center);
+    ws.cell(1, 17, 2, 17, true).string('หน่วยงาน');
+    ws.cell(1, 18, 2, 18, true).string('ข้อมูลล่าสุด');
+
+    ws.cell(2, 2).string('รวม');
+    ws.cell(2, 3).string('ปฎิบัติจริง');
+    ws.cell(2, 4).string('รับการสนับสนุน');
+
+    ws.cell(2, 5).string('รวม');
+    ws.cell(2, 6).string('ปฎิบัติจริง');
+    ws.cell(2, 7).string('รับการสนับสนุน');
+
+    ws.cell(2, 8).string('รวม');
+    ws.cell(2, 9).string('ปฎิบัติจริง');
+    ws.cell(2, 10).string('รับการสนับสนุน');
+
+    ws.cell(2, 11).string('รวม');
+    ws.cell(2, 12).string('ปฎิบัติจริง');
+    ws.cell(2, 13).string('รับการสนับสนุน');
+
+    ws.cell(2, 14).string('รวม');
+    ws.cell(2, 15).string('ปฎิบัติจริง');
+    ws.cell(2, 16).string('รับการสนับสนุน');
+
+    ws.cell(3, 1).string('รวม');
+    ws.cell(3, 2).string(toString((sumBy(rs, 'anesthetist_nurse_qty') || 0) + (sumBy(rs, 'anesthetist_nurse_support_qty') || 0))).style(right);
+    ws.cell(3, 3).string(toString(sumBy(rs, 'anesthetist_nurse_qty') || 0)).style(right);
+    ws.cell(3, 4).string(toString(sumBy(rs, 'anesthetist_nurse_support_qty') || 0)).style(right);
+
+    ws.cell(3, 5).string(toString((sumBy(rs, 'infectious_disease_nurse_qty') || 0) + (sumBy(rs, 'infectious_disease_nurse_support_qty') || 0))).style(right);
+    ws.cell(3, 6).string(toString(sumBy(rs, 'infectious_disease_nurse_qty') || 0)).style(right);
+    ws.cell(3, 7).string(toString(sumBy(rs, 'infectious_disease_nurse_support_qty') || 0)).style(right);
+
+    ws.cell(3, 8).string(toString((sumBy(rs, 'intensive_care_unit_qty') || 0) + (sumBy(rs, 'intensive_care_unit_support_qty') || 0))).style(right);
+    ws.cell(3, 9).string(toString(sumBy(rs, 'intensive_care_unit_qty') || 0)).style(right);
+    ws.cell(3, 10).string(toString(sumBy(rs, 'intensive_care_unit_support_qty') || 0)).style(right);
+
+    ws.cell(3, 11).string(toString((sumBy(rs, 'critical_care_medicine_qty') || 0) + (sumBy(rs, 'critical_care_medicine_support_qty') || 0))).style(right);
+    ws.cell(3, 12).string(toString(sumBy(rs, 'critical_care_medicine_qty') || 0)).style(right);
+    ws.cell(3, 13).string(toString(sumBy(rs, 'critical_care_medicine_support_qty') || 0)).style(right);
+
+    ws.cell(3, 14).string(toString((sumBy(rs, 'nurse_qty') || 0) + (sumBy(rs, 'nurse_support_qty') || 0))).style(right);
+    ws.cell(3, 15).string(toString(sumBy(rs, 'nurse_qty') || 0)).style(right);
+    ws.cell(3, 16).string(toString(sumBy(rs, 'nurse_support_qty') || 0)).style(right);
+
+    let row = 4;
+    for (const items of rs) {
+      if (items.update_date) {
+        items.update_date = moment(items.update_date).format('DD/MM/YYYY')
+      } else {
+        items.update_date = '-'
+      }
+      ws.cell(row, 1).string(toString(items['hospname']));
+
+      ws.cell(row, 2).string(toString((items.anesthetist_nurse_qty || 0) + (items.anesthetist_nurse_support_qty || 0))).style(right);
+      ws.cell(row, 3).string(toString(items.anesthetist_nurse_qty || 0)).style(right);
+      ws.cell(row, 4).string(toString(items.anesthetist_nurse_support_qty || 0)).style(right);
+
+      ws.cell(row, 5).string(toString((items.infectious_disease_nurse_qty || 0) + (items.infectious_disease_nurse_support_qty || 0))).style(right);
+      ws.cell(row, 6).string(toString(items.infectious_disease_nurse_qty || 0)).style(right);
+      ws.cell(row, 7).string(toString(items.infectious_disease_nurse_support_qty || 0)).style(right);
+
+      ws.cell(row, 8).string(toString((items.intensive_care_unit_qty || 0) + (items.intensive_care_unit_support_qty || 0))).style(right);
+      ws.cell(row, 9).string(toString(items.intensive_care_unit_qty || 0)).style(right);
+      ws.cell(row, 10).string(toString(items.intensive_care_unit_support_qty || 0)).style(right);
+
+      ws.cell(row, 11).string(toString((items.critical_care_medicine_qty || 0) + (items.critical_care_medicine_support_qty || 0))).style(right);
+      ws.cell(row, 12).string(toString(items.critical_care_medicine_qty || 0)).style(right);
+      ws.cell(row, 13).string(toString(items.critical_care_medicine_support_qty || 0)).style(right);
+
+      ws.cell(row, 14).string(toString((items.nurse_qty || 0) + (items.nurse_support_qty || 0))).style(right);
+      ws.cell(row, 15).string(toString(items.nurse_qty || 0)).style(right);
+      ws.cell(row, 16).string(toString(items.nurse_support_qty || 0)).style(right);
+
+      ws.cell(row, 17).string(toString(items['sub_ministry_name']));
+      ws.cell(row++, 18).string(toString(items['update_date']));
+    }
+
+    ws.cell(row, 1).string('รวม');
+    ws.cell(row, 2).string(toString((sumBy(rs, 'anesthetist_nurse_qty') || 0) + (sumBy(rs, 'anesthetist_nurse_support_qty') || 0))).style(right);
+    ws.cell(row, 3).string(toString(sumBy(rs, 'anesthetist_nurse_qty') || 0)).style(right);
+    ws.cell(row, 4).string(toString(sumBy(rs, 'anesthetist_nurse_support_qty') || 0)).style(right);
+
+    ws.cell(row, 5).string(toString((sumBy(rs, 'infectious_disease_nurse_qty') || 0) + (sumBy(rs, 'infectious_disease_nurse_support_qty') || 0))).style(right);
+    ws.cell(row, 6).string(toString(sumBy(rs, 'infectious_disease_nurse_qty') || 0)).style(right);
+    ws.cell(row, 7).string(toString(sumBy(rs, 'infectious_disease_nurse_support_qty') || 0)).style(right);
+
+    ws.cell(row, 8).string(toString((sumBy(rs, 'intensive_care_unit_qty') || 0) + (sumBy(rs, 'intensive_care_unit_support_qty') || 0))).style(right);
+    ws.cell(row, 9).string(toString(sumBy(rs, 'intensive_care_unit_qty') || 0)).style(right);
+    ws.cell(row, 10).string(toString(sumBy(rs, 'intensive_care_unit_support_qty') || 0)).style(right);
+
+    ws.cell(row, 11).string(toString((sumBy(rs, 'critical_care_medicine_qty') || 0) + (sumBy(rs, 'critical_care_medicine_support_qty') || 0))).style(right);
+    ws.cell(row, 12).string(toString(sumBy(rs, 'critical_care_medicine_qty') || 0)).style(right);
+    ws.cell(row, 13).string(toString(sumBy(rs, 'critical_care_medicine_support_qty') || 0)).style(right);
+
+    ws.cell(row, 14).string(toString((sumBy(rs, 'nurse_qty') || 0) + (sumBy(rs, 'nurse_support_qty') || 0))).style(right);
+    ws.cell(row, 15).string(toString(sumBy(rs, 'nurse_qty') || 0)).style(right);
+    ws.cell(row, 16).string(toString(sumBy(rs, 'nurse_support_qty') || 0)).style(right);
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
-    let filename = `report3` + moment().format('x');
+    let filename = `report10` + moment().format('x');
     let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
     wb.write(filenamePath, function (err, stats) {
       if (err) {
