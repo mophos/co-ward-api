@@ -170,7 +170,7 @@ router.get('/get-gcs-admit', async (req: Request, res: Response) => {
           const _hospital: any = {};
           _hospital.province_name = p.name_th;
           const _gcs = _.filter(gcs, { hospital_id: h.id })
-          if(_gcs.length){
+          if (_gcs.length) {
             const obj: any = {
               hospital_id: h.id,
               hospcode: h.hospcode,
@@ -179,17 +179,9 @@ router.get('/get-gcs-admit', async (req: Request, res: Response) => {
               severe: _gcs[0].severe,
               moderate: _gcs[0].moderate,
               mild: _gcs[0].mild,
+              ip_pui: _gcs[0].ip_pui,
               asymptomatic: _gcs[0].asymptomatic
             };
-            //
-            // let sum = 0;
-            // for (const g of _gcs) {
-            //   sum += g.count;
-            //   obj[g.gcs_name] = g.count;
-            //   p[g.gcs_name] += g.count;
-            // }
-            // obj.sum = sum;
-            // sumProvince += obj.sum;
             hosp.push(obj);
           }
         }
@@ -269,13 +261,6 @@ router.get('/get-gcs', async (req: Request, res: Response) => {
           obj.details = _gcs;
 
           let sum = 0;
-          // for (const g of _gcs) {
-          //   sum += g.count;
-          //   obj[g.gcs_name] = g.count;
-          //   p[g.gcs_name] += g.count;
-          // }
-          // obj.sum = sum;
-          // sumProvince += obj.sum;
           hosp.push(obj);
         }
         _province.hospitals = hosp;
@@ -463,6 +448,81 @@ router.get('/admin/get-bed/excel', async (req: Request, res: Response) => {
 
     fse.ensureDirSync(process.env.TMP_PATH);
     let filename = `get_bed` + moment().format('x') + '.xlsx'
+    let filenamePath = path.join(process.env.TMP_PATH, filename);
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, message: error, code: HttpStatus.OK });
+  }
+});
+
+router.get('/get-gcs-admit/excel', async (req: Request, res: Response) => {
+  const db = req.db;
+  const date = req.query.date;
+  const provinceCode = req.decoded.provinceCode;
+
+  try {
+    var wb = new excel4node.Workbook();
+    var ws = wb.addWorksheet('Sheet 1');
+
+    ws.cell(1, 1).string('โรงพยาบาล');
+    ws.cell(1, 2).string('จำนวนผู้ป่วย');
+    ws.cell(1, 3).string('Sever');
+    ws.cell(1, 4).string('Moderate');
+    ws.cell(1, 5).string('Mild');
+    ws.cell(1, 6).string('Asymptomatic');
+    ws.cell(1, 7).string('IP PUI');
+
+    let row = 2;
+
+    const hospital: any = await model.getHospital(db);
+    const s = _.filter(hospital, { province_code: provinceCode })
+    const hosp: any = [];
+    const gcs: any = await model.getGcsAdmit(db, date)
+    for (const h of s) {
+      const _gcs = _.filter(gcs, { hospital_id: h.id })
+      if (_gcs.length) {
+        const obj: any = {
+          hospital_id: h.id,
+          hospcode: h.hospcode,
+          hospname: h.hospname,
+          count: _gcs[0].count,
+          severe: _gcs[0].severe,
+          moderate: _gcs[0].moderate,
+          mild: _gcs[0].mild,
+          ip_pui: _gcs[0].ip_pui,
+          asymptomatic: _gcs[0].asymptomatic
+        };
+        hosp.push(obj);
+      }
+    }
+
+    for (const h of hosp) {
+      ws.cell(row, 1).string(h.hospname);
+      ws.cell(row, 2).string(toString(h.count));
+      ws.cell(row, 3).string(toString(h['severe']));
+      ws.cell(row, 4).string(toString(h['moderate']));
+      ws.cell(row, 5).string(toString(h['mild']));
+      ws.cell(row, 6).string(toString(h['asymptomatic']));
+      ws.cell(row, 7).string(toString(h['ip_pui']));
+      row++;
+    }
+
+    fse.ensureDirSync(process.env.TMP_PATH);
+    let filename = `report_patient_admit` + moment().format('x') + '.xlsx'
     let filenamePath = path.join(process.env.TMP_PATH, filename);
     wb.write(filenamePath, function (err, stats) {
       if (err) {

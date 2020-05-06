@@ -20,6 +20,7 @@ export class ReportModel {
       .sum('mild as mild')
       .sum('moderate as moderate')
       .sum('asymptomatic as asymptomatic')
+      .sum('ip_pui as ip_pui')
       .count('* as count')
       .join('b_hospitals as h', 'h.id', 'v.hospital_id')
       .where('v.entry_date', date)
