@@ -515,6 +515,7 @@ router.get('/report5/excel', async (req: Request, res: Response) => {
     ws.cell(1, 1, 2, 1, true).string('โรงพยาบาล');
     ws.cell(1, 2, 1, 5, true).string('จำนวนเตียง (ไม่รวม Hospitel)').style(center);
     ws.cell(1, 6, 2, 6, true).string('หน่วยงาน');
+    ws.cell(1, 7, 2, 7, true).string('ข้อมูลล่าสุด');
 
     ws.cell(2, 2).string('จำนวนเตียงทั้งหมด');
     ws.cell(2, 3).string('Admit รวม');
@@ -527,15 +528,22 @@ router.get('/report5/excel', async (req: Request, res: Response) => {
     ws.cell(3, 4).string(toString(sumBy(rs, 'aiir_spare_qty' || 0) + sumBy(rs, 'modified_aiir_spare_qty' || 0) + sumBy(rs, 'isolate_spare_qty' || 0) + sumBy(rs, 'cohort_spare_qty' || 0))).style(right);
     ws.cell(3, 5).string(toString((sumBy(rs, 'aiir_qty' || 0) + sumBy(rs, 'modified_aiir_qty' || 0) + sumBy(rs, 'isolate_qty' || 0) + sumBy(rs, 'cohort_qty' || 0)) - (sumBy(rs, 'aiir_usage_qty' || 0) + sumBy(rs, 'modified_aiir_usage_qty' || 0) + sumBy(rs, 'isolate_usage_qty' || 0) + sumBy(rs, 'cohort_usage_qty' || 0)) - (sumBy(rs, 'aiir_spare_qty' || 0) + sumBy(rs, 'modified_aiir_spare_qty' || 0) + sumBy(rs, 'isolate_spare_qty' || 0) + sumBy(rs, 'cohort_spare_qty' || 0)))).style(right);
     ws.cell(3, 6).string('');
+    ws.cell(3, 7).string('');
 
     let row = 4;
     for (const items of rs) {
+      if(items.updated_entry){
+        items.updated_entry = moment(items.updated_entry).format('DD/MM/YYYY')
+      }else{
+        items.updated_entry = '-'
+      }
       ws.cell(row, 1).string(toString(items['hospname'])).style(right);
       ws.cell(row, 2).string(toString(items.aiir_qty || 0 + items.modified_aiir_qty || 0 + items.isolate_qty || 0 + items.cohort_qty || 0)).style(right);
       ws.cell(row, 3).string(toString(items.aiir_usage_qty || 0 + items.modified_aiir_usage_qty || 0 + items.isolate_usage_qty || 0 + items.cohort_usage_qty || 0)).style(right);
       ws.cell(row, 4).string(toString(items.aiir_spare_qty || 0 + items.modified_aiir_spare_qty || 0 + items.isolate_spare_qty || 0 + items.cohort_spare_qty || 0)).style(right);
       ws.cell(row, 5).string(toString((items.aiir_qty || 0 + items.modified_aiir_qty || 0 + items.isolate_qty || 0 + items.cohort_qty || 0) - (items.aiir_usage_qty || 0 + items.modified_aiir_usage_qty || 0 + items.isolate_usage_qty || 0 + items.cohort_usage_qty || 0) - (items.aiir_spare_qty || 0 + items.modified_aiir_spare_qty || 0 + items.isolate_spare_qty || 0 + items.cohort_spare_qty || 0))).style(right);
-      ws.cell(row++, 6).string(toString(items['sub_ministry_name']));
+      ws.cell(row, 6).string(toString(items['sub_ministry_name']));
+      ws.cell(row++, 7).string(toString(items['updated_entry']));
     }
 
     ws.cell(row, 1).string('รวม');
@@ -544,6 +552,7 @@ router.get('/report5/excel', async (req: Request, res: Response) => {
     ws.cell(row, 4).string(toString(sumBy(rs, 'aiir_spare_qty' || 0) + sumBy(rs, 'modified_aiir_spare_qty' || 0) + sumBy(rs, 'isolate_spare_qty' || 0) + sumBy(rs, 'cohort_spare_qty' || 0))).style(right);
     ws.cell(row, 5).string(toString(sumBy(rs, 'aiir_qty' || 0) + sumBy(rs, 'modified_aiir_qty' || 0) + sumBy(rs, 'isolate_qty' || 0) + sumBy(rs, 'cohort_qty' || 0) + sumBy(rs, 'aiir_usage_qty' || 0) + sumBy(rs, 'modified_aiir_usage_qty' || 0) + sumBy(rs, 'isolate_usage_qty' || 0) + sumBy(rs, 'cohort_usage_qty' || 0) + sumBy(rs, 'aiir_spare_qty' || 0) + sumBy(rs, 'modified_aiir_spare_qty' || 0) + sumBy(rs, 'isolate_spare_qty' || 0) + sumBy(rs, 'cohort_spare_qty' || 0))).style(right);
     ws.cell(row, 6).string('');
+    ws.cell(row, 7).string('');
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
@@ -574,8 +583,20 @@ router.get('/report6/excel', async (req: Request, res: Response) => {
   const sector = req.query.sector;
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
+  var center = wb.createStyle({
+    alignment: {
+      wrapText: true,
+      horizontal: 'center',
+    },
+  });
+  var right = wb.createStyle({
+    alignment: {
+      wrapText: true,
+      horizontal: 'right',
+    },
+  });
   try {
-    const rs: any = await model.report3(db, date, sector);
+    const rs: any = await model.report6(db, date, sector);
 
     ws.cell(1, 1).string('Head');
 
