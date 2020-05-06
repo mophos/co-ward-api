@@ -176,12 +176,14 @@ router.get('/get-gcs-admit', async (req: Request, res: Response) => {
               hospcode: h.hospcode,
               hospname: h.hospname,
               count: _gcs[0].count,
+              countCase: _gcs[0].countCase,
               severe: _gcs[0].severe,
               moderate: _gcs[0].moderate,
               mild: _gcs[0].mild,
               ip_pui: _gcs[0].ip_pui,
               asymptomatic: _gcs[0].asymptomatic
             };
+            sumProvince += _gcs[0].count
             hosp.push(obj);
           }
         }
