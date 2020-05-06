@@ -5,7 +5,7 @@ import { join } from 'bluebird';
 export class ReportDmsModel {
 
   report1(db: Knex, date: any, sector: any) {
-    return db('views_bed_hopital_cross as vc')
+    return db('views_bed_hospital_cross as vc')
       .select('vc.*', 'vh.*')
       .count('* as hospital_qty')
       .join('views_hospital_dms as vh', 'vh.id', 'vc.hospital_id')
@@ -88,7 +88,7 @@ export class ReportDmsModel {
   }
 
   report5(db: Knex, date, sector) {
-    return db('views_bed_hopital_cross as vc')
+    return db('views_bed_hospital_cross as vc')
       .leftJoin('views_bed_hospital_date_cross AS vb', (v) => {
         v.on('vc.hospital_id ', 'vb.hospital_id')
           .on('vb.entry_date', db.raw(`${date}`))
@@ -98,7 +98,7 @@ export class ReportDmsModel {
   }
 
   report6(db: Knex, date, sector) {
-    return db('views_bed_hopital_cross as vc')
+    return db('views_bed_hospital_cross as vc')
       .leftJoin('views_bed_hospital_date_cross AS vb', (v) => {
         v.on('vc.hospital_id ', 'vb.hospital_id')
           .on('vb.entry_date', db.raw(`${date}`))
@@ -113,6 +113,7 @@ export class ReportDmsModel {
       .join('views_hospital_dms as vh', 'vh.id', 'v.hospital_id')
       .where('vh.sector', sector)
   }
+
   report8(db: Knex, date, sector) {
     return db('views_supplies_hospital_cross as v')
       .select('v.*', 'vh.hospname', 'vh.sub_ministry_name')

@@ -251,7 +251,7 @@ export class ReportModel {
   }
 
   beds(db: Knex, date, provinceCode) {
-    return db('views_bed_hopital_cross as vc')
+    return db('views_bed_hospital_cross as vc')
       .leftJoin('views_bed_hospital_date_cross AS vb', (v) => {
         v.on('vc.hospital_id ', 'vb.hospital_id')
           .on('vb.entry_date', db.raw(`${date}`))
