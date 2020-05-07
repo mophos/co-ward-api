@@ -838,28 +838,62 @@ router.get('/get-supplies', async (req: Request, res: Response) => {
 router.get('/get-gcs/export', async (req: Request, res: Response) => {
   const db = req.db;
   const _provinceCode = req.decoded.provinceCode;
+  const zoneCode = req.decoded.zone_code;
+  const providerType = req.decoded.providerType;
   const date = req.query.date;
 
   try {
-    var wb = new excel4node.Workbook();
-    var ws = wb.addWorksheet('Sheet 1');
+    if (providerType === 'ZONE') {
+      var wb = new excel4node.Workbook();
+      const gcs: any = await model.getGcs(db, date);
+      const hospital: any = await model.getHospital(db);
+      const province = await model.getProvince(db, zoneCode, null);
+      for (let v = 0; v < province.length; v++) {
+        var ws = wb.addWorksheet(`${province[v].name_th}`);
 
-    let row = 2;
-    ws.cell(1, 1).string('โรงพยาบาล');
-    ws.cell(1, 2).string('วันที่ Admit');
-    ws.cell(1, 3).string('HN');
-    ws.cell(1, 4).string('สถานะ');
-    const hospital: any = await model.getHospital(db)
-    const s = _.filter(hospital, { province_code: _provinceCode })
-    const gcs: any = await model.getGcs(db, date);
-    moment.locale('th');
-    for (const h of s) {
-      const _gcs = _.filter(gcs, { hospital_id: h.id })
-      for (const g of _gcs) {
-        ws.cell(row, 1).string(h.hospname);
-        ws.cell(row, 2).string(toString(g.hn));
-        ws.cell(row, 3).string(moment(g.date_admit).format('D MMMM ') + ((+moment(g.date_admit).format('YYYY')) + 543));
-        ws.cell(row++, 4).string(toString(g.status));
+        let row = 2;
+        ws.cell(1, 1).string('โรงพยาบาล');
+        ws.cell(1, 2).string('เลขที่ HN');
+        ws.cell(1, 3).string('วันที่ Admit');
+        ws.cell(1, 4).string('ระดับความรุนแรง');
+        ws.cell(1, 5).string('สถานะ');
+        const s = _.filter(hospital, { province_code: province[v].code })
+        moment.locale('th');
+
+        for (const h of s) {
+          const _gcs = _.filter(gcs, { hospital_id: h.id })
+          for (const g of _gcs) {
+            ws.cell(row, 1).string(h.hospname);
+            ws.cell(row, 2).string(toString(g.hn));
+            ws.cell(row, 3).string(moment(g.date_admit).format('D MMMM ') + ((+moment(g.date_admit).format('YYYY')) + 543));
+            ws.cell(row, 4).string(toString(g.gcs_name));
+            ws.cell(row++, 5).string(toString(g.status));
+          }
+        }
+      }
+    } else {
+      var wb = new excel4node.Workbook();
+      var ws = wb.addWorksheet('Sheet 1');
+
+      let row = 2;
+      ws.cell(1, 1).string('โรงพยาบาล');
+      ws.cell(1, 2).string('เลขที่ HN');
+      ws.cell(1, 3).string('วันที่ Admit');
+      ws.cell(1, 4).string('ระดับความรุนแรง');
+      ws.cell(1, 5).string('สถานะ');
+      const hospital: any = await model.getHospital(db)
+      const s = _.filter(hospital, { province_code: _provinceCode })
+      const gcs: any = await model.getGcs(db, date);
+      moment.locale('th');
+      for (const h of s) {
+        const _gcs = _.filter(gcs, { hospital_id: h.id })
+        for (const g of _gcs) {
+          ws.cell(row, 1).string(h.hospname);
+          ws.cell(row, 2).string(toString(g.hn));
+          ws.cell(row, 3).string(moment(g.date_admit).format('D MMMM ') + ((+moment(g.date_admit).format('YYYY')) + 543));
+          ws.cell(row, 4).string(toString(g.gcs_name));
+          ws.cell(row++, 5).string(toString(g.status));
+        }
       }
     }
 
@@ -880,7 +914,7 @@ router.get('/get-gcs/export', async (req: Request, res: Response) => {
 
       }
     });
-    // res.send({ ok: true, rows: data, code: HttpStatus.OK });
+    // res.send({ ok: true, rows: 0, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
