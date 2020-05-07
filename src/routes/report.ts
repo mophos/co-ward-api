@@ -145,7 +145,7 @@ router.get('/get-gcs-admit', async (req: Request, res: Response) => {
         provinceCode = _provinceCode;
       }
     }
-
+    const gcs: any = await model.getGcsAdmit(db, date)
     let data: any = [];
     for (const z of zoneCodes) {
       const zone: any = {};
@@ -160,7 +160,7 @@ router.get('/get-gcs-admit', async (req: Request, res: Response) => {
       const hospital: any = await model.getHospital(db)
       let sumProvince = 0;
       let severe = 0;
-      const gcs: any = await model.getGcsAdmit(db, date)
+      
       for (const p of province) {
         const _province: any = {};
         _province.province_name = p.name_th;
