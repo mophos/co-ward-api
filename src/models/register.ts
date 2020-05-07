@@ -104,6 +104,7 @@ export class Register {
     }
 
     sendMS(data) {
+        console.log(data);
         return new Promise((resolve, reject) => {
             var options = {
                 method: 'POST',
@@ -112,7 +113,7 @@ export class Register {
                     'ocp-apim-subscription-key': 'fcce9158dc0f43f2bc48ae1cda642761',
                     'content-type': 'application/json'
                 }, body: {
-                    hospital: data.hospname,
+                    hospital: data.hospitalId,
                     hospcodeConfirm: data.hospcode,
                     cid: data.cid,
                     position: data.positionId,
@@ -139,6 +140,7 @@ export class Register {
     }
 
     sendMS2(data) {
+        console.log(data);
         
         return new Promise((resolve, reject) => {
             var options = {
@@ -178,8 +180,8 @@ export class Register {
         return db('um_users as u')
             .select('u.*', 'h.hospname','h.id as hospital_id')
             .join('b_hospitals as h', 'h.hospcode', 'u.hospcode')
-            // .where('u.position_id', '8')
-            .where('u.id', '1227')
+            .where('u.position_id', '8')
+            // .where('u.id', '1066')
             // .offset(1);
     }
 }

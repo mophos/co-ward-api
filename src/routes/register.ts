@@ -164,7 +164,7 @@ router.post('/2', async (req: Request, res: Response) => {
         type: data.type,
         telephone: data.telephone,
         is_province: data.isProvince,
-        app_register: 'MS-NCD'
+        app_register: 'MS-NCD',
       }
 
       data.right = ['STAFF_DRUG_NCD'];
