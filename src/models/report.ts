@@ -45,6 +45,18 @@ export class ReportModel {
     return db('views_bed_hospitals AS vbh')
   }
 
+  getBadExcel(db: Knex, date) {
+    return db('views_bed_hospital_cross as vc')
+      .leftJoin('views_bed_hospital_date_cross AS vb', (v) => {
+        v.on('vc.hospital_id ', 'vb.hospital_id')
+          .on('vb.entry_date', db.raw(`${date}`))
+      })
+      .join('b_hospitals as vh', 'vh.id', 'vc.hospital_id')
+      // .whereIn('vh.hosptype_code', ['01', '02', '05', '06', '07', '11', '12'])
+      // .where('vh.province_code', provinceCode)
+      .orderBy('vh.province_code')
+  }
+
   getMedicals(db: Knex) {
     return db('views_requisition_hospitals AS vrh')
   }
@@ -280,6 +292,6 @@ export class ReportModel {
       .groupBy('p.code')
       .orderBy('h.zone_code')
       .orderBy('p.code');
-      
+
   }
 }
