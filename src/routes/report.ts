@@ -837,112 +837,35 @@ router.get('/get-supplies', async (req: Request, res: Response) => {
 
 router.get('/get-gcs/export', async (req: Request, res: Response) => {
   const db = req.db;
-  const providerType = req.decoded.providerType;
-  const zoneCode = req.decoded.zone_code;
-  const type = req.decoded.type;
   const _provinceCode = req.decoded.provinceCode;
   const date = req.query.date;
-  const zone = req.query.zone;
-  var wb = new excel4node.Workbook();
-  var ws = wb.addWorksheet('Sheet 1');
-  console.log('ssssss');
 
   try {
-    let zoneCodes = [];
-    let provinceCode = null;
-    if (type == 'MANAGER') {
-      if (zone) {
-        zoneCodes = [zone];
-      } else {
-        zoneCodes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
+    var wb = new excel4node.Workbook();
+    var ws = wb.addWorksheet('Sheet 1');
+
+    let row = 2;
+    ws.cell(1, 1).string('โรงพยาบาล');
+    ws.cell(1, 2).string('วันที่ Admit');
+    ws.cell(1, 3).string('HN');
+    ws.cell(1, 4).string('สถานะ');
+    const hospital: any = await model.getHospital(db)
+    const s = _.filter(hospital, { province_code: _provinceCode })
+    const gcs: any = await model.getGcs(db, date);
+    moment.locale('th');
+    for (const h of s) {
+      const _gcs = _.filter(gcs, { hospital_id: h.id })
+      for (const g of _gcs) {
+        ws.cell(row, 1).string(h.hospname);
+        ws.cell(row, 2).string(toString(g.hn));
+        ws.cell(row, 3).string(moment(g.date_admit).format('D MMMM ') + ((+moment(g.date_admit).format('YYYY')) + 543));
+        ws.cell(row++, 4).string(toString(g.status));
       }
-    } else {
-      if (providerType == 'ZONE') {
-        zoneCodes = [zoneCode];
-      } else if (providerType == 'SSJ') {
-        zoneCodes = [zoneCode];
-        provinceCode = _provinceCode;
-      }
-    }
-
-    let data: any = [];
-    let row = 2
-    ws.cell(1, 1).string('เขต');
-    ws.cell(1, 2).string('จังหวัด');
-    ws.cell(1, 3).string('รหัสโรงพยาบาล');
-    ws.cell(1, 4).string('โรงพยาบาล');
-    ws.cell(1, 5).string('จำนวนผู้ป่วย');
-    ws.cell(1, 6).string('Severe');
-    ws.cell(1, 7).string('Moderate');
-    ws.cell(1, 8).string('Mild');
-    ws.cell(1, 9).string('Asymptomatic');
-    ws.cell(1, 10).string('IP PUI');
-    for (const z of zoneCodes) {
-      const zone: any = {};
-      zone.name = z;
-      ws.cell(row, 1).string(z);
-      let provinces: any = [];
-      let province: any;
-      if (provinceCode) {
-        province = await model.getProvince(db, null, provinceCode);
-      } else {
-        province = await model.getProvince(db, z, null);
-      }
-      const hospital: any = await model.getHospital(db)
-      let sumProvince = 0;
-      let severe = 0;
-      for (const p of province) {
-        const _province: any = {};
-        _province.province_name = p.name_th;
-        ws.cell(row, 2).string(p.name_th);
-        const s = _.filter(hospital, { province_code: p.code })
-        const hosp = [];
-        const gcs: any = await model.getGcs(db, date)
-
-        for (const h of s) {
-          const _hospital: any = {};
-          _hospital.province_name = p.name_th;
-          const obj: any = {
-            hospital_id: h.id,
-            hospcode: h.hospcode,
-            hospname: h.hospname
-          };
-          const _gcs = _.filter(gcs, { hospital_id: h.id })
-          let sum = 0;
-          for (const g of _gcs) {
-            sum += g.count;
-            obj[g.gcs_name] = g.count || 0;
-            p[g.gcs_name] += g.count || 0;
-          }
-
-          obj.sum = sum;
-          sumProvince += obj.sum;
-          hosp.push(obj);
-
-          ws.cell(row, 3).string(h.hospcode);
-          ws.cell(row, 4).string(h.hospname);
-          ws.cell(row, 5).number(+obj.sum || 0);
-          ws.cell(row, 6).number(+obj['Severe'] || 0);
-          ws.cell(row, 7).number(+obj['Moderate'] || 0);
-          ws.cell(row, 8).number(+obj['Mild'] || 0);
-          ws.cell(row, 9).number(+obj['Asymptomatic'] || 0);
-          ws.cell(row++, 10).number(+obj['IP PUI'] || 0);
-        }
-        _province.hospitals = hosp;
-
-        provinces.push(_province);
-      }
-      zone.severe
-      zone.sum = sumProvince;
-      zone.provinces = provinces;
-      data.push(zone);
     }
 
     fse.ensureDirSync(process.env.TMP_PATH);
-
     let filename = `get_gcs` + moment().format('x');
     let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
-
     wb.write(filenamePath, function (err, stats) {
       if (err) {
         console.error(err);
@@ -964,6 +887,83 @@ router.get('/get-gcs/export', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/get-supplies/export', async (req: Request, res: Response) => {
+  const db = req.db;
+  const _provinceCode = req.decoded.provinceCode;
+  const date = req.query.date;
+
+  try {
+    var wb = new excel4node.Workbook();
+    var ws = wb.addWorksheet('Sheet 1');
+
+    let row = 2;
+    ws.cell(1, 1).string('โรงพยาบาล');
+    ws.cell(1, 2).string('Surgical Gown');
+    ws.cell(1, 3).string('Cover All-1');
+    ws.cell(1, 4).string('Cover All-2');
+    ws.cell(1, 5).string('N95');
+    ws.cell(1, 6).string('Shoe Cover');
+    ws.cell(1, 7).string('Surgical hood');
+    ws.cell(1, 8).string('Long glove');
+    ws.cell(1, 9).string('Face shield');
+    ws.cell(1, 10).string('Surgical Mask');
+    ws.cell(1, 11).string('Powered air-purifying respirator');
+    const hospital: any = await model.getHospital(db)
+    const _hosp = _.filter(hospital, { province_code: _provinceCode });
+    const sup: any = await model.getSupplies(db, date)
+    for (const h of _hosp) {
+      const _sup = _.filter(sup, { hospital_id: h.id })
+      for (const s of _sup) {
+        ws.cell(row, 1).string(h.hospname);
+
+        if (s.generic_id == 9) {
+          ws.cell(row, 2).string(toString(s.qty))
+        } else if (s.generic_id == 10) {
+          ws.cell(row, 3).string(toString(s.qty))
+        } else if (s.generic_id == 11) {
+          ws.cell(row, 4).string(toString(s.qty))
+        } else if (s.generic_id == 12) {
+          ws.cell(row, 5).string(toString(s.qty))
+        } else if (s.generic_id == 13) {
+          ws.cell(row, 6).string(toString(s.qty))
+        } else if (s.generic_id == 14) {
+          ws.cell(row, 7).string(toString(s.qty))
+        } else if (s.generic_id == 15) {
+          ws.cell(row, 8).string(toString(s.qty))
+        } else if (s.generic_id == 16) {
+          ws.cell(row, 9).string(toString(s.qty))
+        } else if (s.generic_id == 17) {
+          ws.cell(row, 10).string(toString(s.qty))
+        } else if (s.generic_id == 18) {
+          ws.cell(row, 11).string(toString(s.qty))
+        };
+      }
+      row++;
+    }
+
+    fse.ensureDirSync(process.env.TMP_PATH);
+    let filename = `get_gcs` + moment().format('x');
+    let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+
+      }
+    });
+    // res.send({ ok: true, rows: 0, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
 
 router.get('/fulfill-drugs', async (req: Request, res: Response) => {
   const db = req.db;

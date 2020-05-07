@@ -107,7 +107,7 @@ router.post('/update-password2', async (req: Request, res: Response) => {
     await loginModel.updatePassword(db, id, encPassword)
     const data = {
       cid,
-      password: encPassword
+      password: passwordNew
     }
     await registerModel.sendMS(data).then((result) => {
       console.log(result)
