@@ -98,7 +98,7 @@ export class ReportDmsModel {
     return db('views_bed_hospital_cross as vc')
       .leftJoin('views_bed_hospital_date_cross AS vb', (v) => {
         v.on('vc.hospital_id ', 'vb.hospital_id')
-          .on('vb.entry_date', db.raw(`${date}`))
+          .on('vb.entry_date', db.raw(`'${date}'`))
       })
       .join('views_hospital_dms as vh', 'vh.id', 'vc.hospital_id')
       .where('vh.sector', sector)
@@ -108,7 +108,7 @@ export class ReportDmsModel {
     return db('views_bed_hospital_cross as vc')
       .leftJoin('views_bed_hospital_date_cross AS vb', (v) => {
         v.on('vc.hospital_id ', 'vb.hospital_id')
-          .on('vb.entry_date', db.raw(`${date}`))
+          .on('vb.entry_date', db.raw(`'${date}'`))
       })
       .join('views_hospital_dms as vh', 'vh.id', 'vc.hospital_id')
       .where('vh.sector', sector)

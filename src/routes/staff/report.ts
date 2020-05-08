@@ -69,41 +69,6 @@ router.get('/bed', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/bed/excel', async (req: Request, res: Response) => {
-  const db = req.db;
-  const date = req.query.date;
-  const sector = req.query.sector;
-  const provinceCode = req.decoded.provinceCode;
-  var wb = new excel4node.Workbook();
-  var ws = wb.addWorksheet('Sheet 1');
-  try {
-    const rs: any = await model.beds(db, date,provinceCode);
-
-    ws.cell(1, 1).string('Head');
-
-    fse.ensureDirSync(process.env.TMP_PATH);
-
-    let filename = `report3` + moment().format('x');
-    let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
-    wb.write(filenamePath, function (err, stats) {
-      if (err) {
-        console.error(err);
-        fse.removeSync(filenamePath);
-        res.send({ ok: false, error: err })
-      } else {
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
-        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
-        res.sendfile(filenamePath, (v) => {
-          fse.removeSync(filenamePath);
-        })
-      }
-    });
-  } catch (error) {
-
-    res.send({ ok: false, error: error });
-  }
-});
-
 // router.get('/hosp/excel', async (req: Request, res: Response) => {
 //   const db = req.db;
 //   const providerType = req.decoded.providerType;

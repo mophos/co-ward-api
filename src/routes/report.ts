@@ -145,7 +145,7 @@ router.get('/get-gcs-admit', async (req: Request, res: Response) => {
         provinceCode = _provinceCode;
       }
     }
-
+    const gcs: any = await model.getGcsAdmit(db, date)
     let data: any = [];
     for (const z of zoneCodes) {
       const zone: any = {};
@@ -160,7 +160,7 @@ router.get('/get-gcs-admit', async (req: Request, res: Response) => {
       const hospital: any = await model.getHospital(db)
       let sumProvince = 0;
       let severe = 0;
-      const gcs: any = await model.getGcsAdmit(db, date)
+
       for (const p of province) {
         const _province: any = {};
         _province.province_name = p.name_th;
@@ -380,72 +380,148 @@ router.get('/admin/get-bed', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/admin/get-bed/excel', async (req: Request, res: Response) => {
+router.get('/get-bed/excel', async (req: Request, res: Response) => {
   const db = req.db;
+  const date = req.query.date;
+  const provinceCode = req.decoded.provinceCode;
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
+
   try {
     var wb = new excel4node.Workbook();
-    var ws = wb.addWorksheet('Sheet 1');
+    const bed: any = await model.getBadExcel(db, date);
+    console.log(bed);
+    const hospital: any = await model.getHospital(db);
+    if (providerType === 'ZONE') {
+      const province = await model.getProvince(db, zoneCode, null);
+      for (let v = 0; v < province.length; v++) {
+        var ws = wb.addWorksheet(`${province[v].name_th}`);
 
-    ws.cell(1, 1).string('รหัสโรงพยาบาล');
-    ws.cell(1, 2).string('โรงพยาบาล');
-    ws.cell(1, 3).string('AIIR ทั้งหมด');
-    ws.cell(1, 4).string('AIIR ใช้ไปแล้ว');
-    ws.cell(1, 5).string('AIIR คงเหลือ');
-    ws.cell(1, 6).string('Modified AIIR ทั้งหมด');
-    ws.cell(1, 7).string('Modified AIIR ใช้ไปแล้ว');
-    ws.cell(1, 8).string('Modified AIIR คงเหลือ');
-    ws.cell(1, 9).string('Isolate ทั้งหมด');
-    ws.cell(1, 10).string('Isolate ใช้ไปแล้ว');
-    ws.cell(1, 11).string('Isolate คงเหลือ');
-    ws.cell(1, 12).string('Cohort ทั้งหมด');
-    ws.cell(1, 13).string('Cohort ใช้ไปแล้ว');
-    ws.cell(1, 14).string('Cohort คงเหลือ');
-    ws.cell(1, 15).string('Hospitel ทั้งหมด');
-    ws.cell(1, 16).string('Hospitel ใช้ไปแล้ว');
-    ws.cell(1, 17).string('Hospitel คงเหลือ');
+        ws.cell(1, 1).string('รหัสโรงพยาบาล');
+        ws.cell(1, 2).string('โรงพยาบาล');
+        ws.cell(1, 3).string('AIIR ทั้งหมด');
+        ws.cell(1, 4).string('AIIR ใช้ไปแล้ว');
+        ws.cell(1, 5).string('AIIR คงเหลือ');
+        ws.cell(1, 6).string('Modified AIIR ทั้งหมด');
+        ws.cell(1, 7).string('Modified AIIR ใช้ไปแล้ว');
+        ws.cell(1, 8).string('Modified AIIR คงเหลือ');
+        ws.cell(1, 9).string('Isolate ทั้งหมด');
+        ws.cell(1, 10).string('Isolate ใช้ไปแล้ว');
+        ws.cell(1, 11).string('Isolate คงเหลือ');
+        ws.cell(1, 12).string('Cohort ทั้งหมด');
+        ws.cell(1, 13).string('Cohort ใช้ไปแล้ว');
+        ws.cell(1, 14).string('Cohort คงเหลือ');
+        ws.cell(1, 15).string('Hospitel ทั้งหมด');
+        ws.cell(1, 16).string('Hospitel ใช้ไปแล้ว');
+        ws.cell(1, 17).string('Hospitel คงเหลือ');
 
-    let row = 2;
-    const hospital: any = await model.getHospitalByType(db);
-    const hosp = [];
-    const bed: any = await model.getBad(db)
-    for (const h of hospital) {
-      const obj = {
-        hospital_id: h.id,
-        hospcode: h.hospcode,
-        hospname: h.hospname
-      };
-      const _bed = _.filter(bed, { hospital_id: h.id })
-      for (const b of _bed) {
-        obj[b.bed_name + '_qty'] = b.qty;
-        obj[b.bed_name + '_covid_qty'] = b.covid_qty;
-        obj[b.bed_name + '_usage_qty'] = b.usage_qty;
+        const _hosp = _.filter(hospital, { province_code: province[v].code });
+        let row = 2;
+        const hosp = [];
+        for (const h of _hosp) {
+          const obj = {
+            hospital_id: h.id,
+            hospcode: h.hospcode,
+            hospname: h.hospname
+          };
+          const _bed = _.filter(bed, { id: h.id });
+
+          for (const b of _bed) {
+            obj[b.bed_name + '_qty'] = b.qty;
+            obj[b.bed_name + '_covid_qty'] = b.covid_qty;
+            obj[b.bed_name + '_usage_qty'] = b.usage_qty;
+          }
+          hosp.push(obj);
+        }
+        for (const h of hosp) {
+          ws.cell(row, 1).string(h.hospcode.toString());
+          ws.cell(row, 2).string(h.hospname);
+
+          ws.cell(row, 3).string(toString(h['aiir_qty']));
+          ws.cell(row, 4).string(toString(h['aiir_usage_qty']));
+          ws.cell(row, 5).string(toString(h['aiir_qty'] - h['aiir_usage_qty']));
+
+          ws.cell(row, 6).string(toString(h['modified_aiir_qty']));
+          ws.cell(row, 7).string(toString(h['modified_aiir_usage_qty']));
+          ws.cell(row, 8).string(toString(h['modified_aiir_qty'] - h['modified_aiir_usage_qty']));
+
+          ws.cell(row, 9).string(toString(h['isolate_qty']));
+          ws.cell(row, 10).string(toString(h['isolate_usage_qty']));
+          ws.cell(row, 11).string(toString(h['isolate_qty'] - h['isolate_usage_qty']));
+
+          ws.cell(row, 12).string(toString(h['cohort_qty']));
+          ws.cell(row, 13).string(toString(h['cohort_usage_qty']));
+          ws.cell(row, 14).string(toString(h['cohort_qty'] - h['cohort_usage_qty']));
+
+          ws.cell(row, 15).string(toString(h['hospitel_qty']));
+          ws.cell(row, 16).string(toString(h['hospitel_usage_qty']));
+          ws.cell(row, 17).string(toString(h['hospitel_qty'] - h['hospitel_usage_qty']));
+          row++;
+        }
       }
-      hosp.push(obj);
-    }
-    for (const h of hosp) {
-      ws.cell(row, 1).string(h.hospcode.toString());
-      ws.cell(row, 2).string(h.hospname);
+    } else {
+      var ws = wb.addWorksheet('Sheet 1');
 
-      ws.cell(row, 3).string(toString(h['AIIR_qty']));
-      ws.cell(row, 4).string(toString(h['AIIR_usage_qty']));
-      ws.cell(row, 5).string(toString(h['AIIR_qty'] - h['AIIR_usage_qty']));
+      ws.cell(1, 1).string('รหัสโรงพยาบาล');
+      ws.cell(1, 2).string('โรงพยาบาล');
+      ws.cell(1, 3).string('AIIR ทั้งหมด');
+      ws.cell(1, 4).string('AIIR ใช้ไปแล้ว');
+      ws.cell(1, 5).string('AIIR คงเหลือ');
+      ws.cell(1, 6).string('Modified AIIR ทั้งหมด');
+      ws.cell(1, 7).string('Modified AIIR ใช้ไปแล้ว');
+      ws.cell(1, 8).string('Modified AIIR คงเหลือ');
+      ws.cell(1, 9).string('Isolate ทั้งหมด');
+      ws.cell(1, 10).string('Isolate ใช้ไปแล้ว');
+      ws.cell(1, 11).string('Isolate คงเหลือ');
+      ws.cell(1, 12).string('Cohort ทั้งหมด');
+      ws.cell(1, 13).string('Cohort ใช้ไปแล้ว');
+      ws.cell(1, 14).string('Cohort คงเหลือ');
+      ws.cell(1, 15).string('Hospitel ทั้งหมด');
+      ws.cell(1, 16).string('Hospitel ใช้ไปแล้ว');
+      ws.cell(1, 17).string('Hospitel คงเหลือ');
 
-      ws.cell(row, 6).string(toString(h['Modified AIIR_qty']));
-      ws.cell(row, 7).string(toString(h['Modified AIIR_usage_qty']));
-      ws.cell(row, 8).string(toString(h['Modified AIIR_qty'] - h['Modified AIIR_usage_qty']));
+      let row = 2;
+      const hosp = [];
+      const _hosp = _.filter(hospital, { province_code: provinceCode });
+      for (const h of _hosp) {
+        const obj = {
+          hospital_id: h.id,
+          hospcode: h.hospcode,
+          hospname: h.hospname
+        };
+        const _bed = _.filter(bed, { id: h.id })
+        for (const b of _bed) {
+          obj[b.bed_name + '_qty'] = b.qty;
+          obj[b.bed_name + '_covid_qty'] = b.covid_qty;
+          obj[b.bed_name + '_usage_qty'] = b.usage_qty;
+        }
+        hosp.push(obj);
+      }
+      for (const h of hosp) {
+        ws.cell(row, 1).string(h.hospcode.toString());
+        ws.cell(row, 2).string(h.hospname);
 
-      ws.cell(row, 9).string(toString(h['Isolate_qty']));
-      ws.cell(row, 10).string(toString(h['Isolate_usage_qty']));
-      ws.cell(row, 11).string(toString(h['Isolate_qty'] - h['Isolate_usage_qty']));
+        ws.cell(row, 3).string(toString(h['AIIR_qty']));
+        ws.cell(row, 4).string(toString(h['AIIR_usage_qty']));
+        ws.cell(row, 5).string(toString(h['AIIR_qty'] - h['AIIR_usage_qty']));
 
-      ws.cell(row, 12).string(toString(h['Cohort_qty']));
-      ws.cell(row, 13).string(toString(h['Cohort_usage_qty']));
-      ws.cell(row, 14).string(toString(h['Cohort_qty'] - h['Cohort_usage_qty']));
+        ws.cell(row, 6).string(toString(h['Modified AIIR_qty']));
+        ws.cell(row, 7).string(toString(h['Modified AIIR_usage_qty']));
+        ws.cell(row, 8).string(toString(h['Modified AIIR_qty'] - h['Modified AIIR_usage_qty']));
 
-      ws.cell(row, 15).string(toString(h['Hospitel_qty']));
-      ws.cell(row, 16).string(toString(h['Hospitel_usage_qty']));
-      ws.cell(row, 17).string(toString(h['Hospitel_qty'] - h['Hospitel_usage_qty']));
-      row++;
+        ws.cell(row, 9).string(toString(h['Isolate_qty']));
+        ws.cell(row, 10).string(toString(h['Isolate_usage_qty']));
+        ws.cell(row, 11).string(toString(h['Isolate_qty'] - h['Isolate_usage_qty']));
+
+        ws.cell(row, 12).string(toString(h['Cohort_qty']));
+        ws.cell(row, 13).string(toString(h['Cohort_usage_qty']));
+        ws.cell(row, 14).string(toString(h['Cohort_qty'] - h['Cohort_usage_qty']));
+
+        ws.cell(row, 15).string(toString(h['Hospitel_qty']));
+        ws.cell(row, 16).string(toString(h['Hospitel_usage_qty']));
+        ws.cell(row, 17).string(toString(h['Hospitel_qty'] - h['Hospitel_usage_qty']));
+        row++;
+      }
     }
 
     fse.ensureDirSync(process.env.TMP_PATH);
@@ -475,52 +551,102 @@ router.get('/get-gcs-admit/excel', async (req: Request, res: Response) => {
   const db = req.db;
   const date = req.query.date;
   const provinceCode = req.decoded.provinceCode;
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
 
   try {
     var wb = new excel4node.Workbook();
-    var ws = wb.addWorksheet('Sheet 1');
-
-    ws.cell(1, 1).string('โรงพยาบาล');
-    ws.cell(1, 2).string('จำนวนผู้ป่วย');
-    ws.cell(1, 3).string('Sever');
-    ws.cell(1, 4).string('Moderate');
-    ws.cell(1, 5).string('Mild');
-    ws.cell(1, 6).string('Asymptomatic');
-    ws.cell(1, 7).string('IP PUI');
-
-    let row = 2;
-
-    const hospital: any = await model.getHospital(db);
-    const s = _.filter(hospital, { province_code: provinceCode })
-    const hosp: any = [];
     const gcs: any = await model.getGcsAdmit(db, date)
-    for (const h of s) {
-      const _gcs = _.filter(gcs, { hospital_id: h.id })
-      if (_gcs.length) {
-        const obj: any = {
-          hospital_id: h.id,
-          hospcode: h.hospcode,
-          hospname: h.hospname,
-          count: _gcs[0].count,
-          severe: _gcs[0].severe,
-          moderate: _gcs[0].moderate,
-          mild: _gcs[0].mild,
-          ip_pui: _gcs[0].ip_pui,
-          asymptomatic: _gcs[0].asymptomatic
-        };
-        hosp.push(obj);
-      }
-    }
+    const hospital: any = await model.getHospital(db);
 
-    for (const h of hosp) {
-      ws.cell(row, 1).string(h.hospname);
-      ws.cell(row, 2).string(toString(h.count));
-      ws.cell(row, 3).string(toString(h['severe']));
-      ws.cell(row, 4).string(toString(h['moderate']));
-      ws.cell(row, 5).string(toString(h['mild']));
-      ws.cell(row, 6).string(toString(h['asymptomatic']));
-      ws.cell(row, 7).string(toString(h['ip_pui']));
-      row++;
+    if (providerType === 'ZONE') {
+      const province = await model.getProvince(db, zoneCode, null);
+      for (let v = 0; v < province.length; v++) {
+        var ws = wb.addWorksheet(`${province[v].name_th}`);
+        ws.cell(1, 1).string('โรงพยาบาล');
+        ws.cell(1, 2).string('จำนวนผู้ป่วย');
+        ws.cell(1, 3).string('Sever');
+        ws.cell(1, 4).string('Moderate');
+        ws.cell(1, 5).string('Mild');
+        ws.cell(1, 6).string('Asymptomatic');
+        ws.cell(1, 7).string('IP PUI');
+
+        let row = 2;
+
+        const s = _.filter(hospital, { province_code: province[v].code })
+        const hosp: any = [];
+        for (const h of s) {
+          const _gcs = _.filter(gcs, { hospital_id: h.id })
+          if (_gcs.length) {
+            const obj: any = {
+              hospital_id: h.id,
+              hospcode: h.hospcode,
+              hospname: h.hospname,
+              count: _gcs[0].count,
+              severe: _gcs[0].severe,
+              moderate: _gcs[0].moderate,
+              mild: _gcs[0].mild,
+              ip_pui: _gcs[0].ip_pui,
+              asymptomatic: _gcs[0].asymptomatic
+            };
+            hosp.push(obj);
+          }
+        }
+
+        for (const h of hosp) {
+          ws.cell(row, 1).string(h.hospname);
+          ws.cell(row, 2).string(toString(h.count));
+          ws.cell(row, 3).string(toString(h['severe']));
+          ws.cell(row, 4).string(toString(h['moderate']));
+          ws.cell(row, 5).string(toString(h['mild']));
+          ws.cell(row, 6).string(toString(h['asymptomatic']));
+          ws.cell(row, 7).string(toString(h['ip_pui']));
+          row++;
+        }
+      }
+    } else {
+      var ws = wb.addWorksheet(`Sheet 1`);
+
+      ws.cell(1, 1).string('โรงพยาบาล');
+      ws.cell(1, 2).string('จำนวนผู้ป่วย');
+      ws.cell(1, 3).string('Sever');
+      ws.cell(1, 4).string('Moderate');
+      ws.cell(1, 5).string('Mild');
+      ws.cell(1, 6).string('Asymptomatic');
+      ws.cell(1, 7).string('IP PUI');
+
+      let row = 2;
+
+      const s = _.filter(hospital, { province_code: provinceCode })
+      const hosp: any = [];
+      for (const h of s) {
+        const _gcs = _.filter(gcs, { hospital_id: h.id })
+        if (_gcs.length) {
+          const obj: any = {
+            hospital_id: h.id,
+            hospcode: h.hospcode,
+            hospname: h.hospname,
+            count: _gcs[0].count,
+            severe: _gcs[0].severe,
+            moderate: _gcs[0].moderate,
+            mild: _gcs[0].mild,
+            ip_pui: _gcs[0].ip_pui,
+            asymptomatic: _gcs[0].asymptomatic
+          };
+          hosp.push(obj);
+        }
+      }
+
+      for (const h of hosp) {
+        ws.cell(row, 1).string(h.hospname);
+        ws.cell(row, 2).string(toString(h.count));
+        ws.cell(row, 3).string(toString(h['severe']));
+        ws.cell(row, 4).string(toString(h['moderate']));
+        ws.cell(row, 5).string(toString(h['mild']));
+        ws.cell(row, 6).string(toString(h['asymptomatic']));
+        ws.cell(row, 7).string(toString(h['ip_pui']));
+        row++;
+      }
     }
 
     fse.ensureDirSync(process.env.TMP_PATH);
@@ -838,28 +964,61 @@ router.get('/get-supplies', async (req: Request, res: Response) => {
 router.get('/get-gcs/export', async (req: Request, res: Response) => {
   const db = req.db;
   const _provinceCode = req.decoded.provinceCode;
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
   const date = req.query.date;
 
   try {
     var wb = new excel4node.Workbook();
-    var ws = wb.addWorksheet('Sheet 1');
+    if (providerType === 'ZONE') {
+      const gcs: any = await model.getGcs(db, date);
+      const hospital: any = await model.getHospital(db);
+      const province = await model.getProvince(db, zoneCode, null);
+      for (let v = 0; v < province.length; v++) {
+        var ws = wb.addWorksheet(`${province[v].name_th}`);
 
-    let row = 2;
-    ws.cell(1, 1).string('โรงพยาบาล');
-    ws.cell(1, 2).string('วันที่ Admit');
-    ws.cell(1, 3).string('HN');
-    ws.cell(1, 4).string('สถานะ');
-    const hospital: any = await model.getHospital(db)
-    const s = _.filter(hospital, { province_code: _provinceCode })
-    const gcs: any = await model.getGcs(db, date);
-    moment.locale('th');
-    for (const h of s) {
-      const _gcs = _.filter(gcs, { hospital_id: h.id })
-      for (const g of _gcs) {
-        ws.cell(row, 1).string(h.hospname);
-        ws.cell(row, 2).string(toString(g.hn));
-        ws.cell(row, 3).string(moment(g.date_admit).format('D MMMM ') + ((+moment(g.date_admit).format('YYYY')) + 543));
-        ws.cell(row++, 4).string(toString(g.status));
+        let row = 2;
+        ws.cell(1, 1).string('โรงพยาบาล');
+        ws.cell(1, 2).string('เลขที่ HN');
+        ws.cell(1, 3).string('วันที่ Admit');
+        ws.cell(1, 4).string('ระดับความรุนแรง');
+        ws.cell(1, 5).string('สถานะ');
+        const s = _.filter(hospital, { province_code: province[v].code })
+        moment.locale('th');
+
+        for (const h of s) {
+          const _gcs = _.filter(gcs, { hospital_id: h.id })
+          for (const g of _gcs) {
+            ws.cell(row, 1).string(h.hospname);
+            ws.cell(row, 2).string(toString(g.hn));
+            ws.cell(row, 3).string(moment(g.date_admit).format('D MMMM ') + ((+moment(g.date_admit).format('YYYY')) + 543));
+            ws.cell(row, 4).string(toString(g.gcs_name));
+            ws.cell(row++, 5).string(toString(g.status));
+          }
+        }
+      }
+    } else {
+      var ws = wb.addWorksheet('Sheet 1');
+
+      let row = 2;
+      ws.cell(1, 1).string('โรงพยาบาล');
+      ws.cell(1, 2).string('เลขที่ HN');
+      ws.cell(1, 3).string('วันที่ Admit');
+      ws.cell(1, 4).string('ระดับความรุนแรง');
+      ws.cell(1, 5).string('สถานะ');
+      const hospital: any = await model.getHospital(db)
+      const s = _.filter(hospital, { province_code: _provinceCode })
+      const gcs: any = await model.getGcs(db, date);
+      moment.locale('th');
+      for (const h of s) {
+        const _gcs = _.filter(gcs, { hospital_id: h.id })
+        for (const g of _gcs) {
+          ws.cell(row, 1).string(h.hospname);
+          ws.cell(row, 2).string(toString(g.hn));
+          ws.cell(row, 3).string(moment(g.date_admit).format('D MMMM ') + ((+moment(g.date_admit).format('YYYY')) + 543));
+          ws.cell(row, 4).string(toString(g.gcs_name));
+          ws.cell(row++, 5).string(toString(g.status));
+        }
       }
     }
 
@@ -880,7 +1039,7 @@ router.get('/get-gcs/export', async (req: Request, res: Response) => {
 
       }
     });
-    // res.send({ ok: true, rows: data, code: HttpStatus.OK });
+    // res.send({ ok: true, rows: 0, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -891,54 +1050,105 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
   const db = req.db;
   const _provinceCode = req.decoded.provinceCode;
   const date = req.query.date;
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
 
   try {
     var wb = new excel4node.Workbook();
-    var ws = wb.addWorksheet('Sheet 1');
-
-    let row = 2;
-    ws.cell(1, 1).string('โรงพยาบาล');
-    ws.cell(1, 2).string('Surgical Gown');
-    ws.cell(1, 3).string('Cover All-1');
-    ws.cell(1, 4).string('Cover All-2');
-    ws.cell(1, 5).string('N95');
-    ws.cell(1, 6).string('Shoe Cover');
-    ws.cell(1, 7).string('Surgical hood');
-    ws.cell(1, 8).string('Long glove');
-    ws.cell(1, 9).string('Face shield');
-    ws.cell(1, 10).string('Surgical Mask');
-    ws.cell(1, 11).string('Powered air-purifying respirator');
-    const hospital: any = await model.getHospital(db)
-    const _hosp = _.filter(hospital, { province_code: _provinceCode });
     const sup: any = await model.getSupplies(db, date)
-    for (const h of _hosp) {
-      const _sup = _.filter(sup, { hospital_id: h.id })
-      for (const s of _sup) {
-        ws.cell(row, 1).string(h.hospname);
+    const hospital: any = await model.getHospital(db);
 
-        if (s.generic_id == 9) {
-          ws.cell(row, 2).string(toString(s.qty))
-        } else if (s.generic_id == 10) {
-          ws.cell(row, 3).string(toString(s.qty))
-        } else if (s.generic_id == 11) {
-          ws.cell(row, 4).string(toString(s.qty))
-        } else if (s.generic_id == 12) {
-          ws.cell(row, 5).string(toString(s.qty))
-        } else if (s.generic_id == 13) {
-          ws.cell(row, 6).string(toString(s.qty))
-        } else if (s.generic_id == 14) {
-          ws.cell(row, 7).string(toString(s.qty))
-        } else if (s.generic_id == 15) {
-          ws.cell(row, 8).string(toString(s.qty))
-        } else if (s.generic_id == 16) {
-          ws.cell(row, 9).string(toString(s.qty))
-        } else if (s.generic_id == 17) {
-          ws.cell(row, 10).string(toString(s.qty))
-        } else if (s.generic_id == 18) {
-          ws.cell(row, 11).string(toString(s.qty))
-        };
+    if (providerType === 'ZONE') {
+      const province = await model.getProvince(db, zoneCode, null);
+      for (let v = 0; v < province.length; v++) {
+        var ws = wb.addWorksheet(`${province[v].name_th}`);
+        let row = 2;
+        ws.cell(1, 1).string('โรงพยาบาล');
+        ws.cell(1, 2).string('Surgical Gown');
+        ws.cell(1, 3).string('Cover All-1');
+        ws.cell(1, 4).string('Cover All-2');
+        ws.cell(1, 5).string('N95');
+        ws.cell(1, 6).string('Shoe Cover');
+        ws.cell(1, 7).string('Surgical hood');
+        ws.cell(1, 8).string('Long glove');
+        ws.cell(1, 9).string('Face shield');
+        ws.cell(1, 10).string('Surgical Mask');
+        ws.cell(1, 11).string('Powered air-purifying respirator');
+        const _hosp = _.filter(hospital, { province_code: province[v].code });
+        for (const h of _hosp) {
+          ws.cell(row, 1).string(h.hospname);
+          const _sup = _.filter(sup, { hospital_id: h.id })
+          for (const s of _sup) {
+            if (s.generic_id == 9) {
+              ws.cell(row, 2).string(toString(s.qty))
+            } else if (s.generic_id == 10) {
+              ws.cell(row, 3).string(toString(s.qty))
+            } else if (s.generic_id == 11) {
+              ws.cell(row, 4).string(toString(s.qty))
+            } else if (s.generic_id == 12) {
+              ws.cell(row, 5).string(toString(s.qty))
+            } else if (s.generic_id == 13) {
+              ws.cell(row, 6).string(toString(s.qty))
+            } else if (s.generic_id == 14) {
+              ws.cell(row, 7).string(toString(s.qty))
+            } else if (s.generic_id == 15) {
+              ws.cell(row, 8).string(toString(s.qty))
+            } else if (s.generic_id == 16) {
+              ws.cell(row, 9).string(toString(s.qty))
+            } else if (s.generic_id == 17) {
+              ws.cell(row, 10).string(toString(s.qty))
+            } else if (s.generic_id == 18) {
+              ws.cell(row, 11).string(toString(s.qty))
+            };
+          }
+          row++;
+        }
       }
-      row++;
+    } else {
+      var ws = wb.addWorksheet('Sheet 1');
+
+      let row = 2;
+      ws.cell(1, 1).string('โรงพยาบาล');
+      ws.cell(1, 2).string('Surgical Gown');
+      ws.cell(1, 3).string('Cover All-1');
+      ws.cell(1, 4).string('Cover All-2');
+      ws.cell(1, 5).string('N95');
+      ws.cell(1, 6).string('Shoe Cover');
+      ws.cell(1, 7).string('Surgical hood');
+      ws.cell(1, 8).string('Long glove');
+      ws.cell(1, 9).string('Face shield');
+      ws.cell(1, 10).string('Surgical Mask');
+      ws.cell(1, 11).string('Powered air-purifying respirator');
+
+      const _hosp = _.filter(hospital, { province_code: _provinceCode });
+      for (const h of _hosp) {
+        ws.cell(row, 1).string(h.hospname);
+        const _sup = _.filter(sup, { hospital_id: h.id })
+        for (const s of _sup) {
+          if (s.generic_id == 9) {
+            ws.cell(row, 2).string(toString(s.qty))
+          } else if (s.generic_id == 10) {
+            ws.cell(row, 3).string(toString(s.qty))
+          } else if (s.generic_id == 11) {
+            ws.cell(row, 4).string(toString(s.qty))
+          } else if (s.generic_id == 12) {
+            ws.cell(row, 5).string(toString(s.qty))
+          } else if (s.generic_id == 13) {
+            ws.cell(row, 6).string(toString(s.qty))
+          } else if (s.generic_id == 14) {
+            ws.cell(row, 7).string(toString(s.qty))
+          } else if (s.generic_id == 15) {
+            ws.cell(row, 8).string(toString(s.qty))
+          } else if (s.generic_id == 16) {
+            ws.cell(row, 9).string(toString(s.qty))
+          } else if (s.generic_id == 17) {
+            ws.cell(row, 10).string(toString(s.qty))
+          } else if (s.generic_id == 18) {
+            ws.cell(row, 11).string(toString(s.qty))
+          };
+        }
+        row++;
+      }
     }
 
     fse.ensureDirSync(process.env.TMP_PATH);
