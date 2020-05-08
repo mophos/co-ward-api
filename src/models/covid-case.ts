@@ -422,10 +422,10 @@ export class CovidCaseModel {
     data.forEach(v => {
       let sql = `
           INSERT INTO wm_generics
-          (hospital_id, generic_id,qty,update_entry,created_by)
+          (hospital_id, generic_id,qty,update_date,created_by)
           VALUES('${v.hospital_id}', '${v.generic_id}',${v.qty}, now(),${v.created_by})
           ON DUPLICATE KEY UPDATE
-          qty=qty-${v.qty},update_date=now()updated_by,${v.created_by}
+          qty=qty-${v.qty},update_date=now(),updated_by=${v.created_by}
         `;
       sqls.push(sql);
     });
