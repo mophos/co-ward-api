@@ -290,15 +290,15 @@ router.post('/', async (req: Request, res: Response) => {
       an: data.an,
       date_admit: data.admitDate,
       confirm_date: data.confirmDate,
-      create_by: userId
+      created_by: userId
     }
     _data.updated_entry = moment().format('YYYY-MM-DD');
     if (!timeCut.ok) {
       _data.updated_entry = _data.date_entry = moment().add(1, 'days').format('YYYY-MM-DD');
     } else {
-      _data.updated_entry =  _data.date_entry = moment().format('YYYY-MM-DD');
+      _data.updated_entry = _data.date_entry = moment().format('YYYY-MM-DD');
     }
-    
+
     const covidCaseId = await covidCaseModel.saveCovidCase(db, _data);
     // const detail: any = {
     //   covid_case_id: covidCaseId[0],
@@ -318,6 +318,7 @@ router.post('/', async (req: Request, res: Response) => {
       obj.medical_supplie_id = v.medical_supplie_id || null;
       obj.create_by = userId;
       obj.entry_date = v.date;
+      obj.created_by = userId;
       const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, obj);
       const _covidCaseDetailId = covidCaseDetailId[0].insertId;
 
@@ -418,7 +419,8 @@ router.post('/old', async (req: Request, res: Response) => {
       reason: data.reason,
       date_discharge: data.dateDischarge,
       status: data.status,
-      create_by: userId
+      created_by: userId,
+      case_type: 'OLD_CASE'
     }
     _data.updated_entry = moment().format('YYYY-MM-DD');
 
@@ -433,7 +435,7 @@ router.post('/old', async (req: Request, res: Response) => {
       const detail: any = {
         covid_case_id: covidCaseId[0],
         status: i == data.date.length - 1 ? data.status : 'ADMIT',
-        create_by: userId,
+        created_by: userId,
         entry_date: moment(v).format('YYYY-MM-DD')
       }
       const covidCaseDetailId = await covidCaseModel.saveCovidCaseOldDetail(db, detail);

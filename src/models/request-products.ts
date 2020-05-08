@@ -5,7 +5,7 @@ export class RequestProductModel {
     getlist(db: Knex, hospitalId) {
         return db('wm_request_products as r')
             .select('r.*', 'h.hospname as hospname_req')
-            .join('b_hospitals as h', 'h.id', 'r.hosppital_id')
+            .join('b_hospitals as h', 'h.id', 'r.hospital_id')
             .where('r.hospital_id', hospitalId)
     }
 
