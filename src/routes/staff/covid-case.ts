@@ -421,24 +421,25 @@ router.post('/old', async (req: Request, res: Response) => {
       create_by: userId
     }
     _data.updated_entry = moment().format('YYYY-MM-DD');
-
+    console.log(_data);
+    
     if (!timeCut.ok) {
       _data.updated_entry = _data.date_entry = moment().add(1, 'days').format('YYYY-MM-DD');
     } else {
       _data.updated_entry = _data.date_entry = moment().format('YYYY-MM-DD');
     }
-    const covidCaseId = await covidCaseModel.saveCovidCase(db, _data);
-    let i = 0;
-    for (const v of data.date) {
-      const detail: any = {
-        covid_case_id: covidCaseId[0],
-        status: i == data.date.length - 1 ? data.status : 'ADMIT',
-        create_by: userId,
-        entry_date: moment(v).format('YYYY-MM-DD')
-      }
-      const covidCaseDetailId = await covidCaseModel.saveCovidCaseOldDetail(db, detail);
-      i++;
-    }
+    // const covidCaseId = await covidCaseModel.saveCovidCase(db, _data);
+    // let i = 0;
+    // for (const v of data.date) {
+    //   const detail: any = {
+    //     covid_case_id: covidCaseId[0],
+    //     status: i == data.date.length - 1 ? data.status : 'ADMIT',
+    //     create_by: userId,
+    //     entry_date: moment(v).format('YYYY-MM-DD')
+    //   }
+    //   const covidCaseDetailId = await covidCaseModel.saveCovidCaseOldDetail(db, detail);
+    //   i++;
+    // }
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
