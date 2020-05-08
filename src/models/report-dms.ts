@@ -8,6 +8,11 @@ export class ReportDmsModel {
     return db('views_bed_hospital_cross as vc')
       .select('vc.*', 'vh.*')
       .count('* as hospital_qty')
+      .sum('aiir_qty as aiir_qty')
+      .sum('modified_aiir_qty as modified_aiir_qty')
+      .sum('isolate_qty as isolate_qty')
+      .sum('cohort_qty as cohort_qty')
+      .sum('hospitel_qty as hospitel_qty')
       .join('views_hospital_dms as vh', 'vh.id', 'vc.hospital_id')
       .where('vh.sector', sector)
       .groupBy('vh.sub_ministry_code')
@@ -39,6 +44,7 @@ export class ReportDmsModel {
       .join('views_hospital_dms as vh', 'vh.id', 'v.hospital_id')
       .where('v.status', 'ADMIT')
       .where('vh.sector', sector)
+      .orderBy('vh.sub_ministry_name')
 
 
 
@@ -62,6 +68,7 @@ export class ReportDmsModel {
       .join('views_hospital_dms as vh', 'vh.id', 'v.hospital_id')
       .where('v.status', 'ADMIT')
       .where('vh.sector', sector)
+      .orderBy('vh.sub_ministry_name')
   }
 
   report4(db: Knex, date, sector) {
@@ -105,6 +112,7 @@ export class ReportDmsModel {
       })
       .join('views_hospital_dms as vh', 'vh.id', 'vc.hospital_id')
       .where('vh.sector', sector)
+      .orderBy('vh.sub_ministry_name')
   }
 
   report7(db: Knex, date, sector) {

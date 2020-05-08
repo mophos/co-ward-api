@@ -44,7 +44,6 @@ router.get('/report3', async (req: Request, res: Response) => {
   const sector = req.query.sector;
   try {
     const rs: any = await model.report3(db, date, sector);
-    console.log(rs);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error, code: HttpStatus.OK });

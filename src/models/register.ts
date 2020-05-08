@@ -139,9 +139,10 @@ export class Register {
 
     }
 
+
     sendMS2(data) {
         console.log(data);
-        
+
         return new Promise((resolve, reject) => {
             var options = {
                 method: 'POST',
@@ -178,10 +179,11 @@ export class Register {
 
     getUserMedicine(db: Knex) {
         return db('um_users as u')
-            .select('u.*', 'h.hospname','h.id as hospital_id')
+            .select('u.*', 'h.hospname', 'h.id as hospital_id')
             .join('b_hospitals as h', 'h.hospcode', 'u.hospcode')
-            .where('u.position_id', '8')
-            // .where('u.id', '1066')
-            // .offset(1);
+            .whereIn('u.position_id', ['5','8','74', '75','76','77','79'])
+            // .whereIn('u.position_id', ['5', '8'])
+            // .whereIn('u.id', [ '3851'])
+        // .offset(1);
     }
 }
