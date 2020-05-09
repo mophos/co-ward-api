@@ -27,31 +27,43 @@ export class ReportDmsModel {
     //   .where('v.entry_date', date)
     //   .where('v.status', 'ADMIT')
 
-    let sub = db('views_case_hospital_date_cross')
-      .max('entry_date as entry_date')
-      .select('hospital_id')
-      .where('entry_date', '<=', date)
-      .where('status', 'ADMIT')
-      .groupBy('hospital_id')
-      .as('sub')
+    // let sub = db('views_case_hospital_date_cross')
+    //   .max('entry_date as entry_date')
+    //   .select('hospital_id')
+    //   .where('entry_date', '<=', date)
+    //   .where('status', 'ADMIT')
+    //   .groupBy('hospital_id')
+    //   .as('sub')
 
-    let sql =
-      db('views_hospital_dms as vh')
-        .select('v.*', 'vh.hospname', 'vh.sub_ministry_name')
-        .leftJoin(sub, 'sub.hospital_id', 'vh.id')
-        .leftJoin('views_case_hospital_date_cross as v', (v) => {
-          v.on('v.hospital_id', 'sub.hospital_id')
-          v.on('v.entry_date', 'sub.entry_date')
-          v.on('v.status', db.raw(`'ADMIT'`))
-        })
-        // .join('views_hospital_dms as vh', 'vh.id', 'v.hospital_id')
-        // .where('v.status', 'ADMIT')
-        .where('vh.sector', sector)
-        .orderBy('vh.sub_ministry_name')
-    return sql;
+    // let sql =
+    //   db('views_hospital_dms as vh')
+    //     .select('v.*', 'vh.hospname', 'vh.sub_ministry_name')
+    //     .leftJoin(sub, 'sub.hospital_id', 'vh.id')
+    //     .leftJoin('views_case_hospital_date_cross as v', (v) => {
+    //       v.on('v.hospital_id', 'sub.hospital_id')
+    //       v.on('v.entry_date', 'sub.entry_date')
+    //       v.on('v.status', db.raw(`'ADMIT'`))
+    //     })
+    //     // .join('views_hospital_dms as vh', 'vh.id', 'v.hospital_id')
+    //     // .where('v.status', 'ADMIT')
+    //     .where('vh.sector', sector)
+    //     .orderBy('vh.sub_ministry_name')
+    // return sql;
 
-
-
+    return db('views_hospital_dms as vh')
+      .select('vh.id', 'vh.hospname', 'vh.sub_ministry_name', db.raw(`
+sum( gcs_id = 1 ) AS severe,
+sum( gcs_id = 2 ) AS moderate,
+sum( gcs_id = 3 ) AS mild,
+sum( gcs_id = 4 ) AS asymptomatic,
+sum( gcs_id = 5 ) AS ip_pui,
+vc.updated_entry  as updated_entry`))
+      .leftJoin('views_covid_case_last as vc', (v) => {
+        v.on('vh.id', 'vc.hospital_id')
+        v.on('vc.status', db.raw(`'ADMIT'`))
+      })
+      .where('vh.sector', 'PRIVATE')
+      .groupBy('vh.id')
   }
 
   report3(db: Knex, date, sector) {
@@ -106,24 +118,32 @@ export class ReportDmsModel {
     //   })
     //   .join('views_hospital_dms as vh', 'vh.id', 'vc.hospital_id')
     //   .where('vh.sector', sector)
-    let sub = db('views_case_hospital_date_cross')
-      .max('entry_date as entry_date')
-      .select('hospital_id')
-      .where('entry_date', '<=', date)
-      .where('status', 'ADMIT')
-      .groupBy('hospital_id')
+    let sub = db('views_hospital_dms as vh')
+      .select('vh.id as hospital_id', 'vh.hospname', 'vh.sub_ministry_name', db.raw(`
+ifnull(sum( gcs_id  =1 ),0) +
+ifnull(sum( gcs_id = 2 ),0) +
+ifnull(sum( gcs_id = 3 ),0) +
+ifnull(sum( gcs_id = 4 ),0) +
+ifnull(sum( gcs_id = 5 ),0) AS sum,
+vc.updated_entry  as updated_entry`))
+      .leftJoin('views_covid_case_last as vc', (v) => {
+        v.on('vh.id', 'vc.hospital_id')
+        v.on('vc.status', db.raw(`'ADMIT'`))
+      })
+      .where('vh.sector', sector)
+      .groupBy('vh.id')
       .as('sub')
 
     let sql =
       db('views_hospital_dms  as vh')
-      .select('vb.*', 'v.sum', 'vh.hospname', 'vh.sub_ministry_name')
+        .select('vb.*', 'sub.*', 'vh.hospname', 'vh.sub_ministry_name')
         .leftJoin('views_bed_hospital_cross as vb', 'vh.id', 'vb.hospital_id')
         .leftJoin(sub, 'sub.hospital_id', 'vb.hospital_id')
-        .leftJoin('views_case_hospital_date_cross as v', (v) => {
-          v.on('v.hospital_id', 'sub.hospital_id')
-          v.on('v.entry_date', 'sub.entry_date')
-          v.on('v.status', db.raw(`'ADMIT'`))
-        })
+        // .leftJoin('views_case_hospital_date_cross as v', (v) => {
+        //   v.on('v.hospital_id', 'sub.hospital_id')
+        //   v.on('v.entry_date', 'sub.entry_date')
+        //   v.on('v.status', db.raw(`'ADMIT'`))
+        // })
         .where('vh.sector', sector)
         .orderBy('vh.sub_ministry_name')
     return sql;
@@ -138,28 +158,30 @@ export class ReportDmsModel {
     //   .join('views_hospital_dms as vh', 'vh.id', 'vc.hospital_id')
     //   .where('vh.sector', sector)
     //   .orderBy('vh.sub_ministry_name')
-    let sub = db('views_bed_hospital_date_cross')
-    .max('entry_date as entry_date')
-    .select('hospital_id')
-    .where('entry_date', '<=', date)
-    // .where('status', 'ADMIT')
-    .groupBy('hospital_id')
-    .as('sub')
-
-  let sql =
-    db('views_hospital_dms  as vh')
-    .select('vb.*', 'v.*', 'vh.hospname', 'vh.sub_ministry_name')
-      .leftJoin('views_bed_hospital_cross as vb', 'vh.id', 'vb.hospital_id')
-      .leftJoin(sub, 'sub.hospital_id', 'vb.hospital_id')
-      .leftJoin('views_bed_hospital_date_cross as v', (v) => {
-        v.on('v.hospital_id', 'sub.hospital_id')
-        v.on('v.entry_date', 'sub.entry_date')
-        // v.on('v.status', db.raw(`'ADMIT'`))
+    let sub = db('views_hospital_dms as vh')
+      .select('vh.id as hospital_id', 'vh.hospname', 'vh.sub_ministry_name', db.raw(`
+sum( bed_id  =1 ) as aiir_usage_qty,
+sum( bed_id = 2 ) as modified_aiir_usage_qty,
+sum( bed_id = 3 ) as isolate_usage_qty,
+sum( bed_id = 4 ) as cohort_usage_qty,
+sum( bed_id = 5 ) AS hospitel_usage_qty,
+vc.updated_entry  as updated_entry`))
+      .leftJoin('views_covid_case_last as vc', (v) => {
+        v.on('vh.id', 'vc.hospital_id')
+        v.on('vc.status', db.raw(`'ADMIT'`))
       })
       .where('vh.sector', sector)
-      .orderBy('vh.sub_ministry_name')
-      
-  return sql;
+      .groupBy('vh.id')
+      .as('sub')
+
+    let sql =
+      db('views_hospital_dms  as vh')
+        .select('vb.*', 'sub.*', 'vh.hospname', 'vh.sub_ministry_name')
+        .leftJoin('views_bed_hospital_cross as vb', 'vh.id', 'vb.hospital_id')
+        .leftJoin(sub, 'sub.hospital_id', 'vb.hospital_id')
+        .where('vh.sector', sector)
+        .orderBy('vh.sub_ministry_name')
+    return sql;
   }
 
   report7(db: Knex, date, sector) {
