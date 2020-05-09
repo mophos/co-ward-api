@@ -35,16 +35,20 @@ export class ReportDmsModel {
       .groupBy('hospital_id')
       .as('sub')
 
-    return db(sub)
-      .select('v.*', 'vh.hospname', 'vh.sub_ministry_name')
-      .join('views_case_hospital_date_cross as v', (v) => {
-        v.on('v.hospital_id', 'sub.hospital_id')
-        v.on('v.entry_date', 'sub.entry_date')
-      })
-      .join('views_hospital_dms as vh', 'vh.id', 'v.hospital_id')
-      .where('v.status', 'ADMIT')
-      .where('vh.sector', sector)
-      .orderBy('vh.sub_ministry_name')
+    let sql =
+      db('views_hospital_dms as vh')
+        .select('v.*', 'vh.hospname', 'vh.sub_ministry_name')
+        .leftJoin(sub, 'sub.hospital_id', 'vh.id')
+        .leftJoin('views_case_hospital_date_cross as v', (v) => {
+          v.on('v.hospital_id', 'sub.hospital_id')
+          v.on('v.entry_date', 'sub.entry_date')
+          v.on('v.status', db.raw(`'ADMIT'`))
+        })
+        // .join('views_hospital_dms as vh', 'vh.id', 'v.hospital_id')
+        // .where('v.status', 'ADMIT')
+        .where('vh.sector', sector)
+        .orderBy('vh.sub_ministry_name')
+    return sql;
 
 
 
@@ -95,13 +99,34 @@ export class ReportDmsModel {
   }
 
   report5(db: Knex, date, sector) {
-    return db('views_bed_hospital_cross as vc')
-      .leftJoin('views_bed_hospital_date_cross AS vb', (v) => {
-        v.on('vc.hospital_id ', 'vb.hospital_id')
-          .on('vb.entry_date', db.raw(`'${date}'`))
-      })
-      .join('views_hospital_dms as vh', 'vh.id', 'vc.hospital_id')
-      .where('vh.sector', sector)
+    // return db('views_bed_hospital_cross as vc')
+    //   .leftJoin('views_bed_hospital_date_cross AS vb', (v) => {
+    //     v.on('vc.hospital_id ', 'vb.hospital_id')
+    //       .on('vb.entry_date', db.raw(`'${date}'`))
+    //   })
+    //   .join('views_hospital_dms as vh', 'vh.id', 'vc.hospital_id')
+    //   .where('vh.sector', sector)
+    let sub = db('views_case_hospital_date_cross')
+      .max('entry_date as entry_date')
+      .select('hospital_id')
+      .where('entry_date', '<=', date)
+      .where('status', 'ADMIT')
+      .groupBy('hospital_id')
+      .as('sub')
+
+    let sql =
+      db('views_hospital_dms  as vh')
+      .select('vb.*', 'v.sum', 'vh.hospname', 'vh.sub_ministry_name')
+        .leftJoin('views_bed_hospital_cross as vb', 'vh.id', 'vb.hospital_id')
+        .leftJoin(sub, 'sub.hospital_id', 'vb.hospital_id')
+        .leftJoin('views_case_hospital_date_cross as v', (v) => {
+          v.on('v.hospital_id', 'sub.hospital_id')
+          v.on('v.entry_date', 'sub.entry_date')
+          v.on('v.status', db.raw(`'ADMIT'`))
+        })
+        .where('vh.sector', sector)
+        .orderBy('vh.sub_ministry_name')
+    return sql;
   }
 
   report6(db: Knex, date, sector) {
