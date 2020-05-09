@@ -62,7 +62,7 @@ vc.updated_entry  as updated_entry`))
         v.on('vh.id', 'vc.hospital_id')
         v.on('vc.status', db.raw(`'ADMIT'`))
       })
-      .where('vh.sector', 'PRIVATE')
+      .where('vh.sector', sector)
       .groupBy('vh.id')
   }
 
