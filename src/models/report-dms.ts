@@ -70,12 +70,12 @@ vc.updated_entry  as updated_entry`))
     let sub = db('views_case_hospital_date_cross')
       .max('entry_date as entry_date')
       .select('hospital_id')
-      .where('entry_date', '=', date)
+      .where('entry_date', date)
       .where('status', 'ADMIT')
       .groupBy('hospital_id')
       .as('sub')
 
-    return db(sub)
+    let sql = db(sub)
       .select('v.*', 'vh.hospname', 'vh.sub_ministry_name')
       .join('views_case_hospital_date_cross as v', (v) => {
         v.on('v.hospital_id', 'sub.hospital_id')
@@ -85,6 +85,9 @@ vc.updated_entry  as updated_entry`))
       .where('v.status', 'ADMIT')
       .where('vh.sector', sector)
       .orderBy('vh.sub_ministry_name')
+      console.log(sql.toString());
+      return sql;
+      
   }
 
   report4(db: Knex, date, sector) {
@@ -178,9 +181,10 @@ vc.updated_entry  as updated_entry`))
       db('views_hospital_dms  as vh')
         .select('vb.*', 'sub.*', 'vh.hospname', 'vh.sub_ministry_name')
         .leftJoin('views_bed_hospital_cross as vb', 'vh.id', 'vb.hospital_id')
-        .leftJoin(sub, 'sub.hospital_id', 'vb.hospital_id')
+        .leftJoin(sub, 'sub.hospital_id', 'vh.id')
         .where('vh.sector', sector)
         .orderBy('vh.sub_ministry_name')
+        
     return sql;
   }
 
