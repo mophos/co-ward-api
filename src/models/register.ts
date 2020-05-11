@@ -108,9 +108,9 @@ export class Register {
         return new Promise((resolve, reject) => {
             var options = {
                 method: 'POST',
-                url: 'https://test-api-menagement.azure-api.net/regisapi/med-covid-moph/moph/v1/register.action',
+                url: 'https://moph-api.azure-api.net/registerapi/med-covid-moph/moph/v1/register.action',
                 headers: {
-                    'ocp-apim-subscription-key': 'fcce9158dc0f43f2bc48ae1cda642761',
+                    'ocp-apim-subscription-key': '1c8aaeed5b8b48bb80d0dae0e1c5c46f',
                     'content-type': 'application/json'
                 }, body: {
                     hospital: data.hospitalId,
@@ -146,9 +146,9 @@ export class Register {
         return new Promise((resolve, reject) => {
             var options = {
                 method: 'POST',
-                url: 'https://test-api-menagement.azure-api.net/regisapi/med-covid-moph/moph/v1/register.action',
+                url: 'https://moph-api.azure-api.net/registerapi/med-covid-moph/moph/v1/register.action',
                 headers: {
-                    'ocp-apim-subscription-key': 'fcce9158dc0f43f2bc48ae1cda642761',
+                    'ocp-apim-subscription-key': '1c8aaeed5b8b48bb80d0dae0e1c5c46f',
                     'content-type': 'application/json'
                 }, body: {
                     hospital: data.hospital_id,
