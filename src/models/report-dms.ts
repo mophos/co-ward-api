@@ -5,7 +5,7 @@ import { join } from 'bluebird';
 export class ReportDmsModel {
 
   report1(db: Knex, date: any, sector: any) {
-    return db('views_bed_hospital_cross as vc')
+    const sql = db('views_bed_hospital_cross as vc')
       .select('vc.*', 'vh.*')
       .count('* as hospital_qty')
       .sum('aiir_qty as aiir_qty')
@@ -16,6 +16,9 @@ export class ReportDmsModel {
       .join('views_hospital_dms as vh', 'vh.id', 'vc.hospital_id')
       .where('vh.sector', sector)
       .groupBy('vh.sub_ministry_code')
+
+    return sql;
+
   }
 
   report2(db: Knex, date, sector) {
@@ -50,7 +53,7 @@ export class ReportDmsModel {
     //     .orderBy('vh.sub_ministry_name')
     // return sql;
 
-    return db('views_hospital_dms as vh')
+    const sql = db('views_hospital_dms as vh')
       .select('vh.id', 'vh.hospname', 'vh.sub_ministry_name', db.raw(`
 sum( gcs_id = 1 ) AS severe,
 sum( gcs_id = 2 ) AS moderate,
@@ -64,6 +67,8 @@ vc.updated_entry  as updated_entry`))
       })
       .where('vh.sector', sector)
       .groupBy('vh.id')
+
+    return sql;
   }
 
   report3(db: Knex, date, sector) {
@@ -85,13 +90,13 @@ vc.updated_entry  as updated_entry`))
       .where('v.status', 'ADMIT')
       .where('vh.sector', sector)
       .orderBy('vh.sub_ministry_name')
-      console.log(sql.toString());
-      return sql;
-      
+
+    return sql;
+
   }
 
   report4(db: Knex, date, sector) {
-    return db('views_covid_case_last as cl')
+    const sql = db('views_covid_case_last as cl')
       .select('vh.id as hospital_id',
         'vh.hospname',
         'vh.sub_ministry_name',
@@ -111,6 +116,8 @@ vc.updated_entry  as updated_entry`))
       .where('cl.entry_date', '<=', date)
       .where('vh.sector', sector)
       .groupBy('cl.hospital_id')
+
+    return sql;
   }
 
   report5(db: Knex, date, sector) {
@@ -149,6 +156,7 @@ vc.updated_entry  as updated_entry`))
         // })
         .where('vh.sector', sector)
         .orderBy('vh.sub_ministry_name')
+
     return sql;
   }
 
@@ -184,15 +192,34 @@ vc.updated_entry  as updated_entry`))
         .leftJoin(sub, 'sub.hospital_id', 'vh.id')
         .where('vh.sector', sector)
         .orderBy('vh.sub_ministry_name')
-        
+
     return sql;
   }
 
   report7(db: Knex, date, sector) {
-    return db('views_medical_supplies_hospital_cross as v')
-      .select('v.*', 'vh.hospname', 'vh.sub_ministry_name')
-      .join('views_hospital_dms as vh', 'vh.id', 'v.hospital_id')
+    let sub = db('views_hospital_dms as vh')
+      .select('vh.id as hospital_id', 'vh.hospname', 'vh.sub_ministry_name', db.raw(`
+      sum( medical_supplie_id = 1 ) AS invasive_ventilator,
+      sum( medical_supplie_id = 2 ) AS non_invasive_ventilator,
+      sum( medical_supplie_id = 3 ) AS high_flow,
+vc.updated_entry  as updated_entry`))
+      .leftJoin('views_covid_case_last as vc', (v) => {
+        v.on('vh.id', 'vc.hospital_id')
+        v.on('vc.status', db.raw(`'ADMIT'`))
+      })
       .where('vh.sector', sector)
+      .groupBy('vh.id')
+      .as('sub')
+
+    let sql =
+      db('views_hospital_dms  as vh')
+        .select('vb.*', 'sub.*', 'vh.hospname', 'vh.sub_ministry_name')
+        .leftJoin('views_medical_supplies_hospital_cross as vb', 'vh.id', 'vb.hospital_id')
+        .leftJoin(sub, 'sub.hospital_id', 'vh.id')
+        .where('vh.sector', sector)
+        .orderBy('vh.sub_ministry_name')
+
+    return sql;
   }
 
   report8(db: Knex, date, sector) {
