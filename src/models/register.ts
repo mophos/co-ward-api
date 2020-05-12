@@ -183,7 +183,7 @@ export class Register {
             .join('b_hospitals as h', 'h.hospcode', 'u.hospcode')
             .whereIn('u.position_id', ['5','8','74', '75','76','77','79'])
             // .whereIn('u.position_id', ['5', '8'])
-            // .whereIn('u.id', [ '3341'])
+            .whereIn('u.id', [ '4358'])
         // .offset(1);
     }
 }
