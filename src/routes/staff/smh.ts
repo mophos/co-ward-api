@@ -42,6 +42,7 @@ router.get('/', async (req: Request, res: Response) => {
 
   try {
     if (!rs.length) {
+      console.log('มหาดไทย');
       const rs: any = await model.infoCid(cid, token[0].token);
       const rsa: any = await model.infoCidAddress(cid, token[0].token);
 
@@ -55,7 +56,8 @@ router.get('/', async (req: Request, res: Response) => {
       obj.last_name = rs.data.lastName;
       obj.middle_name = rs.data.middleName;
       obj.gender_id = rs.data.genderCode;
-      obj.birth_date = (+(rs.data.dateOfBirth.toString().substring(0, 4)) - 543) + '-' + rs.data.dateOfBirth.toString().substring(4, 6) + '-' + rs.data.dateOfBirth.toString().substring(6, 8);
+      // obj.birth_date = await checkDate(rs.data.dateOfBirth.toString());
+      obj.birth_date = await checkDate(null);
 
       obj.house_no = rsa.data.houseNo;
       obj.ampur_code = dCode;
@@ -69,7 +71,13 @@ router.get('/', async (req: Request, res: Response) => {
       obj.tambon_name = rsa.data.subdistrictDesc;
       obj.province_name = rsa.data.provinceDesc;
     } else {
-      const add: any = await model.getAddress(db, rs[0].tambon_code, rs[0].ampur_code, rs[0].province_code);
+      console.log('co-ward');
+      if (rs[0].tambon_code != null || rs[0].ampur_code != null || rs[0].province_code != null) {
+        const add: any = await model.getAddress(db, rs[0].tambon_code, rs[0].ampur_code, rs[0].province_code);
+        obj.ampur_name = add[0].ampur_name;
+        obj.tambon_name = add[0].tambon_name;
+        obj.province_name = add[0].province_name;
+      }
 
       obj.title_id = rs[0].title_id;
       obj.first_name = rs[0].first_name;
@@ -78,7 +86,7 @@ router.get('/', async (req: Request, res: Response) => {
       obj.people_type = rs[0].people_type;
       obj.middle_name = rs[0].middle_name;
       obj.gender_id = rs[0].gender_id;
-      obj.birth_date = moment(rs[0].birth_date).format('YYYY-MM-DD');
+      obj.birth_date = await checkDate(moment(rs[0].birth_date).format('YYYYMMDD'));
       obj.telephone = rs[0].telephone;
 
       obj.house_no = rs[0].house_no;
@@ -92,12 +100,9 @@ router.get('/', async (req: Request, res: Response) => {
       obj.village_name = rs[0].village_name;
       obj.road = rs[0].road;
       obj.country_name = 'ไทย';
-      obj.ampur_name = add[0].ampur_name;
-      obj.tambon_name = add[0].tambon_name;
-      obj.province_name = add[0].province_name;
     }
 
-    const rsm: any = await labCovid(db, cid);
+    const rsm: any = await labCovid(cid);
     if (rsm) {
       obj.sat_id = rsm.sat_id;
       obj.telephone = rsm.telephone;
@@ -105,6 +110,7 @@ router.get('/', async (req: Request, res: Response) => {
     res.send({ ok: true, rows: obj, code: HttpStatus.OK });
   } catch (error) {
     try {
+      console.log('Smart Health');
       const smh: any = await model.getSmarthealth(cid, token[0].token);
       const smha: any = await model.getSmarthealthAddress(cid, token[0].token);
       const add: any = await model.getAddress(db, smha.tambon, smha.ampur, smha.changwat);
@@ -113,7 +119,7 @@ router.get('/', async (req: Request, res: Response) => {
       obj.first_name = smh.name;
       obj.last_name = smh.lname;
       obj.gender_id = smh.sex;
-      obj.birth_date = smh.birth;
+      obj.birth_date = await checkDate(moment(smh.birth).format('YYYYMMDD'));
 
       obj.house_no = smha.houseno;
       obj.ampur_code = smha.districtCode;
@@ -126,7 +132,7 @@ router.get('/', async (req: Request, res: Response) => {
       obj.tambon_name = add[0].tambon_name;
       obj.province_name = add[0].province_name;
 
-      const rsm: any = await labCovid(db, cid);
+      const rsm: any = await labCovid(cid);
       if (rsm) {
         obj.sat_id = rsm.sat_id;
         obj.telephone = rsm.telephone;
@@ -138,7 +144,7 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
-async function labCovid(db, cid) {
+async function labCovid(cid) {
   const rs: any = await model.apiLogin();
   if (rs.ok) {
     const lab: any = await model.getLabCovid(cid, rs.token);
@@ -168,4 +174,33 @@ async function labCovid(db, cid) {
     return false;
   }
 }
+
+async function checkDate(date) {
+  try {
+    if (date.length == 8) {
+      var year = (date.toString().substring(0, 4));
+      var month = (date.toString().substring(4, 6));
+      var day = (date.toString().substring(6, 8));
+      if (year == '0000') {
+        year = moment().format('YYYY');
+      }
+
+      if (month == '00') {
+        month = moment().format('MM');
+      }
+
+      if (day == '00') {
+        day = moment().format('DD');
+      }
+
+      date = year + '-' + month + '-' + day;
+      return date;
+    } else {
+      return 'empty';
+    }
+  } catch (error) {
+    return 'empty';
+  }
+}
+
 export default router;
