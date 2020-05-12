@@ -479,4 +479,24 @@ export class CovidCaseModel {
       .where('covid_case_detail_id', id)
   }
 
+  getCovidCaseDetailId(db: Knex, id, date) {
+    return db('p_covid_case_details')
+      .select('id')
+      .where('covid_case_id', id)
+      .where('entry_date', '>', date)
+  }
+
+  removeCovidCaseDetail(db: Knex, id){
+    return db('p_covid_case_detail')
+      .delete()
+      .where('id', id)
+  }
+
+  removeRequisition(db: Knex, id){
+    return db('wm_requisitions')
+      .update('is_deleted','Y')
+      .where('covid_case_detail_id', id)
+      .where('is_approved','N')
+  }
+
 }

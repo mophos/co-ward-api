@@ -745,6 +745,16 @@ router.post('/update/discharge', async (req: Request, res: Response) => {
   const userId = req.decoded.id;
 
   try {
+    const dateCheck = moment(data.dateDischarge)
+    if (dateCheck.isBefore(moment(), 'days')) {
+      let rs: any = await covidCaseModel.getCovidCaseDetailId(req.db, detail.covid_case_id, moment(dateCheck).format('YYYY-MM-DD'))
+      for (const i of rs) {
+        await covidCaseModel.removeRequisition(req.db, i.id)
+        await covidCaseModel.removeCovidCaseDetailItem(req.db, i.id)
+        await covidCaseModel.removeCovidCaseDetail(req.db, i.id)
+      }
+    }
+
     const obj: any = {};
     obj.status = data.status;
     obj.date_discharge = data.dateDischarge;
