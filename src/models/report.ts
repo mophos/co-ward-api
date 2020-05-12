@@ -292,6 +292,30 @@ export class ReportModel {
       .groupBy('p.code')
       .orderBy('h.zone_code')
       .orderBy('p.code');
+  }
+
+  admitConfirmCase(db: Knex) {
+    const last = db('p_covid_case_details')
+      .max('updated_entry as updated_entry_last')
+      .whereRaw('covid_case_id=cl.covid_case_id')
+      .whereNotNull('updated_entry')
+      .as('updated_entry_last')
+
+    let sql = db('views_covid_case_last as cl')
+      .select('pt.hn', 'pt.hospital_id', last, db.raw(`DATEDIFF( now(),(${last}) ) as days`), 'h.hospname', 'h.zone_code', 'h.province_name', 'c.date_admit', 'g.name as gcs_name', 'b.name as bed_name', 'm.name as medical_supplies_name')
+      .join('p_covid_cases as c', 'c.id', 'cl.covid_case_id')
+      .join('p_patients as pt', 'pt.id', 'c.patient_id')
+      .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
+      .join('b_gcs as g', 'g.id', 'cl.gcs_id')
+      .join('b_beds as b', 'b.id', 'cl.bed_id')
+      .leftJoin('b_medical_supplies as m', 'm.id', 'cl.medical_supplie_id')
+      .where('cl.status', 'ADMIT')
+      .whereIn('gcs_id', [1, 2, 3, 4])
+      .orderBy('days','DESC')
+      .orderBy('h.zone_code')
+      .orderBy('h.province_code')
+      .orderBy('h.hospname')
+    return sql;
 
   }
 }
