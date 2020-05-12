@@ -628,19 +628,19 @@ router.get('/report6/excel', async (req: Request, res: Response) => {
     ws.cell(3, 1).string('รวม');
     ws.cell(3, 2).string(toString(sumBy(rs, 'aiir_qty'))).style(right);
     ws.cell(3, 3).string(toString(sumBy(rs, 'aiir_usage_qty'))).style(right);
-    ws.cell(3, 4).string(toString((sumBy(rs, 'aiir_qty') + sumBy(rs, 'aiir_usage_qty')) || 0)).style(right);
+    ws.cell(3, 4).string(toString((sumBy(rs, 'aiir_qty') - sumBy(rs, 'aiir_usage_qty')) || 0)).style(right);
     ws.cell(3, 5).string(toString(sumBy(rs, 'modified_aiir_qty'))).style(right);
     ws.cell(3, 6).string(toString(sumBy(rs, 'modified_aiir_usage_qty'))).style(right);
-    ws.cell(3, 7).string(toString((sumBy(rs, 'modified_aiir_qty') + sumBy(rs, 'modified_aiir_usage_qty')) || 0)).style(right);
+    ws.cell(3, 7).string(toString((sumBy(rs, 'modified_aiir_qty') - sumBy(rs, 'modified_aiir_usage_qty')) || 0)).style(right);
     ws.cell(3, 8).string(toString(sumBy(rs, 'isolate_qty'))).style(right);
     ws.cell(3, 9).string(toString(sumBy(rs, 'isolate_usage_qty'))).style(right);
-    ws.cell(3, 10).string(toString((sumBy(rs, 'isolate_qty') + sumBy(rs, 'isolate_usage_qty')) || 0)).style(right);
+    ws.cell(3, 10).string(toString((sumBy(rs, 'isolate_qty') - sumBy(rs, 'isolate_usage_qty')) || 0)).style(right);
     ws.cell(3, 11).string(toString(sumBy(rs, 'cohort_qty'))).style(right);
     ws.cell(3, 12).string(toString(sumBy(rs, 'cohort_usage_qty'))).style(right);
-    ws.cell(3, 13).string(toString((sumBy(rs, 'cohort_qty') + sumBy(rs, 'cohort_usage_qty')) || 0)).style(right);
+    ws.cell(3, 13).string(toString((sumBy(rs, 'cohort_qty') - sumBy(rs, 'cohort_usage_qty')) || 0)).style(right);
     ws.cell(3, 14).string(toString(sumBy(rs, 'hospitel_qty'))).style(right);
     ws.cell(3, 15).string(toString(sumBy(rs, 'hospitel_usage_qty'))).style(right);
-    ws.cell(3, 16).string(toString((sumBy(rs, 'hospitel_qty') + sumBy(rs, 'hospitel_usage_qty')) || 0)).style(right);
+    ws.cell(3, 16).string(toString((sumBy(rs, 'hospitel_qty') - sumBy(rs, 'hospitel_usage_qty')) || 0)).style(right);
 
     let row = 4;
     for (const items of rs) {
