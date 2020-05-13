@@ -302,7 +302,7 @@ export class ReportModel {
       .as('updated_entry_last')
 
     let sql = db('views_covid_case_last as cl')
-      .select('pt.hn', 'pt.hospital_id', last, db.raw(`DATEDIFF( now(),(${last}) ) as days`), 'h.hospname', 'h.zone_code', 'h.province_name', 'c.date_admit', 'g.name as gcs_name', 'b.name as bed_name', 'm.name as medical_supplies_name')
+      .select('pt.hn','c.an', 'pt.hospital_id', last, db.raw(`DATEDIFF( now(),(${last}) ) as days`), 'h.hospname', 'h.zone_code', 'h.province_name', 'c.date_admit', 'g.name as gcs_name', 'b.name as bed_name', 'm.name as medical_supplies_name')
       .join('p_covid_cases as c', 'c.id', 'cl.covid_case_id')
       .join('p_patients as pt', 'pt.id', 'c.patient_id')
       .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
@@ -311,11 +311,58 @@ export class ReportModel {
       .leftJoin('b_medical_supplies as m', 'm.id', 'cl.medical_supplie_id')
       .where('cl.status', 'ADMIT')
       .whereIn('gcs_id', [1, 2, 3, 4])
-      .orderBy('days','DESC')
+      // .orderBy('days','DESC')
       .orderBy('h.zone_code')
       .orderBy('h.province_code')
       .orderBy('h.hospname')
     return sql;
+  }
 
+  admitConfirmCaseSummary(db: Knex) {
+    let sql = db('views_covid_case_last as cl')
+      .select(db.raw(`
+      h.zone_code,
+      sum( cl.gcs_id in (1,2,3,4) ) AS confirm,
+      sum( cl.gcs_id = 1 ) AS severe,
+      sum( cl.gcs_id = 2 ) AS moderate,
+      sum( cl.gcs_id = 3 ) AS mild,
+      sum( cl.gcs_id = 4 ) AS asymptomatic ,
+      sum( cl.bed_id = 1 ) AS aiir ,
+      sum( cl.bed_id = 2 ) AS modified_aiir ,
+      sum( cl.bed_id = 3 ) AS isolate ,
+      sum( cl.bed_id = 4 ) AS cohort ,
+      sum( cl.bed_id = 5 ) AS   hospitel,
+      sum( cl.medical_supplie_id = 1 ) AS   invasive,
+      sum( cl.medical_supplie_id = 2 ) AS   noninvasive,
+      sum( cl.medical_supplie_id = 3 ) AS   high_flow`))
+      .join('p_covid_cases as c', 'c.id', 'cl.covid_case_id')
+      .join('p_patients as pt', 'pt.id', 'c.patient_id')
+      .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
+      .where('cl.status', 'ADMIT')
+      .whereIn('gcs_id', [1, 2, 3, 4])
+      .groupBy('h.zone_code')
+      .orderBy('h.zone_code')
+      .orderBy('h.province_code')
+    return sql;
+  }
+
+  homework(db: Knex) {
+    return db('views_review_homework as v')
+    .select(db.raw(`b.zone_code,
+    sum(b.hosptype_code in ('05','06','07','11','12')) as government,
+    sum(b.hosptype_code in ('05','06','07','11','12') and v.register_last_date is not null) as government_register,
+      sum(b.hosptype_code in ('15')) as private,
+    sum(b.hosptype_code in ('15') and v.register_last_date is not null) as private_register`))
+      .join('b_hospitals as b', 'b.id', 'v.hospital_id')
+      .groupBy('b.zone_code')
+      .orderBy('b.zone_code')
+  }
+
+  homeworkDetail(db: Knex) {
+    return db('views_review_homework as v')
+    .select('v.*','b.hospcode','b.hospname','bs.name as sub_ministry_name')
+      .join('b_hospitals as b', 'b.id', 'v.hospital_id')
+      .join('b_hospital_subministry as bs', 'bs.code', 'b.sub_ministry_code')
+      .orderBy('b.zone_code')
   }
 }

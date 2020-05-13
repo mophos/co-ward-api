@@ -181,9 +181,10 @@ export class Register {
         return db('um_users as u')
             .select('u.*', 'h.hospname', 'h.id as hospital_id')
             .join('b_hospitals as h', 'h.hospcode', 'u.hospcode')
-            .whereIn('u.position_id', ['5','8','74', '75','76','77','79'])
+            .whereIn('u.position_id', ['5', '8', '74', '75', '76', '77', '79'])
             // .whereIn('u.position_id', ['5', '8'])
-            .whereIn('u.id', [ '4358'])
+            .whereIn('u.id', [ '4425'])
+            // .where('u.app_register', 'MS-NCD')
         // .offset(1);
     }
 }

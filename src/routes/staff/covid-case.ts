@@ -470,7 +470,7 @@ async function saveDrug(db, hospitalId, hospcode, drugs, gcsId, hospitalType, co
 
     // RD
     if (drugs.length > 0) {
-      const currentNoRd = await covidCaseModel.countRequisitionhospital(db, hospitalId)
+      const currentNoRd = await covidCaseModel.countRequisitionhospitalDrugs(db, hospitalId)
       const newSerialNoRd = await serialModel.paddingNumber(currentNoRd[0].count + 1, 5)
 
       const headRd = {
@@ -497,7 +497,7 @@ async function saveDrug(db, hospitalId, hospcode, drugs, gcsId, hospitalType, co
 
     if (gcsId) {
       // RS
-      const currentNoRs = await covidCaseModel.countRequisitionhospital(db, hospitalId)
+      const currentNoRs = await covidCaseModel.countRequisitionhospitalSupplies(db, hospitalId)
       const newSerialNoRs = await serialModel.paddingNumber(currentNoRs[0].count + 1, 5)
 
       const headRs = {

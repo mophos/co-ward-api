@@ -1344,5 +1344,56 @@ router.get('/admit-confirm-case', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/admit-confirm-case-summary', async (req: Request, res: Response) => {
+  const db = req.db;
+  const type = req.decoded.type;
+  try {
+    if (type == 'MANAGER') {
+      const rs: any = await model.admitConfirmCaseSummary(db);
+      res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    } else {
+      res.send({ ok: false, code: HttpStatus.UNAUTHORIZED });
+
+    }
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/homework', async (req: Request, res: Response) => {
+  const db = req.db;
+  const type = req.decoded.type;
+  try {
+    if (type == 'MANAGER') {
+      const rs: any = await model.homework(db);
+      res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    } else {
+      res.send({ ok: false, code: HttpStatus.UNAUTHORIZED });
+
+    }
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/homework-detail', async (req: Request, res: Response) => {
+  const db = req.db;
+  const type = req.decoded.type;
+  try {
+    if (type == 'MANAGER') {
+      const rs: any = await model.homeworkDetail(db);
+      res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    } else {
+      res.send({ ok: false, code: HttpStatus.UNAUTHORIZED });
+
+    }
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 
 export default router;

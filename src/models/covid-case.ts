@@ -444,10 +444,17 @@ export class CovidCaseModel {
       .whereIn('id', id);
   }
 
-  countRequisitionhospital(db: Knex, id) {
+  countRequisitionhospitalDrugs(db: Knex, id) {
     return db('wm_requisitions')
       .count('* as count')
       .where('hospital_id_client', id)
+      .where('type', 'DRUG')
+  }
+  countRequisitionhospitalSupplies(db: Knex, id) {
+    return db('wm_requisitions')
+      .count('* as count')
+      .where('hospital_id_client', id)
+      .where('type', 'SUPPLIES')
   }
 
   updateDischarge(db: Knex, id, data) {
