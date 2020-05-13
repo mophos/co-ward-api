@@ -937,16 +937,20 @@ router.get('/get-supplies', async (req: Request, res: Response) => {
         for (const h of _hosp) {
           const _hospital: any = {};
           _hospital.province_name = p.name_th;
-          const obj = {
+          const obj: any = {
             hospital_id: h.id,
             hospcode: h.hospcode,
-            hospname: h.hospname
+            hospname: h.hospname,
           };
           const _sup = _.filter(sup, { hospital_id: h.id })
-          for (const s of _sup) {
-            obj[s.generic_id] = s.qty;
+          if (_sup.length) {
+            obj.date = _sup[0].date || null;
+            for (const s of _sup) {
+              obj[s.generic_id] = s.qty;
+            }
+            hosp.push(obj);
           }
-          hosp.push(obj);
+
         }
         _province.hospitals = hosp;
         provinces.push(_province);

@@ -66,13 +66,20 @@ export class ReportModel {
   }
 
   getSupplies(db: Knex, date) {
+    const suppliesId = db('wm_supplies_details as wsd')
+      .max('ws.id as id')
+      .join('wm_supplies as ws', 'ws.id', 'wsd.wm_supplie_id')
+      .groupBy('ws.hospital_id');
+    if (date) {
+      suppliesId.where('ws.date', '<=', date)
+    }
+
     const sql = db('wm_supplies_details as sd')
       .select('sd.id AS id', 'sd.wm_supplie_id AS wm_supplie_id', 'sd.generic_id AS generic_id',
-        'sd.qty AS qty', 'sd.month_usage_qty AS month_usage_qty', 's.hospital_id AS hospital_id')
+        'sd.qty AS qty', 'sd.month_usage_qty AS month_usage_qty', 's.hospital_id AS hospital_id', 's.date')
       .join('wm_supplies as s', 's.id', 'sd.wm_supplie_id')
-    if (date) {
-      sql.where('s.date', date)
-    }
+      .whereIn('sd.id', suppliesId)
+      
     return sql;
   }
 
@@ -302,7 +309,7 @@ export class ReportModel {
       .as('updated_entry_last')
 
     let sql = db('views_covid_case_last as cl')
-      .select('pt.hn','c.an', 'pt.hospital_id', last, db.raw(`DATEDIFF( now(),(${last}) ) as days`), 'h.hospname', 'h.hospcode','h.zone_code', 'h.province_name', 'c.date_admit', 'g.name as gcs_name', 'b.name as bed_name', 'm.name as medical_supplies_name')
+      .select('pt.hn', 'c.an', 'pt.hospital_id', last, db.raw(`DATEDIFF( now(),(${last}) ) as days`), 'h.hospname', 'h.hospcode', 'h.zone_code', 'h.province_name', 'c.date_admit', 'g.name as gcs_name', 'b.name as bed_name', 'm.name as medical_supplies_name')
       .join('p_covid_cases as c', 'c.id', 'cl.covid_case_id')
       .join('p_patients as pt', 'pt.id', 'c.patient_id')
       .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
@@ -348,7 +355,7 @@ export class ReportModel {
 
   homework(db: Knex) {
     return db('views_review_homework as v')
-    .select(db.raw(`b.zone_code,
+      .select(db.raw(`b.zone_code,
     sum(b.hosptype_code in ('05','06','07','11','12')) as government,
     sum(b.hosptype_code in ('05','06','07','11','12') and v.register_last_date is not null) as government_register,
       sum(b.hosptype_code in ('15')) as private,
@@ -360,7 +367,7 @@ export class ReportModel {
 
   homeworkDetail(db: Knex) {
     return db('views_review_homework as v')
-    .select('v.*','b.hospcode','b.hospname','bs.name as sub_ministry_name')
+      .select('v.*', 'b.hospcode', 'b.hospname', 'bs.name as sub_ministry_name')
       .join('b_hospitals as b', 'b.id', 'v.hospital_id')
       .join('b_hospital_subministry as bs', 'bs.code', 'b.sub_ministry_code')
       .orderBy('b.zone_code')
