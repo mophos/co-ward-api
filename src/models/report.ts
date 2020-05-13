@@ -302,7 +302,7 @@ export class ReportModel {
       .as('updated_entry_last')
 
     let sql = db('views_covid_case_last as cl')
-      .select('pt.hn','c.an', 'pt.hospital_id', last, db.raw(`DATEDIFF( now(),(${last}) ) as days`), 'h.hospname', 'h.zone_code', 'h.province_name', 'c.date_admit', 'g.name as gcs_name', 'b.name as bed_name', 'm.name as medical_supplies_name')
+      .select('pt.hn','c.an', 'pt.hospital_id', last, db.raw(`DATEDIFF( now(),(${last}) ) as days`), 'h.hospname', 'h.hospcode','h.zone_code', 'h.province_name', 'c.date_admit', 'g.name as gcs_name', 'b.name as bed_name', 'm.name as medical_supplies_name')
       .join('p_covid_cases as c', 'c.id', 'cl.covid_case_id')
       .join('p_patients as pt', 'pt.id', 'c.patient_id')
       .join('b_hospitals as h', 'h.id', 'pt.hospital_id')

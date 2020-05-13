@@ -494,7 +494,7 @@ export class CovidCaseModel {
   }
 
   removeCovidCaseDetail(db: Knex, id){
-    return db('p_covid_case_detail')
+    return db('p_covid_case_details')
       .delete()
       .where('id', id)
   }
