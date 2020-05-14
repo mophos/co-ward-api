@@ -184,6 +184,7 @@ export class Register {
             .whereIn('u.position_id', ['5', '8', '74', '75', '76', '77', '79'])
             // .whereIn('u.position_id', ['5', '8'])
             .whereIn('u.id', [ '4425'])
+            .orderBy('u.id');
             // .where('u.app_register', 'MS-NCD')
         // .offset(1);
     }
