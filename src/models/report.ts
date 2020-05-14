@@ -40,9 +40,48 @@ export class ReportModel {
       .where('vcl.entry_date', date)
     // .groupBy('pp.hospital_id', )
   }
-
   getBad(db: Knex) {
     return db('views_bed_hospitals AS vbh')
+  }
+
+  getBed(db: Knex, provinceCode) {
+    const last = db('views_covid_case')
+      .max('updated_entry as updated_entry')
+      .whereRaw('hospital_id=vc.hospital_id')
+      .whereNotNull('updated_entry')
+      .as('updated_entry')
+
+    let sub = db('b_hospitals as vh')
+      .select('vh.id as hospital_id', 'vh.hospname', 'bs.name as sub_ministry_name', db.raw(`
+      sum( bed_id  =1 ) as aiir_usage_qty,
+      sum( bed_id = 2 ) as modified_aiir_usage_qty,
+      sum( bed_id = 3 ) as isolate_usage_qty,
+      sum( bed_id = 4 ) as cohort_usage_qty,
+      sum( bed_id = 5 ) AS hospitel_usage_qty`), last)
+      .leftJoin('views_covid_case_last as vc', (v) => {
+        v.on('vh.id', 'vc.hospital_id')
+        v.on('vc.status', db.raw(`'ADMIT'`))
+      })
+      .join('b_hospital_subministry as bs', 'bs.code', 'vh.sub_ministry_code')
+      .where('vh.province_code', provinceCode)
+      .whereIn('vh.hosptype_code', ['05', '06', '07', '11', '12', '15'])
+      .groupBy('vh.id')
+      .as('sub')
+
+    let sql =
+      db('b_hospitals  as vh')
+        .select('vb.*', 'sub.*', 'vh.hospname', 'bs.name as sub_ministry_name')
+        .leftJoin('views_bed_hospital_cross as vb', 'vh.id', 'vb.hospital_id')
+        .leftJoin(sub, 'sub.hospital_id', 'vh.id')
+        .join('b_hospital_subministry as bs', 'bs.code', 'vh.sub_ministry_code')
+        .where('vh.province_code', provinceCode)
+        .whereIn('vh.hosptype_code', ['05', '06', '07', '11', '12', '15'])
+        .orderBy('bs.name')
+        .orderBy('vh.hospname')
+
+
+    return sql;
+    // return db('views_bed_hospitals AS vbh')
   }
 
   getBadExcel(db: Knex, date) {
@@ -67,18 +106,26 @@ export class ReportModel {
 
   getSupplies(db: Knex, date, province) {
 
-    const suppliesId = db('views_supplies_hospital_cross as ws')
+    const supplies = db('views_supplies_hospital_cross as ws')
       .join('b_hospitals as h', 'h.id', 'ws.hospital_id')
-      .max('ws.id as id')
+      .max('ws.entry_date as entry_date')
+      .select('ws.hospital_id')
       .groupBy('ws.hospital_id')
       .where('ws.entry_date', '<=', date)
       .where('h.province_code', province)
+      .as('supplies')
 
 
-    const sql = db('views_supplies_hospital_cross as sd')
-    .select('sd.*','h.hospname')
-    .join('b_hospitals as h', 'h.id', 'sd.hospital_id')
-      .whereIn('sd.id', suppliesId)
+    const sql = db('b_hospitals as h')
+      .select('sd.*', 'h.hospname')
+      .leftJoin('views_supplies_hospital_cross as sd', 'h.id', 'sd.hospital_id')
+      .leftJoin(supplies, (v)=>{
+        v.on('supplies.hospital_id','sd.id')
+        v.on('supplies.entry_date','sd.entry_date')
+      })
+      .whereIn('h.hosptype_code', ['01','05','06','07','11','12','15'])
+      .where('h.province_code', province)
+
 
     return sql;
   }
@@ -319,7 +366,7 @@ export class ReportModel {
       .join('view_covid_case_last AS l', 'l.id', 'i.covid_case_detail_id')
       .groupBy('i.covid_case_detail_id').as('du')
     let sql = db('views_covid_case_last as cl')
-      .select('du.d1','du.d2','du.d3','du.d4','du.d5','du.d7','du.d8')
+      .select('du.d1', 'du.d2', 'du.d3', 'du.d4', 'du.d5', 'du.d7', 'du.d8')
       .select('pt.hn', 'c.an', 'pt.hospital_id', last, db.raw(`DATEDIFF( now(),(${last}) ) as days`), 'h.hospname', 'h.hospcode', 'h.zone_code', 'h.province_name', 'c.date_admit', 'g.name as gcs_name', 'b.name as bed_name', 'm.name as medical_supplies_name')
       .join('p_covid_cases as c', 'c.id', 'cl.covid_case_id')
       .join('p_patients as pt', 'pt.id', 'c.patient_id')

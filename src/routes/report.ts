@@ -583,6 +583,7 @@ router.get('/get-gcs-admit/excel', async (req: Request, res: Response) => {
               hospcode: h.hospcode,
               hospname: h.hospname,
               count: _gcs[0].count,
+              countCase: _gcs[0].countCase,
               severe: _gcs[0].severe,
               moderate: _gcs[0].moderate,
               mild: _gcs[0].mild,
@@ -595,7 +596,7 @@ router.get('/get-gcs-admit/excel', async (req: Request, res: Response) => {
 
         for (const h of hosp) {
           ws.cell(row, 1).string(h.hospname);
-          ws.cell(row, 2).string(toString(h.count));
+          ws.cell(row, 2).string(toString(h.countCase));
           ws.cell(row, 3).string(toString(h['severe']));
           ws.cell(row, 4).string(toString(h['moderate']));
           ws.cell(row, 5).string(toString(h['mild']));
@@ -627,6 +628,7 @@ router.get('/get-gcs-admit/excel', async (req: Request, res: Response) => {
             hospcode: h.hospcode,
             hospname: h.hospname,
             count: _gcs[0].count,
+            countCase: _gcs[0].countCase,
             severe: _gcs[0].severe,
             moderate: _gcs[0].moderate,
             mild: _gcs[0].mild,
@@ -639,7 +641,7 @@ router.get('/get-gcs-admit/excel', async (req: Request, res: Response) => {
 
       for (const h of hosp) {
         ws.cell(row, 1).string(h.hospname);
-        ws.cell(row, 2).string(toString(h.count));
+        ws.cell(row, 2).string(toString(h.countCase));
         ws.cell(row, 3).string(toString(h['severe']));
         ws.cell(row, 4).string(toString(h['moderate']));
         ws.cell(row, 5).string(toString(h['mild']));
@@ -698,6 +700,7 @@ router.get('/get-bed', async (req: Request, res: Response) => {
         provinceCode = _provinceCode;
       }
     }
+    console.log(zoneCodes, provinceCode);
 
     let data: any = [];
     for (const z of zoneCodes) {
@@ -714,26 +717,8 @@ router.get('/get-bed', async (req: Request, res: Response) => {
       for (const p of province) {
         const _province: any = {};
         _province.province_name = p.name_th;
-        const _hosp = _.filter(hospital, { province_code: p.code })
-        const hosp = [];
-        const bed: any = await model.getBad(db)
-        for (const h of _hosp) {
-          const _hospital: any = {};
-          _hospital.province_name = p.name_th;
-          const obj = {
-            hospital_id: h.id,
-            hospcode: h.hospcode,
-            hospname: h.hospname
-          };
-          const _bed = _.filter(bed, { hospital_id: h.id })
-          for (const b of _bed) {
-            obj[b.bed_name + '_qty'] = b.qty;
-            obj[b.bed_name + '_covid_qty'] = b.covid_qty;
-            obj[b.bed_name + '_usage_qty'] = b.usage_qty;
-          }
-          hosp.push(obj);
-        }
-        _province.hospitals = hosp;
+        const sup: any = await model.getBed(db, p.code);
+        _province.hospitals = sup;
         provinces.push(_province);
       }
       zone.provinces = provinces;
@@ -1087,9 +1072,11 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
         const sup: any = await model.getSupplies(db, date, p.code);
         for (const i of sup) {
           ws.cell(row, 1).string(i.hospname);
-          ws.cell(row, 2).string(toString(
-            `${moment(i.entry_date).format('DD-MM')}-${+moment(i.entry_date).get('year')+543}`
+          if (i.entry_date) {
+            ws.cell(row, 2).string(toString(
+              `${moment(i.entry_date).format('DD-MM')}-${+moment(i.entry_date).get('year') + 543}`
             ));
+          }
           ws.cell(row, 3).number(toNumber(i.surgical_gown_qty));
           ws.cell(row, 4).number(toNumber(i.cover_all1_qty));
           ws.cell(row, 5).number(toNumber(i.cover_all2_qty));
