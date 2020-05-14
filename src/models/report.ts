@@ -307,8 +307,19 @@ export class ReportModel {
       .whereRaw('covid_case_id=cl.covid_case_id')
       .whereNotNull('updated_entry')
       .as('updated_entry_last')
-
+    const drugUse = db('p_covid_case_detail_items AS i').select(
+      'i.covid_case_detail_id',
+      db.raw(`sum(if( i.generic_id = 1 ,i.qty,0)) AS 'd1'`),
+      db.raw(`sum(if( i.generic_id = 2 ,i.qty,0)) AS 'd2'`),
+      db.raw(`sum(if( i.generic_id = 3 ,i.qty,0)) AS 'd3'`),
+      db.raw(`sum(if( i.generic_id = 4 ,i.qty,0)) AS 'd4'`),
+      db.raw(`sum(if( i.generic_id = 5 ,i.qty,0)) AS 'd5'`),
+      db.raw(`sum(if( i.generic_id = 7 ,i.qty,0)) AS 'd7'`),
+      db.raw(`sum(if( i.generic_id = 8 ,i.qty,0)) AS 'd8'`))
+      .join('view_covid_case_last AS l', 'l.id', 'i.covid_case_detail_id')
+      .groupBy('i.covid_case_detail_id').as('du')
     let sql = db('views_covid_case_last as cl')
+      .select('du.d1','du.d2','du.d3','du.d4','du.d5','du.d7','du.d8')
       .select('pt.hn', 'c.an', 'pt.hospital_id', last, db.raw(`DATEDIFF( now(),(${last}) ) as days`), 'h.hospname', 'h.hospcode', 'h.zone_code', 'h.province_name', 'c.date_admit', 'g.name as gcs_name', 'b.name as bed_name', 'm.name as medical_supplies_name')
       .join('p_covid_cases as c', 'c.id', 'cl.covid_case_id')
       .join('p_patients as pt', 'pt.id', 'c.patient_id')
@@ -316,12 +327,15 @@ export class ReportModel {
       .join('b_gcs as g', 'g.id', 'cl.gcs_id')
       .join('b_beds as b', 'b.id', 'cl.bed_id')
       .leftJoin('b_medical_supplies as m', 'm.id', 'cl.medical_supplie_id')
+      .leftJoin(drugUse, 'du.covid_case_detail_id', 'cl.id')
       .where('cl.status', 'ADMIT')
       .whereIn('gcs_id', [1, 2, 3, 4])
       // .orderBy('days','DESC')
       .orderBy('h.zone_code')
       .orderBy('h.province_code')
       .orderBy('h.hospname')
+    console.log(sql.toString());
+
     return sql;
   }
 
