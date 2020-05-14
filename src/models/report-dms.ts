@@ -53,14 +53,19 @@ export class ReportDmsModel {
     //     .orderBy('vh.sub_ministry_name')
     // return sql;
 
+    const last = db('views_covid_case')
+    .max('updated_entry as updated_entry_last')
+    .whereRaw('hospital_id=vc.hospital_id')
+    .whereNotNull('updated_entry')
+    .as('updated_entry')
+
     const sql = db('views_hospital_dms as vh')
       .select('vh.id', 'vh.hospname', 'vh.sub_ministry_name', db.raw(`
 sum( gcs_id = 1 ) AS severe,
 sum( gcs_id = 2 ) AS moderate,
 sum( gcs_id = 3 ) AS mild,
 sum( gcs_id = 4 ) AS asymptomatic,
-sum( gcs_id = 5 ) AS ip_pui,
-vc.updated_entry  as updated_entry`))
+sum( gcs_id = 5 ) AS ip_pui`),last)
       .leftJoin('views_covid_case_last as vc', (v) => {
         v.on('vh.id', 'vc.hospital_id')
         v.on('vc.status', db.raw(`'ADMIT'`))
@@ -169,14 +174,19 @@ vc.updated_entry  as updated_entry`))
     //   .join('views_hospital_dms as vh', 'vh.id', 'vc.hospital_id')
     //   .where('vh.sector', sector)
     //   .orderBy('vh.sub_ministry_name')
+    const last = db('views_covid_case')
+    .max('updated_entry as updated_entry_last')
+    .whereRaw('hospital_id=vc.hospital_id')
+    .whereNotNull('updated_entry')
+    .as('updated_entry')
+
     let sub = db('views_hospital_dms as vh')
       .select('vh.id as hospital_id', 'vh.hospname', 'vh.sub_ministry_name', db.raw(`
 sum( bed_id  =1 ) as aiir_usage_qty,
 sum( bed_id = 2 ) as modified_aiir_usage_qty,
 sum( bed_id = 3 ) as isolate_usage_qty,
 sum( bed_id = 4 ) as cohort_usage_qty,
-sum( bed_id = 5 ) AS hospitel_usage_qty,
-vc.updated_entry  as updated_entry`))
+sum( bed_id = 5 ) AS hospitel_usage_qty`),last)
       .leftJoin('views_covid_case_last as vc', (v) => {
         v.on('vh.id', 'vc.hospital_id')
         v.on('vc.status', db.raw(`'ADMIT'`))
