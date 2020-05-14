@@ -4,7 +4,7 @@ export class CovidCaseModel {
 
   getCase(db: Knex, hospitalId) {
     return db('p_covid_cases as c')
-      .select('c.id as covid_case_id', 'c.an', 'c.confirm_date', 'c.status', 'c.date_admit', 'pt.hn', 'pt.person_id', 'p.*', 't.name as title_name')
+      .select('c.id as covid_case_id', 'c.an', 'c.confirm_date', 'c.status', 'c.date_admit','c.date_discharge', 'pt.hn', 'pt.person_id', 'p.*', 't.name as title_name')
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .leftJoin('um_titles as t', 'p.title_id', 't.id')

@@ -65,21 +65,21 @@ export class ReportModel {
     return db('views_professional_hospitals AS vph')
   }
 
-  getSupplies(db: Knex, date) {
-    const suppliesId = db('wm_supplies_details as wsd')
-      .max('ws.id as id')
-      .join('wm_supplies as ws', 'ws.id', 'wsd.wm_supplie_id')
-      .groupBy('ws.hospital_id');
-    if (date) {
-      suppliesId.where('ws.date', '<=', date)
-    }
+  getSupplies(db: Knex, date, province) {
 
-    const sql = db('wm_supplies_details as sd')
-      .select('sd.id AS id', 'sd.wm_supplie_id AS wm_supplie_id', 'sd.generic_id AS generic_id',
-        'sd.qty AS qty', 'sd.month_usage_qty AS month_usage_qty', 's.hospital_id AS hospital_id', 's.date')
-      .join('wm_supplies as s', 's.id', 'sd.wm_supplie_id')
+    const suppliesId = db('views_supplies_hospital_cross as ws')
+      .join('b_hospitals as h', 'h.id', 'ws.hospital_id')
+      .max('ws.id as id')
+      .groupBy('ws.hospital_id')
+      .where('ws.entry_date', '<=', date)
+      .where('h.province_code', province)
+
+
+    const sql = db('views_supplies_hospital_cross as sd')
+    .select('sd.*','h.hospname')
+    .join('b_hospitals as h', 'h.id', 'sd.hospital_id')
       .whereIn('sd.id', suppliesId)
-      
+
     return sql;
   }
 
