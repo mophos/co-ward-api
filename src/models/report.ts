@@ -381,13 +381,29 @@ export class ReportModel {
       .orderBy('h.zone_code')
       .orderBy('h.province_code')
       .orderBy('h.hospname')
-    console.log(sql.toString());
-
     return sql;
   }
 
   admitConfirmCaseSummary(db: Knex) {
+    const drugUse = db('p_covid_case_detail_items AS i').select(
+      'i.covid_case_detail_id',
+      db.raw(`sum(if( i.generic_id = 1 ,i.qty,0)) AS 'd1'`),
+      db.raw(`sum(if( i.generic_id = 2 ,i.qty,0)) AS 'd2'`),
+      db.raw(`sum(if( i.generic_id = 3 ,i.qty,0)) AS 'd3'`),
+      db.raw(`sum(if( i.generic_id = 4 ,i.qty,0)) AS 'd4'`),
+      db.raw(`sum(if( i.generic_id = 5 ,i.qty,0)) AS 'd5'`),
+      db.raw(`sum(if( i.generic_id = 7 ,i.qty,0)) AS 'd7'`),
+      db.raw(`sum(if( i.generic_id = 8 ,i.qty,0)) AS 'd8'`))
+      .join('view_covid_case_last AS l', 'l.id', 'i.covid_case_detail_id')
+      .groupBy('i.covid_case_detail_id').as('du')
     let sql = db('views_covid_case_last as cl')
+      .select(db.raw('sum((du.d1 is not null) and (du.d1 > 0)) as d1'),
+       db.raw('sum((du.d2 is not null) and (du.d2 > 0)) as d2'),
+       db.raw('sum((du.d3 is not null) and (du.d3 > 0)) as d3'),
+       db.raw('sum((du.d4 is not null) and (du.d4 > 0)) as d4'),
+       db.raw('sum((du.d5 is not null) and (du.d5 > 0)) as d5'),
+       db.raw('sum((du.d7 is not null) and (du.d7 > 0)) as d7'),
+       db.raw('sum((du.d8 is not null) and (du.d8 > 0)) as d8'))
       .select(db.raw(`
       h.zone_code,
       sum( cl.gcs_id in (1,2,3,4) ) AS confirm,
@@ -406,6 +422,7 @@ export class ReportModel {
       .join('p_covid_cases as c', 'c.id', 'cl.covid_case_id')
       .join('p_patients as pt', 'pt.id', 'c.patient_id')
       .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
+      .leftJoin(drugUse, 'du.covid_case_detail_id', 'cl.id')
       .where('cl.status', 'ADMIT')
       .whereIn('gcs_id', [1, 2, 3, 4])
       .groupBy('h.zone_code')
