@@ -445,7 +445,7 @@ export class ReportModel {
 
   homeworkDetail(db: Knex) {
     return db('views_review_homework as v')
-      .select('v.*', 'b.hospcode', 'b.hospname', 'bs.name as sub_ministry_name')
+      .select('v.*', 'b.hospcode', 'b.hospname', 'bs.name as sub_ministry_name','b.zone_code')
       .join('b_hospitals as b', 'b.id', 'v.hospital_id')
       .join('b_hospital_subministry as bs', 'bs.code', 'b.sub_ministry_code')
       .orderBy('b.zone_code')
