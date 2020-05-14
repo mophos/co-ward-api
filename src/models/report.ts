@@ -381,8 +381,6 @@ export class ReportModel {
       .groupBy('h.zone_code')
       .orderBy('h.zone_code')
       .orderBy('h.province_code')
-      console.log(sql.toString());
-      
     return sql;
   }
 
