@@ -48,6 +48,7 @@ import receiveRoute from './routes/staff/receives';
 
 import reportRoute from './routes/report';
 import reportDmsRoute from './routes/manager/report-dms';
+import reportAllRoute from './routes/manager/report-all';
 import basicRoute from './routes/basic';
 import basicAuthRoute from './routes/basicAuth';
 import servicesRoute from './routes/manager/services';
@@ -235,6 +236,7 @@ admin.use('/node-surgical', nodeSurgicalRoute)
 api.use('/manager', checkAuth, managerAuth, manager)
 manager.use('/patient-info', patientInfoRoute)
 manager.use('/report-dms', reportDmsRoute)
+manager.use('/report-all', reportAllRoute)
 manager.use('/services', servicesRoute)
 manager.use('/eoc', eocRoute)
 
