@@ -1266,7 +1266,7 @@ router.get('/admit-confirm-case', async (req: Request, res: Response) => {
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
   try {
-    if (providerType == 'MANAGER') {
+    if (type == 'MANAGER') {
       const rs: any = await model.admitConfirmCase(db);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else if (providerType == 'ZONE') {
@@ -1290,7 +1290,7 @@ router.get('/admit-confirm-case-summary', async (req: Request, res: Response) =>
   try {
     console.log(providerType);
 
-    if (providerType == 'MANAGER') {
+    if (type == 'MANAGER') {
       const rs: any = await model.admitConfirmCaseSummary(db);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else if (providerType == 'ZONE') {
