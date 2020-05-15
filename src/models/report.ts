@@ -79,7 +79,7 @@ export class ReportModel {
         'sd.qty AS qty', 'sd.month_usage_qty AS month_usage_qty', 's.hospital_id AS hospital_id', 's.date')
       .join('wm_supplies as s', 's.id', 'sd.wm_supplie_id')
       .whereIn('sd.id', suppliesId)
-      
+
     return sql;
   }
 
@@ -371,5 +371,31 @@ export class ReportModel {
       .join('b_hospitals as b', 'b.id', 'v.hospital_id')
       .join('b_hospital_subministry as bs', 'bs.code', 'b.sub_ministry_code')
       .orderBy('b.zone_code')
+  }
+
+  getPersonTime(db: Knex) {
+    return db.raw(`SELECT
+      v.zone_code,
+      SUM( IF ( ( v.gcs_id IN ( 1, 2, 3, 4 ) AND v.person_id IS NOT NULL ), 1, 0 ) ) AS person,
+      SUM( IF ( ( vt.gcs_id IN ( 1, 2, 3, 4 ) ), 1, 0 ) ) AS person_time,
+      SUM( IF ( ( v.gcs_id IS NULL AND v.person_id IS NOT NULL ), 1, 0 ) ) AS person_old,
+      SUM( IF ( ( vt.gcs_id IS NULL ), 1, 0 ) ) AS person_old_time,
+      SUM(
+    IF
+      (
+      ( ( v.gcs_id IN ( 1, 2, 3, 4 ) OR v.gcs_id IS NULL ) AND v.person_id IS NOT NULL ),
+      1,
+      0 
+      ) 
+      ) AS person_total,
+      SUM( IF ( ( vt.gcs_id IN ( 1, 2, 3, 4 ) OR v.gcs_id IS NULL ), 1, 0 ) ) AS person_time_total,
+      SUM( IF ( ( v.status = 'DEATH' ), 1, 0 ) ) AS person_death
+    FROM
+      views_case_zone_total_times AS vt
+      LEFT JOIN views_case_zone_total_persons AS v ON vt.case_id = v.case_id 
+    GROUP BY
+      vt.zone_code 
+    ORDER BY
+      vt.zone_code`);
   }
 }

@@ -3,7 +3,7 @@ import { ReportModel } from '../models/report';
 import { Router, Request, Response } from 'express';
 import * as HttpStatus from 'http-status-codes';
 
-import * as _ from 'lodash';
+import { filter, map, findIndex } from 'lodash';
 import moment = require('moment');
 import { FullfillModel } from '../models/fulfill';
 import { DrugsModel } from '../models/drug';
@@ -11,13 +11,12 @@ import { SuppliesModel } from '../models/supplies';
 const excel4node = require('excel4node');
 const path = require('path')
 const fse = require('fs-extra');
-const fs = require('fs');
 const model = new ReportModel();
 const fullfillModel = new FullfillModel();
 const drugsModel = new DrugsModel();
 const suppliesModel = new SuppliesModel();
 const router: Router = Router();
-import { json2csv } from 'json-2-csv';
+
 router.get('/', async (req: Request, res: Response) => {
   try {
     let rs: any = await model.getCovidCase(req.db);
@@ -63,6 +62,17 @@ router.get('/total', async (req: Request, res: Response) => {
   try {
     const z: any = await model.getTotalSupplie(db, 'SUPPLIES');
     res.send({ ok: true, rows: z[0], code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/records', async (req: Request, res: Response) => {
+  const db = req.db;
+  try {
+    const rs: any = await model.getPersonTime(db);
+    res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -164,12 +174,12 @@ router.get('/get-gcs-admit', async (req: Request, res: Response) => {
       for (const p of province) {
         const _province: any = {};
         _province.province_name = p.name_th;
-        const s = _.filter(hospital, { province_code: p.code })
+        const s = filter(hospital, { province_code: p.code })
         const hosp = [];
         for (const h of s) {
           const _hospital: any = {};
           _hospital.province_name = p.name_th;
-          const _gcs = _.filter(gcs, { hospital_id: h.id })
+          const _gcs = filter(gcs, { hospital_id: h.id })
           if (_gcs.length) {
             const obj: any = {
               hospital_id: h.id,
@@ -247,7 +257,7 @@ router.get('/get-gcs', async (req: Request, res: Response) => {
       for (const p of province) {
         const _province: any = {};
         _province.province_name = p.name_th;
-        const s = _.filter(hospital, { province_code: p.code })
+        const s = filter(hospital, { province_code: p.code })
         const hosp = [];
         const gcs: any = await model.getGcs(db, date)
         for (const h of s) {
@@ -258,7 +268,7 @@ router.get('/get-gcs', async (req: Request, res: Response) => {
             hospcode: h.hospcode,
             hospname: h.hospname
           };
-          const _gcs = _.filter(gcs, { hospital_id: h.id })
+          const _gcs = filter(gcs, { hospital_id: h.id })
 
           obj.details = _gcs;
 
@@ -323,7 +333,7 @@ router.get('/get-medicals', async (req: Request, res: Response) => {
       for (const p of province) {
         const _province: any = {};
         _province.province_name = p.name_th;
-        const _hosp = _.filter(hospital, { province_code: p.code })
+        const _hosp = filter(hospital, { province_code: p.code })
         const hosp = [];
         const sup: any = await model.getMedicals(db)
         for (const h of _hosp) {
@@ -334,7 +344,7 @@ router.get('/get-medicals', async (req: Request, res: Response) => {
             hospcode: h.hospcode,
             hospname: h.hospname
           };
-          const _sup = _.filter(sup, { hospital_id: h.id })
+          const _sup = filter(sup, { hospital_id: h.id })
           for (const s of _sup) {
             obj[s.generic_id] = s.qty;
           }
@@ -365,7 +375,7 @@ router.get('/admin/get-bed', async (req: Request, res: Response) => {
         hospcode: h.hospcode,
         hospname: h.hospname
       };
-      const _bed = _.filter(bed, { hospital_id: h.id })
+      const _bed = filter(bed, { hospital_id: h.id })
       for (const b of _bed) {
         obj[b.bed_name + '_qty'] = b.qty;
         obj[b.bed_name + '_covid_qty'] = b.covid_qty;
@@ -415,7 +425,7 @@ router.get('/get-bed/excel', async (req: Request, res: Response) => {
         ws.cell(1, 16).string('Hospitel ใช้ไปแล้ว');
         ws.cell(1, 17).string('Hospitel คงเหลือ');
 
-        const _hosp = _.filter(hospital, { province_code: province[v].code });
+        const _hosp = filter(hospital, { province_code: province[v].code });
         let row = 2;
         const hosp = [];
         for (const h of _hosp) {
@@ -424,7 +434,7 @@ router.get('/get-bed/excel', async (req: Request, res: Response) => {
             hospcode: h.hospcode,
             hospname: h.hospname
           };
-          const _bed = _.filter(bed, { id: h.id });
+          const _bed = filter(bed, { id: h.id });
 
           for (const b of _bed) {
             obj[b.bed_name + '_qty'] = b.qty;
@@ -482,14 +492,14 @@ router.get('/get-bed/excel', async (req: Request, res: Response) => {
 
       let row = 2;
       const hosp = [];
-      const _hosp = _.filter(hospital, { province_code: provinceCode });
+      const _hosp = filter(hospital, { province_code: provinceCode });
       for (const h of _hosp) {
         const obj = {
           hospital_id: h.id,
           hospcode: h.hospcode,
           hospname: h.hospname
         };
-        const _bed = _.filter(bed, { id: h.id })
+        const _bed = filter(bed, { id: h.id })
         for (const b of _bed) {
           obj[b.bed_name + '_qty'] = b.qty;
           obj[b.bed_name + '_covid_qty'] = b.covid_qty;
@@ -573,10 +583,10 @@ router.get('/get-gcs-admit/excel', async (req: Request, res: Response) => {
 
         let row = 2;
 
-        const s = _.filter(hospital, { province_code: province[v].code })
+        const s = filter(hospital, { province_code: province[v].code })
         const hosp: any = [];
         for (const h of s) {
-          const _gcs = _.filter(gcs, { hospital_id: h.id })
+          const _gcs = filter(gcs, { hospital_id: h.id })
           if (_gcs.length) {
             const obj: any = {
               hospital_id: h.id,
@@ -617,10 +627,10 @@ router.get('/get-gcs-admit/excel', async (req: Request, res: Response) => {
 
       let row = 2;
 
-      const s = _.filter(hospital, { province_code: provinceCode })
+      const s = filter(hospital, { province_code: provinceCode })
       const hosp: any = [];
       for (const h of s) {
-        const _gcs = _.filter(gcs, { hospital_id: h.id })
+        const _gcs = filter(gcs, { hospital_id: h.id })
         if (_gcs.length) {
           const obj: any = {
             hospital_id: h.id,
@@ -714,7 +724,7 @@ router.get('/get-bed', async (req: Request, res: Response) => {
       for (const p of province) {
         const _province: any = {};
         _province.province_name = p.name_th;
-        const _hosp = _.filter(hospital, { province_code: p.code })
+        const _hosp = filter(hospital, { province_code: p.code })
         const hosp = [];
         const bed: any = await model.getBad(db)
         for (const h of _hosp) {
@@ -725,7 +735,7 @@ router.get('/get-bed', async (req: Request, res: Response) => {
             hospcode: h.hospcode,
             hospname: h.hospname
           };
-          const _bed = _.filter(bed, { hospital_id: h.id })
+          const _bed = filter(bed, { hospital_id: h.id })
           for (const b of _bed) {
             obj[b.bed_name + '_qty'] = b.qty;
             obj[b.bed_name + '_covid_qty'] = b.covid_qty;
@@ -787,7 +797,7 @@ router.get('/get-professional', async (req: Request, res: Response) => {
       for (const p of province) {
         const _province: any = {};
         _province.province_name = p.name_th;
-        const _hosp = _.filter(hospital, { province_code: p.code })
+        const _hosp = filter(hospital, { province_code: p.code })
         const hosp = [];
         const pro: any = await model.getProfessional(db)
         for (const h of _hosp) {
@@ -798,7 +808,7 @@ router.get('/get-professional', async (req: Request, res: Response) => {
             hospcode: h.hospcode,
             hospname: h.hospname
           };
-          const _pro = _.filter(pro, { hospital_id: h.id })
+          const _pro = filter(pro, { hospital_id: h.id })
           for (const p of _pro) {
             obj['p_' + p.professional_id] = p.qty;
           }
@@ -859,7 +869,7 @@ router.get('/get-medicals', async (req: Request, res: Response) => {
       for (const p of province) {
         const _province: any = {};
         _province.province_name = p.name_th;
-        const _hosp = _.filter(hospital, { province_code: p.code })
+        const _hosp = filter(hospital, { province_code: p.code })
         const hosp = [];
         const sup: any = await model.getSupplies(db, date)
         for (const h of _hosp) {
@@ -870,7 +880,7 @@ router.get('/get-medicals', async (req: Request, res: Response) => {
             hospcode: h.hospcode,
             hospname: h.hospname
           };
-          const _sup = _.filter(sup, { hospital_id: h.id })
+          const _sup = filter(sup, { hospital_id: h.id })
           for (const s of _sup) {
             obj[s.generic_id] = s.qty;
           }
@@ -931,7 +941,7 @@ router.get('/get-supplies', async (req: Request, res: Response) => {
       for (const p of province) {
         const _province: any = {};
         _province.province_name = p.name_th;
-        const _hosp = _.filter(hospital, { province_code: p.code })
+        const _hosp = filter(hospital, { province_code: p.code })
         const hosp = [];
         const sup: any = await model.getSupplies(db, date)
         for (const h of _hosp) {
@@ -942,7 +952,7 @@ router.get('/get-supplies', async (req: Request, res: Response) => {
             hospcode: h.hospcode,
             hospname: h.hospname,
           };
-          const _sup = _.filter(sup, { hospital_id: h.id })
+          const _sup = filter(sup, { hospital_id: h.id })
           if (_sup.length) {
             obj.date = _sup[0].date || null;
             for (const s of _sup) {
@@ -987,11 +997,11 @@ router.get('/get-gcs/export', async (req: Request, res: Response) => {
         ws.cell(1, 3).string('วันที่ Admit');
         ws.cell(1, 4).string('ระดับความรุนแรง');
         ws.cell(1, 5).string('สถานะ');
-        const s = _.filter(hospital, { province_code: province[v].code })
+        const s = filter(hospital, { province_code: province[v].code })
         moment.locale('th');
 
         for (const h of s) {
-          const _gcs = _.filter(gcs, { hospital_id: h.id })
+          const _gcs = filter(gcs, { hospital_id: h.id })
           for (const g of _gcs) {
             ws.cell(row, 1).string(h.hospname);
             ws.cell(row, 2).string(toString(g.hn));
@@ -1011,11 +1021,11 @@ router.get('/get-gcs/export', async (req: Request, res: Response) => {
       ws.cell(1, 4).string('ระดับความรุนแรง');
       ws.cell(1, 5).string('สถานะ');
       const hospital: any = await model.getHospital(db)
-      const s = _.filter(hospital, { province_code: _provinceCode })
+      const s = filter(hospital, { province_code: _provinceCode })
       const gcs: any = await model.getGcs(db, date);
       moment.locale('th');
       for (const h of s) {
-        const _gcs = _.filter(gcs, { hospital_id: h.id })
+        const _gcs = filter(gcs, { hospital_id: h.id })
         for (const g of _gcs) {
           ws.cell(row, 1).string(h.hospname);
           ws.cell(row, 2).string(toString(g.hn));
@@ -1078,10 +1088,10 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
         ws.cell(1, 9).string('Face shield');
         ws.cell(1, 10).string('Surgical Mask');
         ws.cell(1, 11).string('Powered air-purifying respirator');
-        const _hosp = _.filter(hospital, { province_code: province[v].code });
+        const _hosp = filter(hospital, { province_code: province[v].code });
         for (const h of _hosp) {
           ws.cell(row, 1).string(h.hospname);
-          const _sup = _.filter(sup, { hospital_id: h.id })
+          const _sup = filter(sup, { hospital_id: h.id })
           for (const s of _sup) {
             if (s.generic_id == 9) {
               ws.cell(row, 2).string(toString(s.qty))
@@ -1124,10 +1134,10 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
       ws.cell(1, 10).string('Surgical Mask');
       ws.cell(1, 11).string('Powered air-purifying respirator');
 
-      const _hosp = _.filter(hospital, { province_code: _provinceCode });
+      const _hosp = filter(hospital, { province_code: _provinceCode });
       for (const h of _hosp) {
         ws.cell(row, 1).string(h.hospname);
-        const _sup = _.filter(sup, { hospital_id: h.id })
+        const _sup = filter(sup, { hospital_id: h.id })
         for (const s of _sup) {
           if (s.generic_id == 9) {
             ws.cell(row, 2).string(toString(s.qty))
@@ -1187,7 +1197,7 @@ router.get('/fulfill-drugs', async (req: Request, res: Response) => {
   try {
     id = Array.isArray(id) ? id : [id];
     let drug: any = await drugsModel.getDrugsActived(db)
-    let rs: any = await fullfillModel.getFulFillDrugItems(req.db, drug, _.map(id, (v) => { return +v }));
+    let rs: any = await fullfillModel.getFulFillDrugItems(req.db, drug, map(id, (v) => { return +v }));
     ws.cell(1, 1).string('ร.พ./รายการยา');
     let col = 2
     for (const items of drug) {
@@ -1236,7 +1246,7 @@ router.get('/fulfill-supplies', async (req: Request, res: Response) => {
   try {
     id = Array.isArray(id) ? id : [id];
     let supplies: any = await suppliesModel.getSuppliesActived(db)
-    let rs: any = await fullfillModel.getFulFillSupplesItems(req.db, supplies, _.map(id, (v) => { return +v }));
+    let rs: any = await fullfillModel.getFulFillSupplesItems(req.db, supplies, map(id, (v) => { return +v }));
     ws.cell(1, 1).string('ร.พ./รายการเวชภัณฑ์');
     let col = 2
     for (const items of supplies) {
@@ -1302,7 +1312,7 @@ router.get('/province-case-date', async (req: Request, res: Response) => {
       const rs: any = await model.provinceCaseDate(db, _date);
       for (const i of rs) {
         const sum = i.severe || 0 + i.moderate || 0 + i.mild || 0 + i.asymptomatic || 0;
-        const idx = _.findIndex(data, { 'province_code': i.province_code });
+        const idx = findIndex(data, { 'province_code': i.province_code });
         if (idx > -1) {
           data[idx][_date] = sum;
           data[idx].sum += sum;
