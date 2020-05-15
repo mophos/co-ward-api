@@ -1263,12 +1263,17 @@ router.get('/province-case-date', async (req: Request, res: Response) => {
 router.get('/admit-confirm-case', async (req: Request, res: Response) => {
   const db = req.db;
   const type = req.decoded.type;
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
   try {
-    if (type == 'MANAGER') {
+    if (providerType == 'MANAGER') {
       const rs: any = await model.admitConfirmCase(db);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    } else if (providerType == 'ZONE') {
+      const rs: any = await model.admitConfirmCaseProvice(db,zoneCode);
+      res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else {
-      res.send({ ok: false, code: HttpStatus.UNAUTHORIZED });
+      res.send({ ok: false, code: HttpStatus.UNAUTHORIZED, error: HttpStatus.UNAUTHORIZED });
 
     }
   } catch (error) {
@@ -1280,9 +1285,16 @@ router.get('/admit-confirm-case', async (req: Request, res: Response) => {
 router.get('/admit-confirm-case-summary', async (req: Request, res: Response) => {
   const db = req.db;
   const type = req.decoded.type;
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
   try {
-    if (type == 'MANAGER') {
+    console.log(providerType);
+
+    if (providerType == 'MANAGER') {
       const rs: any = await model.admitConfirmCaseSummary(db);
+      res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    } else if (providerType == 'ZONE') {
+      const rs: any = await model.admitConfirmCaseSummaryProvince(db, zoneCode);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else {
       res.send({ ok: false, code: HttpStatus.UNAUTHORIZED });

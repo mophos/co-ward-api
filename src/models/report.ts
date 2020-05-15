@@ -119,11 +119,11 @@ export class ReportModel {
     const sql = db('b_hospitals as h')
       .select('sd.*', 'h.hospname')
       .leftJoin('views_supplies_hospital_cross as sd', 'h.id', 'sd.hospital_id')
-      .leftJoin(supplies, (v)=>{
-        v.on('supplies.hospital_id','sd.id')
-        v.on('supplies.entry_date','sd.entry_date')
+      .leftJoin(supplies, (v) => {
+        v.on('supplies.hospital_id', 'sd.id')
+        v.on('supplies.entry_date', 'sd.entry_date')
       })
-      .whereIn('h.hosptype_code', ['01','05','06','07','11','12','15'])
+      .whereIn('h.hosptype_code', ['01', '05', '06', '07', '11', '12', '15'])
       .where('h.province_code', province)
 
 
@@ -384,6 +384,41 @@ export class ReportModel {
     return sql;
   }
 
+  admitConfirmCaseProvice(db: Knex, zoneCode) {
+    const last = db('p_covid_case_details')
+      .max('updated_entry as updated_entry_last')
+      .whereRaw('covid_case_id=cl.covid_case_id')
+      .whereNotNull('updated_entry')
+      .as('updated_entry_last')
+    const drugUse = db('p_covid_case_detail_items AS i').select(
+      'i.covid_case_detail_id',
+      db.raw(`sum(if( i.generic_id = 1 ,i.qty,0)) AS 'd1'`),
+      db.raw(`sum(if( i.generic_id = 2 ,i.qty,0)) AS 'd2'`),
+      db.raw(`sum(if( i.generic_id = 3 ,i.qty,0)) AS 'd3'`),
+      db.raw(`sum(if( i.generic_id = 4 ,i.qty,0)) AS 'd4'`),
+      db.raw(`sum(if( i.generic_id = 5 ,i.qty,0)) AS 'd5'`),
+      db.raw(`sum(if( i.generic_id = 7 ,i.qty,0)) AS 'd7'`),
+      db.raw(`sum(if( i.generic_id = 8 ,i.qty,0)) AS 'd8'`))
+      .join('view_covid_case_last AS l', 'l.id', 'i.covid_case_detail_id')
+      .groupBy('i.covid_case_detail_id').as('du')
+    let sql = db('views_covid_case_last as cl')
+      .select('du.d1', 'du.d2', 'du.d3', 'du.d4', 'du.d5', 'du.d7', 'du.d8')
+      .select('pt.hn', 'c.an', 'pt.hospital_id', last, db.raw(`DATEDIFF( now(),(${last}) ) as days`), 'h.hospname', 'h.hospcode', 'h.zone_code', 'h.province_name', 'c.date_admit', 'g.name as gcs_name', 'b.name as bed_name', 'm.name as medical_supplies_name')
+      .join('p_covid_cases as c', 'c.id', 'cl.covid_case_id')
+      .join('p_patients as pt', 'pt.id', 'c.patient_id')
+      .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
+      .join('b_gcs as g', 'g.id', 'cl.gcs_id')
+      .join('b_beds as b', 'b.id', 'cl.bed_id')
+      .leftJoin('b_medical_supplies as m', 'm.id', 'cl.medical_supplie_id')
+      .leftJoin(drugUse, 'du.covid_case_detail_id', 'cl.id')
+      .where('cl.status', 'ADMIT')
+      .where('h.zone_code', zoneCode)
+      .whereIn('gcs_id', [1, 2, 3, 4])
+      .orderBy('h.province_code')
+      .orderBy('h.hospname')
+    return sql;
+  }
+
   admitConfirmCaseSummary(db: Knex) {
     const drugUse = db('p_covid_case_detail_items AS i').select(
       'i.covid_case_detail_id',
@@ -398,12 +433,12 @@ export class ReportModel {
       .groupBy('i.covid_case_detail_id').as('du')
     let sql = db('views_covid_case_last as cl')
       .select(db.raw('sum((du.d1 is not null) and (du.d1 > 0)) as d1'),
-       db.raw('sum((du.d2 is not null) and (du.d2 > 0)) as d2'),
-       db.raw('sum((du.d3 is not null) and (du.d3 > 0)) as d3'),
-       db.raw('sum((du.d4 is not null) and (du.d4 > 0)) as d4'),
-       db.raw('sum((du.d5 is not null) and (du.d5 > 0)) as d5'),
-       db.raw('sum((du.d7 is not null) and (du.d7 > 0)) as d7'),
-       db.raw('sum((du.d8 is not null) and (du.d8 > 0)) as d8'))
+        db.raw('sum((du.d2 is not null) and (du.d2 > 0)) as d2'),
+        db.raw('sum((du.d3 is not null) and (du.d3 > 0)) as d3'),
+        db.raw('sum((du.d4 is not null) and (du.d4 > 0)) as d4'),
+        db.raw('sum((du.d5 is not null) and (du.d5 > 0)) as d5'),
+        db.raw('sum((du.d7 is not null) and (du.d7 > 0)) as d7'),
+        db.raw('sum((du.d8 is not null) and (du.d8 > 0)) as d8'))
       .select(db.raw(`
       h.zone_code,
       sum( cl.gcs_id in (1,2,3,4) ) AS confirm,
@@ -431,6 +466,53 @@ export class ReportModel {
     return sql;
   }
 
+  admitConfirmCaseSummaryProvince(db: Knex, zoneCode) {
+    const drugUse = db('p_covid_case_detail_items AS i').select(
+      'i.covid_case_detail_id',
+      db.raw(`sum(if( i.generic_id = 1 ,i.qty,0)) AS 'd1'`),
+      db.raw(`sum(if( i.generic_id = 2 ,i.qty,0)) AS 'd2'`),
+      db.raw(`sum(if( i.generic_id = 3 ,i.qty,0)) AS 'd3'`),
+      db.raw(`sum(if( i.generic_id = 4 ,i.qty,0)) AS 'd4'`),
+      db.raw(`sum(if( i.generic_id = 5 ,i.qty,0)) AS 'd5'`),
+      db.raw(`sum(if( i.generic_id = 7 ,i.qty,0)) AS 'd7'`),
+      db.raw(`sum(if( i.generic_id = 8 ,i.qty,0)) AS 'd8'`))
+      .join('view_covid_case_last AS l', 'l.id', 'i.covid_case_detail_id')
+      .groupBy('i.covid_case_detail_id').as('du')
+    let sql = db('views_covid_case_last as cl')
+      .select(db.raw('sum((du.d1 is not null) and (du.d1 > 0)) as d1'),
+        db.raw('sum((du.d2 is not null) and (du.d2 > 0)) as d2'),
+        db.raw('sum((du.d3 is not null) and (du.d3 > 0)) as d3'),
+        db.raw('sum((du.d4 is not null) and (du.d4 > 0)) as d4'),
+        db.raw('sum((du.d5 is not null) and (du.d5 > 0)) as d5'),
+        db.raw('sum((du.d7 is not null) and (du.d7 > 0)) as d7'),
+        db.raw('sum((du.d8 is not null) and (du.d8 > 0)) as d8'))
+      .select(db.raw(`
+      h.province_name,
+      sum( cl.gcs_id in (1,2,3,4) ) AS confirm,
+      sum( cl.gcs_id = 1 ) AS severe,
+      sum( cl.gcs_id = 2 ) AS moderate,
+      sum( cl.gcs_id = 3 ) AS mild,
+      sum( cl.gcs_id = 4 ) AS asymptomatic ,
+      sum( cl.bed_id = 1 ) AS aiir ,
+      sum( cl.bed_id = 2 ) AS modified_aiir ,
+      sum( cl.bed_id = 3 ) AS isolate ,
+      sum( cl.bed_id = 4 ) AS cohort ,
+      sum( cl.bed_id = 5 ) AS   hospitel,
+      sum( cl.medical_supplie_id = 1 ) AS   invasive,
+      sum( cl.medical_supplie_id = 2 ) AS   noninvasive,
+      sum( cl.medical_supplie_id = 3 ) AS   high_flow`))
+      .join('p_covid_cases as c', 'c.id', 'cl.covid_case_id')
+      .join('p_patients as pt', 'pt.id', 'c.patient_id')
+      .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
+      .leftJoin(drugUse, 'du.covid_case_detail_id', 'cl.id')
+      .where('cl.status', 'ADMIT')
+      .where('h.zone_code', zoneCode)
+      .whereIn('gcs_id', [1, 2, 3, 4])
+      .groupBy('h.province_code')
+      .orderBy('h.province_code')
+    return sql;
+  }
+
   homework(db: Knex) {
     return db('views_review_homework as v')
       .select(db.raw(`b.zone_code,
@@ -445,7 +527,7 @@ export class ReportModel {
 
   homeworkDetail(db: Knex) {
     return db('views_review_homework as v')
-      .select('v.*', 'b.hospcode', 'b.hospname', 'bs.name as sub_ministry_name','b.zone_code')
+      .select('v.*', 'b.hospcode', 'b.hospname', 'bs.name as sub_ministry_name', 'b.zone_code')
       .join('b_hospitals as b', 'b.id', 'v.hospital_id')
       .join('b_hospital_subministry as bs', 'bs.code', 'b.sub_ministry_code')
       .orderBy('b.zone_code')
