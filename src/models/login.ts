@@ -11,7 +11,6 @@ export class Login {
       .where('u.password', password)
       .where('u.is_deleted', 'N')
       .limit(1);
-      console.log(sql.toString());
       return sql;
       
   }
