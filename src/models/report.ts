@@ -125,8 +125,6 @@ export class ReportModel {
       })
       .whereIn('h.hosptype_code', ['01', '05', '06', '07', '11', '12', '15'])
       .where('h.province_code', province)
-
-
     return sql;
   }
 
@@ -514,7 +512,7 @@ export class ReportModel {
   }
 
   homework(db: Knex) {
-    return db('views_review_homework as v')
+    const sql = db('views_review_homework as v')
       .select(db.raw(`b.zone_code,
     sum(b.hosptype_code in ('05','06','07','11','12')) as government,
     sum(b.hosptype_code in ('05','06','07','11','12') and v.register_last_date is not null) as government_register,
@@ -523,14 +521,16 @@ export class ReportModel {
       .join('b_hospitals as b', 'b.id', 'v.hospital_id')
       .groupBy('b.zone_code')
       .orderBy('b.zone_code')
+    return sql;
   }
 
   homeworkDetail(db: Knex) {
-    return db('views_review_homework as v')
+    const sql = db('views_review_homework as v')
       .select('v.*', 'b.hospcode', 'b.hospname', 'bs.name as sub_ministry_name', 'b.zone_code')
       .join('b_hospitals as b', 'b.id', 'v.hospital_id')
       .join('b_hospital_subministry as bs', 'bs.code', 'b.sub_ministry_code')
       .orderBy('b.zone_code')
+    return sql;
   }
 
   getPersonTime(db: Knex) {

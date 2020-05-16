@@ -27,6 +27,16 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/node/drugs', async (req: Request, res: Response) => {
+  const type = req.query.type;
+  try {
+    let rs: any = await model.getHospNode(req.db);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.post('/drugs', async (req: Request, res: Response) => {
   const data = req.body.data;
   const db = req.db;

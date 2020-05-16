@@ -130,6 +130,7 @@ export class CovidCaseModel {
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .join('b_hospitals as h', 'pt.hospital_id', 'h.id')
       .where('pt.person_id', personId)
+      .orderBy('c.date_admit')
   }
 
   getDetails(db: Knex, covidCaseId) {

@@ -170,21 +170,24 @@ vc.updated_entry  as updated_entry`))
   }
 
   report8(db: Knex, date, sector) {
-    return db('views_supplies_hospital_cross as v')
+    const sql = db('views_supplies_hospital_cross as v')
       .select('v.*', 'vh.hospname', 'vh.sub_ministry_name')
       .join('views_hospital_all as vh', 'vh.id', 'v.hospital_id')
+    return sql;
   }
 
   report9(db: Knex, date, sector) {
-    return db('views_professional_hospital_cross as v')
+    const sql = db('views_professional_hospital_cross as v')
       .select('v.*', 'vh.hospname', 'vh.sub_ministry_name')
       .join('views_hospital_all as vh', 'vh.id', 'v.hospital_id')
+    return sql;
   }
 
   report10(db: Knex, date, sector) {
-    return db('views_professional_hospital_cross as v')
+    const sql = db('views_professional_hospital_cross as v')
       .select('v.*', 'vh.hospname', 'vh.sub_ministry_name')
       .join('views_hospital_all as vh', 'vh.id', 'v.hospital_id')
+    return sql;
   }
 
   getHospitalByType(db: Knex) {
