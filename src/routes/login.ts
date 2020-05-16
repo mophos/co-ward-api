@@ -182,7 +182,8 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
 
         body.token = jwt.sign({
           type: 'MANAGER', rights: [
-            { name: 'MANAGER_REPORT_BED' }
+            { name: 'MANAGER_REPORT_BED' },
+            { name: 'MANAGER_REPORT_RESOURCE' }
           ]
         });
         res.send(body);
