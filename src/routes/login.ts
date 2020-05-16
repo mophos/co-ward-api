@@ -121,4 +121,76 @@ router.post('/update-password2', async (req: Request, res: Response) => {
   }
 });
 
+router.post('/requis-otp', async (req: Request, res: Response) => {
+  let tel = req.body.tel;
+  try {
+    console.log(tel);
+
+    var request = require("request");
+    var options = {
+      method: 'POST',
+      url: 'https://covid19.moph.go.th/authentication/ais',
+      headers: { 'content-type': 'application/json' },
+      body: { tel: tel, appId: '76503a47-cea5-482f-ae27-e151ca5a2721' },
+      json: true
+    };
+
+    request(options, await function (error, response, body) {
+      if (error) {
+        res.send(error.message);
+      }
+      else {
+        console.log(body);
+
+        res.send(body);
+      };
+    });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+
+router.post('/verify-otp', async (req: Request, res: Response) => {
+  let tel = req.body.tel;
+  let otp = req.body.otp
+  let transactionID = req.body.transactionId
+  try {
+
+    var request = require("request");
+
+    var options = {
+      method: 'POST',
+      url: 'https://covid19.moph.go.th/authentication/ais/verify',
+      headers: { 'content-type': 'application/json' },
+      body: {
+        tel: tel,
+        otp: otp.toString(),
+        transactionID: transactionID,
+        appId: '76503a47-cea5-482f-ae27-e151ca5a2721'
+      },
+      json: true
+    };
+    console.log(options);
+
+    request(options, await function (error, response, body) {
+      if (error) {
+        res.send(error.message);
+      }
+      else {
+        console.log(body);
+
+        body.token = jwt.sign({
+          type: 'MANAGER', rights: [
+            { name: 'MANAGER_REPORT_BED' }
+          ]
+        });
+        res.send(body);
+      };
+    });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 export default router;
