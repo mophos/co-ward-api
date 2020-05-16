@@ -76,22 +76,23 @@ router.post('/beds', async (req: Request, res: Response) => {
     await model.removeBeds(db, hospitalId);
     const _data = [];
     let detail: any = [];
+    
     for (const i of data) {
       _data.push({
         hospital_id: hospitalId,
         bed_id: i.bed_id,
-        qty: i.qty,
-        covid_qty: i.covid_qty,
-        spare_qty: i.spare_qty,
+        qty: i.qty > 0 ? i.qty : null,
+        covid_qty: i.covid_qty > 0 ? i.covid_qty : null,
+        spare_qty: i.spare_qty > 0 ? i.spare_qty : null,
         created_by: id
       });
 
       detail.push({
         wm_bed_id: rs,
         bed_id: i.bed_id,
-        qty: i.qty,
-        covid_qty: i.covid_qty,
-        spare_qty: i.spare_qty
+        qty: i.qty > 0 ? i.qty : null,
+        covid_qty: i.covid_qty > 0 ? i.covid_qty : null,
+        spare_qty: i.spare_qty > 0 ? i.spare_qty : null
       });
     }
     await model.saveBeds(db, _data);
