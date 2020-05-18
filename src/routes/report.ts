@@ -912,21 +912,40 @@ router.get('/get-supplies', async (req: Request, res: Response) => {
     }
 
     let data: any = [];
+
+    let province;
+    let sup;
+    if (zoneCode) {
+      console.log('1');
+      sup = await model.getSupplies(db, date, null, zoneCode);
+      console.log('2');
+      province = await model.getProvince(db, zoneCode, null);
+      console.log('3');
+    } else {
+      sup = await model.getSupplies(db, date, null, null);
+      province = await model.getProvince(db, null, null);
+    }
+    console.log(sup.length);
+
     for (const z of zoneCodes) {
       const zone: any = {};
       zone.name = z;
       let provinces: any = [];
-      let province: any;
+      let _province: any;
+      // console.log(province;
+
+      console.log(provinceCode,province);
       if (provinceCode) {
-        province = await model.getProvince(db, null, provinceCode);
+        _province = filter(province, { 'code': provinceCode });
       } else {
-        province = await model.getProvince(db, z, null);
+        _province = filter(province, { 'zone_code': z });
       }
-      for (const p of province) {
+      
+      for (const p of _province) {
         const _province: any = {};
         _province.province_name = p.name_th;
-        const sup: any = await model.getSupplies(db, date, p.code);
-        _province.hospitals = sup;
+        const _sup = filter(sup, { 'province_code': p.code });
+        _province.hospitals = _sup;
         provinces.push(_province);
       }
       zone.provinces = provinces;
