@@ -93,9 +93,11 @@ export class FullfillModel {
   }
 
   getHospNode(db: Knex) {
-    return db('h_node_drugs AS hn')
-      .select('bh.*')
-      .join('b_hospitals AS bh', 'bh.id', 'hn.hospital_id')
+    return db('h_node_drugs AS n')
+      .select('v.*','h.hospcode',
+      'h.hospname' )
+      .join('view_balance_drugs AS v', 'n.hospital_id', 'v.hospital_id')
+      .join('b_hospitals AS h', 'h.id', 'n.hospital_id')  
   }
 
   getHospital(db: Knex, hospitalTypeCode) {

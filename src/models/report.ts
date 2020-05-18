@@ -106,7 +106,7 @@ export class ReportModel {
 
   getSupplies(db: Knex, date, province) {
 
-    const supplies = db('views_supplies_hospital_cross as ws')
+    const supplies = db('views_supplies_hospital_date_cross as ws')
       .join('b_hospitals as h', 'h.id', 'ws.hospital_id')
       .max('ws.entry_date as entry_date')
       .select('ws.hospital_id')
@@ -118,13 +118,19 @@ export class ReportModel {
 
     const sql = db('b_hospitals as h')
       .select('sd.*', 'h.hospname')
-      .leftJoin('views_supplies_hospital_cross as sd', 'h.id', 'sd.hospital_id')
       .leftJoin(supplies, (v) => {
-        v.on('supplies.hospital_id', 'sd.id')
-        v.on('supplies.entry_date', 'sd.entry_date')
+        v.on('supplies.hospital_id', 'h.id')
+        // v.on('supplies.entry_date', 'ws.entry_date')
       })
+      .leftJoin('views_supplies_hospital_date_cross as sd',  (v) => {
+        v.on('sd.hospital_id', 'supplies.hospital_id')
+        v.on('sd.entry_date', 'supplies.entry_date')
+      })
+      
       .whereIn('h.hosptype_code', ['01', '05', '06', '07', '11', '12', '15'])
       .where('h.province_code', province)
+      // console.log(sql.toString());
+      
     return sql;
   }
 
