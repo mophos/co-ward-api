@@ -46,4 +46,16 @@ export class RequestProductModel {
 
     }
 
+    getProductTypes(db: Knex) {
+        return db('lh_product_types')
+    }
+
+    getProducts(db: Knex, typeId) {
+        const sql = db('lh_products')
+        .select('lh_products.*',db.raw(`'0' as qty`))
+        if (typeId) {
+            sql.where('type_id', typeId)
+        }
+        return sql;
+    }
 }

@@ -1,5 +1,5 @@
 import * as Knex from 'knex';
-
+var request = require('request');
 export class FullfillModel {
 
   getProducts(db: Knex, type) {
@@ -94,10 +94,40 @@ export class FullfillModel {
 
   getHospNode(db: Knex) {
     return db('h_node_drugs AS n')
-      .select('v.*','h.hospcode',
-      'h.hospname' )
-      .join('view_balance_drugs AS v', 'n.hospital_id', 'v.hospital_id')
-      .join('b_hospitals AS h', 'h.id', 'n.hospital_id')  
+      .select('n.*', 'h.hospcode', 'h.hospname')
+      .join('b_hospitals AS h', 'h.id', 'n.hospital_id')
+  }
+
+  // getBalance(db:Knex,hospitalId){
+  //   return db('b_generics as g')
+  //   .leftJoin('wm_generics as v','v.generic_id','g.id')
+  //   .where('g.type','DRUG')
+  //   .where('g.sub_type','COVID')
+  //   .where('v.hospital_id',hospitalId)
+  // }
+
+  getBalance(db: Knex, hospitalId) {
+    let sql = db('wm_generics as g')
+      .select('g.generic_id', 'bg.name as generic_name', 'g.hospital_id', 'bh.hospname as hospital_name', 'g.qty', 'gp.min', 'gp.max',
+        'gp.safety_stock', db.raw('if((gp.max-(g.qty+ifnull(vf.qty,0))+gp.safety_stock)<0,0,(gp.max-(g.qty+ifnull(vf.qty,0))+gp.safety_stock)) as fill_qty'),
+        db.raw('if((gp.max-(g.qty+ifnull(vf.qty,0))+gp.safety_stock)<0,0,(gp.max-(g.qty+ifnull(vf.qty,0))+gp.safety_stock)) as recommend_fill_qty'),
+        db.raw('((g.qty+ifnull(vf.qty,0))*100/gp.max) as qty_order'), db.raw(`ifnull(vf.qty,0) as reserve_qty`))
+      .join('b_generic_plannings as gp', (v) => {
+        v.on('g.generic_id', 'gp.generic_id');
+        v.on('g.hospital_id', 'gp.hospital_id');
+      })
+      .join('b_generics as bg', 'bg.id', 'g.generic_id')
+      .join('b_hospitals as bh', 'bh.id', 'g.hospital_id')
+      .leftJoin('view_fulfill_reserves as vf', (v) => {
+        v.on('vf.generic_id', 'g.generic_id')
+        v.on('vf.hospital_id', 'g.hospital_id')
+      })
+      .where('bg.type', 'DRUG')
+      .where('g.hospital_id', hospitalId)
+    // .orderByRaw('(g.qty+ifnull(vf.qty,0))*100/gp.max')
+    // .havingRaw('fill_qty > 0 and (qty+reserve_qty) < min')
+    // console.log(sql.toString());
+    return sql;
   }
 
   getHospital(db: Knex, hospitalTypeCode) {
@@ -273,4 +303,25 @@ export class FullfillModel {
     return sql
   }
 
+  getGPO() {
+    return new Promise((resolve, reject) => {
+      var options = {
+        'method': 'POST',
+        'url': 'http://svmi.gpo.or.th/SVMIService.asmx/GetStockCOVID19?Userkey=XXXStockCOVID19XXX',
+        'headers': {
+          'Content-Type': ['text/plain', 'text/plain']
+        },
+        body: "{UserKey : \"XXXStockCOVID19XXX\" }"
+
+      };
+      request(options, function (error, response, body) {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(body);
+        }
+      });
+    });
+  }
+  
 }

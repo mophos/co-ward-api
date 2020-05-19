@@ -16,7 +16,6 @@ const payModel = new PayModel();
 const serialModel = new SerialModel();
 const router: Router = Router();
 
-
 router.get('/', async (req: Request, res: Response) => {
   const type = req.query.type;
   try {
@@ -36,6 +35,18 @@ router.get('/node/drugs', async (req: Request, res: Response) => {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
+
+router.get('/balance/drugs', async (req: Request, res: Response) => {
+  const type = req.query.type;
+  const hospitalId = req.query.hospitalId;
+  try {
+    let rs: any = await model.getBalance(req.db, hospitalId);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 
 router.post('/drugs', async (req: Request, res: Response) => {
   const data = req.body.data;

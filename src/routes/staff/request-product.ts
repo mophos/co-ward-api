@@ -23,6 +23,26 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/product-types', async (req: Request, res: Response) => {
+  let db = req.db;
+  try {
+    let rs: any = await model.getProductTypes(db);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/products', async (req: Request, res: Response) => {
+  let db = req.db;
+  const typeId = req.query.typeId == '' || req.query.typeId == 'null' ? null : req.query.typeId;
+  try {
+    let rs: any = await model.getProducts(db, typeId);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
 router.get('/generics', async (req: Request, res: Response) => {
   let db = req.db;
   let hospcode = req.decoded.hospcode
