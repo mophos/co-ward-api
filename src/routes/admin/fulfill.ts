@@ -20,7 +20,7 @@ router.get('/', async (req: Request, res: Response) => {
   const type = req.query.type;
   try {
     let rs: any = await model.getProducts(req.db, type);
-    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
