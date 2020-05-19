@@ -915,32 +915,26 @@ router.get('/get-supplies', async (req: Request, res: Response) => {
 
     let province;
     let sup;
-    if (zoneCode) {
-      console.log('1');
-      sup = await model.getSupplies(db, date, null, zoneCode);
-      console.log('2');
+
+    if (zoneCodes.length) {
+      sup = await model.getSupplies(db, date, null, zoneCodes);
       province = await model.getProvince(db, zoneCode, null);
-      console.log('3');
     } else {
       sup = await model.getSupplies(db, date, null, null);
       province = await model.getProvince(db, null, null);
     }
-    console.log(sup.length);
 
     for (const z of zoneCodes) {
       const zone: any = {};
       zone.name = z;
       let provinces: any = [];
       let _province: any;
-      // console.log(province;
-
-      console.log(provinceCode,province);
       if (provinceCode) {
         _province = filter(province, { 'code': provinceCode });
       } else {
         _province = filter(province, { 'zone_code': z });
       }
-      
+
       for (const p of _province) {
         const _province: any = {};
         _province.province_name = p.name_th;
@@ -1051,8 +1045,53 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
   const type = req.decoded.type;
   const _provinceCode = req.decoded.provinceCode;
   const zone = req.query.zone;
-  const wb = new excel4node.Workbook();
+
   try {
+    const wb = new excel4node.Workbook();
+    const ws = wb.addWorksheet();
+    const center = wb.createStyle({
+      alignment: {
+        wrapText: true,
+        horizontal: 'center',
+      },
+    });
+    ws.cell(1, 1, 2, 1, true).string('เขตสุขภาพ').style(center);
+    ws.cell(1, 2, 2, 2, true).string('จังหวัด').style(center);
+    ws.cell(1, 3, 2, 3, true).string('โรงพยาบาล').style(center);
+    ws.cell(1, 4, 2, 4, true).string('วันที่บันทึกล่าสุด').style(center);
+    ws.cell(1, 5, 1, 6, true).string('Surgical Gown').style(center);
+    ws.cell(1, 7, 1, 8, true).string('Cover All-1').style(center);
+    ws.cell(1, 9, 1, 10, true).string('Cover All-2').style(center);
+    ws.cell(1, 11, 1, 12, true).string('N95').style(center);
+    ws.cell(1, 13, 1, 14, true).string('Shoe Cover').style(center);
+    ws.cell(1, 15, 1, 16, true).string('Surgical hood').style(center);
+    ws.cell(1, 17, 1, 18, true).string('Long glove').style(center);
+    ws.cell(1, 19, 1, 20, true).string('Face shield').style(center);
+    ws.cell(1, 21, 1, 22, true).string('Surgical Mask').style(center);
+    ws.cell(1, 23, 1, 24, true).string('Powered air-purifying respirator').style(center);
+
+    ws.cell(2, 5).string('คงคลัง').style(center);
+    ws.cell(2, 6).string('อัตราการใช้ต่อเดือน').style(center);
+    ws.cell(2, 7).string('คงคลัง').style(center);
+    ws.cell(2, 8).string('อัตราการใช้ต่อเดือน').style(center);
+    ws.cell(2, 9).string('คงคลัง').style(center);
+    ws.cell(2, 10).string('อัตราการใช้ต่อเดือน').style(center);
+    ws.cell(2, 11).string('คงคลัง').style(center);
+    ws.cell(2, 12).string('อัตราการใช้ต่อเดือน').style(center);
+    ws.cell(2, 13).string('คงคลัง').style(center);
+    ws.cell(2, 14).string('อัตราการใช้ต่อเดือน').style(center);
+    ws.cell(2, 15).string('คงคลัง').style(center);
+    ws.cell(2, 16).string('อัตราการใช้ต่อเดือน').style(center);
+    ws.cell(2, 17).string('คงคลัง').style(center);
+    ws.cell(2, 18).string('อัตราการใช้ต่อเดือน').style(center);
+    ws.cell(2, 19).string('คงคลัง').style(center);
+    ws.cell(2, 20).string('อัตราการใช้ต่อเดือน').style(center);
+    ws.cell(2, 21).string('คงคลัง').style(center);
+    ws.cell(2, 22).string('อัตราการใช้ต่อเดือน').style(center);
+    ws.cell(2, 23).string('คงคลัง').style(center);
+    ws.cell(2, 24).string('อัตราการใช้ต่อเดือน').style(center);
+    let row = 3;
+
     let zoneCodes = [];
     let provinceCode = null;
     if (type == 'MANAGER') {
@@ -1070,58 +1109,40 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
       }
     }
 
+    let data: any = [];
 
-    for (const z of zoneCodes) {
-      const zone: any = {};
-      zone.name = z;
-      let provinces: any = [];
-      let province: any;
-      if (provinceCode) {
-        province = await model.getProvince(db, null, provinceCode);
-      } else {
-        province = await model.getProvince(db, z, null);
+    const rs = await model.getSupplies(db, date, provinceCode, zoneCodes);
+    for (const i of rs) {
+      ws.cell(row, 1).string(i.zone_code);
+      ws.cell(row, 2).string(i.province_name);
+      ws.cell(row, 3).string(i.hospname);
+      if (i.entry_date) {
+        ws.cell(row, 4).string(toString(
+          `${moment(i.entry_date).format('DD-MM')}-${+moment(i.entry_date).get('year') + 543}`
+        ));
       }
-
-      for (const p of province) {
-        var ws = wb.addWorksheet(`${p.name_th}`);
-
-        ws.cell(1, 1).string('โรงพยาบาล');
-        ws.cell(1, 2).string('วันที่บันทึกล่าสุด');
-        ws.cell(1, 3).string('Surgical Gown');
-        ws.cell(1, 4).string('Cover All-1');
-        ws.cell(1, 5).string('Cover All-2');
-        ws.cell(1, 6).string('N95');
-        ws.cell(1, 7).string('Shoe Cover');
-        ws.cell(1, 8).string('Surgical hood');
-        ws.cell(1, 9).string('Long glove');
-        ws.cell(1, 10).string('Face shield');
-        ws.cell(1, 11).string('Surgical Mask');
-        ws.cell(1, 12).string('Powered air-purifying respirator');
-        let row = 2;
-        const sup: any = await model.getSupplies(db, date, p.code);
-        for (const i of sup) {
-          ws.cell(row, 1).string(i.hospname);
-          if (i.entry_date) {
-            ws.cell(row, 2).string(toString(
-              `${moment(i.entry_date).format('DD-MM')}-${+moment(i.entry_date).get('year') + 543}`
-            ));
-          }
-          ws.cell(row, 3).number(toNumber(i.surgical_gown_qty));
-          ws.cell(row, 4).number(toNumber(i.cover_all1_qty));
-          ws.cell(row, 5).number(toNumber(i.cover_all2_qty));
-          ws.cell(row, 6).number(toNumber(i.n95_qty));
-          ws.cell(row, 7).number(toNumber(i.shoe_cover_qty));
-          ws.cell(row, 8).number(toNumber(i.surgical_hood_qty));
-          ws.cell(row, 9).number(toNumber(i.long_glove_qty));
-          ws.cell(row, 10).number(toNumber(i.face_shield_qty));
-          ws.cell(row, 11).number(toNumber(i.surgical_mask_qty));
-          ws.cell(row, 12).number(toNumber(i.powered_air_qty));
-          row++;
-        }
-      }
+      ws.cell(row, 5).number(toNumber(i.surgical_gown_qty));
+      ws.cell(row, 6).number(toNumber(i.surgical_gown_month_usage_qty));
+      ws.cell(row, 7).number(toNumber(i.cover_all1_qty));
+      ws.cell(row, 8).number(toNumber(i.cover_all1_month_usage_qty));
+      ws.cell(row, 9).number(toNumber(i.cover_all2_qty));
+      ws.cell(row, 10).number(toNumber(i.cover_all2_month_usage_qty));
+      ws.cell(row, 11).number(toNumber(i.n95_qty));
+      ws.cell(row, 12).number(toNumber(i.n95_month_usage_qty));
+      ws.cell(row, 13).number(toNumber(i.shoe_cover_qty));
+      ws.cell(row, 14).number(toNumber(i.shoe_cover_month_usage_qty));
+      ws.cell(row, 15).number(toNumber(i.surgical_hood_qty));
+      ws.cell(row, 16).number(toNumber(i.surgical_hood_month_usage_qty));
+      ws.cell(row, 17).number(toNumber(i.long_glove_qty));
+      ws.cell(row, 18).number(toNumber(i.long_glove_month_usage_qty));
+      ws.cell(row, 19).number(toNumber(i.face_shield_qty));
+      ws.cell(row, 20).number(toNumber(i.face_shield_month_usage_qty));
+      ws.cell(row, 21).number(toNumber(i.surgical_mask_qty));
+      ws.cell(row, 22).number(toNumber(i.surgical_mask_month_usage_qty));
+      ws.cell(row, 23).number(toNumber(i.powered_air_qty));
+      ws.cell(row, 24).number(toNumber(i.powered_air_month_usage_qty));
+      row++;
     }
-
-    // ------------
     fse.ensureDirSync(process.env.TMP_PATH);
     let filename = `get_gcs` + moment().format('x');
     let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
@@ -1139,11 +1160,86 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
 
       }
     });
-    // res.send({ ok: true, rows: 0, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
+
+  // try {
+
+  //   for (const z of zoneCodes) {
+  //     const zone: any = {};
+  //     zone.name = z;
+  //     let provinces: any = [];
+  //     let province: any;
+  //     if (provinceCode) {
+  //       province = await model.getProvince(db, null, provinceCode);
+  //     } else {
+  //       province = await model.getProvince(db, z, null);
+  //     }
+
+  //     for (const p of province) {
+  //       var ws = wb.addWorksheet(`${p.name_th}`);
+
+  //       ws.cell(1, 1).string('โรงพยาบาล');
+  //       ws.cell(1, 2).string('วันที่บันทึกล่าสุด');
+  //       ws.cell(1, 3).string('Surgical Gown');
+  //       ws.cell(1, 4).string('Cover All-1');
+  //       ws.cell(1, 5).string('Cover All-2');
+  //       ws.cell(1, 6).string('N95');
+  //       ws.cell(1, 7).string('Shoe Cover');
+  //       ws.cell(1, 8).string('Surgical hood');
+  //       ws.cell(1, 9).string('Long glove');
+  //       ws.cell(1, 10).string('Face shield');
+  //       ws.cell(1, 11).string('Surgical Mask');
+  //       ws.cell(1, 12).string('Powered air-purifying respirator');
+  //       let row = 2;
+  //       const sup: any = await model.getSupplies(db, date, p.code);
+  //       for (const i of sup) {
+  //         ws.cell(row, 1).string(i.hospname);
+  //         if (i.entry_date) {
+  //           ws.cell(row, 2).string(toString(
+  //             `${moment(i.entry_date).format('DD-MM')}-${+moment(i.entry_date).get('year') + 543}`
+  //           ));
+  //         }
+  //         ws.cell(row, 3).number(toNumber(i.surgical_gown_qty));
+  //         ws.cell(row, 4).number(toNumber(i.cover_all1_qty));
+  //         ws.cell(row, 5).number(toNumber(i.cover_all2_qty));
+  //         ws.cell(row, 6).number(toNumber(i.n95_qty));
+  //         ws.cell(row, 7).number(toNumber(i.shoe_cover_qty));
+  //         ws.cell(row, 8).number(toNumber(i.surgical_hood_qty));
+  //         ws.cell(row, 9).number(toNumber(i.long_glove_qty));
+  //         ws.cell(row, 10).number(toNumber(i.face_shield_qty));
+  //         ws.cell(row, 11).number(toNumber(i.surgical_mask_qty));
+  //         ws.cell(row, 12).number(toNumber(i.powered_air_qty));
+  //         row++;
+  //       }
+  //     }
+  //   }
+
+  //   // ------------
+  //   fse.ensureDirSync(process.env.TMP_PATH);
+  //   let filename = `get_gcs` + moment().format('x');
+  //   let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
+  //   wb.write(filenamePath, function (err, stats) {
+  //     if (err) {
+  //       console.error(err);
+  //       fse.removeSync(filenamePath);
+  //       res.send({ ok: false, error: err })
+  //     } else {
+  //       res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+  //       res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+  //       res.sendfile(filenamePath, (v) => {
+  //         fse.removeSync(filenamePath);
+  //       })
+
+  //     }
+  //   });
+  //   // res.send({ ok: true, rows: 0, code: HttpStatus.OK });
+  // } catch (error) {
+  //   console.log(error);
+  //   res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  // }
 });
 
 router.get('/fulfill-drugs', async (req: Request, res: Response) => {
