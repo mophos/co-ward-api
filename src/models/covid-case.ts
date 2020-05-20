@@ -1,10 +1,11 @@
 import * as Knex from 'knex';
+import { join } from 'bluebird';
 
 export class CovidCaseModel {
 
   getCase(db: Knex, hospitalId) {
     return db('p_covid_cases as c')
-      .select('c.id as covid_case_id', 'c.an', 'c.confirm_date', 'c.status', 'c.date_admit','c.date_discharge', 'pt.hn', 'pt.person_id', 'p.*', 't.name as title_name')
+      .select('c.id as covid_case_id', 'c.an', 'c.confirm_date', 'c.status', 'c.date_admit', 'c.date_discharge', 'pt.hn', 'pt.person_id', 'p.*', 't.name as title_name')
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .leftJoin('um_titles as t', 'p.title_id', 't.id')
@@ -69,13 +70,13 @@ export class CovidCaseModel {
 
   getCasePresent(db: Knex, hospitalId, query) {
     const last = db('views_covid_case')
-    .max('updated_entry as updated_entry_last')
-    .whereRaw('covid_case_id=cd.covid_case_id')
-    .whereNotNull('updated_entry')
-    .as('updated_entry')
+      .max('updated_entry as updated_entry_last')
+      .whereRaw('covid_case_id=cd.covid_case_id')
+      .whereNotNull('updated_entry')
+      .as('updated_entry')
 
     return db('p_covid_cases as c')
-      .select(last,'c.id as covid_case_id', 'c.status', 'c.date_admit', 'pt.hn', 'pt.person_id', 'cd.id as covid_case_details_id', 'p.*', 't.name as title_name',
+      .select(last, 'c.id as covid_case_id', 'c.status', 'c.date_admit', 'pt.hn', 'pt.person_id', 'cd.id as covid_case_details_id', 'p.*', 't.name as title_name',
         'cd.bed_id', 'cd.gcs_id', 'cd.medical_supplie_id', db.raw(`ifnull(cd.create_date, null) as create_date`),
         db.raw(`ifnull(cd.entry_date, null) as entry_date`),
         db.raw(`(select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 1 or generic_id = 2) limit 1) as set1,
@@ -499,17 +500,40 @@ export class CovidCaseModel {
       .where('entry_date', '>', date)
   }
 
-  removeCovidCaseDetail(db: Knex, id){
+  removeCovidCaseDetail(db: Knex, id) {
     return db('p_covid_case_details')
       .delete()
       .where('id', id)
   }
 
-  removeRequisition(db: Knex, id){
-    return db('wm_requisitions')
-      .update('is_deleted','Y')
-      .where('covid_case_detail_id', id)
-      .where('is_approved','N')
+  removeCovidCaseDetailByCaseId(db: Knex, id) {
+    return db('p_covid_case_details')
+      .delete()
+      .where('covid_case_id', id)
   }
+
+  removeRequisition(db: Knex, id) {
+    return db('wm_requisitions')
+      .update('is_deleted', 'Y')
+      .where('covid_case_detail_id', id)
+      .where('is_approved', 'N')
+  }
+
+  listOldPatient(db: Knex, hospitalId) {
+    return db('views_covid_case_last as cl')
+      .join('p_patients as p', 'p.id', 'cl.id')
+      .join('p_covid_cases as pc', 'pc.id', 'cl.covid_case_id')
+      .join('p_persons as pp', 'pp.id', 'p.person_id')
+      .where('cl.hospital_id', hospitalId)
+      .whereNull('cl.gcs_id');
+  }
+
+  oldPatientDetail(db: Knex, covidCaseId) {
+    return db('p_covid_cases as c')
+      .leftJoin('p_covid_case_details as pd', 'pd.covid_case_id', 'c.id')
+      .where('c.id', covidCaseId)
+  }
+
+
 
 }
