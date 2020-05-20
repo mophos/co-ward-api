@@ -40,6 +40,7 @@ export class ReportModel {
       .where('vcl.entry_date', date)
     // .groupBy('pp.hospital_id', )
   }
+
   getBad(db: Knex) {
     return db('views_bed_hospitals AS vbh')
   }
@@ -104,8 +105,7 @@ export class ReportModel {
     return db('views_professional_hospitals AS vph')
   }
 
-  getSupplies(db: Knex, date, provinceCode, zoneCode = null) {
-
+  getSupplies(db: Knex, date, provinceCode, zoneCode: any[]) {
     const supplies = db('views_supplies_hospital_date_cross as ws')
       .join('b_hospitals as h', 'h.id', 'ws.hospital_id')
       .max('ws.entry_date as entry_date')
@@ -113,8 +113,8 @@ export class ReportModel {
       .groupBy('ws.hospital_id')
       .where('ws.entry_date', '<=', date)
       .as('supplies')
-    if (zoneCode) {
-      supplies.where('h.zone_code', zoneCode)
+    if (zoneCode.length) {
+      supplies.whereIn('h.zone_code', zoneCode)
     }
     if (provinceCode) {
       supplies.where('h.province_code', provinceCode)
@@ -122,7 +122,7 @@ export class ReportModel {
 
 
     const sql = db('b_hospitals as h')
-      .select('sd.*', 'h.hospname','h.province_code')
+      .select('sd.*', 'h.hospname', 'h.province_code','h.province_name', 'h.zone_code')
       .leftJoin(supplies, (v) => {
         v.on('supplies.hospital_id', 'h.id')
         // v.on('supplies.entry_date', 'ws.entry_date')
@@ -133,12 +133,15 @@ export class ReportModel {
       })
 
       .whereIn('h.hosptype_code', ['01', '05', '06', '07', '11', '12', '15'])
-    if (zoneCode) {
-      sql.where('h.zone_code', zoneCode)
+    if (zoneCode.length) {
+      sql.whereIn('h.zone_code', zoneCode)
     }
     if (provinceCode) {
       sql.where('h.province_code', provinceCode)
     }
+    sql.orderBy('h.zone_code')
+      .orderBy('h.province_code')
+      .orderBy('h.hospcode')
     // console.log(sql.toString());
 
     return sql;

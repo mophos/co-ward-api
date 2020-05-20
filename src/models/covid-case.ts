@@ -142,6 +142,8 @@ export class CovidCaseModel {
       .leftJoin('b_medical_supplies as bm', 'bm.id', 'pc.medical_supplie_id')
       .leftJoin('um_users as uu', 'uu.id', 'pc.create_by')
       .where('pc.covid_case_id', covidCaseId)
+      .orderBy('pc.entry_date')
+      .orderBy('pc.id')
   }
 
   checkCidSameHospital(db: Knex, hospitalId, cid) {

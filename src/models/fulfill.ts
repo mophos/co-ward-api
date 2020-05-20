@@ -3,25 +3,204 @@ var request = require('request');
 export class FullfillModel {
 
   getProducts(db: Knex, type) {
-    let sql = db('wm_generics as g')
-      .select('g.generic_id', 'bg.name as generic_name', 'g.hospital_id', 'bh.hospname as hospital_name', 'g.qty', 'gp.min', 'gp.max',
-        'gp.safety_stock', db.raw('(gp.max-(g.qty+ifnull(vf.qty,0))+gp.safety_stock) as fill_qty'),
-        db.raw('(gp.max-(g.qty+ifnull(vf.qty,0))+gp.safety_stock) as recommend_fill_qty'),
-        db.raw('((g.qty+ifnull(vf.qty,0))*100/gp.max) as qty_order'), db.raw(`ifnull(vf.qty,0) as reserve_qty`))
-      .join('b_generic_plannings as gp', (v) => {
-        v.on('g.generic_id', 'gp.generic_id');
-        v.on('g.hospital_id', 'gp.hospital_id');
-      })
-      .join('b_generics as bg', 'bg.id', 'g.generic_id')
-      .join('b_hospitals as bh', 'bh.id', 'g.hospital_id')
-      .leftJoin('view_fulfill_reserves as vf', (v) => {
-        v.on('vf.generic_id', 'g.generic_id')
-        v.on('vf.hospital_id', 'g.hospital_id')
-      })
-      .where('bg.type', type)
-      .orderByRaw('(g.qty+ifnull(vf.qty,0))*100/gp.max')
-      .havingRaw('fill_qty > 0 and (qty+reserve_qty) < min')
-    // console.log(sql.toString());
+    // let sql = db('wm_generics as g')
+    //   .select('g.generic_id', 'bg.name as generic_name', 'g.hospital_id', 'bh.hospname as hospital_name', 'g.qty', 'gp.min', 'gp.max',
+    //     'gp.safety_stock', db.raw('(gp.max-(g.qty+ifnull(vf.qty,0))+gp.safety_stock) as fill_qty'),
+    //     db.raw('(gp.max-(g.qty+ifnull(vf.qty,0))+gp.safety_stock) as recommend_fill_qty'),
+    //     db.raw('((g.qty+ifnull(vf.qty,0))*100/gp.max) as qty_order'), db.raw(`ifnull(vf.qty,0) as reserve_qty`))
+    //   .join('b_generic_plannings as gp', (v) => {
+    //     v.on('g.generic_id', 'gp.generic_id');
+    //     v.on('g.hospital_id', 'gp.hospital_id');
+    //   })
+    //   .join('b_generics as bg', 'bg.id', 'g.generic_id')
+    //   .join('b_hospitals as bh', 'bh.id', 'g.hospital_id')
+    //   .leftJoin('view_fulfill_reserves as vf', (v) => {
+    //     v.on('vf.generic_id', 'g.generic_id')
+    //     v.on('vf.hospital_id', 'g.hospital_id')
+    //   })
+    //   .where('bg.type', type)
+    //   .orderByRaw('(g.qty+ifnull(vf.qty,0))*100/gp.max')
+    //   .havingRaw('fill_qty > 0 and (qty+reserve_qty) < min')
+    // // console.log(sql.toString());
+    // return sql;
+    const sql = db.raw(`SELECT
+    a.hospital_id,
+    a.hospital_name,
+    a.zone_code,
+    sum(
+    IF
+    ( a.generic_id = 1, a.qty, 0 )) AS hydroxy_chloroquine_qty,
+    sum(
+    IF
+    ( a.generic_id = 1, a.min, 0 )) AS hydroxy_chloroquine_min_qty,
+      sum(
+    IF
+    ( a.generic_id = 1, a.max, 0 )) AS  hydroxy_chloroquine_max_qty,
+        sum(
+    IF
+    ( a.generic_id = 1, a.safety_stock, 0 )) AS  hydroxy_chloroquine_safety_qty,
+          sum(
+    IF
+    ( a.generic_id = 1, a.recommend_fill_qty, 0 )) AS  hydroxy_chloroquine_recomment_qty,
+            sum(
+    IF
+    ( a.generic_id = 1, a.reserve_qty, 0 )) AS  hydroxy_chloroquine_reserve_qty,
+              sum(
+    IF
+    ( a.generic_id = 1, a.total, 0 )) AS  hydroxy_chloroquine_total_qty,
+    
+    sum(
+    IF
+    ( a.generic_id = 2, a.qty, 0 )) AS chloroquine_qty,
+    sum(
+    IF
+    ( a.generic_id = 2, a.min, 0 )) AS chloroquine_min_qty,
+      sum(
+    IF
+    ( a.generic_id = 2, a.max, 0 )) AS chloroquine_max_qty,
+        sum(
+    IF
+    ( a.generic_id = 2, a.safety_stock, 0 )) AS chloroquine_safety_qty,
+          sum(
+    IF
+    ( a.generic_id = 2, a.recommend_fill_qty, 0 )) AS chloroquine_recomment_qty,
+            sum(
+    IF
+    ( a.generic_id = 2, a.reserve_qty, 0 )) AS chloroquine_reserve_qty,
+              sum(
+    IF
+    ( a.generic_id = 2, a.total, 0 )) AS chloroquine_total_qty,
+    
+    
+    sum(
+    IF
+    ( a.generic_id = 3, a.qty, 0 )) AS darunavir_qty,
+    sum(
+    IF
+    ( a.generic_id = 3, a.min, 0 )) AS darunavir_min_qty,
+      sum(
+    IF
+    ( a.generic_id = 3, a.max, 0 )) AS darunavir_max_qty,
+        sum(
+    IF
+    ( a.generic_id = 3, a.safety_stock, 0 )) AS darunavir_safety_qty,
+          sum(
+    IF
+    ( a.generic_id = 3, a.recommend_fill_qty, 0 )) AS darunavir_recomment_qty,
+            sum(
+    IF
+    ( a.generic_id = 3, a.reserve_qty, 0 )) AS darunavir_reserve_qty,
+            sum(
+    IF
+    ( a.generic_id = 3, a.total, 0 )) AS darunavir_total_qty,	
+    
+    sum(
+    IF
+    ( a.generic_id = 4, a.qty, 0 )) AS lopinavir_qty,
+    sum(
+    IF
+    ( a.generic_id = 4, a.min, 0 )) AS lopinavir_min_qty,
+      sum(
+    IF
+    ( a.generic_id = 4, a.max, 0 )) AS lopinavir_max_qty,
+        sum(
+    IF
+    ( a.generic_id = 4, a.safety_stock, 0 )) AS lopinavir_safety_qty,
+          sum(
+    IF
+    ( a.generic_id = 4, a.recommend_fill_qty, 0 )) AS lopinavir_recomment_qty,
+            sum(
+    IF
+    ( a.generic_id = 4, a.reserve_qty, 0 )) AS lopinavir_reserve_qty,					sum(
+    IF
+    ( a.generic_id = 4, a.total, 0 )) AS lopinavir_total_qty,
+    
+    
+    
+    sum(
+    IF
+    ( a.generic_id = 5, a.qty, 0 )) AS ritonavir_qty,
+    sum(
+    IF
+    ( a.generic_id = 5, a.min, 0 )) AS ritonavir_min_qty,
+      sum(
+    IF
+    ( a.generic_id = 5, a.max, 0 )) AS ritonavir_max_qty,
+        sum(
+    IF
+    ( a.generic_id = 5, a.safety_stock, 0 )) AS ritonavir_safety_qty,
+          sum(
+    IF
+    ( a.generic_id = 5, a.recommend_fill_qty, 0 )) AS ritonavir_recomment_qty,
+            sum(
+    IF
+    ( a.generic_id = 5, a.reserve_qty, 0 )) AS ritonavir_reserve_qty,
+            sum(
+    IF
+    ( a.generic_id = 5, a.total, 0 )) AS ritonavir_total_qty,	
+    
+    
+    sum(
+    IF
+    ( a.generic_id = 7, a.qty, 0 )) AS azithromycin_qty,
+    sum(
+    IF
+    ( a.generic_id = 7, a.min, 0 )) AS azithromycin_min_qty,
+      sum(
+    IF
+    ( a.generic_id = 7, a.max, 0 )) AS azithromycin_max_qty,
+        sum(
+    IF
+    ( a.generic_id = 7, a.safety_stock, 0 )) AS azithromycin_safety_qty,
+          sum(
+    IF
+    ( a.generic_id = 7, a.recommend_fill_qty, 0 )) AS azithromycin_recomment_qty,
+            sum(
+    IF
+    ( a.generic_id = 7, a.reserve_qty, 0 )) AS azithromycin_reserve_qty,
+              sum(
+    IF
+    ( a.generic_id = 7, a.total, 0 )) AS azithromycin_total_qty
+  FROM
+    (
+  SELECT
+    g.generic_id,
+    bg.name AS generic_name,
+    g.hospital_id,
+    bh.hospname AS hospital_name,
+    bh.zone_code,
+    g.qty,
+    gp.min,
+    gp.max,
+    gp.safety_stock,
+  IF
+    ((
+        gp.max -(
+        g.qty + ifnull( vf.qty, 0 ))+ gp.safety_stock 
+        )< 0,
+      0,(
+        gp.max -(
+        g.qty + ifnull( vf.qty, 0 ))+ gp.safety_stock 
+      )) AS recommend_fill_qty,
+    ifnull( vf.qty, 0 ) AS reserve_qty ,
+    q.qty as total
+  FROM
+    wm_generics AS g
+    INNER JOIN b_generic_plannings AS gp ON g.generic_id = gp.generic_id 
+    AND g.hospital_id = gp.hospital_id
+    INNER JOIN b_generics AS bg ON bg.id = g.generic_id
+    INNER JOIN b_hospitals AS bh ON bh.id = g.hospital_id
+    LEFT JOIN view_fulfill_reserves AS vf ON vf.generic_id = g.generic_id 	AND vf.hospital_id = g.hospital_id 
+    left join (
+    select hospital_id,generic_id,sum(fdi.qty) as qty from wm_fulfill_drugs as f 
+    join wm_fulfill_drug_details as fd on f.id = fd.fulfill_drug_id
+  join wm_fulfill_drug_detail_items as fdi on fd.id = fdi.fulfill_drug_detail_id
+  group by hospital_id,generic_id
+  ) as q on q.hospital_id = g.hospital_id and  q.generic_id = g.generic_id 
+  
+  WHERE
+    bg.type = 'DRUG' ) as a
+    group by hospital_id`);
     return sql;
   }
 
@@ -126,7 +305,7 @@ export class FullfillModel {
       .where('g.hospital_id', hospitalId)
     // .orderByRaw('(g.qty+ifnull(vf.qty,0))*100/gp.max')
     // .havingRaw('fill_qty > 0 and (qty+reserve_qty) < min')
-    // console.log(sql.toString());
+    console.log(sql.toString());
     return sql;
   }
 
