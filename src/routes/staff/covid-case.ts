@@ -823,4 +823,61 @@ router.post('/requisition', async (req: Request, res: Response) => {
   }
 });
 
+router.post('/update/old-patient', async (req: Request, res: Response) => {
+  const db = req.db;
+  const data = req.body.data;
+  const userId = req.decoded.id || 0;
+
+  try {
+    await covidCaseModel.removeCovidCaseDetailByCaseId(db, data[0].covid_case_id);
+    let idx = 0;
+    for (const v of data) {
+      const detail: any = {
+        covid_case_id: v.covid_case_id,
+        status: idx == data.length - 1 ? 'DISCHARGE' : 'ADMIT',
+        gcs_id: v.gcs_id,
+        bed_id: v.bed_id,
+        medical_supplie_id: v.medical_supplie_id,
+        create_by: userId,
+        entry_date: v.date
+      }
+      await covidCaseModel.saveCovidCaseDetail(db, detail);
+      idx++;
+    }
+
+    res.send({ ok: true, message: 'ดำเนินการสำเร็จ', code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/list/old-patient', async (req: Request, res: Response) => {
+  const db = req.db;
+  const hospitalId = req.decoded.hospitalId;
+
+  try {
+    const rs: any = await covidCaseModel.listOldPatient(db, hospitalId);
+
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/list/old-patient/details', async (req: Request, res: Response) => {
+  const db = req.db;
+  const id = req.query.id;
+
+  try {
+    const rs: any = await covidCaseModel.oldPatientDetail(db, id);
+
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 export default router;
