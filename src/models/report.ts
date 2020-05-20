@@ -122,7 +122,7 @@ export class ReportModel {
 
 
     const sql = db('b_hospitals as h')
-      .select('sd.*', 'h.hospname', 'h.province_code','h.province_name', 'h.zone_code')
+      .select('sd.*', 'h.hospname', 'h.province_code', 'h.province_name', 'h.zone_code')
       .leftJoin(supplies, (v) => {
         v.on('supplies.hospital_id', 'h.id')
         // v.on('supplies.entry_date', 'ws.entry_date')
@@ -401,7 +401,7 @@ export class ReportModel {
     return sql;
   }
 
-  admitConfirmCaseProvice(db: Knex, zoneCode) {
+  admitConfirmCaseProvice(db: Knex, zoneCode,provinceCode = null) {
     const last = db('p_covid_case_details')
       .max('updated_entry as updated_entry_last')
       .whereRaw('covid_case_id=cl.covid_case_id')
@@ -433,6 +433,9 @@ export class ReportModel {
       .whereIn('gcs_id', [1, 2, 3, 4])
       .orderBy('h.province_code')
       .orderBy('h.hospname')
+      if (provinceCode) {
+        sql.where('h.province_code', provinceCode);
+      }
     return sql;
   }
 
@@ -483,7 +486,7 @@ export class ReportModel {
     return sql;
   }
 
-  admitConfirmCaseSummaryProvince(db: Knex, zoneCode) {
+  admitConfirmCaseSummaryProvince(db: Knex, zoneCode, provinceCode = null) {
     const drugUse = db('p_covid_case_detail_items AS i').select(
       'i.covid_case_detail_id',
       db.raw(`sum(if( i.generic_id = 1 ,i.qty,0)) AS 'd1'`),
@@ -527,6 +530,10 @@ export class ReportModel {
       .whereIn('gcs_id', [1, 2, 3, 4])
       .groupBy('h.province_code')
       .orderBy('h.province_code')
+    if (provinceCode) {
+      sql.where('h.province_code', provinceCode);
+    }
+    
     return sql;
   }
 

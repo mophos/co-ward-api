@@ -48,7 +48,10 @@ export class FullfillModel {
               sum(
     IF
     ( a.generic_id = 1, a.total, 0 )) AS  hydroxy_chloroquine_total_qty,
-    
+    sum(
+      IF
+      ( a.generic_id = 1, a.req_qty, 0 )) AS  hydroxy_chloroquine_req_qty,
+      
     sum(
     IF
     ( a.generic_id = 2, a.qty, 0 )) AS chloroquine_qty,
@@ -70,7 +73,9 @@ export class FullfillModel {
               sum(
     IF
     ( a.generic_id = 2, a.total, 0 )) AS chloroquine_total_qty,
-    
+    sum(
+      IF
+      ( a.generic_id = 2, a.req_qty, 0 )) AS  chloroquine_req_qty,
     
     sum(
     IF
@@ -93,6 +98,9 @@ export class FullfillModel {
             sum(
     IF
     ( a.generic_id = 3, a.total, 0 )) AS darunavir_total_qty,	
+    sum(
+      IF
+      ( a.generic_id = 3, a.req_qty, 0 )) AS  darunavir_req_qty,
     
     sum(
     IF
@@ -114,7 +122,9 @@ export class FullfillModel {
     ( a.generic_id = 4, a.reserve_qty, 0 )) AS lopinavir_reserve_qty,					sum(
     IF
     ( a.generic_id = 4, a.total, 0 )) AS lopinavir_total_qty,
-    
+    sum(
+      IF
+      ( a.generic_id = 4, a.req_qty, 0 )) AS  lopinavir_req_qty,
     
     
     sum(
@@ -138,7 +148,10 @@ export class FullfillModel {
             sum(
     IF
     ( a.generic_id = 5, a.total, 0 )) AS ritonavir_total_qty,	
-    
+    sum(
+      IF
+      ( a.generic_id = 5, a.req_qty, 0 )) AS  ritonavir_req_qty,
+
     
     sum(
     IF
@@ -160,7 +173,10 @@ export class FullfillModel {
     ( a.generic_id = 7, a.reserve_qty, 0 )) AS azithromycin_reserve_qty,
               sum(
     IF
-    ( a.generic_id = 7, a.total, 0 )) AS azithromycin_total_qty
+    ( a.generic_id = 7, a.total, 0 )) AS azithromycin_total_qty,
+    sum(
+      IF
+      ( a.generic_id = 7, a.req_qty, 0 )) AS  azithromycin_req_qty
   FROM
     (
   SELECT
@@ -174,16 +190,17 @@ export class FullfillModel {
     gp.max,
     gp.safety_stock,
   IF
-    ((
-        gp.max -(
-        g.qty + ifnull( vf.qty, 0 ))+ gp.safety_stock 
-        )< 0,
-      0,(
-        gp.max -(
-        g.qty + ifnull( vf.qty, 0 ))+ gp.safety_stock 
-      )) AS recommend_fill_qty,
+  ((
+      gp.max -(
+      g.qty + ifnull( vf.qty, 0 ))+ gp.safety_stock 
+      )< 0,
+    0,(
+      round((gp.max -(
+      g.qty + ifnull( vf.qty, 0 ))+ gp.safety_stock 
+    )/bg.pack_qty)*bg.pack_qty)) AS recommend_fill_qty,
     ifnull( vf.qty, 0 ) AS reserve_qty ,
-    q.qty as total
+    q.qty as total,
+    wr.qty as req_qty
   FROM
     wm_generics AS g
     INNER JOIN b_generic_plannings AS gp ON g.generic_id = gp.generic_id 
@@ -195,9 +212,16 @@ export class FullfillModel {
     select hospital_id,generic_id,sum(fdi.qty) as qty from wm_fulfill_drugs as f 
     join wm_fulfill_drug_details as fd on f.id = fd.fulfill_drug_id
   join wm_fulfill_drug_detail_items as fdi on fd.id = fdi.fulfill_drug_detail_id
+  where f.is_approved='Y'
   group by hospital_id,generic_id
   ) as q on q.hospital_id = g.hospital_id and  q.generic_id = g.generic_id 
-  
+  left join (
+    select r.hospital_id_node as hospital_id,rd.generic_id,sum(rd.qty) as qty from wm_requisitions as r
+    join wm_requisition_details as rd on r.id = rd.requisition_id
+  where r.is_approved = 'Y'
+  group by hospital_id_node,generic_id
+  ) as wr on wr.hospital_id = g.hospital_id and  wr.generic_id = g.generic_id 
+
   WHERE
     bg.type = 'DRUG' ) as a
     group by hospital_id`);

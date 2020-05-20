@@ -66,15 +66,33 @@ router.post('/drugs', async (req: Request, res: Response) => {
       }
       const fulfillDetailId = await model.saveFulFillDrugDetail(db, obj);
       const _data = filter(data, { 'hospital_id': h.hospital_id });
-      const items = [];
-      for (const d of _data) {
-        const item: any = {
-          fulfill_drug_detail_id: fulfillDetailId,
-          generic_id: d.generic_id,
-          qty: d.fill_qty
-        }
-        items.push(item);
-      }
+      console.log(_data);
+      
+      const items = [{
+        fulfill_drug_detail_id: fulfillDetailId,
+        generic_id: 1,
+        qty: _data[0].hydroxy_chloroquine_recomment_qty
+      },
+      {  fulfill_drug_detail_id: fulfillDetailId,
+        generic_id: 2,
+        qty: _data[0].chloroquine_recomment_qty
+      },
+      {  fulfill_drug_detail_id: fulfillDetailId,
+        generic_id: 3,
+        qty: _data[0].darunavir_recomment_qty
+      },
+      {  fulfill_drug_detail_id: fulfillDetailId,
+        generic_id: 4,
+        qty: _data[0].lopinavir_recomment_qty
+      },
+      {  fulfill_drug_detail_id: fulfillDetailId,
+        generic_id: 5,
+        qty: _data[0].ritonavir_recomment_qty
+      },
+      {  fulfill_drug_detail_id: fulfillDetailId,
+        generic_id: 7,
+        qty: _data[0].azithromycin_recomment_qty
+      }];
       await model.saveFulFillDrugDetailItem(db, items);
     }
     res.send({ ok: true, code: HttpStatus.OK });
