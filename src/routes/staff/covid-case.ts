@@ -829,7 +829,6 @@ router.post('/update/old-patient', async (req: Request, res: Response) => {
   const userId = req.decoded.id || 0;
 
   try {
-    await covidCaseModel.removeCovidCaseDetailByCaseId(db, data[0].covid_case_id);
     let idx = 0;
     for (const v of data) {
       const detail: any = {
@@ -842,7 +841,7 @@ router.post('/update/old-patient', async (req: Request, res: Response) => {
         entry_date: v.date,
         is_requisition: 'Y'
       }
-      await covidCaseModel.saveCovidCaseDetail(db, detail);
+      await covidCaseModel.saveCovidCaseDetailReq(db, detail);
       idx++;
     }
 

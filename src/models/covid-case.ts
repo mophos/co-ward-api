@@ -237,12 +237,25 @@ export class CovidCaseModel {
   saveCovidCaseDetail(db: Knex, data) {
     let sql = `
     INSERT INTO p_covid_case_details
-    (covid_case_id, gcs_id, bed_id, medical_supplie_id, entry_date,status,create_by,updated_entry)
+    (covid_case_id, gcs_id, bed_id, medical_supplie_id, entry_date,status,created_by,updated_entry)
     VALUES(?,?,?,?,?,?,?,now())
     ON DUPLICATE KEY UPDATE
     gcs_id=? , bed_id=? , medical_supplie_id=?, updated_date=now(),status=?,updated_by = ?,updated_entry=now()`;
-    return db.raw(sql, [data.covid_case_id, data.gcs_id, data.bed_id, data.medical_supplie_id, data.entry_date, data.status, data.create_by,
-    data.gcs_id, data.bed_id, data.medical_supplie_id, data.status, data.create_by])
+    return db.raw(sql, [data.covid_case_id, data.gcs_id, data.bed_id, data.medical_supplie_id, data.entry_date, data.status, data.created_by,
+    data.gcs_id, data.bed_id, data.medical_supplie_id, data.status, data.created_by])
+  }
+
+  saveCovidCaseDetailReq(db: Knex, data) {
+    console.log(data);
+
+    let sql = `
+    INSERT INTO p_covid_case_details
+    (is_requisition,covid_case_id, gcs_id, bed_id, medical_supplie_id, entry_date,status,created_by,updated_entry)
+    VALUES(?,?,?,?,?,?,?,?,now())
+    ON DUPLICATE KEY UPDATE
+    is_requisition = ?,gcs_id=? , bed_id=? , medical_supplie_id=?, updated_date=now(),status=?,updated_by = ?,updated_entry=now()`;
+    return db.raw(sql, [data.is_requisition, data.covid_case_id, data.gcs_id, data.bed_id, data.medical_supplie_id, data.entry_date, data.status, data.created_by,
+    data.is_requisition, data.gcs_id, data.bed_id, data.medical_supplie_id, data.status, data.created_by])
   }
 
   saveCovidCaseDetailGenerate(db: Knex, data) {
@@ -509,12 +522,6 @@ export class CovidCaseModel {
       .where('id', id)
   }
 
-  removeCovidCaseDetailByCaseId(db: Knex, id) {
-    return db('p_covid_case_details')
-      .delete()
-      .where('covid_case_id', id)
-  }
-
   removeRequisition(db: Knex, id) {
     return db('wm_requisitions')
       .update('is_deleted', 'Y')
@@ -524,9 +531,9 @@ export class CovidCaseModel {
 
   listOldPatient(db: Knex, hospitalId) {
     const sql = db('views_covid_case_last as cl')
-    .select('p.hn','pc.an','pp.first_name','pp.last_name','p.id as patient_id','pc.id as covid_case_id')
-    .join('p_covid_cases as pc', 'pc.id', 'cl.covid_case_id')
-    .join('p_patients as p', 'p.id', 'pc.patient_id')
+      .select('p.hn', 'pc.an', 'pp.first_name', 'pp.last_name', 'p.id as patient_id', 'pc.id as covid_case_id')
+      .join('p_covid_cases as pc', 'pc.id', 'cl.covid_case_id')
+      .join('p_patients as p', 'p.id', 'pc.patient_id')
       .join('p_persons as pp', 'pp.id', 'p.person_id')
       .where('cl.hospital_id', hospitalId)
       .whereNull('cl.gcs_id');
