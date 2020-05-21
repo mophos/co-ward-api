@@ -838,8 +838,9 @@ router.post('/update/old-patient', async (req: Request, res: Response) => {
         gcs_id: v.gcs_id,
         bed_id: v.bed_id,
         medical_supplie_id: v.medical_supplie_id,
-        create_by: userId,
-        entry_date: v.date
+        created_by: userId,
+        entry_date: v.date,
+        is_requisition: 'Y'
       }
       await covidCaseModel.saveCovidCaseDetail(db, detail);
       idx++;
