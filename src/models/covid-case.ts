@@ -531,7 +531,7 @@ export class CovidCaseModel {
 
   listOldPatient(db: Knex, hospitalId) {
     const sql = db('views_covid_case_last as cl')
-      .select('p.hn', 'pc.an', 'pp.first_name', 'pp.last_name', 'p.id as patient_id', 'pc.id as covid_case_id')
+      .select('p.hn', 'pc.an', 'pp.first_name', 'pp.last_name', 'p.id as patient_id', 'pc.id as covid_case_id', 'pc.date_admit', 'pc.date_discharge')
       .join('p_covid_cases as pc', 'pc.id', 'cl.covid_case_id')
       .join('p_patients as p', 'p.id', 'pc.patient_id')
       .join('p_persons as pp', 'pp.id', 'p.person_id')
