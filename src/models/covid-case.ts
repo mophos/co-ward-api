@@ -242,7 +242,7 @@ export class CovidCaseModel {
     ON DUPLICATE KEY UPDATE
     gcs_id=? , bed_id=? , medical_supplie_id=?, updated_date=now(),status=?,updated_by = ?,updated_entry=now()`;
     return db.raw(sql, [data.covid_case_id, data.gcs_id, data.bed_id, data.medical_supplie_id, data.entry_date, data.status, data.created_by,
-    data.gcs_id, data.bed_id, data.medical_supplie_id, data.status, data.created_by])
+    data.gcs_id, data.bed_id, data.medical_supplie_id, data.status, data.create_by])
   }
 
   saveCovidCaseDetailReq(db: Knex, data) {
