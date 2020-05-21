@@ -536,8 +536,8 @@ export class CovidCaseModel {
       .join('p_patients as p', 'p.id', 'pc.patient_id')
       .join('p_persons as pp', 'pp.id', 'p.person_id')
       .where('cl.hospital_id', hospitalId)
-      .whereNull('cl.gcs_id');
-    console.log(sql.toString());
+      .whereNull('cl.gcs_id')
+      .where('pc.is_deleted', 'N');
     return sql;
 
   }
