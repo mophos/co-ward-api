@@ -830,10 +830,11 @@ router.post('/update/old-patient', async (req: Request, res: Response) => {
 
   try {
     let idx = 0;
+    const status = await covidCaseModel.getLastStatus(db, data[0].covid_case_id);
     for (const v of data) {
       const detail: any = {
         covid_case_id: v.covid_case_id,
-        status: idx == data.length - 1 ? 'DISCHARGE' : 'ADMIT',
+        status: idx == data.length ? status[0].status : 'ADMIT',
         gcs_id: v.gcs_id,
         bed_id: v.bed_id,
         medical_supplie_id: v.medical_supplie_id,
@@ -841,6 +842,7 @@ router.post('/update/old-patient', async (req: Request, res: Response) => {
         entry_date: v.date,
         is_requisition: 'Y'
       }
+      console.log(detail);
       await covidCaseModel.saveCovidCaseDetailReq(db, detail);
       idx++;
     }
@@ -859,7 +861,7 @@ router.get('/list/old-patient', async (req: Request, res: Response) => {
   try {
     const rs: any = await covidCaseModel.listOldPatient(db, hospitalId);
 
-    res.send({ ok: true, rows: [], code: HttpStatus.OK });
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
