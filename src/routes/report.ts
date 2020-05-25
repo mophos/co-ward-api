@@ -1249,23 +1249,83 @@ router.get('/fulfill-drugs', async (req: Request, res: Response) => {
   var ws = wb.addWorksheet('Sheet 1');
   try {
     id = Array.isArray(id) ? id : [id];
-    let drug: any = await drugsModel.getDrugsActived(db)
-    let rs: any = await fullfillModel.getFulFillDrugItems(req.db, drug, map(id, (v) => { return +v }));
-    ws.cell(1, 1).string('ร.พ./รายการยา');
-    let col = 2
-    for (const items of drug) {
-      ws.cell(1, col++).string(items.name);
+    const rs: any = await fullfillModel.getProducts(req.db, 'DRUG', 'ZONE', 'ASC');
+    const center = wb.createStyle({
+      alignment: {
+        wrapText: true,
+        horizontal: 'center',
+      },
+    });
+
+    ws.cell(1, 1, 2, 1, true).string('เขต').style(center);
+    ws.cell(1, 2, 2, 2, true).string('โรงพยาบาล').style(center);
+    ws.cell(1, 3, 1, 6, true).string('HCQ').style(center);
+    ws.cell(1, 7, 1, 10, true).string('CQ').style(center);
+    ws.cell(1, 11, 1, 14, true).string('DRV').style(center);
+    ws.cell(1, 15, 1, 18, true).string('RTV').style(center);
+    ws.cell(1, 19, 1, 22, true).string('LPV/r').style(center);
+    ws.cell(1, 23, 1, 26, true).string('Azinthromycin').style(center);
+
+    ws.cell(2, 3).string('รับเข้า').style(center);
+    ws.cell(2, 4).string('ใช้ไป').style(center);
+    ws.cell(2, 5).string('คงเหลือ').style(center);
+    ws.cell(2, 6).string('เติมยา').style(center);
+
+    ws.cell(2, 7).string('รับเข้า').style(center);
+    ws.cell(2, 8).string('ใช้ไป').style(center);
+    ws.cell(2, 9).string('คงเหลือ').style(center);
+    ws.cell(2, 10).string('เติมยา').style(center);
+
+    ws.cell(2, 11).string('รับเข้า').style(center);
+    ws.cell(2, 12).string('ใช้ไป').style(center);
+    ws.cell(2, 13).string('คงเหลือ').style(center);
+    ws.cell(2, 14).string('เติมยา').style(center);
+
+    ws.cell(2, 15).string('รับเข้า').style(center);
+    ws.cell(2, 16).string('ใช้ไป').style(center);
+    ws.cell(2, 17).string('คงเหลือ').style(center);
+    ws.cell(2, 18).string('เติมยา').style(center);
+
+    ws.cell(2, 19).string('รับเข้า').style(center);
+    ws.cell(2, 20).string('ใช้ไป').style(center);
+    ws.cell(2, 21).string('คงเหลือ').style(center);
+    ws.cell(2, 22).string('เติมยา').style(center);
+
+    ws.cell(2, 23).string('รับเข้า').style(center);
+    ws.cell(2, 24).string('ใช้ไป').style(center);
+    ws.cell(2, 25).string('คงเหลือ').style(center);
+    ws.cell(2, 26).string('เติมยา').style(center);
+
+    let row = 3;
+    for (const v of rs[0]) {
+      ws.cell(row, 1).string(v.zone_code);
+      ws.cell(row, 2).string(v.hospital_name);
+      ws.cell(row, 3).number(toNumber(v.hydroxy_chloroquine_total_qty));
+      ws.cell(row, 4).number(toNumber(v.hydroxy_chloroquine_req_qty));
+      ws.cell(row, 5).number(toNumber(v.hydroxy_chloroquine_qty + v.hydroxy_chloroquine_reserve_qty));
+      ws.cell(row, 6).number(toNumber(v.hydroxy_chloroquine_recomment_qty));
+      ws.cell(row, 7).number(toNumber(v.chloroquine_total_qty));
+      ws.cell(row, 8).number(toNumber(v.chloroquine_req_qty));
+      ws.cell(row, 9).number(toNumber(v.chloroquine_qty));
+      ws.cell(row, 10).number(toNumber(v.chloroquine_recomment_qty));
+      ws.cell(row, 11).number(toNumber(v.darunavir_total_qty));
+      ws.cell(row, 12).number(toNumber(v.darunavir_req_qty));
+      ws.cell(row, 13).number(toNumber(v.darunavir_qty));
+      ws.cell(row, 14).number(toNumber(v.darunavir_recomment_qty));
+      ws.cell(row, 15).number(toNumber(v.lopinavir_total_qty));
+      ws.cell(row, 16).number(toNumber(v.lopinavir_req_qty));
+      ws.cell(row, 17).number(toNumber(v.lopinavir_qty));
+      ws.cell(row, 18).number(toNumber(v.lopinavir_recomment_qty));
+      ws.cell(row, 19).number(toNumber(v.ritonavir_total_qty));
+      ws.cell(row, 20).number(toNumber(v.ritonavir_req_qty));
+      ws.cell(row, 21).number(toNumber(v.ritonavir_qty));
+      ws.cell(row, 22).number(toNumber(v.ritonavir_recomment_qty));
+      ws.cell(row, 23).number(toNumber(v.azithromycin_total_qty));
+      ws.cell(row, 24).number(toNumber(v.azithromycin_req_qty));
+      ws.cell(row, 25).number(toNumber(v.azithromycin_qty));
+      ws.cell(row++, 26).number(toNumber(v.azithromycin_recomment_qty));
     }
-    let row = 1
-    for (const items of rs) {
-      col = 2
-      ws.cell(++row, 1).string(items.hospname);
-      for (const itemD of drug) {
-        if (itemD.name in items)
-          console.log(items[itemD.name]);
-        ws.cell(row, col++).number(items[itemD.name]);
-      }
-    }
+
     fse.ensureDirSync(process.env.TMP_PATH);
 
     let filename = `fulfill` + moment().format('x');
@@ -1284,7 +1344,7 @@ router.get('/fulfill-drugs', async (req: Request, res: Response) => {
         })
       }
     });
-    // res.send({ ok: true, rows: data, code: HttpStatus.OK });
+    // res.send({ ok: true, rows: [], code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
