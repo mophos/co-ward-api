@@ -830,10 +830,11 @@ router.post('/update/old-patient', async (req: Request, res: Response) => {
 
   try {
     let idx = 0;
+    const status = await covidCaseModel.getLastStatus(db, data[0].covid_case_id);
     for (const v of data) {
       const detail: any = {
         covid_case_id: v.covid_case_id,
-        status: idx == data.length - 1 ? 'DISCHARGE' : 'ADMIT',
+        status: idx == data.length ? status[0].status : 'ADMIT',
         gcs_id: v.gcs_id,
         bed_id: v.bed_id,
         medical_supplie_id: v.medical_supplie_id,

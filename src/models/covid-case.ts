@@ -548,6 +548,8 @@ export class CovidCaseModel {
       .where('c.id', covidCaseId)
   }
 
-
+  getLastStatus(db: Knex, covidCaseId) {
+    return db('p_covid_case_details as cd').where('covid_case_id', covidCaseId).orderBy('id', 'DESC').limit(1);
+  }
 
 }
