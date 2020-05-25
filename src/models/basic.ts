@@ -1,5 +1,6 @@
 import Knex = require('knex');
 import * as moment from 'moment';
+var request = require("request");
 
 export class BasicModel {
 
@@ -295,6 +296,47 @@ export class BasicModel {
 			.delete().whereIn('id', id)
 	}
 
+	getPatientSMS(db: Knex) {
+
+		const last = db('p_covid_case_details')
+			.max('updated_entry as updated_entry_last')
+			.whereRaw('covid_case_id=cl.covid_case_id')
+			.whereNotNull('updated_entry')
+			.as('updated_entry_last');
+
+		const sql =  db('views_covid_case_last as cl')
+			.select('pt.hn', 'c.an', 'pt.hospital_id', last, db.raw(`DATEDIFF( now(),(${last}) ) as days`), 'h.hospname', 'h.hospcode', 'h.zone_code', 'h.province_name', 'c.date_admit','u.fname','u.telephone','h.telephone_manager')
+			.join('p_covid_cases as c', 'c.id', 'cl.covid_case_id')
+			.join('p_patients as pt', 'pt.id', 'c.patient_id')
+			.join('b_hospitals as h', 'h.id', 'pt.hospital_id')
+			.leftJoin('um_users as u', 'u.id', 'c.created_by')
+			.where('cl.status', 'ADMIT')
+			.whereIn('cl.gcs_id', [1, 2, 3, 4])
+			.havingRaw('days >= 2')
+		return sql;
+
+	}
+
+	sendSMS(tel, text) {
+		return new Promise((resolve, reject) => {
+			var options = {
+				method: 'POST',
+				url: 'https://covid19.moph.go.th/authentication/ais/sms',
+				headers: { 'content-type': 'application/json' },
+				body: { tel: tel, text: text, appId: '76503a47-cea5-482f-ae27-e151ca5a2724' },
+				json: true
+			};
+
+			request(options, function (error, response, body) {
+				if (error) {
+					reject(error);
+				} else {
+					resolve(body);
+				}
+			});
+		});
+
+	}
 
 
 }

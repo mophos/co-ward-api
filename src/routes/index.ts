@@ -10,7 +10,7 @@ import { Requisition } from '../models/requisition';
 import { CovidCaseModel } from '../models/covid-case';
 import { SerialModel } from '../models/serial';
 import { BedModel } from '../models/setting';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, uniqBy, filter } from 'lodash';
 const jwt = new Jwt();
 const basicModel = new BasicModel();
 const covidCaseModel = new CovidCaseModel();
@@ -235,10 +235,48 @@ router.post('/broadcast', async (req: Request, res: Response) => {
   }
 });
 
+router.post('/sms-patient', async (req: Request, res: Response) => {
+  const db = req.db;
+  const timeKey = req.query.timeKey;
+  try {
+    if (process.env.TIME_KEY == timeKey) {
+      const rs = await basicModel.getPatientSMS(db);
+      const hospital = uniqBy(rs, 'hospital_id');
+      const t = ` มีผู้ป่วยทั้งหมด ${hospital.length} รพ, ${rs.length} ราย ที่ไม่ได้อัพเดตสถานะมามากกว่า 2 วัน`;
+      await basicModel.sendSMS('0909610157', t); // tan
+      await basicModel.sendSMS('0871015708', t); // p'pop
+      await basicModel.sendSMS('0918495652', t); // p'amp
+
+      for (const h of hospital) {
+        const person = filter(rs, { 'hospital_id': h.hospital_id });
+
+        let text = `${h.hospname} \nไม่ได้อัพเดตข้อมูลผู้ป่วย จำนวน ${person.length} ราย`;
+        let i = 1;
+        for (const p of person) {
+          text += `\n\n${i}.HN:${p.hn} ${moment(p.updated_entry_last).format('DD/MM/')}${+moment(p.updated_entry_last).format('YYYY') + 543}(${p.days}วัน)`;
+          i++;
+        }
+        text += `\n\nผู้บันทึกชื่อคุณ${h.fname} \nกรุณาอัพเดตสถานะผู้ป่วยรายวันที่ CO-ward \n\nหากพบปัญหาการใช้งานติดต่อ 083-067-7279`
+        await basicModel.sendSMS(h.telephone_manager, text);
+        await basicModel.sendSMS(h.telephone, text);
+      }
+
+      res.send({ ok: true });
+    } else {
+      res.send({ ok: false, error: 'token ไม่ถูกต้อง' });
+    }
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error });
+  }
+});
+
 router.get('/systemUpdate', async (req: Request, res: Response) => {
   let db = req.db
   const timeKey = req.query.timeKey;
   try {
+
+
     if (process.env.TIME_KEY == timeKey) {
       let rs: any = await systemUpdate(db);
       if (rs.ok) {
