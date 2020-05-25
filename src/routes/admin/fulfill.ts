@@ -1,10 +1,9 @@
 // / <reference path="../../typings.d.ts" />
 
 import * as HttpStatus from 'http-status-codes';
-import { uniqBy, filter, map } from 'lodash';
+import { uniqBy, filter, map, sumBy } from 'lodash';
 import { Router, Request, Response } from 'express';
 import { FullfillModel } from '../../models/fulfill';
-import { sumBy } from 'lodash';
 import { SerialModel } from '../../models/serial';
 import { PayModel } from '../../models/pay';
 import * as moment from 'moment';
@@ -18,8 +17,10 @@ const router: Router = Router();
 
 router.get('/', async (req: Request, res: Response) => {
   const type = req.query.type;
+  const orderType = req.query.orderType;
+  const orderSort = req.query.orderSort;
   try {
-    let rs: any = await model.getProducts(req.db, type);
+    let rs: any = await model.getProducts(req.db, type, orderType, orderSort);
     res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -67,33 +68,40 @@ router.post('/drugs', async (req: Request, res: Response) => {
       const fulfillDetailId = await model.saveFulFillDrugDetail(db, obj);
       const _data = filter(data, { 'hospital_id': h.hospital_id });
       console.log(_data);
-      
+
       const items = [{
         fulfill_drug_detail_id: fulfillDetailId,
         generic_id: 1,
         qty: _data[0].hydroxy_chloroquine_recomment_qty
       },
-      {  fulfill_drug_detail_id: fulfillDetailId,
+      {
+        fulfill_drug_detail_id: fulfillDetailId,
         generic_id: 2,
         qty: _data[0].chloroquine_recomment_qty
       },
-      {  fulfill_drug_detail_id: fulfillDetailId,
+      {
+        fulfill_drug_detail_id: fulfillDetailId,
         generic_id: 3,
         qty: _data[0].darunavir_recomment_qty
       },
-      {  fulfill_drug_detail_id: fulfillDetailId,
+      {
+        fulfill_drug_detail_id: fulfillDetailId,
         generic_id: 4,
         qty: _data[0].lopinavir_recomment_qty
       },
-      {  fulfill_drug_detail_id: fulfillDetailId,
+      {
+        fulfill_drug_detail_id: fulfillDetailId,
         generic_id: 5,
         qty: _data[0].ritonavir_recomment_qty
       },
-      {  fulfill_drug_detail_id: fulfillDetailId,
+      {
+        fulfill_drug_detail_id: fulfillDetailId,
         generic_id: 7,
         qty: _data[0].azithromycin_recomment_qty
       }];
-      await model.saveFulFillDrugDetailItem(db, items);
+
+      const _items = filter(items, (v) => { return v.qty != 0 });
+      await model.saveFulFillDrugDetailItem(db, _items);
     }
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {

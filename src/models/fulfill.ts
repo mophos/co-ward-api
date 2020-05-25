@@ -2,28 +2,8 @@ import * as Knex from 'knex';
 var request = require('request');
 export class FullfillModel {
 
-  getProducts(db: Knex, type) {
-    // let sql = db('wm_generics as g')
-    //   .select('g.generic_id', 'bg.name as generic_name', 'g.hospital_id', 'bh.hospname as hospital_name', 'g.qty', 'gp.min', 'gp.max',
-    //     'gp.safety_stock', db.raw('(gp.max-(g.qty+ifnull(vf.qty,0))+gp.safety_stock) as fill_qty'),
-    //     db.raw('(gp.max-(g.qty+ifnull(vf.qty,0))+gp.safety_stock) as recommend_fill_qty'),
-    //     db.raw('((g.qty+ifnull(vf.qty,0))*100/gp.max) as qty_order'), db.raw(`ifnull(vf.qty,0) as reserve_qty`))
-    //   .join('b_generic_plannings as gp', (v) => {
-    //     v.on('g.generic_id', 'gp.generic_id');
-    //     v.on('g.hospital_id', 'gp.hospital_id');
-    //   })
-    //   .join('b_generics as bg', 'bg.id', 'g.generic_id')
-    //   .join('b_hospitals as bh', 'bh.id', 'g.hospital_id')
-    //   .leftJoin('view_fulfill_reserves as vf', (v) => {
-    //     v.on('vf.generic_id', 'g.generic_id')
-    //     v.on('vf.hospital_id', 'g.hospital_id')
-    //   })
-    //   .where('bg.type', type)
-    //   .orderByRaw('(g.qty+ifnull(vf.qty,0))*100/gp.max')
-    //   .havingRaw('fill_qty > 0 and (qty+reserve_qty) < min')
-    // // console.log(sql.toString());
-    // return sql;
-    const sql = db.raw(`SELECT
+  getProducts(db: Knex, type, orderType = null, orderSort = null) {
+    let sql = `SELECT
     a.hospital_id,
     a.hospital_name,
     a.zone_code,
@@ -224,8 +204,14 @@ export class FullfillModel {
 
   WHERE
     bg.type = 'DRUG' ) as a
-    group by hospital_id`);
-    return sql;
+    group by hospital_id `;
+    if (orderType == 'ZONE') {
+      sql += `order by a.zone_code ${orderSort}`;
+    } else if (orderType == 'PROVINCE') {
+      sql += `order by a.zone_code ${orderSort}`;
+    }
+
+    return db.raw(sql);
   }
 
   getListSurgicalMasks(db: Knex) {
@@ -526,5 +512,5 @@ export class FullfillModel {
       });
     });
   }
-  
+
 }
