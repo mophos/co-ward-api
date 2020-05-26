@@ -1249,7 +1249,7 @@ router.get('/fulfill-drugs', async (req: Request, res: Response) => {
   var ws = wb.addWorksheet('Sheet 1');
   try {
     id = Array.isArray(id) ? id : [id];
-    const rs: any = await fullfillModel.getProducts(req.db, 'DRUG', 'ZONE', 'ASC');
+    const rs: any = await fullfillModel.getProductByIds(req.db, 'DRUG', 'ZONE', 'ASC', id);
     const center = wb.createStyle({
       alignment: {
         wrapText: true,
