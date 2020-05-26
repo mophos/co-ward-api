@@ -5,6 +5,7 @@ export class FullfillModel {
   getProducts(db: Knex, type, orderType = null, orderSort = null) {
     let sql = `SELECT
     a.hospital_id,
+    a.hospital_code,
     a.hospital_name,
     a.zone_code,
     sum(
@@ -163,6 +164,7 @@ export class FullfillModel {
     g.generic_id,
     bg.name AS generic_name,
     g.hospital_id,
+    bh.hospcode AS hospital_code,
     bh.hospname AS hospital_name,
     bh.zone_code,
     g.qty,
@@ -217,6 +219,8 @@ export class FullfillModel {
   getProductByIds(db: Knex, type, orderType = null, orderSort = null, ids) {
     let sql = `SELECT
     a.hospital_id,
+    a.hospital_code,
+    a.province_name,
     a.hospital_name,
     a.zone_code,
     sum(
@@ -375,6 +379,8 @@ export class FullfillModel {
     g.generic_id,
     bg.name AS generic_name,
     g.hospital_id,
+    bh.province_name,
+    bh.hospcode AS hospital_code,
     bh.hospname AS hospital_name,
     bh.zone_code,
     g.qty,
