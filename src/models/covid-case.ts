@@ -530,16 +530,21 @@ export class CovidCaseModel {
   }
 
   listOldPatient(db: Knex, hospitalId) {
-    const sql = db('views_covid_case_last as cl')
+    const sql = `SELECT covid_case_id FROM view_covid_case WHERE gcs_id IS NULL GROUP BY covid_case_id`;
+    const sqls = `SELECT t.id FROM ( SELECT p.id, pp.hospital_id, p.date_admit, SUBSTRING( p.date_discharge FROM 1 FOR 10 ) AS date_discharge, DATEDIFF( SUBSTRING( p.date_discharge FROM 1 FOR 10 ), p.date_admit ) + 1 AS date_diff, ( SELECT COUNT( * ) FROM p_covid_case_details WHERE covid_case_id = p.id GROUP BY covid_case_id ) AS count_detail FROM p_covid_cases p JOIN p_patients pp ON pp.id = p.patient_id 
+    WHERE p.status != 'ADMIT'  AND p.is_deleted = 'N' ) AS t WHERE t.date_diff != t.count_detail `;
+
+    return db('views_covid_case_last as cl')
       .select('p.hn', 'pc.an', 'pp.first_name', 'pp.last_name', 'p.id as patient_id', 'pc.id as covid_case_id', 'pc.date_admit', 'pc.date_discharge')
       .join('p_covid_cases as pc', 'pc.id', 'cl.covid_case_id')
       .join('p_patients as p', 'p.id', 'pc.patient_id')
       .join('p_persons as pp', 'pp.id', 'p.person_id')
       .where('cl.hospital_id', hospitalId)
-      .whereNull('cl.gcs_id')
-      .where('pc.is_deleted', 'N');
-    return sql;
-
+      .where('pc.is_deleted', 'N')
+      .where((v) => {
+        v.whereRaw(`pc.id in (${sql})`)
+        v.orWhereRaw(`pc.id in (${sqls})`)
+      }).orderBy('pc.id');
   }
 
   oldPatientDetail(db: Knex, covidCaseId) {
@@ -550,6 +555,10 @@ export class CovidCaseModel {
 
   getLastStatus(db: Knex, covidCaseId) {
     return db('p_covid_case_details as cd').where('covid_case_id', covidCaseId).orderBy('id', 'DESC').limit(1);
+  }
+
+  getSplitDates(db: Knex, covidCaseId) {
+    return db('p_covid_case_details as cd').where('covid_case_id', covidCaseId);
   }
 
 }
