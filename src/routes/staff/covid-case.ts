@@ -831,7 +831,9 @@ router.post('/update/old-patient', async (req: Request, res: Response) => {
   try {
     let idx = 0;
     const status = await covidCaseModel.getLastStatus(db, data[0].covid_case_id);
+
     for (const v of data) {
+      idx++;
       const detail: any = {
         covid_case_id: v.covid_case_id,
         status: idx == data.length ? status[0].status : 'ADMIT',
@@ -844,7 +846,6 @@ router.post('/update/old-patient', async (req: Request, res: Response) => {
       }
       console.log(detail);
       await covidCaseModel.saveCovidCaseDetailReq(db, detail);
-      idx++;
     }
 
     res.send({ ok: true, message: 'ดำเนินการสำเร็จ', code: HttpStatus.OK });
@@ -860,7 +861,6 @@ router.get('/list/old-patient', async (req: Request, res: Response) => {
 
   try {
     const rs: any = await covidCaseModel.listOldPatient(db, hospitalId);
-
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -875,6 +875,22 @@ router.get('/list/old-patient/details', async (req: Request, res: Response) => {
   try {
     const rs: any = await covidCaseModel.oldPatientDetail(db, id);
 
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/detail/split-dates', async (req: Request, res: Response) => {
+  const db = req.db;
+  const covidCaseId = req.query.covidCaseId;
+
+  try {
+    const rs: any = await covidCaseModel.getSplitDates(db, covidCaseId);
+    for (const v of rs) {
+      v.entry_date = moment(v.entry_date).format('YYYY-MM-DD');
+    }
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
