@@ -1242,14 +1242,18 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
   // }
 });
 
-router.get('/fulfill-drugs', async (req: Request, res: Response) => {
+router.get('/fulfill-drugs-1', async (req: Request, res: Response) => {
   const db = req.db;
   let id = req.query.id
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
   try {
     id = Array.isArray(id) ? id : [id];
+<<<<<<< HEAD
     const rs: any = await fullfillModel.getProductsDrugs(req.db, 'ZONE', 'ASC');
+=======
+    const rs: any = await fullfillModel.getProductByIds(db, 'DRUG', 'ZONE', 'ASC', id);
+>>>>>>> da23f35291add77d5f21b0bf261c27960cf97fa2
     const center = wb.createStyle({
       alignment: {
         wrapText: true,
@@ -1324,6 +1328,71 @@ router.get('/fulfill-drugs', async (req: Request, res: Response) => {
       ws.cell(row, 24).number(toNumber(v.azithromycin_req_qty));
       ws.cell(row, 25).number(toNumber(v.azithromycin_qty));
       ws.cell(row++, 26).number(toNumber(v.azithromycin_recomment_qty));
+    }
+
+    fse.ensureDirSync(process.env.TMP_PATH);
+
+    let filename = `fulfill` + moment().format('x');
+    let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
+
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+      }
+    });
+    // res.send({ ok: true, rows: [], code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/fulfill-drugs-2', async (req: Request, res: Response) => {
+  const db = req.db;
+  let id = req.query.id
+  var wb = new excel4node.Workbook();
+  var ws = wb.addWorksheet('Sheet 1');
+  try {
+    id = Array.isArray(id) ? id : [id];
+    const rs: any = await fullfillModel.getProductByIds(db, 'DRUG', 'ZONE', 'ASC', id);
+    const center = wb.createStyle({
+      alignment: {
+        wrapText: true,
+        horizontal: 'center',
+      },
+    });
+
+    ws.cell(1, 1).string('เขต').style(center);
+    ws.cell(1, 2).string('จังหวัด').style(center);
+    ws.cell(1, 3).string('รหัสโรงพยาบาล').style(center);
+    ws.cell(1, 4).string('โรงพยาบาล').style(center);
+    ws.cell(1, 5).string('ยอดเติม HCQ').style(center);
+    ws.cell(1, 6).string('ยอดเติม CQ').style(center);
+    ws.cell(1, 7).string('ยอดเติม DRV').style(center);
+    ws.cell(1, 8).string('ยอดเติม RTV').style(center);
+    ws.cell(1, 9).string('ยอดเติม LPV/r').style(center);
+    ws.cell(1, 10).string('ยอดเติม Azithromycin').style(center);
+
+    let row = 2;
+    for (const v of rs[0]) {
+      ws.cell(row, 1).string(v.zone_code);
+      ws.cell(row, 2).string(v.province_name);
+      ws.cell(row, 3).string(v.hospital_code);
+      ws.cell(row, 4).string(v.hospital_name);
+      ws.cell(row, 5).number(toNumber(v.hydroxy_chloroquine_recomment_qty));
+      ws.cell(row, 6).number(toNumber(v.chloroquine_recomment_qty));
+      ws.cell(row, 7).number(toNumber(v.darunavir_recomment_qty));
+      ws.cell(row, 8).number(toNumber(v.lopinavir_recomment_qty));
+      ws.cell(row, 9).number(toNumber(v.ritonavir_recomment_qty));
+      ws.cell(row++, 10).number(toNumber(v.azithromycin_recomment_qty));
     }
 
     fse.ensureDirSync(process.env.TMP_PATH);

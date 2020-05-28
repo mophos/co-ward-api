@@ -5,6 +5,7 @@ export class FullfillModel {
   getProductsDrugs(db: Knex, orderType = null, orderSort = null) {
     let sql = `SELECT
     a.hospital_id,
+    a.hospital_code,
     a.hospital_name,
     a.zone_code,
     sum(
@@ -162,6 +163,7 @@ export class FullfillModel {
   SELECT
     gp.generic_id,
     bg.name AS generic_name,
+    bh.hospcode AS hospital_code,
     ns.hospital_id,
     bh.hospname AS hospital_name,
     bh.zone_code,
@@ -518,6 +520,222 @@ export class FullfillModel {
     ) as wr on wr.hospital_id = gp.hospital_id and  wr.generic_id = gp.generic_id 
     left JOIN b_hospitals AS bh ON bh.id = gp.hospital_id
 ) as a
+    group by hospital_id `;
+    if (orderType == 'ZONE') {
+      sql += `order by a.zone_code ${orderSort}`;
+    } else if (orderType == 'PROVINCE') {
+      sql += `order by a.zone_code ${orderSort}`;
+    }
+
+    return db.raw(sql);
+  }
+
+  getProductByIds(db: Knex, type, orderType = null, orderSort = null, ids) {
+    let sql = `SELECT
+    a.hospital_id,
+    a.hospital_code,
+    a.province_name,
+    a.hospital_name,
+    a.zone_code,
+    sum(
+    IF
+    ( a.generic_id = 1, a.qty, 0 )) AS hydroxy_chloroquine_qty,
+    sum(
+    IF
+    ( a.generic_id = 1, a.min, 0 )) AS hydroxy_chloroquine_min_qty,
+      sum(
+    IF
+    ( a.generic_id = 1, a.max, 0 )) AS  hydroxy_chloroquine_max_qty,
+        sum(
+    IF
+    ( a.generic_id = 1, a.safety_stock, 0 )) AS  hydroxy_chloroquine_safety_qty,
+          sum(
+    IF
+    ( a.generic_id = 1, a.recommend_fill_qty, 0 )) AS  hydroxy_chloroquine_recomment_qty,
+            sum(
+    IF
+    ( a.generic_id = 1, a.reserve_qty, 0 )) AS  hydroxy_chloroquine_reserve_qty,
+              sum(
+    IF
+    ( a.generic_id = 1, a.total, 0 )) AS  hydroxy_chloroquine_total_qty,
+    sum(
+      IF
+      ( a.generic_id = 1, a.req_qty, 0 )) AS  hydroxy_chloroquine_req_qty,
+      
+    sum(
+    IF
+    ( a.generic_id = 2, a.qty, 0 )) AS chloroquine_qty,
+    sum(
+    IF
+    ( a.generic_id = 2, a.min, 0 )) AS chloroquine_min_qty,
+      sum(
+    IF
+    ( a.generic_id = 2, a.max, 0 )) AS chloroquine_max_qty,
+        sum(
+    IF
+    ( a.generic_id = 2, a.safety_stock, 0 )) AS chloroquine_safety_qty,
+          sum(
+    IF
+    ( a.generic_id = 2, a.recommend_fill_qty, 0 )) AS chloroquine_recomment_qty,
+            sum(
+    IF
+    ( a.generic_id = 2, a.reserve_qty, 0 )) AS chloroquine_reserve_qty,
+              sum(
+    IF
+    ( a.generic_id = 2, a.total, 0 )) AS chloroquine_total_qty,
+    sum(
+      IF
+      ( a.generic_id = 2, a.req_qty, 0 )) AS  chloroquine_req_qty,
+    
+    sum(
+    IF
+    ( a.generic_id = 3, a.qty, 0 )) AS darunavir_qty,
+    sum(
+    IF
+    ( a.generic_id = 3, a.min, 0 )) AS darunavir_min_qty,
+      sum(
+    IF
+    ( a.generic_id = 3, a.max, 0 )) AS darunavir_max_qty,
+        sum(
+    IF
+    ( a.generic_id = 3, a.safety_stock, 0 )) AS darunavir_safety_qty,
+          sum(
+    IF
+    ( a.generic_id = 3, a.recommend_fill_qty, 0 )) AS darunavir_recomment_qty,
+            sum(
+    IF
+    ( a.generic_id = 3, a.reserve_qty, 0 )) AS darunavir_reserve_qty,
+            sum(
+    IF
+    ( a.generic_id = 3, a.total, 0 )) AS darunavir_total_qty,	
+    sum(
+      IF
+      ( a.generic_id = 3, a.req_qty, 0 )) AS  darunavir_req_qty,
+    
+    sum(
+    IF
+    ( a.generic_id = 4, a.qty, 0 )) AS lopinavir_qty,
+    sum(
+    IF
+    ( a.generic_id = 4, a.min, 0 )) AS lopinavir_min_qty,
+      sum(
+    IF
+    ( a.generic_id = 4, a.max, 0 )) AS lopinavir_max_qty,
+        sum(
+    IF
+    ( a.generic_id = 4, a.safety_stock, 0 )) AS lopinavir_safety_qty,
+          sum(
+    IF
+    ( a.generic_id = 4, a.recommend_fill_qty, 0 )) AS lopinavir_recomment_qty,
+            sum(
+    IF
+    ( a.generic_id = 4, a.reserve_qty, 0 )) AS lopinavir_reserve_qty,					sum(
+    IF
+    ( a.generic_id = 4, a.total, 0 )) AS lopinavir_total_qty,
+    sum(
+      IF
+      ( a.generic_id = 4, a.req_qty, 0 )) AS  lopinavir_req_qty,
+    
+    
+    sum(
+    IF
+    ( a.generic_id = 5, a.qty, 0 )) AS ritonavir_qty,
+    sum(
+    IF
+    ( a.generic_id = 5, a.min, 0 )) AS ritonavir_min_qty,
+      sum(
+    IF
+    ( a.generic_id = 5, a.max, 0 )) AS ritonavir_max_qty,
+        sum(
+    IF
+    ( a.generic_id = 5, a.safety_stock, 0 )) AS ritonavir_safety_qty,
+          sum(
+    IF
+    ( a.generic_id = 5, a.recommend_fill_qty, 0 )) AS ritonavir_recomment_qty,
+            sum(
+    IF
+    ( a.generic_id = 5, a.reserve_qty, 0 )) AS ritonavir_reserve_qty,
+            sum(
+    IF
+    ( a.generic_id = 5, a.total, 0 )) AS ritonavir_total_qty,	
+    sum(
+      IF
+      ( a.generic_id = 5, a.req_qty, 0 )) AS  ritonavir_req_qty,
+
+    
+    sum(
+    IF
+    ( a.generic_id = 7, a.qty, 0 )) AS azithromycin_qty,
+    sum(
+    IF
+    ( a.generic_id = 7, a.min, 0 )) AS azithromycin_min_qty,
+      sum(
+    IF
+    ( a.generic_id = 7, a.max, 0 )) AS azithromycin_max_qty,
+        sum(
+    IF
+    ( a.generic_id = 7, a.safety_stock, 0 )) AS azithromycin_safety_qty,
+          sum(
+    IF
+    ( a.generic_id = 7, a.recommend_fill_qty, 0 )) AS azithromycin_recomment_qty,
+            sum(
+    IF
+    ( a.generic_id = 7, a.reserve_qty, 0 )) AS azithromycin_reserve_qty,
+              sum(
+    IF
+    ( a.generic_id = 7, a.total, 0 )) AS azithromycin_total_qty,
+    sum(
+      IF
+      ( a.generic_id = 7, a.req_qty, 0 )) AS  azithromycin_req_qty
+  FROM
+    (
+  SELECT
+    g.generic_id,
+    bg.name AS generic_name,
+    g.hospital_id,
+    bh.province_name,
+    bh.hospcode AS hospital_code,
+    bh.hospname AS hospital_name,
+    bh.zone_code,
+    g.qty,
+    gp.min,
+    gp.max,
+    gp.safety_stock,
+  IF
+  ((
+      gp.max -(
+      g.qty + ifnull( vf.qty, 0 ))+ gp.safety_stock 
+      )< 0,
+    0,(
+      round((gp.max -(
+      g.qty + ifnull( vf.qty, 0 ))+ gp.safety_stock 
+    )/bg.pack_qty)*bg.pack_qty)) AS recommend_fill_qty,
+    ifnull( vf.qty, 0 ) AS reserve_qty ,
+    q.qty as total,
+    wr.qty as req_qty
+  FROM
+    wm_generics AS g
+    INNER JOIN b_generic_plannings AS gp ON g.generic_id = gp.generic_id 
+    AND g.hospital_id = gp.hospital_id
+    INNER JOIN b_generics AS bg ON bg.id = g.generic_id
+    INNER JOIN b_hospitals AS bh ON bh.id = g.hospital_id
+    LEFT JOIN view_fulfill_reserves AS vf ON vf.generic_id = g.generic_id 	AND vf.hospital_id = g.hospital_id 
+    left join (
+    select hospital_id,generic_id,sum(fdi.qty) as qty from wm_fulfill_drugs as f 
+    join wm_fulfill_drug_details as fd on f.id = fd.fulfill_drug_id
+  join wm_fulfill_drug_detail_items as fdi on fd.id = fdi.fulfill_drug_detail_id
+  where f.is_approved='Y' and f.id in (${ids})
+  group by hospital_id,generic_id
+  ) as q on q.hospital_id = g.hospital_id and  q.generic_id = g.generic_id 
+  left join (
+    select r.hospital_id_node as hospital_id,rd.generic_id,sum(rd.qty) as qty from wm_requisitions as r
+    join wm_requisition_details as rd on r.id = rd.requisition_id
+  where r.is_approved = 'Y'
+  group by hospital_id_node,generic_id
+  ) as wr on wr.hospital_id = g.hospital_id and  wr.generic_id = g.generic_id 
+
+  WHERE
+    bg.type = 'DRUG' ) as a
     group by hospital_id `;
     if (orderType == 'ZONE') {
       sql += `order by a.zone_code ${orderSort}`;
