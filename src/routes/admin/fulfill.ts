@@ -15,12 +15,24 @@ const payModel = new PayModel();
 const serialModel = new SerialModel();
 const router: Router = Router();
 
-router.get('/', async (req: Request, res: Response) => {
+router.get('/product/drugs', async (req: Request, res: Response) => {
   const type = req.query.type;
   const orderType = req.query.orderType;
   const orderSort = req.query.orderSort;
   try {
-    let rs: any = await model.getProducts(req.db, type, orderType, orderSort);
+    let rs: any = await model.getProductsDrugs(req.db, orderType, orderSort);
+    res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/product/supplies', async (req: Request, res: Response) => {
+  const type = req.query.type;
+  const orderType = req.query.orderType;
+  const orderSort = req.query.orderSort;
+  try {
+    let rs: any = await model.getProductsSupplies(req.db, orderType, orderSort);
     res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -148,33 +160,41 @@ router.post('/drugs/approved', async (req: Request, res: Response) => {
 
 router.post('/supplies', async (req: Request, res: Response) => {
   const data = req.body.data;
+  const list = req.body.list;
   const db = req.db;
   const userId = req.decoded.id;
   try {
-    const head = {
-      created_by: userId,
-      code: await serialModel.getSerial(db, 'FS')
-    }
-    const fulfillId = await model.saveFulFillSupplies(db, head);
-    const hospitals = uniqBy(data, 'hospital_id');
-    for (const h of hospitals) {
-      const obj: any = {
-        fulfill_supplies_id: fulfillId[0],
-        hospital_id: h.hospital_id
+    console.log(list);
+    if (list.g9) {
+      for (const i of data) {
+        console.log( i.surgical_gown_req_id);
       }
-      const fulfillDetailId = await model.saveFulFillSuppliesDetail(db, obj);
-      const _data = filter(data, { 'hospital_id': h.hospital_id });
-      const items = [];
-      for (const d of _data) {
-        const item: any = {
-          fulfill_supplies_detail_id: fulfillDetailId,
-          generic_id: d.generic_id,
-          qty: d.fill_qty
-        }
-        items.push(item);
-      }
-      await model.saveFulFillSuppliesDetailItem(db, items);
+      
     }
+    // const head = {
+    //   created_by: userId,
+    //   code: await serialModel.getSerial(db, 'FS')
+    // }
+    // const fulfillId = await model.saveFulFillSupplies(db, head);
+    // const hospitals = uniqBy(data, 'hospital_id');
+    // for (const h of hospitals) {
+    //   const obj: any = {
+    //     fulfill_supplies_id: fulfillId[0],
+    //     hospital_id: h.hospital_id
+    //   }
+    //   const fulfillDetailId = await model.saveFulFillSuppliesDetail(db, obj);
+    //   const _data = filter(data, { 'hospital_id': h.hospital_id });
+    //   const items = [];
+    //   for (const d of _data) {
+    //     const item: any = {
+    //       fulfill_supplies_detail_id: fulfillDetailId,
+    //       generic_id: d.generic_id,
+    //       qty: d.fill_qty
+    //     }
+    //     items.push(item);
+    //   }
+    //   await model.saveFulFillSuppliesDetailItem(db, items);
+    // }
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);

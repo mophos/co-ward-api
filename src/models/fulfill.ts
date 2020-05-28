@@ -2,7 +2,7 @@ import * as Knex from 'knex';
 var request = require('request');
 export class FullfillModel {
 
-  getProducts(db: Knex, type, orderType = null, orderSort = null) {
+  getProductsDrugs(db: Knex, orderType = null, orderSort = null) {
     let sql = `SELECT
     a.hospital_id,
     a.hospital_name,
@@ -160,9 +160,9 @@ export class FullfillModel {
   FROM
     (
   SELECT
-    g.generic_id,
+    gp.generic_id,
     bg.name AS generic_name,
-    g.hospital_id,
+    ns.hospital_id,
     bh.hospname AS hospital_name,
     bh.zone_code,
     g.qty,
@@ -172,38 +172,352 @@ export class FullfillModel {
   IF
   ((
       gp.max -(
-      g.qty + ifnull( vf.qty, 0 ))+ gp.safety_stock 
+      ifnull(g.qty,0) + ifnull( vf.qty, 0 ))+ gp.safety_stock 
       )< 0,
     0,(
       round((gp.max -(
-      g.qty + ifnull( vf.qty, 0 ))+ gp.safety_stock 
+      ifnull(g.qty,0) + ifnull( vf.qty, 0 ))+ gp.safety_stock 
     )/bg.pack_qty)*bg.pack_qty)) AS recommend_fill_qty,
     ifnull( vf.qty, 0 ) AS reserve_qty ,
     q.qty as total,
     wr.qty as req_qty
   FROM
-    wm_generics AS g
-    INNER JOIN b_generic_plannings AS gp ON g.generic_id = gp.generic_id 
-    AND g.hospital_id = gp.hospital_id
-    INNER JOIN b_generics AS bg ON bg.id = g.generic_id
-    INNER JOIN b_hospitals AS bh ON bh.id = g.hospital_id
-    LEFT JOIN view_fulfill_reserves AS vf ON vf.generic_id = g.generic_id 	AND vf.hospital_id = g.hospital_id 
+  h_node_drugs as ns 
+  left JOIN b_generic_plannings AS gp ON ns.hospital_id = gp.hospital_id
+  AND ns.hospital_id = gp.hospital_id
+  left join wm_generics AS g on g.hospital_id = ns.hospital_id and g.generic_id = gp.generic_id
+    left JOIN b_generics AS bg ON bg.id = gp.generic_id  and  bg.type = 'DRUG'
+    left JOIN b_hospitals AS bh ON bh.id = ns.hospital_id
+    LEFT JOIN view_fulfill_reserves AS vf ON vf.generic_id = gp.generic_id 	AND vf.hospital_id = ns.hospital_id 
     left join (
     select hospital_id,generic_id,sum(fdi.qty) as qty from wm_fulfill_drugs as f 
     join wm_fulfill_drug_details as fd on f.id = fd.fulfill_drug_id
   join wm_fulfill_drug_detail_items as fdi on fd.id = fdi.fulfill_drug_detail_id
   where f.is_approved='Y'
   group by hospital_id,generic_id
-  ) as q on q.hospital_id = g.hospital_id and  q.generic_id = g.generic_id 
+  ) as q on q.hospital_id = ns.hospital_id and  q.generic_id = gp.generic_id 
   left join (
     select r.hospital_id_node as hospital_id,rd.generic_id,sum(rd.qty) as qty from wm_requisitions as r
     join wm_requisition_details as rd on r.id = rd.requisition_id
   where r.is_approved = 'Y'
   group by hospital_id_node,generic_id
-  ) as wr on wr.hospital_id = g.hospital_id and  wr.generic_id = g.generic_id 
+  ) as wr on wr.hospital_id = ns.hospital_id and  wr.generic_id = gp.generic_id ) as a
+    group by hospital_id `;
+    if (orderType == 'ZONE') {
+      sql += `order by a.zone_code ${orderSort}`;
+    } else if (orderType == 'PROVINCE') {
+      sql += `order by a.zone_code ${orderSort}`;
+    }
 
-  WHERE
-    bg.type = 'DRUG' ) as a
+    return db.raw(sql);
+  }
+
+  getProductsSupplies(db: Knex, orderType = null, orderSort = null) {
+    let sql = `SELECT
+    a.hospital_id,
+    a.hospital_name,
+    a.zone_code,
+    sum(
+    IF
+    ( a.generic_id = 9, a.qty, 0 )) AS surgical_gown_qty,
+    sum(
+    IF
+    ( a.generic_id = 9, a.min, 0 )) AS surgical_gown_min_qty,
+      sum(
+    IF
+    ( a.generic_id = 9, a.max, 0 )) AS  surgical_gown_max_qty,
+        sum(
+    IF
+    ( a.generic_id = 9, a.safety_stock, 0 )) AS  surgical_gown_safety_qty,
+          sum(
+    IF
+    ( a.generic_id = 9, a.recommend_fill_qty, 0 )) AS  surgical_gown_recomment_qty,
+            sum(
+    IF
+    ( a.generic_id = 9, a.reserve_qty, 0 )) AS  surgical_gown_reserve_qty,
+              sum(
+    IF
+    ( a.generic_id = 9, a.total, 0 )) AS  surgical_gown_total_qty,
+    sum(
+      IF
+      ( a.generic_id = 9, a.req_qty, 0 )) AS  surgical_gown_req_qty,
+    
+      IF
+      ( a.generic_id = 9, a.req_id, null ) AS  surgical_gown_req_id,
+      
+    sum(
+    IF
+    ( a.generic_id = 10, a.qty, 0 )) AS cover_all1_qty,
+    sum(
+    IF
+    ( a.generic_id = 10, a.min, 0 )) AS cover_all1_min_qty,
+      sum(
+    IF
+    ( a.generic_id = 10, a.max, 0 )) AS cover_all1_max_qty,
+        sum(
+    IF
+    ( a.generic_id = 10, a.safety_stock, 0 )) AS cover_all1_safety_qty,
+          sum(
+    IF
+    ( a.generic_id = 10, a.recommend_fill_qty, 0 )) AS cover_all1_recomment_qty,
+            sum(
+    IF
+    ( a.generic_id = 10, a.reserve_qty, 0 )) AS cover_all1_reserve_qty,
+              sum(
+    IF
+    ( a.generic_id = 10, a.total, 0 )) AS cover_all1_total_qty,
+    sum(
+      IF
+      ( a.generic_id = 10, a.req_qty, 0 )) AS  cover_all1_req_qty,
+    
+      IF
+      ( a.generic_id = 10, a.req_id, null ) AS  cover_all1_req_id,
+    
+    sum(
+    IF
+    ( a.generic_id = 11, a.qty, 0 )) AS cover_all2_qty,
+    sum(
+    IF
+    ( a.generic_id = 11, a.min, 0 )) AS cover_all2_min_qty,
+      sum(
+    IF
+    ( a.generic_id = 11, a.max, 0 )) AS cover_all2_max_qty,
+        sum(
+    IF
+    ( a.generic_id = 11, a.safety_stock, 0 )) AS cover_all2_safety_qty,
+          sum(
+    IF
+    ( a.generic_id = 11, a.recommend_fill_qty, 0 )) AS cover_all2_recomment_qty,
+            sum(
+    IF
+    ( a.generic_id = 11, a.reserve_qty, 0 )) AS cover_all2_reserve_qty,
+            sum(
+    IF
+    ( a.generic_id = 11, a.total, 0 )) AS cover_all2_total_qty,	
+    sum(
+      IF
+      ( a.generic_id = 11, a.req_qty, 0 )) AS  cover_all2_req_qty,
+    
+      IF
+      ( a.generic_id = 11, a.req_id, null ) AS  cover_all2_req_id,
+    
+    sum(
+    IF
+    ( a.generic_id = 12, a.qty, 0 )) AS n95_qty,
+    sum(
+    IF
+    ( a.generic_id = 12, a.min, 0 )) AS n95_min_qty,
+      sum(
+    IF
+    ( a.generic_id = 12, a.max, 0 )) AS n95_max_qty,
+        sum(
+    IF
+    ( a.generic_id = 12, a.safety_stock, 0 )) AS n95_safety_qty,
+          sum(
+    IF
+    ( a.generic_id = 12, a.recommend_fill_qty, 0 )) AS n95_recomment_qty,
+            sum(
+    IF
+    ( a.generic_id = 12, a.reserve_qty, 0 )) AS n95_reserve_qty,					sum(
+    IF
+    ( a.generic_id = 12, a.total, 0 )) AS n95_total_qty,
+    sum(
+      IF
+      ( a.generic_id = 12, a.req_qty, 0 )) AS  n95_req_qty,
+    
+      IF
+      ( a.generic_id = 12, a.req_id, null ) AS  n95_req_id,
+    
+    
+    sum(
+    IF
+    ( a.generic_id = 13, a.qty, 0 )) AS shoe_cover_qty,
+    sum(
+    IF
+    ( a.generic_id = 13, a.min, 0 )) AS shoe_cover_min_qty,
+      sum(
+    IF
+    ( a.generic_id = 13, a.max, 0 )) AS shoe_cover_max_qty,
+        sum(
+    IF
+    ( a.generic_id = 13, a.safety_stock, 0 )) AS shoe_cover_safety_qty,
+          sum(
+    IF
+    ( a.generic_id = 13, a.recommend_fill_qty, 0 )) AS shoe_cover_recomment_qty,
+            sum(
+    IF
+    ( a.generic_id = 13, a.reserve_qty, 0 )) AS shoe_cover_reserve_qty,
+            sum(
+    IF
+    ( a.generic_id = 13, a.total, 0 )) AS shoe_cover_total_qty,	
+    sum(
+      IF
+      ( a.generic_id = 13, a.req_qty, 0 )) AS  shoe_cover_req_qty,
+    
+      IF
+      ( a.generic_id = 13, a.req_id, null ) AS  shoe_cover_req_id,
+
+    
+    sum(
+    IF
+    ( a.generic_id = 14, a.qty, 0 )) AS surgical_hood_qty,
+    sum(
+    IF
+    ( a.generic_id = 14, a.min, 0 )) AS surgical_hood_min_qty,
+      sum(
+    IF
+    ( a.generic_id = 14, a.max, 0 )) AS surgical_hood_max_qty,
+        sum(
+    IF
+    ( a.generic_id = 14, a.safety_stock, 0 )) AS surgical_hood_safety_qty,
+          sum(
+    IF
+    ( a.generic_id = 14, a.recommend_fill_qty, 0 )) AS surgical_hood_recomment_qty,
+            sum(
+    IF
+    ( a.generic_id = 14, a.reserve_qty, 0 )) AS surgical_hood_reserve_qty,
+              sum(
+    IF
+    ( a.generic_id = 14, a.total, 0 )) AS surgical_hood_total_qty,
+    sum(
+      IF
+      ( a.generic_id = 14, a.req_qty, 0 )) AS  surgical_hood_req_qty,
+    
+      IF
+      ( a.generic_id = 14, a.req_id, null ) AS  surgical_hood_req_id,
+    
+    sum(
+    IF
+    ( a.generic_id = 15, a.qty, 0 )) AS long_glove_qty,
+    sum(
+    IF
+    ( a.generic_id = 15, a.min, 0 )) AS long_glove_min_qty,
+      sum(
+    IF
+    ( a.generic_id = 15, a.max, 0 )) AS long_glove_max_qty,
+        sum(
+    IF
+    ( a.generic_id = 15, a.safety_stock, 0 )) AS long_glove_safety_qty,
+          sum(
+    IF
+    ( a.generic_id = 15, a.recommend_fill_qty, 0 )) AS long_glove_recomment_qty,
+            sum(
+    IF
+    ( a.generic_id = 15, a.reserve_qty, 0 )) AS long_glove_reserve_qty,
+              sum(
+    IF
+    ( a.generic_id = 15, a.total, 0 )) AS long_glove_total_qty,
+    sum(
+      IF
+      ( a.generic_id = 15, a.req_qty, 0 )) AS  long_glove_req_qty,
+    
+      IF
+      ( a.generic_id = 15, a.req_id, null ) AS  long_glove_req_id,
+      
+          
+    sum(
+        IF
+        ( a.generic_id = 16, a.qty, 0 )) AS face_shield_qty,
+        sum(
+        IF
+        ( a.generic_id = 16, a.min, 0 )) AS face_shield_min_qty,
+          sum(
+        IF
+        ( a.generic_id = 16, a.max, 0 )) AS face_shield_max_qty,
+            sum(
+        IF
+        ( a.generic_id = 16, a.safety_stock, 0 )) AS face_shield_safety_qty,
+              sum(
+        IF
+        ( a.generic_id = 16, a.recommend_fill_qty, 0 )) AS face_shield_recomment_qty,
+                sum(
+        IF
+        ( a.generic_id = 16, a.reserve_qty, 0 )) AS face_shield_reserve_qty,
+                  sum(
+        IF
+        ( a.generic_id = 16, a.total, 0 )) AS face_shield_total_qty,
+        sum(
+          IF
+          ( a.generic_id = 16, a.req_qty, 0 )) AS  face_shield_req_qty,
+        
+          IF
+          ( a.generic_id = 16, a.req_id, null ) AS  face_shield_req_id,
+
+          sum(
+            IF
+            ( a.generic_id = 17, a.qty, 0 )) AS surgical_mask_qty,
+            sum(
+            IF
+            ( a.generic_id = 17, a.min, 0 )) AS surgical_mask_min_qty,
+              sum(
+            IF
+            ( a.generic_id = 17, a.max, 0 )) AS surgical_mask_max_qty,
+                sum(
+            IF
+            ( a.generic_id = 17, a.safety_stock, 0 )) AS surgical_mask_safety_qty,
+                  sum(
+            IF
+            ( a.generic_id = 17, a.recommend_fill_qty, 0 )) AS surgical_mask_recomment_qty,
+                    sum(
+            IF
+            ( a.generic_id = 17, a.reserve_qty, 0 )) AS surgical_mask_reserve_qty,
+                      sum(
+            IF
+            ( a.generic_id = 17, a.total, 0 )) AS surgical_mask_total_qty,
+            sum(
+              IF
+              ( a.generic_id = 17, a.req_qty, 0 )) AS  surgical_mask_req_qty,
+            
+              IF
+              ( a.generic_id = 17, a.req_id, null ) AS  surgical_mask_req_id
+      
+  FROM
+    (
+      SELECT
+      ns.hospital_id,
+      bh.hospname AS hospital_name,
+      bh.zone_code,
+      gp.generic_id,
+      bg.name AS generic_name,
+      g.qty,
+      gp.min,
+      gp.max,
+      gp.safety_stock,
+    IF
+    ((
+        gp.max -(
+        g.qty + ifnull( vf.qty, 0 ))+ gp.safety_stock 
+        )< 0,
+      0,(
+        round((gp.max -(
+        g.qty + ifnull( vf.qty, 0 ))+ gp.safety_stock 
+      )/bg.pack_qty)*bg.pack_qty)) AS recommend_fill_qty,
+      ifnull( vf.qty, 0 ) AS reserve_qty ,
+      q.qty as total,
+      wr.qty as req_qty,
+      wr.id as req_id
+    FROM
+    h_node_supplies as ns 
+    left JOIN b_generic_plannings AS gp ON ns.hospital_id = gp.hospital_id
+    
+    left join wm_generics AS g on g.hospital_id = ns.hospital_id and g.generic_id = gp.generic_id
+      left JOIN b_generics AS bg ON bg.id = gp.generic_id and  bg.type = 'SUPPLIES'
+      LEFT JOIN view_fulfill_reserves AS vf ON vf.generic_id = gp.generic_id 	AND vf.hospital_id = gp.hospital_id 
+      left join (
+      select hospital_id,generic_id,sum(fdi.qty) as qty from wm_fulfill_supplies as f 
+      join wm_fulfill_supplies_details as fd on f.id = fd.fulfill_supplies_id
+    join wm_fulfill_supplies_detail_items as fdi on fd.id = fdi.fulfill_supplies_detail_id
+    where f.is_approved='Y'
+    group by hospital_id,generic_id
+    ) as q on q.hospital_id = gp.hospital_id and  q.generic_id = gp.generic_id 
+    left join (
+      select GROUP_CONCAT(rd.id) as id,r.hospital_id_node as hospital_id,rd.generic_id,sum(rd.qty) as qty from wm_requisitions as r
+      join wm_requisition_details as rd on r.id = rd.requisition_id
+    where rd.is_fulfill = 'N'
+    group by hospital_id_node,generic_id
+    ) as wr on wr.hospital_id = gp.hospital_id and  wr.generic_id = gp.generic_id 
+    left JOIN b_hospitals AS bh ON bh.id = gp.hospital_id
+) as a
     group by hospital_id `;
     if (orderType == 'ZONE') {
       sql += `order by a.zone_code ${orderSort}`;
