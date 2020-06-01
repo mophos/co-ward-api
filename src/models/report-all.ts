@@ -145,7 +145,63 @@ sum( bed_id = 5 ) AS hospitel_usage_qty`), last)
     return sql;
   }
 
+  report6Ministry(db: Knex, date, sector) {
+    const last = db('views_covid_case')
+      .max('updated_entry as updated_entry_last')
+      .whereRaw('hospital_id=vc.hospital_id')
+      .whereNotNull('updated_entry')
+      .as('updated_entry')
+
+    let sub = db('views_hospital_all as vh')
+      .select('vh.id as hospital_id', 'vh.hospname', 'vh.sub_ministry_name', db.raw(`
+sum( bed_id  =1 ) as aiir_usage_qty,
+sum( bed_id = 2 ) as modified_aiir_usage_qty,
+sum( bed_id = 3 ) as isolate_usage_qty,
+sum( bed_id = 4 ) as cohort_usage_qty,
+sum( bed_id = 5 ) AS hospitel_usage_qty`), last)
+      .leftJoin('views_covid_case_last as vc', (v) => {
+        v.on('vh.id', 'vc.hospital_id')
+        v.on('vc.status', db.raw(`'ADMIT'`))
+      })
+      .groupBy('vh.id')
+      .as('sub')
+
+    let sql =
+      db('views_hospital_all  as vh')
+        .select('vb.*', 'sub.*', 'vh.hospname', 'vh.sub_ministry_name')
+        .leftJoin('views_bed_hospital_cross as vb', 'vh.id', 'vb.hospital_id')
+        .leftJoin(sub, 'sub.hospital_id', 'vh.id')
+        .orderBy('vh.sub_ministry_name')
+      console.log(sql.toString());
+      
+    return sql;
+  }
+
   report7(db: Knex, date, sector) {
+    let sub = db('views_hospital_all as vh')
+      .select('vh.id as hospital_id', 'vh.hospname', 'vh.sub_ministry_name', db.raw(`
+      sum( medical_supplie_id = 1 ) AS invasive_ventilator,
+      sum( medical_supplie_id = 2 ) AS non_invasive_ventilator,
+      sum( medical_supplie_id = 3 ) AS high_flow,
+vc.updated_entry  as updated_entry`))
+      .leftJoin('views_covid_case_last as vc', (v) => {
+        v.on('vh.id', 'vc.hospital_id')
+        v.on('vc.status', db.raw(`'ADMIT'`))
+      })
+      .groupBy('vh.id')
+      .as('sub')
+
+    let sql =
+      db('views_hospital_all  as vh')
+        .select('vb.*', 'sub.*', 'vh.hospname', 'vh.sub_ministry_name')
+        .leftJoin('views_medical_supplies_hospital_cross as vb', 'vh.id', 'vb.hospital_id')
+        .leftJoin(sub, 'sub.hospital_id', 'vh.id')
+        .orderBy('vh.sub_ministry_name')
+
+    return sql;
+  }
+
+  report7Ministry(db: Knex, date, sector) {
     let sub = db('views_hospital_all as vh')
       .select('vh.id as hospital_id', 'vh.hospname', 'vh.sub_ministry_name', db.raw(`
       sum( medical_supplie_id = 1 ) AS invasive_ventilator,
