@@ -1,6 +1,7 @@
 import Knex = require('knex');
 import * as moment from 'moment';
 import { join } from 'bluebird';
+var request = require("request");
 
 export class ReportModel {
 
@@ -401,7 +402,7 @@ export class ReportModel {
     return sql;
   }
 
-  admitConfirmCaseProvice(db: Knex, zoneCode,provinceCode = null) {
+  admitConfirmCaseProvice(db: Knex, zoneCode, provinceCode = null) {
     const last = db('p_covid_case_details')
       .max('updated_entry as updated_entry_last')
       .whereRaw('covid_case_id=cl.covid_case_id')
@@ -433,9 +434,9 @@ export class ReportModel {
       .whereIn('gcs_id', [1, 2, 3, 4])
       .orderBy('h.province_code')
       .orderBy('h.hospname')
-      if (provinceCode) {
-        sql.where('h.province_code', provinceCode);
-      }
+    if (provinceCode) {
+      sql.where('h.province_code', provinceCode);
+    }
     return sql;
   }
 
@@ -533,7 +534,7 @@ export class ReportModel {
     if (provinceCode) {
       sql.where('h.province_code', provinceCode);
     }
-    
+
     return sql;
   }
 
@@ -583,5 +584,40 @@ export class ReportModel {
       vt.zone_code 
     ORDER BY
       vt.zone_code`);
+  }
+
+  getLocalQuarantine(db: Knex) {
+    return db('de_local_quarantine');
+  }
+
+  getCountLocalQuarantine(db: Knex) {
+    return db('de_local_quarantine').count('* as rows');
+  }
+
+  insertLocalQuarantine(db: Knex, data) {
+    return db('de_local_quarantine').insert(data);
+  }
+
+  removeLocalQuarantine(db: Knex) {
+    return db('de_local_quarantine').del();
+  }
+
+  localQuarantineApi() {
+    return new Promise((resolve: any, reject: any) => {
+      var options = {
+        method: 'GET',
+        url: 'http://local.thquarantine.cloud/api/external/get-people-details',
+        headers: {
+          authorization: process.env.QUARANTINE_TOKEN
+        }
+      };
+      request(options, function (error, response, body) {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(body);
+        }
+      });
+    });
   }
 }
