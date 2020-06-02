@@ -861,7 +861,7 @@ router.get('/list/old-patient', async (req: Request, res: Response) => {
 
   try {
     const rs: any = await covidCaseModel.listOldPatient(db, hospitalId);
-    res.send({ ok: true, rows: [0], code: HttpStatus.OK });
+    res.send({ ok: true, rows: [], code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
