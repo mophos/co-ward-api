@@ -199,7 +199,7 @@ let managerAuth = (req, res, next) => {
   const decoded = req.decoded;
   try {
     if (decoded) {
-      if (decoded.type === 'MANAGER') {
+      if (decoded.type === 'MANAGER' || decoded.providerType === 'ZONE') {
         next();
       } else {
         res.send({ ok: false, error: 'No permission found!' });
