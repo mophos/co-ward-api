@@ -1,6 +1,7 @@
 import Knex = require('knex');
 import * as moment from 'moment';
 import { join } from 'bluebird';
+var request = require("request");
 
 export class ReportModel {
 
@@ -601,5 +602,40 @@ export class ReportModel {
       vt.zone_code 
     ORDER BY
       vt.zone_code`);
+  }
+
+  getLocalQuarantine(db: Knex) {
+    return db('de_local_quarantine');
+  }
+
+  getCountLocalQuarantine(db: Knex) {
+    return db('de_local_quarantine').count('* as rows');
+  }
+
+  insertLocalQuarantine(db: Knex, data) {
+    return db('de_local_quarantine').insert(data);
+  }
+
+  removeLocalQuarantine(db: Knex) {
+    return db('de_local_quarantine').del();
+  }
+
+  localQuarantineApi() {
+    return new Promise((resolve: any, reject: any) => {
+      var options = {
+        method: 'GET',
+        url: 'http://local.thquarantine.cloud/api/external/get-people-details',
+        headers: {
+          authorization: process.env.QUARANTINE_TOKEN
+        }
+      };
+      request(options, function (error, response, body) {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(body);
+        }
+      });
+    });
   }
 }

@@ -145,6 +145,108 @@ sum( bed_id = 5 ) AS hospitel_usage_qty`), last)
     return sql;
   }
 
+  report6Ministry(db: Knex, date, sector) {
+    const sql = `SELECT
+      SUM( vb.aiir_qty ) AS aiir_qty,
+      SUM( vb.modified_aiir_qty ) AS modified_aiir_qty,
+      SUM( vb.isolate_qty ) AS isolate_qty,
+      SUM( vb.cohort_qty ) AS cohort_qty,
+      SUM( vb.hospitel_qty ) AS hospitel_qty,
+      SUM( vb.aiir_covid_qty ) AS aiir_covid_qty,
+      SUM( vb.modified_aiir_covid_qty ) AS modified_aiir_covid_qty,
+      SUM( vb.isolate_covid_qty ) AS isolate_covid_qty,
+      SUM( vb.cohort_covid_qty ) AS cohort_covid_qty,
+      SUM( vb.hospitel_covid_qty ) AS hospitel_covid_qty,
+      SUM( vb.aiir_spare_qty ) AS aiir_spare_qty,
+      SUM( vb.modified_aiir_spare_qty ) AS modified_aiir_spare_qty,
+      SUM( vb.isolate_spare_qty ) AS isolate_spare_qty,
+      SUM( vb.cohort_spare_qty ) AS cohort_spare_qty,
+      SUM( vb.hospitel_spare_qty ) AS hospitel_spare_qty,
+      SUM( sub.aiir_usage_qty ) AS aiir_usage_qty,
+      SUM( sub.modified_aiir_usage_qty ) AS modified_aiir_qty,
+      SUM( sub.isolate_usage_qty ) AS isolate_usage_qty,
+      SUM( sub.cohort_usage_qty ) AS cohort_usage_qty,
+      SUM( sub.hospitel_usage_qty ) AS hospitel_usage_qty,
+      vh.sub_ministry_name
+    FROM
+      views_hospital_all AS vh
+      LEFT JOIN views_bed_hospital_cross AS vb ON vh.id = vb.hospital_id
+      LEFT JOIN (
+      SELECT
+        vh.id AS hospital_id,
+        vh.hospname,
+        vh.sub_ministry_name,
+        sum( bed_id = 1 ) AS aiir_usage_qty,
+        sum( bed_id = 2 ) AS modified_aiir_usage_qty,
+        sum( bed_id = 3 ) AS isolate_usage_qty,
+        sum( bed_id = 4 ) AS cohort_usage_qty,
+        sum( bed_id = 5 ) AS hospitel_usage_qty,
+        ( SELECT max( updated_entry ) AS updated_entry_last FROM views_covid_case WHERE hospital_id = vc.hospital_id AND updated_entry IS NOT NULL ) AS updated_entry 
+      FROM
+        views_hospital_all AS vh
+        LEFT JOIN views_covid_case_last AS vc ON vh.id = vc.hospital_id 
+        AND vc.status = 'ADMIT' 
+      GROUP BY
+        vh.id 
+      ) AS sub ON sub.hospital_id = vh.id 
+    GROUP BY
+      vh.sub_ministry_name 
+    ORDER BY
+      vh.sub_ministry_name ASC`
+    return db.raw(sql);
+  }
+
+  report6Sector(db: Knex, date, sector) {
+    const sql = `SELECT
+    SUM( vb.aiir_qty ) AS aiir_qty,
+    SUM( vb.modified_aiir_qty ) AS modified_aiir_qty,
+    SUM( vb.isolate_qty ) AS isolate_qty,
+    SUM( vb.cohort_qty ) AS cohort_qty,
+    SUM( vb.hospitel_qty ) AS hospitel_qty,
+    SUM( vb.aiir_covid_qty ) AS aiir_covid_qty,
+    SUM( vb.modified_aiir_covid_qty ) AS modified_aiir_covid_qty,
+    SUM( vb.isolate_covid_qty ) AS isolate_covid_qty,
+    SUM( vb.cohort_covid_qty ) AS cohort_covid_qty,
+    SUM( vb.hospitel_covid_qty ) AS hospitel_covid_qty,
+    SUM( vb.aiir_spare_qty ) AS aiir_spare_qty,
+    SUM( vb.modified_aiir_spare_qty ) AS modified_aiir_spare_qty,
+    SUM( vb.isolate_spare_qty ) AS isolate_spare_qty,
+    SUM( vb.cohort_spare_qty ) AS cohort_spare_qty,
+    SUM( vb.hospitel_spare_qty ) AS hospitel_spare_qty,
+    SUM( sub.aiir_usage_qty ) AS aiir_usage_qty,
+    SUM( sub.modified_aiir_usage_qty ) AS modified_aiir_qty,
+    SUM( sub.isolate_usage_qty ) AS isolate_usage_qty,
+    SUM( sub.cohort_usage_qty ) AS cohort_usage_qty,
+    SUM( sub.hospitel_usage_qty ) AS hospitel_usage_qty,
+    vh.zone_code
+  FROM
+    views_hospital_all AS vh
+    LEFT JOIN views_bed_hospital_cross AS vb ON vh.id = vb.hospital_id
+    LEFT JOIN (
+    SELECT
+      vh.id AS hospital_id,
+      vh.hospname,
+      vh.sub_ministry_name,
+      sum( bed_id = 1 ) AS aiir_usage_qty,
+      sum( bed_id = 2 ) AS modified_aiir_usage_qty,
+      sum( bed_id = 3 ) AS isolate_usage_qty,
+      sum( bed_id = 4 ) AS cohort_usage_qty,
+      sum( bed_id = 5 ) AS hospitel_usage_qty,
+      ( SELECT max( updated_entry ) AS updated_entry_last FROM views_covid_case WHERE hospital_id = vc.hospital_id AND updated_entry IS NOT NULL ) AS updated_entry 
+    FROM
+      views_hospital_all AS vh
+      LEFT JOIN views_covid_case_last AS vc ON vh.id = vc.hospital_id 
+      AND vc.status = 'ADMIT' 
+    GROUP BY
+      vh.id 
+    ) AS sub ON sub.hospital_id = vh.id 
+  GROUP BY
+    vh.zone_code 
+  ORDER BY
+    vh.zone_code ASC`
+    return db.raw(sql);
+  }
+
   report7(db: Knex, date, sector) {
     let sub = db('views_hospital_all as vh')
       .select('vh.id as hospital_id', 'vh.hospname', 'vh.sub_ministry_name', db.raw(`
@@ -165,8 +267,85 @@ vc.updated_entry  as updated_entry`))
         .leftJoin('views_medical_supplies_hospital_cross as vb', 'vh.id', 'vb.hospital_id')
         .leftJoin(sub, 'sub.hospital_id', 'vh.id')
         .orderBy('vh.sub_ministry_name')
+    console.log(sql.toString());
 
     return sql;
+  }
+
+  report7Ministry(db: Knex, date, sector) {
+    const sql = `SELECT
+      SUM(vb.invasive_qty) AS invasive_qty,
+      SUM(vb.non_invasive_qty) AS non_invasive_qty,
+      SUM(vb.invasive_covid_qty) AS invasive_covid_qty,
+      SUM(vb.high_flow_qty) AS high_flow_qty,
+      SUM(vb.high_flow_covid_qty) AS high_flow_covid_qty,
+      SUM(vb.non_invasive_covid_qty) AS non_invasive_covid_qty,
+      SUM(sub.invasive_ventilator) AS invasive_ventilator,
+      SUM(sub.non_invasive_ventilator) AS non_invasive_ventilator,
+      SUM(sub.high_flow) AS high_flow,
+      vh.sub_ministry_name
+    FROM
+      views_hospital_all AS vh
+      LEFT JOIN views_medical_supplies_hospital_cross AS vb ON vh.id = vb.hospital_id
+      LEFT JOIN (
+      SELECT
+        vh.id AS hospital_id,
+        vh.hospname,
+        vh.sub_ministry_name,
+        sum( medical_supplie_id = 1 ) AS invasive_ventilator,
+        sum( medical_supplie_id = 2 ) AS non_invasive_ventilator,
+        sum( medical_supplie_id = 3 ) AS high_flow,
+        vc.updated_entry AS updated_entry 
+      FROM
+        views_hospital_all AS vh
+        LEFT JOIN views_covid_case_last AS vc ON vh.id = vc.hospital_id 
+        AND vc.status = 'ADMIT' 
+      GROUP BY
+        vh.id 
+      ) AS sub ON sub.hospital_id = vh.id 
+      GROUP BY vh.sub_ministry_name
+    ORDER BY
+      vh.sub_ministry_name ASC`
+
+    return db.raw(sql);
+  }
+
+  report7Sector(db: Knex, date, sector) {
+    const sql = `SELECT
+      SUM(vb.invasive_qty) AS invasive_qty,
+      SUM(vb.non_invasive_qty) AS non_invasive_qty,
+      SUM(vb.invasive_covid_qty) AS invasive_covid_qty,
+      SUM(vb.high_flow_qty) AS high_flow_qty,
+      SUM(vb.high_flow_covid_qty) AS high_flow_covid_qty,
+      SUM(vb.non_invasive_covid_qty) AS non_invasive_covid_qty,
+      SUM(sub.invasive_ventilator) AS invasive_ventilator,
+      SUM(sub.non_invasive_ventilator) AS non_invasive_ventilator,
+      SUM(sub.high_flow) AS high_flow,
+      vh.zone_code
+    FROM
+      views_hospital_all AS vh
+      LEFT JOIN views_medical_supplies_hospital_cross AS vb ON vh.id = vb.hospital_id
+      LEFT JOIN (
+      SELECT
+        vh.id AS hospital_id,
+        vh.hospname,
+        vh.sub_ministry_name,
+        sum( medical_supplie_id = 1 ) AS invasive_ventilator,
+        sum( medical_supplie_id = 2 ) AS non_invasive_ventilator,
+        sum( medical_supplie_id = 3 ) AS high_flow,
+        vc.updated_entry AS updated_entry 
+      FROM
+        views_hospital_all AS vh
+        LEFT JOIN views_covid_case_last AS vc ON vh.id = vc.hospital_id 
+        AND vc.status = 'ADMIT' 
+      GROUP BY
+        vh.id 
+      ) AS sub ON sub.hospital_id = vh.id 
+      GROUP BY vh.zone_code
+    ORDER BY
+      vh.zone_code ASC`
+
+    return db.raw(sql);
   }
 
   report8(db: Knex, date, sector) {

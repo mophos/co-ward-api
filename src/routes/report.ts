@@ -1622,6 +1622,44 @@ router.get('/homework-detail', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/local-quarantine', async (req: Request, res: Response) => {
+  const db = req.db;
+
+  try {
+    const rs: any = await model.localQuarantineApi();
+    const json = JSON.parse(rs);
+    // const rsd: any = await model.getCountLocalQuarantine(db);
+    // if (json.rowCount !== rsd.rows) {
+    //   await model.removeLocalQuarantine(db);
+    //   const data: any = [];
+    //   for (const v of json.rowList) {
+    //     const obj: any = {};
+    //     obj.person_id = v.idPerson;
+    //     obj.cid = v.idNo;
+    //     obj.title_name = v.thTitle;
+    //     obj.fullname = v.thFullName;
+    //     obj.tel = v.tel;
+    //     obj.arrival_date = v.actualArrivalDate === null ? null : moment(v.actualArrivalDate).format('YYYY-MM-DD');
+    //     obj.status = v.status;
+    //     obj.send_date = v.sentDate === null ? null : moment(v.sentDate).format('YYYY-MM-DD');
+    //     obj.hospital_name = v.hospitalName;
+    //     obj.checkin_date = v.checkInDate === null ? null : moment(v.checkInDate).format('YYYY-MM-DD HH:mm:ss');
+    //     obj.checkout_date = v.checkOutDate === null ? null : moment(v.checkOutDate).format('YYYY-MM-DD HH:mm:ss');
+    //     obj.couse_of_checkout = v.causeOfCheckOut;
+    //     obj.last_quarantine_province = v.lastQuarantineProvince;
+
+    //     await model.insertLocalQuarantine(db, obj);
+    //   }
+    // }
+    // const person = model.getLocalQuarantine(db);
+
+    res.send({ ok: true, rows: json, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 function toString(value) {
   if (value || value == 0) {
     return value.toString();
