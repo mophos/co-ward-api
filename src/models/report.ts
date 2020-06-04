@@ -587,19 +587,125 @@ export class ReportModel {
   }
 
   getLocalQuarantine(db: Knex) {
-    return db('de_local_quarantine');
+    return db('local_quarantine');
   }
 
   getCountLocalQuarantine(db: Knex) {
-    return db('de_local_quarantine').count('* as rows');
+    return db('local_quarantine').count('* as rows');
   }
 
   insertLocalQuarantine(db: Knex, data) {
-    return db('de_local_quarantine').insert(data);
+    return db('local_quarantine').insert(data);
   }
 
   removeLocalQuarantine(db: Knex) {
-    return db('de_local_quarantine').del();
+    return db('local_quarantine').del();
+  }
+
+  summaryLocalQuarantineProvince(db: Knex) {
+    return db.raw(`SELECT
+      l.zone_code,
+      l.last_quarantine_province,
+      count( * ) AS local_q,
+      r.person_total,
+      a.admit
+    FROM
+      local_quarantine l
+      LEFT JOIN (
+      SELECT
+        v.province_code,
+        v.zone_code,
+        SUM( IF ( ( v.gcs_id IN ( 1, 2, 3, 4 ) AND v.person_id IS NOT NULL ), 1, 0 ) ) AS person,
+        SUM( IF ( ( vt.gcs_id IN ( 1, 2, 3, 4 ) ), 1, 0 ) ) AS person_time,
+        SUM( IF ( ( v.gcs_id IS NULL AND v.person_id IS NOT NULL ), 1, 0 ) ) AS person_old,
+        SUM( IF ( ( vt.gcs_id IS NULL ), 1, 0 ) ) AS person_old_time,
+        SUM(
+        IF
+          (
+            ( ( v.gcs_id IN ( 1, 2, 3, 4 ) OR v.gcs_id IS NULL ) AND v.person_id IS NOT NULL ),
+            1,
+            0 
+          ) 
+        ) AS person_total,
+        SUM( IF ( ( vt.gcs_id IN ( 1, 2, 3, 4 ) OR v.gcs_id IS NULL ), 1, 0 ) ) AS person_time_total,
+        SUM( IF ( ( v.STATUS = 'DEATH' ), 1, 0 ) ) AS person_death 
+      FROM
+        views_case_zone_total_times AS vt
+        LEFT JOIN views_case_zone_total_persons AS v ON vt.case_id = v.case_id 
+      GROUP BY
+        vt.province_code 
+      ORDER BY
+        vt.zone_code 
+      ) AS r ON r.province_code = l.province_code
+      LEFT JOIN (
+      SELECT
+        h.province_code,
+        count( * ) AS admit 
+      FROM
+        p_covid_cases p
+        JOIN p_patients pp ON pp.id = p.patient_id
+        JOIN b_hospitals h ON h.id = pp.hospital_id 
+      WHERE
+        p.status = 'ADMIT' 
+      GROUP BY
+        h.province_code 
+      ) AS a ON a.province_code = l.province_code 
+    GROUP BY
+      l.province_code 
+    ORDER BY
+      l.zone_code`);
+  }
+
+  summaryLocalQuarantineZone(db: Knex) {
+    return db.raw(`SELECT
+      l.zone_code,
+      count( * ) AS local_q,
+      r.person_total,
+      a.admit
+    FROM
+      local_quarantine l
+      LEFT JOIN (
+      SELECT
+        v.zone_code,
+        SUM( IF ( ( v.gcs_id IN ( 1, 2, 3, 4 ) AND v.person_id IS NOT NULL ), 1, 0 ) ) AS person,
+        SUM( IF ( ( vt.gcs_id IN ( 1, 2, 3, 4 ) ), 1, 0 ) ) AS person_time,
+        SUM( IF ( ( v.gcs_id IS NULL AND v.person_id IS NOT NULL ), 1, 0 ) ) AS person_old,
+        SUM( IF ( ( vt.gcs_id IS NULL ), 1, 0 ) ) AS person_old_time,
+        SUM(
+        IF
+          (
+            ( ( v.gcs_id IN ( 1, 2, 3, 4 ) OR v.gcs_id IS NULL ) AND v.person_id IS NOT NULL ),
+            1,
+            0 
+          ) 
+        ) AS person_total,
+        SUM( IF ( ( vt.gcs_id IN ( 1, 2, 3, 4 ) OR v.gcs_id IS NULL ), 1, 0 ) ) AS person_time_total,
+        SUM( IF ( ( v.STATUS = 'DEATH' ), 1, 0 ) ) AS person_death 
+      FROM
+        views_case_zone_total_times AS vt
+        LEFT JOIN views_case_zone_total_persons AS v ON vt.case_id = v.case_id 
+      GROUP BY
+        vt.zone_code 
+      ORDER BY
+        vt.zone_code 
+      ) AS r ON r.zone_code = l.zone_code
+      LEFT JOIN (
+      SELECT
+        h.zone_code,
+        count( * ) AS admit 
+      FROM
+        p_covid_cases p
+        JOIN p_patients pp ON pp.id = p.patient_id
+        JOIN b_hospitals h ON h.id = pp.hospital_id 
+      WHERE
+        p.status = 'ADMIT' 
+      GROUP BY
+        h.zone_code 
+      ) AS a ON a.zone_code = l.zone_code 
+    GROUP BY
+      l.zone_code 
+    ORDER BY
+      l.zone_code`);
   }
 
   localQuarantineApi() {

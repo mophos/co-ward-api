@@ -1596,6 +1596,34 @@ router.get('/homework-detail', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/summary-local-quarantine-zone', async (req: Request, res: Response) => {
+  const db = req.db;
+  try {
+    const rs: any = await model.summaryLocalQuarantineZone(db);
+    for (const v of rs[0]) {
+      v.zone_code = +v.zone_code;
+    }
+    res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/summary-local-quarantine-province', async (req: Request, res: Response) => {
+  const db = req.db;
+  try {
+    const rs: any = await model.summaryLocalQuarantineProvince(db);
+    for (const v of rs[0]) {
+      v.zone_code = +v.zone_code;
+    }
+    res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.get('/local-quarantine', async (req: Request, res: Response) => {
   const db = req.db;
 
@@ -1607,11 +1635,15 @@ router.get('/local-quarantine', async (req: Request, res: Response) => {
     //   await model.removeLocalQuarantine(db);
     //   const data: any = [];
     //   for (const v of json.rowList) {
+    //     console.log(v);
+
     //     const obj: any = {};
     //     obj.person_id = v.idPerson;
     //     obj.cid = v.idNo;
     //     obj.title_name = v.thTitle;
-    //     obj.fullname = v.thFullName;
+    //     const fullname = v.thFullName.split(' ');
+    //     obj.first_name = fullname[0] || null;
+    //     obj.last_name = fullname[1] || null;
     //     obj.tel = v.tel;
     //     obj.arrival_date = v.actualArrivalDate === null ? null : moment(v.actualArrivalDate).format('YYYY-MM-DD');
     //     obj.status = v.status;
@@ -1619,7 +1651,11 @@ router.get('/local-quarantine', async (req: Request, res: Response) => {
     //     obj.hospital_name = v.hospitalName;
     //     obj.checkin_date = v.checkInDate === null ? null : moment(v.checkInDate).format('YYYY-MM-DD HH:mm:ss');
     //     obj.checkout_date = v.checkOutDate === null ? null : moment(v.checkOutDate).format('YYYY-MM-DD HH:mm:ss');
-    //     obj.couse_of_checkout = v.causeOfCheckOut;
+    //     const checkout = v.causeOfCheckOut.split('>');
+    //     obj.couse_of_checkout = checkout[0].toString().trim() || null;
+    //     if (checkout.length == 2) {
+    //       obj.province_of_checkout = checkout[1].toString().trim() || null;
+    //     }
     //     obj.last_quarantine_province = v.lastQuarantineProvince;
 
     //     await model.insertLocalQuarantine(db, obj);
