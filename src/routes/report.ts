@@ -3,7 +3,7 @@ import { ReportModel } from '../models/report';
 import { Router, Request, Response } from 'express';
 import * as HttpStatus from 'http-status-codes';
 
-import { filter, map, findIndex } from 'lodash';
+import { filter, map, findIndex, countBy, uniqBy } from 'lodash';
 import moment = require('moment');
 import { FullfillModel } from '../models/fulfill';
 import { DrugsModel } from '../models/drug';
@@ -176,6 +176,11 @@ router.get('/get-gcs-admit', async (req: Request, res: Response) => {
         _province.province_name = p.name_th;
         const s = filter(hospital, { province_code: p.code })
         const hosp = [];
+        let severe = 0;
+        let moderate = 0;
+        let mild = 0;
+        let ippui = 0;
+        let asymptomatic = 0;
         for (const h of s) {
           const _hospital: any = {};
           _hospital.province_name = p.name_th;
@@ -194,11 +199,20 @@ router.get('/get-gcs-admit', async (req: Request, res: Response) => {
               asymptomatic: _gcs[0].asymptomatic
             };
             sumProvince += _gcs[0].count
+            severe += _gcs[0].severe
+            moderate += _gcs[0].moderate
+            mild += _gcs[0].mild
+            ippui += _gcs[0].ip_pui
+            asymptomatic += _gcs[0].asymptomatic
+
             hosp.push(obj);
           }
         }
         _province.hospitals = hosp;
-
+        _province.moderate = moderate;
+        _province.mild = mild;
+        _province.ip_pui = ippui;
+        _province.asymptomatic = asymptomatic;
         provinces.push(_province);
       }
       zone.severe
@@ -251,39 +265,51 @@ router.get('/get-gcs', async (req: Request, res: Response) => {
       } else {
         province = await model.getProvince(db, z, null);
       }
-      const hospital: any = await model.getHospital(db)
+
+      // const hospital: any = await model.getHospital(db)
       // let sumProvince = 0;
-      let severe = 0;
+      // let severe = 0;
+      const gcs: any = await model.getHeadGcs(db, date, map(province, 'code'));
+      const patient: any = await model.getGcs(db, date);
       for (const p of province) {
         const _province: any = {};
         _province.province_name = p.name_th;
-        const s = filter(hospital, { province_code: p.code })
-        const hosp = [];
-        const gcs: any = await model.getGcs(db, date)
-        for (const h of s) {
-          const _hospital: any = {};
-          _hospital.province_name = p.name_th;
-          const obj: any = {
-            hospital_id: h.id,
-            hospcode: h.hospcode,
-            hospname: h.hospname
-          };
-          const _gcs = filter(gcs, { hospital_id: h.id })
 
-          obj.details = _gcs;
+        let severe = 0;
+        let moderate = 0;
+        let mild = 0;
+        let ippui = 0;
+        let asymptomatic = 0;
+        const s = filter(gcs, { province_code: p.code })
+        console.log(s);
 
-          let sum = 0;
-          hosp.push(obj);
+        for (const i of s) {
+          severe += i.severe;
+          moderate += i.moderate;
+          mild += i.mild;
+          ippui += i.ip_pui;
+          asymptomatic += i.asymptomatic;
+          const p = filter(patient, { hospital_id: i.hospital_id })
+          i.details = p;
         }
-        _province.hospitals = hosp;
-
+        // const hosp = [];
+        _province.hospitals = s;
+        // _province.hospitals = hosp;
+        _province.severe = severe;
+        _province.moderate = moderate;
+        _province.mild = mild;
+        _province.ip_pui = ippui;
+        _province.asymptomatic = asymptomatic;
+        _province.count = +asymptomatic + +ippui + +mild + +moderate + +severe;
         provinces.push(_province);
       }
-      zone.severe
+      // zone.severe
       // zone.sum = sumProvince;
       zone.provinces = provinces;
       data.push(zone);
     }
+    console.log(data);
+
     res.send({ ok: true, rows: data, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);

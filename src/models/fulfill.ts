@@ -171,6 +171,7 @@ export class FullfillModel {
     gp.min,
     gp.max,
     gp.safety_stock,
+  if(g.qty < gp.min,
   IF
   ((
       gp.max -(
@@ -179,7 +180,7 @@ export class FullfillModel {
     0,(
       round((gp.max -(
       ifnull(g.qty,0) + ifnull( vf.qty, 0 ))+ gp.safety_stock 
-    )/bg.pack_qty)*bg.pack_qty)) AS recommend_fill_qty,
+    )/bg.pack_qty)*bg.pack_qty)),0) AS recommend_fill_qty,
     ifnull( vf.qty, 0 ) AS reserve_qty ,
     q.qty as total,
     wr.qty as req_qty

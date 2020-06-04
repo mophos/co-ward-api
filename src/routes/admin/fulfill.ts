@@ -1,7 +1,7 @@
 // / <reference path="../../typings.d.ts" />
 
 import * as HttpStatus from 'http-status-codes';
-import { uniqBy, filter, map, sumBy } from 'lodash';
+import { uniqBy, filter, map, sumBy, concat } from 'lodash';
 import { Router, Request, Response } from 'express';
 import { FullfillModel } from '../../models/fulfill';
 import { SerialModel } from '../../models/serial';
@@ -165,12 +165,25 @@ router.post('/supplies', async (req: Request, res: Response) => {
   const userId = req.decoded.id;
   try {
     console.log(list);
-    if (list.g9) {
-      for (const i of data) {
-        console.log( i.surgical_gown_req_id);
+    const reqDetailId = [];
+    for (const i of data) {
+      if (list.g9) {
+        if (i.surgical_gown_req_id) {
+          const a = i.surgical_gown_req_id.split(',');
+          // console.log(a);
+          
+          reqDetailId.concat(reqDetailId,a);
+        }
+      } else if (list.g10) {
+        if (i.cover_all1_req_id) {
+          const a = i.cover_all1_req_id.split(',');
+          // console.log(a);
+          reqDetailId.concat(reqDetailId,a);
+        }
       }
-      
+
     }
+    console.log(reqDetailId);
     // const head = {
     //   created_by: userId,
     //   code: await serialModel.getSerial(db, 'FS')

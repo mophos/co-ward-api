@@ -31,10 +31,28 @@ export class ReportModel {
       .orderBy('h.zone_code')
       .orderBy('h.province_code')
   }
+  getHeadGcs(db: Knex, date, provinces) {
+    return db('views_case_hospital_date_cross as v')
+      .select('h.province_code', 'h.province_name', 'h.zone_code', 'h.hospcode', 'h.hospname', 'h.id as hospital_id')
+      .sum('severe as severe')
+      .sum('mild as mild')
+      .sum('moderate as moderate')
+      .sum('asymptomatic as asymptomatic')
+      .sum('ip_pui as ip_pui')
+      .count('* as count')
+      .sum('v.sum as countCase')
+      .join('b_hospitals as h', 'h.id', 'v.hospital_id')
+      .where('v.entry_date', date)
+      .whereIn('h.province_code', provinces)
+      .groupBy('h.id')
+      .orderBy('h.zone_code')
+      .orderBy('h.province_code')
+  }
 
   getGcs(db: Knex, date) {
     return db('views_case_dates AS vcl')
-      .select('vcl.gcs_id', 'bg.name as gcs_name', 'pp.hospital_id', 'pp.hn', 'vcl.date_admit', 'vcl.status')
+      .select('vcl.gcs_id', 'bg.name as gcs_name', 'pp.hospital_id', 'pp.hn', 'p.an', 'vcl.date_admit', 'vcl.status')
+      .join('p_covid_cases as p','p.id','vcl.covid_case_id')
       .join('p_patients AS pp', 'pp.id', 'vcl.patient_id')
       .join('b_hospitals AS bh', 'bh.id', 'pp.hospital_id')
       .leftJoin('b_gcs as bg', 'bg.id', 'vcl.gcs_id')
