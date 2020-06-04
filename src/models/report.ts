@@ -52,7 +52,7 @@ export class ReportModel {
   getGcs(db: Knex, date) {
     return db('views_case_dates AS vcl')
       .select('vcl.gcs_id', 'bg.name as gcs_name', 'pp.hospital_id', 'pp.hn', 'p.an', 'vcl.date_admit', 'vcl.status')
-      .join('p_covid_cases as p','p.id','vcl.covid_case_id')
+      .join('p_covid_cases as p', 'p.id', 'vcl.covid_case_id')
       .join('p_patients AS pp', 'pp.id', 'vcl.patient_id')
       .join('b_hospitals AS bh', 'bh.id', 'pp.hospital_id')
       .leftJoin('b_gcs as bg', 'bg.id', 'vcl.gcs_id')
@@ -663,8 +663,9 @@ export class ReportModel {
         p_covid_cases p
         JOIN p_patients pp ON pp.id = p.patient_id
         JOIN b_hospitals h ON h.id = pp.hospital_id 
+        JOIN views_covid_case_last v on v.covid_case_id = p.id
       WHERE
-        p.status = 'ADMIT' 
+        p.status = 'ADMIT' and p.is_deleted = 'N' and v.gcs_id in (1,2,3,4)
       GROUP BY
         h.province_code 
       ) AS a ON a.province_code = l.province_code 
@@ -715,8 +716,9 @@ export class ReportModel {
         p_covid_cases p
         JOIN p_patients pp ON pp.id = p.patient_id
         JOIN b_hospitals h ON h.id = pp.hospital_id 
+        JOIN views_covid_case_last v on v.covid_case_id = p.id
       WHERE
-        p.status = 'ADMIT' 
+        p.status = 'ADMIT' and p.is_deleted = 'N' and v.gcs_id in (1,2,3,4)
       GROUP BY
         h.zone_code 
       ) AS a ON a.zone_code = l.zone_code 
@@ -724,6 +726,22 @@ export class ReportModel {
       l.zone_code 
     ORDER BY
       l.zone_code`);
+  }
+
+  summaryLocalQuarantineZone2(db: Knex) {
+    return db.raw(`SELECT
+      a.zone_code,
+      SUM( IF ( a.checkin_date BETWEEN '2020-03-01 00:00:00' AND '2020-03-31 23:59:59', 1, 0 ) ) AS m3,
+      SUM( IF ( a.checkin_date BETWEEN '2020-04-01 00:00:00' AND '2020-04-31 23:59:59', 1, 0 ) ) AS m4,
+      SUM( IF ( a.checkin_date BETWEEN '2020-05-01 00:00:00' AND '2020-05-31 23:59:59', 1, 0 ) ) AS m5,
+      SUM( IF ( a.checkin_date BETWEEN '2020-06-01 00:00:00' AND '2020-06-31 23:59:59', 1, 0 ) ) AS m6,
+      SUM( IF ( a.checkin_date BETWEEN '2020-07-01 00:00:00' AND '2020-07-31 23:59:59', 1, 0 ) ) AS m7 
+    FROM
+      local_quarantine AS a 
+    GROUP BY
+      a.zone_code 
+    ORDER BY
+      a.zone_code`);
   }
 
   localQuarantineApi() {

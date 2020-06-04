@@ -1636,6 +1636,20 @@ router.get('/summary-local-quarantine-zone', async (req: Request, res: Response)
   }
 });
 
+router.get('/summary-local-quarantine-zone/2', async (req: Request, res: Response) => {
+  const db = req.db;
+  try {
+    const rs: any = await model.summaryLocalQuarantineZone2(db);
+    for (const v of rs[0]) {
+      v.zone_code = +v.zone_code;
+    }
+    res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.get('/summary-local-quarantine-province', async (req: Request, res: Response) => {
   const db = req.db;
   try {
