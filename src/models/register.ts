@@ -45,7 +45,7 @@ export class Register {
         return new Promise((resolve, reject) => {
             var options = {
                 method: 'POST',
-                url: 'https://covid19.moph.go.th/authentication/register',
+                url: 'https://covid19.moph.go.th/authentication/ais',
                 headers: { 'content-type': 'application/json' },
                 body: { tel: tel, appId: '76503a47-cea5-482f-ae27-e151ca5a2722' },
                 json: true
@@ -61,15 +61,16 @@ export class Register {
         });
 
     }
-    verifyOTP(refCode, otp) {
+    verifyOTP(tel, otp,transactionID) {
         return new Promise((resolve, reject) => {
             var options = {
                 method: 'POST',
-                url: 'https://covid19.moph.go.th/authentication/verify',
+                url: 'https://covid19.moph.go.th/authentication/ais/verify',
                 headers: { 'content-type': 'application/json' },
                 body: {
-                    refCode: refCode,
+                    transactionID: transactionID,
                     otp: otp,
+                    tel:tel,
                     appId: '76503a47-cea5-482f-ae27-e151ca5a2722'
                 },
                 json: true

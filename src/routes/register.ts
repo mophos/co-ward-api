@@ -210,11 +210,11 @@ router.post('/req-otp', async (req: Request, res: Response) => {
 });
 
 router.post('/verify-otp', async (req: Request, res: Response) => {
-  let refCode = req.body.refCode
+  let transactionID = req.body.transactionID
   let otp = req.body.otp
+  let tel = req.body.tel
   try {
-    let rs: any = await registerModel.verifyOTP(refCode, otp);
-    console.log(rs);
+    let rs: any = await registerModel.verifyOTP(tel, otp,transactionID);
     res.send(rs);
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
