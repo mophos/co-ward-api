@@ -202,7 +202,7 @@ router.post('/req-otp', async (req: Request, res: Response) => {
   let tel = req.body.tel
 
   try {
-    let rs: any = await registerModel.reqOTP(tel);
+    let rs: any = await registerModel.reqOTP(tel);    
     res.send(rs);
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
