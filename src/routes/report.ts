@@ -1671,12 +1671,11 @@ router.get('/local-quarantine', async (req: Request, res: Response) => {
     const rs: any = await model.localQuarantineApi();
     const json = JSON.parse(rs);
     // const rsd: any = await model.getCountLocalQuarantine(db);
-    // if (json.rowCount !== rsd.rows) {
+    // if (json.rowCount !== rsd[0].rows) {
+    //   console.log(1);
     //   await model.removeLocalQuarantine(db);
     //   const data: any = [];
     //   for (const v of json.rowList) {
-    //     console.log(v);
-
     //     const obj: any = {};
     //     obj.person_id = v.idPerson;
     //     obj.cid = v.idNo;
@@ -1697,13 +1696,51 @@ router.get('/local-quarantine', async (req: Request, res: Response) => {
     //       obj.province_of_checkout = checkout[1].toString().trim() || null;
     //     }
     //     obj.last_quarantine_province = v.lastQuarantineProvince;
-
-    //     await model.insertLocalQuarantine(db, obj);
+    //     data.push(obj);
     //   }
+    //   await model.insertLocalQuarantine(db, data);
     // }
     // const person = model.getLocalQuarantine(db);
 
     res.send({ ok: true, rows: json, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/local-quarantine-hotel', async (req: Request, res: Response) => {
+  const db = req.db;
+
+  try {
+    // const rs: any = await model.localQuarantineHotelApi();
+    // const json = JSON.parse(rs);
+
+    // for (const v of json.rows) {
+    //   const obj: any = {};
+    //   obj.id_lq = v.id_lq;
+    //   obj.hotel_name = v.hotelName;
+    //   obj.address_hotel = v.address_hotel;
+    //   obj.subdistrict = v.subDistrict;
+    //   obj.district = v.district;
+    //   obj.province = v.province;
+    //   obj.latitude = v.latitude;
+    //   obj.longitude = v.longitude;
+    //   obj.contact_name = v.contactName;
+    //   obj.total_capacity = v.status.total_capacity;
+    //   obj.no_bed_lock = v.status.noBedLocked;
+    //   obj.occupancy = v.status.occupancy;
+    //   obj.check_in = v.status.check_in;
+
+    //   await model.insertLocalQuarantineHotel(db, obj);
+    // }
+
+    const rs: any = await model.getLocalQuarantineHotel(db);
+    for (const v of rs[0]) {
+      v.zone_code = +v.zone_code;
+    }
+
+    res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
