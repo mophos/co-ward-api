@@ -616,6 +616,10 @@ export class ReportModel {
     return db('local_quarantine').insert(data);
   }
 
+  insertLocalQuarantineHotel(db: Knex, data) {
+    return db('local_quarantine_hotel').insert(data);
+  }
+
   removeLocalQuarantine(db: Knex) {
     return db('local_quarantine').del();
   }
@@ -744,11 +748,46 @@ export class ReportModel {
       a.zone_code`);
   }
 
+  getLocalQuarantineHotel(db: Knex) {
+    return db.raw(`SELECT
+      lh.zone_code,
+      COUNT( * ) AS qty,
+      SUM(lh.total_capacity) AS total_capacity,
+      (
+        SELECT COUNT(*) FROM local_quarantine WHERE zone_code = lh.zone_code
+      ) AS person_qty
+    FROM
+      local_quarantine_hotel lh 
+    GROUP BY
+      lh.zone_code 
+    ORDER BY
+      lh.zone_code`)
+  }
+
   localQuarantineApi() {
     return new Promise((resolve: any, reject: any) => {
       var options = {
         method: 'GET',
         url: 'http://local.thquarantine.cloud/api/external/get-people-details',
+        headers: {
+          authorization: process.env.QUARANTINE_TOKEN
+        }
+      };
+      request(options, function (error, response, body) {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(body);
+        }
+      });
+    });
+  }
+
+  localQuarantineHotelApi() {
+    return new Promise((resolve: any, reject: any) => {
+      var options = {
+        method: 'GET',
+        url: 'http://local.thquarantine.cloud/api/external/get-hotel',
         headers: {
           authorization: process.env.QUARANTINE_TOKEN
         }
