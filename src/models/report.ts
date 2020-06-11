@@ -556,7 +556,7 @@ export class ReportModel {
     return sql;
   }
 
-  homework(db: Knex) {
+  homework(db: Knex, filter = 'all') {
     const sql = db('views_review_homework as v')
       .select(db.raw(`b.zone_code,
     sum(b.hosptype_code in ('05','06','07','11','12')) as government,
@@ -566,15 +566,23 @@ export class ReportModel {
       .join('b_hospitals as b', 'b.id', 'v.hospital_id')
       .groupBy('b.zone_code')
       .orderBy('b.zone_code')
+
     return sql;
   }
 
-  homeworkDetail(db: Knex) {
+  homeworkDetail(db: Knex, filter = 'all') {
     const sql = db('views_review_homework as v')
       .select('v.*', 'b.hospcode', 'b.hospname', 'bs.name as sub_ministry_name', 'b.zone_code')
       .join('b_hospitals as b', 'b.id', 'v.hospital_id')
       .join('b_hospital_subministry as bs', 'bs.code', 'b.sub_ministry_code')
       .orderBy('b.zone_code')
+      .orderBy('b.province_name')
+      .orderBy('bs.name')
+    if (filter == 'register') {
+      sql.whereNotNull('register_last_date')
+    } else if (filter == 'nonregister') {
+      sql.whereNull('register_last_date')
+    }
     return sql;
   }
 

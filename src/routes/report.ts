@@ -1608,9 +1608,10 @@ router.get('/homework', async (req: Request, res: Response) => {
 router.get('/homework-detail', async (req: Request, res: Response) => {
   const db = req.db;
   const type = req.decoded.type;
+  const filter = req.query.filter;
   try {
     if (type == 'MANAGER') {
-      const rs: any = await model.homeworkDetail(db);
+      const rs: any = await model.homeworkDetail(db, filter);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else {
       res.send({ ok: false, code: HttpStatus.UNAUTHORIZED });
