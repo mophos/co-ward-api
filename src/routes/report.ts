@@ -984,57 +984,64 @@ router.get('/get-gcs/export', async (req: Request, res: Response) => {
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
   const date = req.query.date;
+  const type = req.decoded.type;
+  const zone = req.query.zone;
 
   try {
     var wb = new excel4node.Workbook();
-    if (providerType === 'ZONE') {
-      const gcs: any = await model.getGcs(db, date);
-      const hospital: any = await model.getHospital(db);
-      const province = await model.getProvince(db, zoneCode, null);
-      for (let v = 0; v < province.length; v++) {
-        var ws = wb.addWorksheet(`${province[v].name_th}`);
-
-        let row = 2;
-        ws.cell(1, 1).string('โรงพยาบาล');
-        ws.cell(1, 2).string('เลขที่ HN');
-        ws.cell(1, 3).string('วันที่ Admit');
-        ws.cell(1, 4).string('ระดับความรุนแรง');
-        ws.cell(1, 5).string('สถานะ');
-        const s = filter(hospital, { province_code: province[v].code })
-        moment.locale('th');
-
-        for (const h of s) {
-          const _gcs = filter(gcs, { hospital_id: h.id })
-          for (const g of _gcs) {
-            ws.cell(row, 1).string(h.hospname);
-            ws.cell(row, 2).string(toString(g.hn));
-            ws.cell(row, 3).string(moment(g.date_admit).format('D MMMM ') + ((+moment(g.date_admit).format('YYYY')) + 543));
-            ws.cell(row, 4).string(toString(g.gcs_name));
-            ws.cell(row++, 5).string(toString(g.status));
-          }
-        }
+    var ws = wb.addWorksheet('Sheet 1');
+    ws.cell(1, 1).string('จังหวัด');
+    ws.cell(1, 2).string('โรงพยาบาล');
+    ws.cell(1, 3).string('Severe');
+    ws.cell(1, 4).string('Moderate');
+    ws.cell(1, 5).string('Mild');
+    ws.cell(1, 6).string('Asymptomatic');
+    ws.cell(1, 7).string('IP PUI');
+    let zoneCodes = [];
+    let provinceCode = null;
+    if (type == 'MANAGER') {
+      if (zone) {
+        zoneCodes = [zone];
+      } else {
+        zoneCodes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
       }
     } else {
-      var ws = wb.addWorksheet('Sheet 1');
+      if (providerType == 'ZONE') {
+        zoneCodes = [zoneCode];
+      } else if (providerType == 'SSJ') {
+        zoneCodes = [zoneCode];
+        provinceCode = _provinceCode;
+      }
+    }
 
+    let data: any = [];
+    for (const z of zoneCodes) {
+      const zone: any = {};
+      zone.name = z;
+      let provinces: any = [];
+      let province: any;
+      if (provinceCode) {
+        province = await model.getProvince(db, null, provinceCode);
+      } else {
+        province = await model.getProvince(db, z, null);
+      }
       let row = 2;
-      ws.cell(1, 1).string('โรงพยาบาล');
-      ws.cell(1, 2).string('เลขที่ HN');
-      ws.cell(1, 3).string('วันที่ Admit');
-      ws.cell(1, 4).string('ระดับความรุนแรง');
-      ws.cell(1, 5).string('สถานะ');
-      const hospital: any = await model.getHospital(db)
-      const s = filter(hospital, { province_code: _provinceCode })
-      const gcs: any = await model.getGcs(db, date);
-      moment.locale('th');
-      for (const h of s) {
-        const _gcs = filter(gcs, { hospital_id: h.id })
-        for (const g of _gcs) {
-          ws.cell(row, 1).string(h.hospname);
-          ws.cell(row, 2).string(toString(g.hn));
-          ws.cell(row, 3).string(moment(g.date_admit).format('D MMMM ') + ((+moment(g.date_admit).format('YYYY')) + 543));
-          ws.cell(row, 4).string(toString(g.gcs_name));
-          ws.cell(row++, 5).string(toString(g.status));
+      const gcs: any = await model.getHeadGcs(db, date, map(province, 'code'));
+      const patient: any = await model.getGcs(db, date);
+      for (const p of province) {
+        const _province: any = {};
+        _province.province_name = p.name_th;
+
+        const s = filter(gcs, { province_code: p.code })
+        for (const i of s) {
+          ws.cell(row, 1).string(toString(i['province_name']));
+          ws.cell(row, 2).string(toString(i['hospname']));
+          ws.cell(row, 3).string(toString(i['severe']));
+          ws.cell(row, 4).string(toString(i['moderate']));
+          ws.cell(row, 5).string(toString(i['mild']));
+          ws.cell(row, 6).string(toString(i['asymptomatic']));
+          ws.cell(row, 7).string(toString(i['ip_pui']));
+          row += 1;
         }
       }
     }
