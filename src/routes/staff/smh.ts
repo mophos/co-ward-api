@@ -110,35 +110,41 @@ router.get('/', async (req: Request, res: Response) => {
     res.send({ ok: true, rows: obj, code: HttpStatus.OK });
   } catch (error) {
     try {
-      console.log('Smart Health');
       const smh: any = await model.getSmarthealth(cid, token[0].token);
-      const smha: any = await model.getSmarthealthAddress(cid, token[0].token);
-      const add: any = await model.getAddress(db, smha.tambon, smha.ampur, smha.changwat);
+      if (smh.cid != undefined) {
+        console.log('Smart Health');
+        const smha: any = await model.getSmarthealthAddress(cid, token[0].token);
+        const add: any = await model.getAddress(db, smha.tambon, smha.ampur, smha.changwat);
+        obj.title_id = +smh.prename;
+        obj.first_name = smh.name;
+        obj.last_name = smh.lname;
+        obj.gender_id = smh.sex;
+        obj.birth_date = await checkDate(moment(smh.birth).format('YYYYMMDD'));
 
-      obj.title_id = +smh.prename;
-      obj.first_name = smh.name;
-      obj.last_name = smh.lname;
-      obj.gender_id = smh.sex;
-      obj.birth_date = await checkDate(moment(smh.birth).format('YYYYMMDD'));
+        obj.house_no = smha.houseno;
+        obj.ampur_code = smha.districtCode;
+        obj.tambon_code = smha.subdistrictCode;
+        obj.province_code = smha.provinceCode;
+        obj.zipcode = add[0].zip_code;
+        obj.country_code = 20;
+        obj.country_name = 'ไทย';
+        obj.ampur_name = add[0].ampur_name;
+        obj.tambon_name = add[0].tambon_name;
+        obj.province_name = add[0].province_name;
 
-      obj.house_no = smha.houseno;
-      obj.ampur_code = smha.districtCode;
-      obj.tambon_code = smha.subdistrictCode;
-      obj.province_code = smha.provinceCode;
-      obj.zipcode = add[0].zip_code;
-      obj.country_code = 20;
-      obj.country_name = 'ไทย';
-      obj.ampur_name = add[0].ampur_name;
-      obj.tambon_name = add[0].tambon_name;
-      obj.province_name = add[0].province_name;
-
-      const rsm: any = await labCovid(cid);
-      if (rsm) {
-        obj.sat_id = rsm.sat_id;
-        obj.telephone = rsm.telephone;
+        const rsm: any = await labCovid(cid);
+        if (rsm) {
+          obj.sat_id = rsm.sat_id;
+          obj.telephone = rsm.telephone;
+        }
+      } else {
+        const rsd: any = await labCovidAdd(db, cid);
+        Object.assign(obj, rsd);
       }
+
       res.send({ ok: true, rows: obj, code: HttpStatus.OK });
     } catch (error) {
+      console.log('error', error);
       res.send({ ok: false, error: error.message, code: HttpStatus.OK });
     }
   }
@@ -150,28 +156,58 @@ async function labCovid(cid) {
     const lab: any = await model.getLabCovid(cid, rs.token);
     const obj: any = {};
     if (lab.ok) {
-      // const tambonCode: any = lab.res[0].sick_sub_district.substring(0, 2);
-      // const ampurCode: any = lab.res[0].sick_sub_district.substring(2, 4);
-      // const provinceCode: any = lab.res[0].sick_sub_district.substring(4, 6);
-      // const add: any = await model.getAddress(db, tambonCode, ampurCode, provinceCode);
-
       obj.sat_id = lab.res[0].sat_id;
       obj.telephone = replace(lab.res[0].mobile, /\s/g, '');
-      // if (add.length) {
-      //   obj.ampur_code = ampurCode;
-      //   obj.tambon_code = tambonCode;
-      //   obj.province_code = provinceCode;
-      //   obj.ampur_name = add[0].ampur_name;
-      //   obj.tambon_name = add[0].tambon_name;
-      //   obj.province_name = add[0].province_name;
-      //   obj.house_no = lab.res[0].sick_house_no;
-      //   obj.village = lab.res[0].sick_village;
-      //   obj.road = lab.res[0].sick_road;
-      // }
     }
     return obj;
   } else {
     return false;
+  }
+}
+
+async function labCovidAdd(db, cid) {
+  try {
+    const rs: any = await model.apiLogin();
+    if (rs.ok) {
+      const lab: any = await model.getLabCovid(cid, rs.token);
+      const obj: any = {};
+      if (lab.ok) {
+        const tambonCode: any = lab.res[0].sick_sub_district;
+        const ampurCode: any = lab.res[0].sick_district;
+        const provinceCode: any = lab.res[0].sick_province;
+
+        if (tambonCode != null) {
+          obj.tambon_code = tambonCode;
+          const subd: any = await model.getSubDistrict(db, tambonCode);
+          obj.tambon_name = subd[0].name_th;
+        }
+        if (ampurCode != null) {
+          obj.ampur_code = ampurCode;
+          const d: any = await model.getDistrict(db, ampurCode);
+          obj.ampur_name = d[0].name_th;
+        }
+        if (provinceCode != null) {
+          obj.province_code = provinceCode;
+          const p: any = await model.getProvince(db, provinceCode);
+          obj.province_name = p[0].name_th;
+        }
+        obj.country_name = 'ไทย';
+        obj.country_code = 20;
+        obj.gender_id = null;
+        obj.sat_id = lab.res[0].sat_id;
+        obj.first_name = lab.res[0].first_name;
+        obj.last_name = lab.res[0].last_name;
+        obj.telephone = replace(lab.res[0].mobile, /\s/g, '');
+        obj.house_no = lab.res[0].sick_house_no;
+        obj.village = lab.res[0].sick_village;
+        obj.road = lab.res[0].sick_road;
+      }
+      return obj;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    return error;
   }
 }
 

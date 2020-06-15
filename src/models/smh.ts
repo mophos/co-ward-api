@@ -31,6 +31,18 @@ export class smhModel {
       .where('province_code', pCode)
   }
 
+  getProvince(db: Knex, code) {
+    return db('b_province').where('code', code);
+  }
+
+  getDistrict(db: Knex, code) {
+    return db('b_district').where('ampur_code_full', code);
+  }
+
+  getSubDistrict(db: Knex, code) {
+    return db('b_subdistrict').where('id', code);
+  }
+
   getSmarthealth(cid, token) {
     return new Promise((resolve: any, reject: any) => {
       var options = {
