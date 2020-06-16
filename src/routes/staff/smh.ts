@@ -38,38 +38,72 @@ router.get('/', async (req: Request, res: Response) => {
   const cid = req.query.cid;
   const obj: any = {};
   const token: any = await model.getToken(db);
-  const rs: any = await model.getPerson(db, cid);
 
   try {
+    const rs: any = await model.getPerson(db, cid);
     if (!rs.length) {
-      console.log('มหาดไทย');
-      const rs: any = await model.infoCid(cid, token[0].token);
-      const rsa: any = await model.infoCidAddress(cid, token[0].token);
+      const rsM: any = await model.infoCid(cid, token[0].token);
+      const smh: any = await model.getSmarthealth(cid, token[0].token);
+      const rsd: any = await labCovidAdd(db, cid);
+      if (rsd.sat_id) {
+        obj.sat_id = rsd.sat_id;
+        obj.telephone = rsd.telephone;
+      }
+      if (rsM.length) {
+        console.log('มหาดไทย');
+        const rsa: any = await model.infoCidAddress(cid, token[0].token);
 
-      const sCode = serialModel.paddingNumber(rsa.data.subdistrictCode, 2);
-      const dCode = serialModel.paddingNumber(rsa.data.districtCode, 2);
-      const pCode = serialModel.paddingNumber(rsa.data.provinceCode, 2);
-      const z: any = await model.getZipcode(db, pCode + dCode + sCode);
+        const sCode = serialModel.paddingNumber(rsa.data.subdistrictCode, 2);
+        const dCode = serialModel.paddingNumber(rsa.data.districtCode, 2);
+        const pCode = serialModel.paddingNumber(rsa.data.provinceCode, 2);
+        const z: any = await model.getZipcode(db, pCode + dCode + sCode);
 
-      obj.title_id = rs.data.titleCode;
-      obj.first_name = rs.data.firstName;
-      obj.last_name = rs.data.lastName;
-      obj.middle_name = rs.data.middleName;
-      obj.gender_id = rs.data.genderCode;
-      // obj.birth_date = await checkDate(rs.data.dateOfBirth.toString());
-      obj.birth_date = await checkDate(null);
+        obj.title_id = rs.data.titleCode;
+        obj.first_name = rs.data.firstName;
+        obj.last_name = rs.data.lastName;
+        obj.middle_name = rs.data.middleName;
+        obj.gender_id = rs.data.genderCode;
+        // obj.birth_date = await checkDate(rs.data.dateOfBirth.toString());
+        obj.birth_date = await checkDate(null);
 
-      obj.house_no = rsa.data.houseNo;
-      obj.ampur_code = dCode;
-      obj.tambon_code = sCode;
-      obj.province_code = pCode;
-      obj.zipcode = z[0].zip_code;
-      obj.country_code = 20;
-      obj.village = rsa.data.villageNo;
-      obj.country_name = 'ไทย';
-      obj.ampur_name = rsa.data.districtDesc;
-      obj.tambon_name = rsa.data.subdistrictDesc;
-      obj.province_name = rsa.data.provinceDesc;
+        obj.house_no = rsa.data.houseNo;
+        obj.ampur_code = dCode;
+        obj.tambon_code = sCode;
+        obj.province_code = pCode;
+        obj.zipcode = z[0].zip_code;
+        obj.country_code = 20;
+        obj.village = rsa.data.villageNo;
+        obj.country_name = 'ไทย';
+        obj.ampur_name = rsa.data.districtDesc;
+        obj.tambon_name = rsa.data.subdistrictDesc;
+        obj.province_name = rsa.data.provinceDesc;
+      } else if (smh.cid != undefined) {
+        console.log('Smart Health');
+        const smha: any = await model.getSmarthealthAddress(cid, token[0].token);
+        const add: any = await model.getAddress(db, smha.tambon, smha.ampur, smha.changwat);
+        obj.title_id = +smh.prename;
+        obj.first_name = smh.name;
+        obj.last_name = smh.lname;
+        obj.gender_id = smh.sex;
+        obj.birth_date = await checkDate(moment(smh.birth).format('YYYYMMDD'));
+
+        obj.house_no = smha.houseno;
+        obj.ampur_code = smha.districtCode;
+        obj.tambon_code = smha.subdistrictCode;
+        obj.province_code = smha.provinceCode;
+        obj.zipcode = add[0].zip_code;
+        obj.country_code = 20;
+        obj.country_name = 'ไทย';
+        obj.ampur_name = add[0].ampur_name;
+        obj.tambon_name = add[0].tambon_name;
+        obj.province_name = add[0].province_name;
+      } else if (Object.values(rsd).length) {
+        console.log('covid-lab');
+        Object.assign(obj, rsd);
+      } else {
+        obj.country_code = 20;
+        obj.country_name = 'ไทย';
+      }
     } else {
       console.log('co-ward');
       if (rs[0].tambon_code != null || rs[0].ampur_code != null || rs[0].province_code != null) {
@@ -78,7 +112,6 @@ router.get('/', async (req: Request, res: Response) => {
         obj.tambon_name = add[0].tambon_name;
         obj.province_name = add[0].province_name;
       }
-
       obj.title_id = rs[0].title_id;
       obj.first_name = rs[0].first_name;
       obj.middlie_name = rs[0].middlie_name;
@@ -102,51 +135,9 @@ router.get('/', async (req: Request, res: Response) => {
       obj.country_name = 'ไทย';
     }
 
-    const rsm: any = await labCovid(cid);
-    if (rsm) {
-      obj.sat_id = rsm.sat_id;
-      obj.telephone = rsm.telephone;
-    }
     res.send({ ok: true, rows: obj, code: HttpStatus.OK });
   } catch (error) {
-    try {
-      const smh: any = await model.getSmarthealth(cid, token[0].token);
-      if (smh.cid != undefined) {
-        console.log('Smart Health');
-        const smha: any = await model.getSmarthealthAddress(cid, token[0].token);
-        const add: any = await model.getAddress(db, smha.tambon, smha.ampur, smha.changwat);
-        obj.title_id = +smh.prename;
-        obj.first_name = smh.name;
-        obj.last_name = smh.lname;
-        obj.gender_id = smh.sex;
-        obj.birth_date = await checkDate(moment(smh.birth).format('YYYYMMDD'));
-
-        obj.house_no = smha.houseno;
-        obj.ampur_code = smha.districtCode;
-        obj.tambon_code = smha.subdistrictCode;
-        obj.province_code = smha.provinceCode;
-        obj.zipcode = add[0].zip_code;
-        obj.country_code = 20;
-        obj.country_name = 'ไทย';
-        obj.ampur_name = add[0].ampur_name;
-        obj.tambon_name = add[0].tambon_name;
-        obj.province_name = add[0].province_name;
-
-        const rsm: any = await labCovid(cid);
-        if (rsm) {
-          obj.sat_id = rsm.sat_id;
-          obj.telephone = rsm.telephone;
-        }
-      } else {
-        const rsd: any = await labCovidAdd(db, cid);
-        Object.assign(obj, rsd);
-      }
-
-      res.send({ ok: true, rows: obj, code: HttpStatus.OK });
-    } catch (error) {
-      console.log('error', error);
-      res.send({ ok: false, error: error.message, code: HttpStatus.OK });
-    }
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
 
