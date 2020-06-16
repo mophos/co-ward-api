@@ -163,23 +163,19 @@ async function labCovidAdd(db, cid) {
       const lab: any = await model.getLabCovid(cid, rs.token);
       const obj: any = {};
       if (lab.ok) {
-        const tambonCode: any = lab.res[0].sick_sub_district;
-        const ampurCode: any = lab.res[0].sick_district;
-        const provinceCode: any = lab.res[0].sick_province;
-
-        if (tambonCode != null) {
-          obj.tambon_code = tambonCode;
-          const subd: any = await model.getSubDistrict(db, tambonCode);
+        if (lab.res[0].sick_sub_district != null) {
+          obj.tambon_code = lab.res[0].sick_sub_district.substring(4, 6);
+          const subd: any = await model.getSubDistrict(db, obj.tambon_code);
           obj.tambon_name = subd[0].name_th;
         }
-        if (ampurCode != null) {
-          obj.ampur_code = ampurCode;
-          const d: any = await model.getDistrict(db, ampurCode);
+        if (lab.res[0].sick_district != null) {
+          obj.ampur_code = lab.res[0].sick_district.substring(2, 4);
+          const d: any = await model.getDistrict(db, obj.ampur_code);
           obj.ampur_name = d[0].name_th;
         }
-        if (provinceCode != null) {
-          obj.province_code = provinceCode;
-          const p: any = await model.getProvince(db, provinceCode);
+        if (lab.res[0].sick_province != null) {
+          obj.province_code = lab.res[0].sick_province;
+          const p: any = await model.getProvince(db, obj.province_code);
           obj.province_name = p[0].name_th;
         }
         obj.country_name = 'ไทย';
