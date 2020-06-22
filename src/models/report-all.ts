@@ -69,10 +69,10 @@ sum( gcs_id = 5 ) AS ip_pui`), last)
       .select('vh.id as hospital_id',
         'vh.hospname',
         'vh.sub_ministry_name',
-        db.raw(`sum((cl.gcs_id != 5 or cl.gcs_id is null) ) as admit,
-        sum(c.status!='ADMIT' and (cl.gcs_id != 5 or cl.gcs_id is null) ) as discharge,
-        sum(c.status='REFER' and hr.hospital_type='HOSPITEL'  and (cl.gcs_id != 5 or cl.gcs_id is null)  ) as discharge_hospitel,
-        sum(c.status='DEATH'  and (cl.gcs_id != 5 or cl.gcs_id is null)  ) as discharge_death,
+        db.raw(`sum((cl.gcs_id in (1,2,3,4) or cl.gcs_id is null) ) as admit,
+        sum(c.status!='ADMIT' and (cl.gcs_id in (1,2,3,4) or cl.gcs_id is null) ) as discharge,
+        sum(c.status='REFER' and hr.hospital_type='HOSPITEL'  and (cl.gcs_id in (1,2,3,4) or cl.gcs_id is null)  ) as discharge_hospitel,
+        sum(c.status='DEATH'  and (cl.gcs_id in (1,2,3,4) or cl.gcs_id is null)  ) as discharge_death,
         
         sum(cl.gcs_id = 5 ) as pui_admit,
         sum(c.status!='ADMIT' and cl.gcs_id = 5 ) as pui_discharge,
@@ -84,6 +84,7 @@ sum( gcs_id = 5 ) AS ip_pui`), last)
       .join('views_hospital_all as vh', 'vh.id', 'cl.hospital_id')
       .where('cl.entry_date', '<=', date)
       .groupBy('cl.hospital_id')
+console.log(sql.toString());
 
     return sql;
   }
