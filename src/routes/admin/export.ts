@@ -22,11 +22,6 @@ router.get('/requisition', async (req: Request, res: Response) => {
   var ws = wb.addWorksheet('Sheet 1');
   try {
     const rs: any = await model.exportAll(db, startDate, endDate);
-    // const rsReq: any = await model.getRequisitionQty(db, startDate, endDate);
-    // const rsPuiDay: any = await model.getPUIday(db, startDate, endDate);
-    // const rsPuiPerson: any = await model.getPUIperson(db, startDate, endDate);
-    // const rsConfirm: any = await model.getConfirmPerson(db, startDate, endDate);
-
     const center = wb.createStyle({
       alignment: {
         wrapText: true,
@@ -56,10 +51,6 @@ router.get('/requisition', async (req: Request, res: Response) => {
 
     let row = 2;
     for (const v of rs[0]) {
-      // const puiDay = filter(rsPuiDay[0], { 'hospital_id_node': v.hospital_id_node });
-      // const puiPerson = filter(rsPuiPerson[0], { 'hospital_id_node': v.hospital_id_node });
-      // const cPerson = filter(rsConfirm[0], { 'hospital_id_node': v.hospital_id_node });
-
       ws.cell(row, 1).string(v.hospcode);
       ws.cell(row, 2).string(v.hospname);
       ws.cell(row, 3).string(v.province_name);
