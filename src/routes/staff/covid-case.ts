@@ -152,6 +152,9 @@ router.put('/', async (req: Request, res: Response) => {
         village: data.village,
         village_name: data.villageName,
         road: data.road,
+        tambon_name: data.tambon_name,
+        ampur_name: data.ampur_name,
+        province_name: data.province_name,
         tambon_code: data.tambonCode,
         ampur_code: data.ampurCode,
         province_code: data.provinceCode,
@@ -217,13 +220,15 @@ router.post('/', async (req: Request, res: Response) => {
       village: data.village || null,
       village_name: data.villageName || null,
       road: data.road || null,
+      tambon_name: data.tambon_name || null,
+      ampur_name: data.ampur_name || null,
+      province_name: data.province_name || null,
       tambon_code: data.tambonCode || null,
       ampur_code: data.ampurCode || null,
       province_code: data.provinceCode || null,
       zipcode: data.zipcode || null,
       country_code: data.countryId,
     }
-
 
     let personId: any;
     if (data.type == 'REFER') {
