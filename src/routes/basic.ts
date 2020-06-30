@@ -179,6 +179,27 @@ router.get('/systems', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/getAddCode', async (req: Request, res: Response) => {
+  try {
+    const tambon = req.query.t
+    const ampur = req.query.a
+    const province = req.query.p
+    const zipcode = req.query.z
+    console.log( tambon, ampur, province, zipcode);
+    
+    let rs: any = await model.getAdd(req.db, tambon, ampur, province, zipcode);
+    console.log(1,rs);
+    
+    if (rs[0].length) {
+      res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
+    } else {
+      res.send({ ok: false, code: HttpStatus.NOT_FOUND });
+    }
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 // router.post('/manageData', async (req: Request, res: Response) => {
 //   let db = req.db
 //   const query: any = req.body.query
