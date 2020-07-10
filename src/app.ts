@@ -56,6 +56,7 @@ import servicesRoute from './routes/manager/services';
 import eocRoute from './routes/eoc';
 import approveDrugsRoute from './routes/staff/approve-drugs';
 import approveSuppliesRoute from './routes/staff/approve-supplies';
+import hpvcRoute from './routes/staff/hpvc';
 
 
 // Assign router to the express.Router() instance
@@ -259,6 +260,7 @@ staff.use('/drugs', drugStaffRoute)
 staff.use('/covid-case', covidCaseRoute)
 staff.use('/approve-drugs', approveDrugsRoute)
 staff.use('/approve-supplies', approveSuppliesRoute)
+staff.use('/hpvc', hpvcRoute)
 
 //index
 app.use('/', indexRoute);

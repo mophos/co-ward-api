@@ -292,6 +292,12 @@ router.post('/', async (req: Request, res: Response) => {
       confirm_date: data.confirmDate,
       created_by: userId
     }
+    if (data.returnFromAbroad == 'covid' || data.returnFromAbroad == 'other') {
+      _data.return_from_abroad = data.returnFromAbroad;
+      _data.icd_code = data.icdCode;
+      _data.icd_name = data.icdName;
+
+    }
     _data.updated_entry = moment().format('YYYY-MM-DD');
     if (!timeCut.ok) {
       _data.updated_entry = _data.date_entry = moment().add(1, 'days').format('YYYY-MM-DD');

@@ -1102,7 +1102,11 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
     ws.cell(1, 19, 1, 20, true).string('Face shield').style(center);
     ws.cell(1, 21, 1, 22, true).string('Surgical Mask').style(center);
     ws.cell(1, 23, 1, 24, true).string('Powered air-purifying respirator').style(center);
+    ws.cell(1, 25, 1, 26, true).string('Alcohol 70%').style(center);
+    ws.cell(1, 27, 1, 28, true).string('Alcohol 95%').style(center);
+    ws.cell(1, 29, 1, 30, true).string('Alcohol Gel').style(center);
 
+ 
     ws.cell(2, 5).string('คงคลัง').style(center);
     ws.cell(2, 6).string('อัตราการใช้ต่อเดือน').style(center);
     ws.cell(2, 7).string('คงคลัง').style(center);
@@ -1123,6 +1127,12 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
     ws.cell(2, 22).string('อัตราการใช้ต่อเดือน').style(center);
     ws.cell(2, 23).string('คงคลัง').style(center);
     ws.cell(2, 24).string('อัตราการใช้ต่อเดือน').style(center);
+    ws.cell(2, 25).string('คงคลัง').style(center);
+    ws.cell(2, 26).string('อัตราการใช้ต่อเดือน').style(center);
+    ws.cell(2, 27).string('คงคลัง').style(center);
+    ws.cell(2, 28).string('อัตราการใช้ต่อเดือน').style(center);
+    ws.cell(2, 29).string('คงคลัง').style(center);
+    ws.cell(2, 30).string('อัตราการใช้ต่อเดือน').style(center);
     let row = 3;
 
     let zoneCodes = [];
@@ -1174,6 +1184,12 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
       ws.cell(row, 22).number(toNumber(i.surgical_mask_month_usage_qty));
       ws.cell(row, 23).number(toNumber(i.powered_air_qty));
       ws.cell(row, 24).number(toNumber(i.powered_air_month_usage_qty));
+      ws.cell(row, 25).number(toNumber(i.alcohol_70_qty));
+      ws.cell(row, 26).number(toNumber(i.alcohol_70_month_usage_qty));
+      ws.cell(row, 27).number(toNumber(i.alcohol_95_qty));
+      ws.cell(row, 28).number(toNumber(i.alcohol_95_month_usage_qty));
+      ws.cell(row, 29).number(toNumber(i.alcohol_gel_qty));
+      ws.cell(row, 30).number(toNumber(i.alcohol_gel_month_usage_qty));
       row++;
     }
     fse.ensureDirSync(process.env.TMP_PATH);

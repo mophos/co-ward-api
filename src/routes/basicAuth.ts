@@ -54,6 +54,39 @@ router.get('/beds', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/hpvc', async (req: Request, res: Response) => {
+  const db = req.db;
+
+  try {
+    const rs = await model.getHPVC(db);
+    res.send({ ok: true, rows: rs })
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
+
+router.get('/icd10', async (req: Request, res: Response) => {
+  const db = req.db;
+  const query = req.query.query;
+  try {
+    const rs = await model.getICD10(db, query);
+    res.send({ ok: true, rows: rs })
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
+
+router.get('/icd10/autocomplete', async (req: Request, res: Response) => {
+  const db = req.db;
+  const query = req.query.q;
+  try {
+    const rs = await model.getICD10(db, query);
+    res.send(rs)
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
+
 router.get('/medical-supplies', async (req: Request, res: Response) => {
   const db = req.db;
   const hospitalType = req.decoded.hospitalType;

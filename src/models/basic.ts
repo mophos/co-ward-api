@@ -135,6 +135,22 @@ export class BasicModel {
 			.where('is_deleted', 'N')
 	}
 
+	getHPVC(db: Knex) {
+		return db('b_hpvc')
+			.where('is_deleted', 'N')
+	}
+
+	getICD10(db: Knex, query) {
+		const _query = `%${query}%`;
+		return db('b_icd10')
+			.where((v) => {
+				v.where('code', 'like', _query)
+				v.orWhere('code_plain', 'like', _query)
+				v.orWhere('term', 'like', _query)
+			})
+			.limit(20);
+	}
+
 	getBeds(db: Knex, hospitalId, hospitalType) {
 		return db('b_beds as b')
 			.select('b.id', 'b.name', 'bh.hospital_id', 'bh.bed_id', 'bh.qty')
@@ -304,8 +320,8 @@ export class BasicModel {
 			.whereNotNull('updated_entry')
 			.as('updated_entry_last');
 
-		const sql =  db('views_covid_case_last as cl')
-			.select('pt.hn', 'c.an', 'pt.hospital_id', last, db.raw(`DATEDIFF( now(),(${last}) ) as days`), 'h.hospname', 'h.hospcode', 'h.zone_code', 'h.province_name', 'c.date_admit','u.fname','u.telephone','h.telephone_manager')
+		const sql = db('views_covid_case_last as cl')
+			.select('pt.hn', 'c.an', 'pt.hospital_id', last, db.raw(`DATEDIFF( now(),(${last}) ) as days`), 'h.hospname', 'h.hospcode', 'h.zone_code', 'h.province_name', 'c.date_admit', 'u.fname', 'u.telephone', 'h.telephone_manager')
 			.join('p_covid_cases as c', 'c.id', 'cl.covid_case_id')
 			.join('p_patients as pt', 'pt.id', 'c.patient_id')
 			.join('b_hospitals as h', 'h.id', 'pt.hospital_id')
