@@ -354,5 +354,25 @@ export class BasicModel {
 
 	}
 
+	getAdd(db: Knex, t, a, p, z){
+		return db.raw(`SELECT DISTINCT
+		province_code,
+		province_name,
+		province_name_en,
+		ampur_code,
+		ampur_name,
+		ampur_name_en,
+		tambon_code,
+		tambon_name,
+		tambon_name_en,
+		zip_code 
+	FROM
+		 view_address 
+	WHERE 
+		 tambon_name = ?
+		 and ampur_name = ?
+		 and province_name = ?
+		 and zip_code = ?`, [t, a, p, z]);
+	}
 
 }
