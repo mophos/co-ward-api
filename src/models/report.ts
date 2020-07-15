@@ -384,7 +384,7 @@ export class ReportModel {
       .orderBy('p.code');
   }
 
-  admitConfirmCase(db: Knex) {
+  admitConfirmCase(db: Knex, showPersons = false) {
     const last = db('p_covid_case_details')
       .max('updated_entry as updated_entry_last')
       .whereRaw('covid_case_id=cl.covid_case_id')
@@ -403,7 +403,7 @@ export class ReportModel {
       .groupBy('i.covid_case_detail_id').as('du')
     let sql = db('views_covid_case_last as cl')
       .select('du.d1', 'du.d2', 'du.d3', 'du.d4', 'du.d5', 'du.d7', 'du.d8')
-      .select('pt.hn', 'c.an', 'pt.hospital_id', last, db.raw(`DATEDIFF( now(),(${last}) ) as days`), 'h.hospname', 'h.hospcode', 'h.zone_code', 'h.province_name', 'c.date_admit', 'g.name as gcs_name', 'b.name as bed_name', 'm.name as medical_supplies_name', 'pp.first_name', 'pp.last_name', 'pp.cid')
+      .select('pt.hn', 'c.an', 'pt.hospital_id', last, db.raw(`DATEDIFF( now(),(${last}) ) as days`), 'h.hospname', 'h.hospcode', 'h.zone_code', 'h.province_name', 'c.date_admit', 'g.name as gcs_name', 'b.name as bed_name', 'm.name as medical_supplies_name')
       .join('p_covid_cases as c', 'c.id', 'cl.covid_case_id')
       .join('p_patients as pt', 'pt.id', 'c.patient_id')
       .join('p_persons as pp', 'pp.id', 'pt.person_id')
@@ -418,6 +418,10 @@ export class ReportModel {
       .orderBy('h.zone_code')
       .orderBy('h.province_code')
       .orderBy('h.hospname')
+
+    if (showPersons) {
+      sql.select('pp.first_name', 'pp.last_name', 'pp.cid')
+    }
     return sql;
   }
 

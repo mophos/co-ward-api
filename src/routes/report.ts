@@ -8,6 +8,7 @@ import moment = require('moment');
 import { FullfillModel } from '../models/fulfill';
 import { DrugsModel } from '../models/drug';
 import { SuppliesModel } from '../models/supplies';
+import * as _ from 'lodash';
 const excel4node = require('excel4node');
 const path = require('path')
 const fse = require('fs-extra');
@@ -1106,7 +1107,7 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
     ws.cell(1, 27, 1, 28, true).string('Alcohol 95%').style(center);
     ws.cell(1, 29, 1, 30, true).string('Alcohol Gel').style(center);
 
- 
+
     ws.cell(2, 5).string('คงคลัง').style(center);
     ws.cell(2, 6).string('อัตราการใช้ต่อเดือน').style(center);
     ws.cell(2, 7).string('คงคลัง').style(center);
@@ -1565,9 +1566,12 @@ router.get('/admit-confirm-case', async (req: Request, res: Response) => {
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
   const provinceCode = req.decoded.provinceCode;
+  // const showPersons = true;
+  const right = req.decoded.rights;
+  const showPersons = _.findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 ? true : false;
   try {
     if (type == 'MANAGER') {
-      const rs: any = await model.admitConfirmCase(db);
+      const rs: any = await model.admitConfirmCase(db, showPersons);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else if (providerType == 'ZONE') {
       const rs: any = await model.admitConfirmCaseProvice(db, zoneCode);
