@@ -420,7 +420,7 @@ export class ReportModel {
       .orderBy('h.hospname')
 
     if (showPersons) {
-      sql.select('pp.first_name', 'pp.last_name', 'pp.cid')
+      sql.select('pp.first_name', 'pp.last_name', 'pp.cid', 'c.sat_id')
     }
     return sql;
   }
