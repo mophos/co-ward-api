@@ -319,7 +319,8 @@ router.post('/', async (req: Request, res: Response) => {
       an: data.an,
       date_admit: data.admitDate,
       confirm_date: data.confirmDate,
-      created_by: userId
+      created_by: userId,
+      case_status: data.caseStatus
     }
     if (data.returnFromAbroad == 'covid' || data.returnFromAbroad == 'other') {
       _data.return_from_abroad = data.returnFromAbroad;
