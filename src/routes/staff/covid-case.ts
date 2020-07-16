@@ -322,11 +322,9 @@ router.post('/', async (req: Request, res: Response) => {
       created_by: userId,
       case_status: data.caseStatus
     }
-    if (data.returnFromAbroad == 'covid' || data.returnFromAbroad == 'other') {
-      _data.return_from_abroad = data.returnFromAbroad;
-      _data.icd_code = data.icdCode;
-      _data.icd_name = data.icdName;
 
+    if (data.returnFromAbroad == 'covid' || data.returnFromAbroad == 'other') {
+      _data.return_from_abroad = data.returnFromAbroad === 'covid' ? 'Y' : 'N';
     }
     _data.updated_entry = moment().format('YYYY-MM-DD');
     if (!timeCut.ok) {
@@ -336,6 +334,16 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     const covidCaseId = await covidCaseModel.saveCovidCase(db, _data);
+    let dataIcd: any = [];
+    if (data.returnFromAbroad == 'covid' || data.returnFromAbroad == 'other') {
+      for (const v of data.icdCodes) {
+        const objIcds: any = {};
+        objIcds.covid_case_id = covidCaseId;
+        objIcds.icd_code = v;
+        dataIcd.push(objIcds);
+      }
+    }
+    await covidCaseModel.saveIcds(db, dataIcd);
     // const detail: any = {
     //   covid_case_id: covidCaseId[0],
     //   status: 'ADMIT',

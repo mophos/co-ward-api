@@ -208,6 +208,10 @@ export class CovidCaseModel {
       .insert(data)
   }
 
+  saveIcds(db: Knex, data) {
+    return db('p_icd10').insert(data);
+  }
+
   updateCovidCase(db: Knex, id, data) {
     return db('p_covid_cases')
       .where('id', id)
