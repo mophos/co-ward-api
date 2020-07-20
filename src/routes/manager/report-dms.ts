@@ -253,8 +253,9 @@ router.get('/report2/excel', async (req: Request, res: Response) => {
     ws.cell(1, 1, 2, 1, true).string('โรงพยาบาล');
     ws.cell(1, 2, 1, 5, true).string('ผู้ป่วยยืนยัน (Confirm Case)').style(center);
     ws.cell(1, 6, 2, 6, true).string('ผู้ป่วยเข้าเกณฑ์สงสัย PUI');
-    ws.cell(1, 7, 2, 7, true).string('หน่วยงาน');
-    ws.cell(1, 8, 2, 8, true).string('ข้อมูลล่าสุด');
+    ws.cell(1, 7, 2, 7, true).string('Hospitel Quarantine');
+    ws.cell(1, 8, 2, 8, true).string('หน่วยงาน');
+    ws.cell(1, 9, 2, 9, true).string('ข้อมูลล่าสุด');
 
     ws.cell(2, 2).string('อาการรุนแรง\n(Severe Case)');
     ws.cell(2, 3).string('อาการรุนแรงปานกลาง\n(Moderate Case)');
@@ -267,8 +268,9 @@ router.get('/report2/excel', async (req: Request, res: Response) => {
     ws.cell(3, 4).number(toNumber(sumBy(rs, 'mild'))).style(right);;
     ws.cell(3, 5).number(toNumber(sumBy(rs, 'asymptomatic'))).style(right);;
     ws.cell(3, 6).number(toNumber(sumBy(rs, 'ip_pui'))).style(right);;
-    ws.cell(3, 7).string('');
+    ws.cell(3, 7).number(toNumber(sumBy(rs, 'observe'))).style(right);;
     ws.cell(3, 8).string('');
+    ws.cell(3, 9).string('');
     let row = 4;
     for (const items of rs) {
       console.log(items);
@@ -283,8 +285,9 @@ router.get('/report2/excel', async (req: Request, res: Response) => {
       ws.cell(row, 4).number(toNumber(items['mild'])).style(right);;
       ws.cell(row, 5).number(toNumber(items['asymptomatic'])).style(right);;
       ws.cell(row, 6).number(toNumber(items['ip_pui'])).style(right);;
-      ws.cell(row, 7).string(toString(items['sub_ministry_name']));
-      ws.cell(row++, 8).string(toString(items['updated_entry']));
+      ws.cell(row, 7).number(toNumber(items['observe'])).style(right);;
+      ws.cell(row, 8).string(toString(items['sub_ministry_name']));
+      ws.cell(row++, 9).string(toString(items['updated_entry']));
     }
     ws.cell(row, 1).string('รวม');
     ws.cell(row, 2).number(toNumber(sumBy(rs, 'severe'))).style(right);;
@@ -292,8 +295,9 @@ router.get('/report2/excel', async (req: Request, res: Response) => {
     ws.cell(row, 4).number(toNumber(sumBy(rs, 'mild'))).style(right);;
     ws.cell(row, 5).number(toNumber(sumBy(rs, 'asymptomatic'))).style(right);;
     ws.cell(row, 6).number(toNumber(sumBy(rs, 'ip_pui'))).style(right);;
-    ws.cell(row, 7).string('');
+    ws.cell(row, 7).number(toNumber(sumBy(rs, 'observe'))).style(right);;
     ws.cell(row, 8).string('');
+    ws.cell(row, 9).string('');
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
@@ -419,7 +423,8 @@ router.get('/report4/excel', async (req: Request, res: Response) => {
     ws.cell(1, 1, 2, 1, true).string('โรงพยาบาล');
     ws.cell(1, 2, 1, 5, true).string('Positive ยอดสะสม').style(center);
     ws.cell(1, 6, 1, 9, true).string('PUI ยอดสะสม').style(center);
-    ws.cell(1, 10, 2, 10, true).string('หน่วยงาน');
+    ws.cell(1, 10, 1, 10, true).string('PUI ยอดสะสม').style(center);
+    ws.cell(1, 11, 2, 11, true).string('หน่วยงาน');
 
     ws.cell(2, 2).string('Admit');
     ws.cell(2, 3).string('Discharge รวมสะสม');
@@ -439,7 +444,8 @@ router.get('/report4/excel', async (req: Request, res: Response) => {
     ws.cell(3, 7).number(toNumber(sumBy(rs, 'pui_discharge'))).style(right);
     ws.cell(3, 8).number(toNumber(sumBy(rs, 'pui_discharge_hospitel'))).style(right);
     ws.cell(3, 9).number(toNumber(sumBy(rs, 'pui_discharge_death'))).style(right);
-    ws.cell(3, 10).string('');
+    ws.cell(3, 10).number(toNumber(sumBy(rs, 'observe'))).style(right);
+    ws.cell(3, 11).string('');
 
     let row = 4
     for (const items of rs) {
@@ -452,7 +458,8 @@ router.get('/report4/excel', async (req: Request, res: Response) => {
       ws.cell(row, 7).number(toNumber(items['pui_discharge'])).style(right);
       ws.cell(row, 8).number(toNumber(items['pui_discharge_hospitel'])).style(right);
       ws.cell(row, 9).number(toNumber(items['pui_discharge_death'])).style(right);
-      ws.cell(row++, 10).string(toString(items['sub_ministry_name']));
+      ws.cell(row, 10).number(toNumber(items['observe'])).style(right);
+      ws.cell(row++, 11).string(toString(items['sub_ministry_name']));
     }
 
     ws.cell(row, 1).string('รวม');
@@ -464,7 +471,8 @@ router.get('/report4/excel', async (req: Request, res: Response) => {
     ws.cell(row, 7).number(toNumber(sumBy(rs, 'pui_discharge'))).style(right);
     ws.cell(row, 8).number(toNumber(sumBy(rs, 'pui_discharge_hospitel'))).style(right);
     ws.cell(row, 9).number(toNumber(sumBy(rs, 'pui_discharge_death'))).style(right);
-    ws.cell(row, 10).string('');
+    ws.cell(row, 10).number(toNumber(sumBy(rs, 'observe'))).style(right);
+    ws.cell(row, 11).string('');
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
