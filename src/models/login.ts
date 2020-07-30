@@ -33,4 +33,9 @@ export class Login {
       .update('update_date', db.fn.now())
       .where('u.id', id);
   }
+
+  saveLog(db: Knex, data) {
+    return db('sys_login_logs')
+      .insert(data);
+  }
 }
