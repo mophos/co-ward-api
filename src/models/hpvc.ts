@@ -21,6 +21,7 @@ export class HpvcModel {
   getProduct(db: Knex) {
     return db('b_generics')
       .where('type', 'DRUG')
+      .where('sub_type', 'COVID')
       .where('is_deleted', 'N')
   }
 

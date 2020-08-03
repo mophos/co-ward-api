@@ -22,6 +22,21 @@ router.post('/', async (req: Request, res: Response) => {
 
   let db = req.db;
 
+  const log: any = {};
+  // if (device) {
+  //   log.is_mobile = Boolean(device.isMobile) ? 'Y' : 'N';
+  //   log.is_tablet = Boolean(device.isTablet) ? 'Y' : 'N';
+  //   log.is_desktop = Boolean(device.isDesktopDevice) ? 'Y' : 'N';
+  //   log.public_ip = device.public_ip;
+  //   log.browser = device.browser;
+  //   log.browser_version = device.browser_version;
+  //   log.host = device.host;
+  //   log.os = device.os;
+  //   log.os_version = device.os_version;
+  //   log.userAgent = device.userAgent;
+  // }
+  log.username = username;
+
   try {
     let encPassword = crypto.createHash('md5').update(password).digest('hex');
     let rs: any = await loginModel.login(db, username, encPassword);
@@ -60,11 +75,18 @@ router.post('/', async (req: Request, res: Response) => {
         payload.providerType = 'HOSPITAL';
       }
       let token = jwt.sign(payload);
+      log.user_id = rs[0].id;
+      log.status = 'SUCCESS';
+      await loginModel.saveLog(db, log);
       res.send({ ok: true, token: token, code: HttpStatus.OK });
     } else {
+      log.status = 'WRONG';
+      await loginModel.saveLog(db, log);
       res.send({ ok: false, error: 'Login failed!', code: HttpStatus.UNAUTHORIZED });
     }
   } catch (error) {
+    log.status = 'ERROR';
+    await loginModel.saveLog(db, log);
     res.send({ ok: false, error: error.message, code: HttpStatus.INTERNAL_SERVER_ERROR });
   }
 

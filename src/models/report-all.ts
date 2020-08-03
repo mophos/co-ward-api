@@ -31,7 +31,8 @@ sum( gcs_id = 1 ) AS severe,
 sum( gcs_id = 2 ) AS moderate,
 sum( gcs_id = 3 ) AS mild,
 sum( gcs_id = 4 ) AS asymptomatic,
-sum( gcs_id = 5 ) AS ip_pui`), last)
+sum( gcs_id = 5 ) AS ip_pui,
+sum( gcs_id = 6 ) AS observe`), last)
       .leftJoin('views_covid_case_last as vc', (v) => {
         v.on('vh.id', 'vc.hospital_id')
         v.on('vc.status', db.raw(`'ADMIT'`))
@@ -77,7 +78,9 @@ sum( gcs_id = 5 ) AS ip_pui`), last)
         sum(cl.gcs_id = 5 ) as pui_admit,
         sum(c.status!='ADMIT' and cl.gcs_id = 5 ) as pui_discharge,
         sum(c.status='REFER' and hr.hospital_type='HOSPITEL'  and cl.gcs_id = 5 ) as pui_discharge_hospitel,
-        sum(c.status='DEATH'  and cl.gcs_id = 5 ) as pui_discharge_death`))
+        sum(c.status='DEATH'  and cl.gcs_id = 5 ) as pui_discharge_death,
+        sum(cl.gcs_id = 6) as observe`
+        ))
 
       .join('p_covid_cases AS c', 'c.id', 'cl.covid_case_id')
       .leftJoin('b_hospitals AS hr', 'c.hospital_id_refer', 'hr.id')
