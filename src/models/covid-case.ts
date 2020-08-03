@@ -287,6 +287,12 @@ export class CovidCaseModel {
     return db.raw(sql, [data.cid, data.passport, data.title_id, data.first_name, data.middle_name, data.last_name, data.gender_id, data.birth_date, data.telephone, data.people_type, data.house_no, data.room_no, data.village, data.village_name, data.road, data.tambon_code, data.ampur_code, data.province_code, data.zipcode, data.current_house_no, data.current_room_no, data.current_village, data.current_village_name, data.current_road, data.current_tambon_code, data.current_ampur_code, data.current_province_code, data.current_zipcode, data.country_code, data.tambon_name, data.ampur_name, data.province_name, data.current_tambon_name, data.current_ampur_name, data.current_province_name, data.title_id, data.first_name, data.middle_name, data.last_name, data.gender_id, data.birth_date, data.telephone, data.people_type, data.house_no, data.room_no, data.village, data.village_name, data.road, data.tambon_code, data.ampur_code, data.province_code, data.zipcode, data.country_code, data.tambon_name, data.ampur_name, data.province_name]);
   }
 
+  updateCaseStatus(db: Knex, id) {
+    return db('p_covid_cases')
+      .update('case_status', 'COVID')
+      .where('id', id);
+  }
+
   getPersonByCid(db: Knex, cid) {
     return db('p_persons')
       .where('cid', cid)
