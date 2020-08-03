@@ -1568,13 +1568,15 @@ router.get('/admit-confirm-case', async (req: Request, res: Response) => {
   const provinceCode = req.decoded.provinceCode;
   // const showPersons = true;
   const right = req.decoded.rights;
+
   const showPersons = _.findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 ? true : false;
+
   try {
     if (type == 'MANAGER') {
       const rs: any = await model.admitConfirmCase(db, showPersons);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else if (providerType == 'ZONE') {
-      const rs: any = await model.admitConfirmCaseProvice(db, zoneCode);
+      const rs: any = await model.admitConfirmCaseProvice(db, zoneCode, null, showPersons);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else if (providerType == 'SSJ') {
       const rs: any = await model.admitConfirmCaseProvice(db, zoneCode, provinceCode);
@@ -1583,6 +1585,98 @@ router.get('/admit-confirm-case', async (req: Request, res: Response) => {
       res.send({ ok: false, code: HttpStatus.UNAUTHORIZED, error: HttpStatus.UNAUTHORIZED });
 
     }
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.post('/check-admit-confirm-case', async (req: Request, res: Response) => {
+  const db = req.db;
+  const status = req.body.status;
+  const remark = req.body.remark || null;
+  const covidCaseDetailId = req.body.covidCaseDetailId;
+  const userId = req.decoded.id;
+  try {
+    const data = {
+      status,
+      covid_case_detail_id: covidCaseDetailId,
+      created_by: userId,
+      remark
+    };
+    await model.checkAdmitConfirmCase(db, data);
+    res.send({ ok: true });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/check-admit-confirm-case/export', async (req: Request, res: Response) => {
+  const db = req.db;
+  const zoneCode = req.decoded.zone_code;
+  const right = req.decoded.rights;
+  const showPersons = _.findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 ? true : false;
+
+  try {
+    const rs: any = await model.admitConfirmCaseProvice(db, zoneCode, null, showPersons);
+
+    var wb = new excel4node.Workbook();
+    var ws = wb.addWorksheet('Sheet 1');
+    ws.cell(1, 1).string('สถานะ');
+    ws.cell(1, 2).string('หมายเหตุ');
+    ws.cell(1, 3).string('ไม่ได้บันทึกมา');
+    ws.cell(1, 4).string('จังหวัด');
+    ws.cell(1, 5).string('โรงพยาบาล');
+    ws.cell(1, 6).string('HN');
+    ws.cell(1, 7).string('AN');
+    ws.cell(1, 8).string('CID');
+    ws.cell(1, 9).string('ชื่อ');
+    ws.cell(1, 10).string('นามสกุล');
+    ws.cell(1, 11).string('SAT ID');
+    ws.cell(1, 12).string('วันที่ ADMIT');
+    ws.cell(1, 13).string('ความรุนแรง');
+    ws.cell(1, 14).string('เตียง');
+    ws.cell(1, 15).string('เครื่องช่วยหายใจ');
+    ws.cell(1, 16).string('วันที่บันทึกล่าสุด');
+    let row = 2;
+    for (const h of rs) {
+      ws.cell(row, 1).string(toString(h.cio_status));
+      ws.cell(row, 2).string(toString(h.cio_remark));
+      ws.cell(row, 3).string(toString(h.days));
+      ws.cell(row, 4).string(toString(h.province_name));
+      ws.cell(row, 5).string(toString(h.hospname));
+      ws.cell(row, 6).string(toString(h.hn));
+      ws.cell(row, 7).string(toString(h.an));
+      ws.cell(row, 8).string(toString(h.cid));
+      ws.cell(row, 9).string(toString(h.first_name));
+      ws.cell(row, 10).string(toString(h.last_name));
+      ws.cell(row, 11).string(toString(h.sat_id));
+      ws.cell(row, 12).string(toString(h.date_admit));
+      ws.cell(row, 13).string(toString(h.gcs_name));
+      ws.cell(row, 14).string(toString(h.bed_name));
+      ws.cell(row, 15).string(toString(h.medical_supplies_name));
+      ws.cell(row, 16).string(toString(h.updated_entry_last));
+      row++;
+    }
+
+    fse.ensureDirSync(process.env.TMP_PATH);
+    let filename = `cio_check` + moment().format('x') + '.xlsx'
+    let filenamePath = path.join(process.env.TMP_PATH, filename);
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+
+      }
+    });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
