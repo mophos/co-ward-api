@@ -1641,8 +1641,13 @@ router.get('/check-admit-confirm-case/export', async (req: Request, res: Respons
     ws.cell(1, 16).string('วันที่บันทึกล่าสุด');
     let row = 2;
     for (const h of rs) {
-      ws.cell(row, 1).string(toString(h.cio_status));
-      ws.cell(row, 2).string(toString(h.cio_remark));
+      if(h.cio_date === moment().format('YYYY-MM-DD')){
+        ws.cell(row, 1).string(toString(h.cio_status));
+        ws.cell(row, 2).string(toString(h.cio_remark));
+      } else {
+        ws.cell(row, 1).string(toString(''));
+        ws.cell(row, 2).string(toString(''));
+      }
       ws.cell(row, 3).string(toString(h.days));
       ws.cell(row, 4).string(toString(h.province_name));
       ws.cell(row, 5).string(toString(h.hospname));
