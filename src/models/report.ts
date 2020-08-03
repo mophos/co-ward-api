@@ -463,6 +463,7 @@ export class ReportModel {
       .whereIn('gcs_id', [1, 2, 3, 4])
       .orderBy('h.province_code')
       .orderBy('h.hospname')
+      .orderBy('c.id')
     if (provinceCode) {
       sql.where('h.province_code', provinceCode);
     }
@@ -830,17 +831,17 @@ export class ReportModel {
     });
   }
 
-  summary1(db: Knex,month) {
-    return db.raw(`
-    SELECT
-      count(*),
-      sum(status!='ADMIT') as discharge,
-      count(*)-sum(status!='ADMIT') as heal
-    FROM
-      p_covid_cases 
-      where date_admit < '${month}-01'
-      and case_status = 'COVID'
-      order by id desc
-    `);
-  }
+  // summary1(db: Knex,month) {
+  //   return db.raw(`
+  //   SELECT
+  //     count(*),
+  //     sum(status!='ADMIT') as discharge,
+  //     count(*)-sum(status!='ADMIT') as heal
+  //   FROM
+  //     p_covid_cases 
+  //     where date_admit < '${month}-01'
+  //     and case_status = 'COVID'
+
+  //   `);
+  // }
 }

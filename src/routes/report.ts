@@ -1869,6 +1869,24 @@ router.get('/local-quarantine-hotel', async (req: Request, res: Response) => {
   }
 });
 
+
+// router.get('/xxx', async (req: Request, res: Response) => {
+//   const db = req.db;
+//   const month = '2020-07';
+
+//   try {
+   
+//     const rs :any = await model.summary1(db,month);
+//     console.log(rs[0]);
+    
+
+//     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+//   } catch (error) {
+//     console.log(error);
+//     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+//   }
+// });
+
 function toString(value) {
   if (value || value == 0) {
     return value.toString();
