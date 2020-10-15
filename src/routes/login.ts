@@ -151,7 +151,7 @@ router.post('/requis-otp', async (req: Request, res: Response) => {
     var request = require("request");
     var options = {
       method: 'POST',
-      url: 'https://api-covid19.moph.go.th/authentication/ais',
+      url: 'http://api-covid19.moph.go.th/authentication/ais',
       headers: { 'content-type': 'application/json' },
       body: { tel: tel, appId: '76503a47-cea5-482f-ae27-e151ca5a2721' },
       json: true
@@ -183,7 +183,7 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
 
     var options = {
       method: 'POST',
-      url: 'https://api-covid19.moph.go.th/authentication/ais/verify',
+      url: 'http://api-covid19.moph.go.th/authentication/ais/verify',
       headers: { 'content-type': 'application/json' },
       body: {
         tel: tel,

@@ -45,7 +45,7 @@ export class Register {
         return new Promise((resolve, reject) => {
             var options = {
                 method: 'POST',
-                url: 'https://api-covid19.moph.go.th/authentication/ais/otp',
+                url: 'http://api-covid19.moph.go.th/authentication/ais/otp',
                 headers: { 'content-type': 'application/json' },
                 body: { tel: tel, appId: '76503a47-cea5-482f-ae27-e151ca5a2722' },
                 json: true
@@ -65,7 +65,7 @@ export class Register {
         return new Promise((resolve, reject) => {
             var options = {
                 method: 'POST',
-                url: 'https://api-covid19.moph.go.th/authentication/ais/verify',
+                url: 'http://api-covid19.moph.go.th/authentication/ais/verify',
                 headers: { 'content-type': 'application/json' },
                 body: {
                     transactionID: transactionID,
