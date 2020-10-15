@@ -616,6 +616,11 @@ router.put('/present', async (req: Request, res: Response) => {
       create_by: userId,
       status: data.status
     }
+
+    if (detail.gcs_id === '1' || detail.gcs_id === '2' || detail.gcs_id === '3' || detail.gcs_id === '4') {
+      await covidCaseModel.updateCaseStatus(db, detail.covid_case_id)
+    }
+
     if (!timeCut.ok) {
       detail.entry_date = moment().add(1, 'days').format('YYYY-MM-DD');
     } else {
@@ -631,7 +636,6 @@ router.put('/present', async (req: Request, res: Response) => {
         covid_case_detail_id: covidCaseDetailId[0].insertId == 0 ? data.id : covidCaseDetailId[0].insertId,
         generic_id: i.genericId,
       }
-      console.log(item);
 
       const idx = _.findIndex(generic, { 'id': +i.genericId });
 
