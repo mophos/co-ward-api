@@ -1,3 +1,4 @@
+import { CovidCaseModel } from './../../models/covid-case';
 // / <reference path="../../typings.d.ts" />
 
 import * as HttpStatus from 'http-status-codes';
@@ -6,26 +7,29 @@ import { Router, Request, Response } from 'express';
 import { smhModel } from '../../models/smh';
 
 const model = new smhModel();
+const covidCaseModel = new CovidCaseModel();
 const router: Router = Router();
 
 router.get('/', async (req: Request, res: Response) => {
   const db = req.db;
   const keys = req.query.keys;
   try {
-    console.log(keys);
-    
+
     const rs: any = await model.apiLogin();
     const lab: any = await model.getLabCovid(keys, rs.token);
-    
+
     const data: any = [];
     if (lab.ok) {
       for (const v of lab.res) {
+        console.log('lab.res', lab.res);
+
         const obj: any = {};
         obj.tname = v.title_name;
         obj.fname = v.first_name;
         obj.lname = v.last_name;
         obj.tel = v.mobile;
         obj.sat_id = v.sat_id;
+        obj.cid = v.card_id;
 
         if (v.sick_sub_district !== null && v.sick_province !== null && v.sick_district !== null) {
           const provinceCode: any = v.sick_sub_district.substring(0, 2);
@@ -50,6 +54,7 @@ router.get('/', async (req: Request, res: Response) => {
         obj.fname = v.first_name;
         obj.lname = v.last_name;
         obj.tel = v.telephone;
+        obj.cid = v.cid;
 
         if (v.province_code !== null && v.ampur_code !== null && v.tambon_code !== null) {
           const add: any = await model.getAddress(db, v.tambon_code, v.ampur_code, v.province_code);
@@ -66,6 +71,20 @@ router.get('/', async (req: Request, res: Response) => {
     }
 
     res.send({ ok: true, rows: data, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/cid', async (req: Request, res: Response) => {
+  const db = req.db;
+  const cid = req.query.cid;
+  try {
+    const rs: any = await covidCaseModel.getHistoryCID(db, cid);
+    console.log(rs);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });

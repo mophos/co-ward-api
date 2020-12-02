@@ -164,50 +164,195 @@ router.post('/supplies', async (req: Request, res: Response) => {
   const db = req.db;
   const userId = req.decoded.id;
   try {
-    console.log(list);
     const reqDetailId = [];
+    const unpaidDetailItem = [];
+    const saveQTY = [];
+
+
+    let headId: any;
+
+
+    // save fulfill
+    const head = {
+      created_by: userId,
+      code: await serialModel.getSerial(db, 'FS')
+    }
+    const fulfillId = await model.saveFulFillSupplies(db, head);
     for (const i of data) {
+      const obj: any = {
+        fulfill_supplies_id: fulfillId[0],
+        hospital_id: i.hospital_id
+      }
+      const items = [];
+      const fulfillDetailId = await model.saveFulFillSuppliesDetail(db, obj);
+
+
       if (list.g9) {
         if (i.surgical_gown_req_id) {
           const a = i.surgical_gown_req_id.split(',');
-          // console.log(a);
-          
-          reqDetailId.concat(reqDetailId,a);
+          reqDetailId.push(...a)
         }
-      } else if (list.g10) {
-        if (i.cover_all1_req_id) {
-          const a = i.cover_all1_req_id.split(',');
-          // console.log(a);
-          reqDetailId.concat(reqDetailId,a);
+        if (i.surgical_gown_req_qty - i.surgical_gown_recomment_qty > 0) {
+          unpaidDetailItem.push({ 'hospital_id': i.hospital_id, 'generic_id': 9, 'qty': i.surgical_gown_req_qty - i.surgical_gown_recomment_qty })
+        }
+        if (i.surgical_gown_recomment_qty > 0) {
+          saveQTY.push({ 'hospital_id': i.hospital_id, 'qty': i.surgical_gown_recomment_qty, 'generic_id': 9 });
+          items.push({ 'fulfill_supplies_detail_id': fulfillDetailId, 'generic_id': 9, 'qty': i.surgical_gown_recomment_qty });
         }
       }
+      if (list.g10) {
+        if (i.cover_all1_req_id) {
+          const a = i.cover_all1_req_id.split(',');
+          reqDetailId.push(...a)
+        }
+        if (i.cover_all1_req_qty - i.cover_all1_recomment_qty > 0) {
+          unpaidDetailItem.push({ 'hospital_id': i.hospital_id, 'generic_id': 10, 'qty': i.cover_all1_req_qty - i.cover_all1_recomment_qty })
+        }
+        if (i.cover_all1_recomment_qty > 0) {
+          saveQTY.push({ 'hospital_id': i.hospital_id, 'qty': i.cover_all1_recomment_qty, 'generic_id': 10 });
+          items.push({ 'fulfill_supplies_detail_id': fulfillDetailId, 'generic_id': 10, 'qty': i.cover_all1_recomment_qty });
+        }
+      }
+      if (list.g11) {
+        if (i.cover_all2_req_id) {
+          const a = i.cover_all2_req_id.split(',');
+          // console.log(a);
+          reqDetailId.push(...a)
+        }
+        if (i.cover_all2_req_qty - i.cover_all2_recomment_qty > 0) {
+          unpaidDetailItem.push({ 'hospital_id': i.hospital_id, 'generic_id': 11, 'qty': i.cover_all2_req_qty - i.cover_all2_recomment_qty })
+        }
+        if (i.cover_all2_recomment_qty > 0) {
+          saveQTY.push({ 'hospital_id': i.hospital_id, 'qty': i.cover_all2_recomment_qty, 'generic_id': 11 });
+          items.push({ 'fulfill_supplies_detail_id': fulfillDetailId, 'generic_id': 11, 'qty': i.cover_all2_recomment_qty });
+        }
+      }
+      if (list.g12) {
+        if (i.n95_req_id) {
+          const a = i.n95_req_id.split(',');
+          // console.log(a);
+          reqDetailId.push(...a)
+        }
+        if (i.n95_req_qty - i.n95_recomment_qty > 0) {
+          unpaidDetailItem.push({ 'hospital_id': i.hospital_id, 'generic_id': 12, 'qty': i.n95_req_qty - i.n95_recomment_qty })
+        }
+        if (i.n95_recomment_qty > 0) {
+          saveQTY.push({ 'hospital_id': i.hospital_id, 'qty': i.n95_recomment_qty, 'generic_id': 12 });
+          items.push({ 'fulfill_supplies_detail_id': fulfillDetailId, 'generic_id': 12, 'qty': i.n95_recomment_qty });
+        }
+      }
+      if (list.g13) {
+        if (i.shoe_cover_req_id) {
+          const a = i.shoe_cover_req_id.split(',');
+          // console.log(a);
+          reqDetailId.push(...a)
+        }
+        if (i.shoe_cover_req_qty - i.shoe_cover_recomment_qty > 0) {
+          unpaidDetailItem.push({ 'hospital_id': i.hospital_id, 'generic_id': 13, 'qty': i.shoe_cover_req_qty - i.shoe_cover_recomment_qty })
+        }
+        if (i.shoe_cover_recomment_qty > 0) {
+          saveQTY.push({ 'hospital_id': i.hospital_id, 'qty': i.shoe_cover_recomment_qty, 'generic_id': 13 });
+          items.push({ 'fulfill_supplies_detail_id': fulfillDetailId, 'generic_id': 13, 'qty': i.shoe_cover_recomment_qty });
+        }
+      }
+      if (list.g14) {
+        if (i.surgical_hood_req_id) {
+          const a = i.surgical_hood_req_id.split(',');
+          // console.log(a);
+          reqDetailId.push(...a)
+        }
+        if (i.surgical_hood_req_qty - i.surgical_hood_recomment_qty > 0) {
+          unpaidDetailItem.push({ 'hospital_id': i.hospital_id, 'generic_id': 14, 'qty': i.surgical_hood_req_qty - i.surgical_hood_recomment_qty })
+        }
+        if (i.surgical_hood_recomment_qty > 0) {
+          saveQTY.push({ 'hospital_id': i.hospital_id, 'qty': i.surgical_hood_recomment_qty, 'generic_id': 14 });
+          items.push({ 'fulfill_supplies_detail_id': fulfillDetailId, 'generic_id': 14, 'qty': i.surgical_hood_recomment_qty });
+        }
+      }
+      if (list.g15) {
+        if (i.long_glove_req_id) {
+          const a = i.long_glove_req_id.split(',');
+          // console.log(a);
+          reqDetailId.push(...a)
+        }
+        if (i.long_glove_req_qty - i.long_glove_recomment_qty > 0) {
+          unpaidDetailItem.push({ 'hospital_id': i.hospital_id, 'generic_id': 15, 'qty': i.long_glove_req_qty - i.long_glove_recomment_qty })
+        }
+        if (i.long_glove_recomment_qty > 0) {
+          saveQTY.push({ 'hospital_id': i.hospital_id, 'qty': i.long_glove_recomment_qty, 'generic_id': 15 });
+          items.push({ 'fulfill_supplies_detail_id': fulfillDetailId, 'generic_id': 15, 'qty': i.long_glove_recomment_qty });
+        }
+      }
+      if (list.g16) {
+        if (i.face_shield_req_id) {
+          const a = i.face_shield_req_id.split(',');
+          // console.log(a);
+          reqDetailId.push(...a)
+        }
+        if (i.face_shield_req_qty - i.face_shield_recomment_qty > 0) {
+          unpaidDetailItem.push({ 'hospital_id': i.hospital_id, 'generic_id': 16, 'qty': i.face_shield_req_qty - i.face_shield_recomment_qty })
+        }
+        if (i.face_shield_recomment_qty > 0) {
+          saveQTY.push({ 'hospital_id': i.hospital_id, 'qty': i.face_shield_recomment_qty, 'generic_id': 16 });
+          items.push({ 'fulfill_supplies_detail_id': fulfillDetailId, 'generic_id': 16, 'qty': i.face_shield_recomment_qty });
+        }
+      }
+      if (list.g17) {
+        if (i.surgical_mask_req_id) {
+          const a = i.surgical_mask_req_id.split(',');
+          // console.log(a);
+          reqDetailId.push(...a)
+        }
+        if (i.surgical_mask_req_qty - i.surgical_mask_recomment_qty > 0) {
+          unpaidDetailItem.push({ 'hospital_id': i.hospital_id, 'generic_id': 17, 'qty': i.surgical_mask_req_qty - i.surgical_mask_recomment_qty })
+        }
+        if (i.surgical_mask_recomment_qty > 0) {
+          saveQTY.push({ 'hospital_id': i.hospital_id, 'qty': i.surgical_mask_recomment_qty, 'generic_id': 17 });
+          items.push({ 'fulfill_supplies_detail_id': fulfillDetailId, 'generic_id': 17, 'qty': i.surgical_mask_recomment_qty });
+        }
+      }
+      if (items.length == 0) {
+        await model.removeFulFillSuppliesDetail(db, fulfillDetailId)
+      }
+      await model.saveFulFillSuppliesDetailItem(db, items);
+    }
+    //มีค้างจ่าย
+    if (unpaidDetailItem.length) {
+      const headUnpaid: any = {
+        code: await serialModel.getSerial(db, 'FSU'),
+        created_by: userId
+      }
+      headId = await model.saveUnpaid(db, headUnpaid);
+      const hospitalId = uniqBy(unpaidDetailItem, 'hospital_id');
+      for (const i of hospitalId) {
+        const objUnpaidDetail: any = {
+          hospital_id: i.hospital_id,
+          fulfill_supplies_id: headId[0]
+        }
+        const headDetailId = await model.saveUnpaidDetails(db, objUnpaidDetail);
+        const item = filter(unpaidDetailItem, { hospital_id: i.hospital_id });
+        const upd = [];
+        for (const i of item) {
+          const obj: any = {
+            generic_id: i.generic_id,
+            qty: i.qty,
+            fulfill_supplies_detail_id: headDetailId[0]
+          }
+          upd.push(obj);
+        }
+        await model.saveUnpaidDetailItems(db, upd);
+      }
 
+      // }
+
+      // // เพิ่ม stock
+      // await model.saveQTY(db, saveQTY);
+
+      
     }
     console.log(reqDetailId);
-    // const head = {
-    //   created_by: userId,
-    //   code: await serialModel.getSerial(db, 'FS')
-    // }
-    // const fulfillId = await model.saveFulFillSupplies(db, head);
-    // const hospitals = uniqBy(data, 'hospital_id');
-    // for (const h of hospitals) {
-    //   const obj: any = {
-    //     fulfill_supplies_id: fulfillId[0],
-    //     hospital_id: h.hospital_id
-    //   }
-    //   const fulfillDetailId = await model.saveFulFillSuppliesDetail(db, obj);
-    //   const _data = filter(data, { 'hospital_id': h.hospital_id });
-    //   const items = [];
-    //   for (const d of _data) {
-    //     const item: any = {
-    //       fulfill_supplies_detail_id: fulfillDetailId,
-    //       generic_id: d.generic_id,
-    //       qty: d.fill_qty
-    //     }
-    //     items.push(item);
-    //   }
-    //   await model.saveFulFillSuppliesDetailItem(db, items);
-    // }
+    await model.updateRequisitionDetailFulfill(db, reqDetailId);
+
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -221,6 +366,19 @@ router.get('/supplies', async (req: Request, res: Response) => {
   const db = req.db;
   try {
     const rs: any = await model.getFulFillSupplies(db);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/supplies/unpaids', async (req: Request, res: Response) => {
+
+  const db = req.db;
+  try {
+    const rs: any = await model.getFulFillSuppliesUnpaid(db);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);

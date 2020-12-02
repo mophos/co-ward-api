@@ -135,6 +135,17 @@ export class CovidCaseModel {
       .orderBy('c.date_admit')
   }
 
+  getHistoryCID(db: Knex, cid) {
+    return db('p_covid_cases as c')
+      .select('c.id as covid_case_id', 'c.confirm_date', 'c.status', 'c.date_admit', 'h.hospname', 'c.an', 'c.date_discharge')
+      .join('p_patients as pt', 'c.patient_id', 'pt.id')
+      .join('p_persons as p', 'pt.person_id', 'p.id')
+      .join('b_hospitals as h', 'pt.hospital_id', 'h.id')
+      .where('p.cid', cid)
+      .where('c.is_deleted', 'N')
+      .orderBy('c.date_admit')
+  }
+
   getDetails(db: Knex, covidCaseId) {
     return db('p_covid_case_details AS pc')
       .select('bg.name as gcs_name', 'bb.name as bed_name', 'bm.name as medical_supplie_name', 'pc.status', 'pc.entry_date', 'uu.fname', 'uu.lname')

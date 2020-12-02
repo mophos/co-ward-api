@@ -245,8 +245,8 @@ export class FullfillModel {
       IF
       ( a.generic_id = 9, a.req_qty, 0 )) AS  surgical_gown_req_qty,
     
-      IF
-      ( a.generic_id = 9, a.req_id, null ) AS  surgical_gown_req_id,
+      group_concat(IF
+      ( a.generic_id = 9, a.req_id, null )) AS  surgical_gown_req_id,
       
     sum(
     IF
@@ -273,8 +273,8 @@ export class FullfillModel {
       IF
       ( a.generic_id = 10, a.req_qty, 0 )) AS  cover_all1_req_qty,
     
-      IF
-      ( a.generic_id = 10, a.req_id, null ) AS  cover_all1_req_id,
+      group_concat(IF
+      ( a.generic_id = 10, a.req_id, null )) AS  cover_all1_req_id,
     
     sum(
     IF
@@ -301,8 +301,8 @@ export class FullfillModel {
       IF
       ( a.generic_id = 11, a.req_qty, 0 )) AS  cover_all2_req_qty,
     
-      IF
-      ( a.generic_id = 11, a.req_id, null ) AS  cover_all2_req_id,
+      group_concat(IF
+      ( a.generic_id = 11, a.req_id, null )) AS  cover_all2_req_id,
     
     sum(
     IF
@@ -328,8 +328,8 @@ export class FullfillModel {
       IF
       ( a.generic_id = 12, a.req_qty, 0 )) AS  n95_req_qty,
     
-      IF
-      ( a.generic_id = 12, a.req_id, null ) AS  n95_req_id,
+      group_concat( IF
+      ( a.generic_id = 12, a.req_id, null )) AS  n95_req_id,
     
     
     sum(
@@ -357,8 +357,8 @@ export class FullfillModel {
       IF
       ( a.generic_id = 13, a.req_qty, 0 )) AS  shoe_cover_req_qty,
     
-      IF
-      ( a.generic_id = 13, a.req_id, null ) AS  shoe_cover_req_id,
+      group_concat(IF
+      ( a.generic_id = 13, a.req_id, null )) AS  shoe_cover_req_id,
 
     
     sum(
@@ -386,8 +386,8 @@ export class FullfillModel {
       IF
       ( a.generic_id = 14, a.req_qty, 0 )) AS  surgical_hood_req_qty,
     
-      IF
-      ( a.generic_id = 14, a.req_id, null ) AS  surgical_hood_req_id,
+      group_concat(IF
+      ( a.generic_id = 14, a.req_id, null )) AS  surgical_hood_req_id,
     
     sum(
     IF
@@ -414,8 +414,8 @@ export class FullfillModel {
       IF
       ( a.generic_id = 15, a.req_qty, 0 )) AS  long_glove_req_qty,
     
-      IF
-      ( a.generic_id = 15, a.req_id, null ) AS  long_glove_req_id,
+      group_concat(IF
+      ( a.generic_id = 15, a.req_id, null )) AS  long_glove_req_id,
       
           
     sum(
@@ -443,8 +443,8 @@ export class FullfillModel {
           IF
           ( a.generic_id = 16, a.req_qty, 0 )) AS  face_shield_req_qty,
         
-          IF
-          ( a.generic_id = 16, a.req_id, null ) AS  face_shield_req_id,
+          group_concat(IF
+          ( a.generic_id = 16, a.req_id, null )) AS  face_shield_req_id,
 
           sum(
             IF
@@ -471,8 +471,8 @@ export class FullfillModel {
               IF
               ( a.generic_id = 17, a.req_qty, 0 )) AS  surgical_mask_req_qty,
             
-              IF
-              ( a.generic_id = 17, a.req_id, null ) AS  surgical_mask_req_id
+              group_concat(IF
+              ( a.generic_id = 17, a.req_id, null )) AS  surgical_mask_req_id
       
   FROM
     (
@@ -486,15 +486,8 @@ export class FullfillModel {
       gp.min,
       gp.max,
       gp.safety_stock,
-    IF
-    ((
-        gp.max -(
-        g.qty + ifnull( vf.qty, 0 ))+ gp.safety_stock 
-        )< 0,
-      0,(
-        round((gp.max -(
-        g.qty + ifnull( vf.qty, 0 ))+ gp.safety_stock 
-      )/bg.pack_qty)*bg.pack_qty)) AS recommend_fill_qty,
+      if((( ifnull( wr.qty, 0 )/ bg.pack_qty )* bg.pack_qty)<0,0,
+      round(( ifnull( wr.qty, 0 )/ bg.pack_qty )* bg.pack_qty )) AS recommend_fill_qty,
       ifnull( vf.qty, 0 ) AS reserve_qty ,
       q.qty as total,
       wr.qty as req_qty,
@@ -769,8 +762,16 @@ export class FullfillModel {
       .join('um_users as u', 'u.id', 'fd.created_by')
       .orderBy('id', 'DESC')
   }
+
   getFulFillSupplies(db: Knex) {
     return db('wm_fulfill_supplies as fd')
+      .select('fd.*', 'u.fname', 'u.lname')
+      .join('um_users as u', 'u.id', 'fd.created_by')
+      .orderBy('id', 'DESC')
+  }
+
+  getFulFillSuppliesUnpaid(db: Knex) {
+    return db('wm_fulfill_supplies_unpaids as fd')
       .select('fd.*', 'u.fname', 'u.lname')
       .join('um_users as u', 'u.id', 'fd.created_by')
       .orderBy('id', 'DESC')
@@ -934,6 +935,13 @@ export class FullfillModel {
     return db('wm_fulfill_supplies_details')
       .insert(data);
   }
+
+  removeFulFillSuppliesDetail(db: Knex, id) {
+    return db('wm_fulfill_supplies_details')
+      .where('id', id)
+      .delete();
+  }
+
   saveFulFillSuppliesDetailItem(db: Knex, data) {
     return db('wm_fulfill_supplies_detail_items')
       .insert(data);
@@ -1023,6 +1031,27 @@ export class FullfillModel {
       sql.select(db.raw(`sum(case when fddi.generic_id = ? then fddi.qty else 0 end) as ?`, [items.id, items.name]))
     }
     return sql
+  }
+
+  updateRequisitionDetailFulfill(db: Knex, ids) {
+    return db('wm_requisition_details')
+      .update('is_fulfill', 'Y')
+      .whereIn('id', ids)
+  }
+
+  saveUnpaid(db: Knex, data) {
+    return db('wm_fulfill_supplies_unpaids')
+      .insert(data, 'id');
+  }
+
+  saveUnpaidDetails(db: Knex, data) {
+    return db('wm_fulfill_supplies_unpaid_details')
+      .insert(data, 'id');
+  }
+
+  saveUnpaidDetailItems(db: Knex, data) {
+    return db('wm_fulfill_supplies_unpaid_detail_items')
+      .insert(data, 'id');
   }
 
   getGPO() {
