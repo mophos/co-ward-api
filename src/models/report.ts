@@ -284,29 +284,25 @@ export class ReportModel {
   }
 
   getTotalSupplie(db: Knex, type) {
-    return db.raw(`SELECT
-        g.id,
-        CONCAT( g.name, ' (', u.name, ')' ) AS supplies,
-        ( SELECT sum( v.qty ) AS sum FROM b_hospitals h JOIN views_supplies_hospitals v ON v.hospital_id = h.id WHERE h.zone_code = '01' AND v.generic_id = g.id GROUP BY h.zone_code ) AS zone1,
-        ( SELECT sum( v.qty ) AS sum FROM b_hospitals h JOIN views_supplies_hospitals v ON v.hospital_id = h.id WHERE h.zone_code = '02' AND v.generic_id = g.id GROUP BY h.zone_code ) AS zone2,
-        ( SELECT sum( v.qty ) AS sum FROM b_hospitals h JOIN views_supplies_hospitals v ON v.hospital_id = h.id WHERE h.zone_code = '03' AND v.generic_id = g.id GROUP BY h.zone_code ) AS zone3,
-        ( SELECT sum( v.qty ) AS sum FROM b_hospitals h JOIN views_supplies_hospitals v ON v.hospital_id = h.id WHERE h.zone_code = '04' AND v.generic_id = g.id GROUP BY h.zone_code ) AS zone4,
-        ( SELECT sum( v.qty ) AS sum FROM b_hospitals h JOIN views_supplies_hospitals v ON v.hospital_id = h.id WHERE h.zone_code = '05' AND v.generic_id = g.id GROUP BY h.zone_code ) AS zone5,
-        ( SELECT sum( v.qty ) AS sum FROM b_hospitals h JOIN views_supplies_hospitals v ON v.hospital_id = h.id WHERE h.zone_code = '06' AND v.generic_id = g.id GROUP BY h.zone_code ) AS zone6,
-        ( SELECT sum( v.qty ) AS sum FROM b_hospitals h JOIN views_supplies_hospitals v ON v.hospital_id = h.id WHERE h.zone_code = '07' AND v.generic_id = g.id GROUP BY h.zone_code ) AS zone7,
-        ( SELECT sum( v.qty ) AS sum FROM b_hospitals h JOIN views_supplies_hospitals v ON v.hospital_id = h.id WHERE h.zone_code = '08' AND v.generic_id = g.id GROUP BY h.zone_code ) AS zone8,
-        ( SELECT sum( v.qty ) AS sum FROM b_hospitals h JOIN views_supplies_hospitals v ON v.hospital_id = h.id WHERE h.zone_code = '09' AND v.generic_id = g.id GROUP BY h.zone_code ) AS zone9,
-        ( SELECT sum( v.qty ) AS sum FROM b_hospitals h JOIN views_supplies_hospitals v ON v.hospital_id = h.id WHERE h.zone_code = '10' AND v.generic_id = g.id GROUP BY h.zone_code ) AS zone10,
-        ( SELECT sum( v.qty ) AS sum FROM b_hospitals h JOIN views_supplies_hospitals v ON v.hospital_id = h.id WHERE h.zone_code = '11' AND v.generic_id = g.id GROUP BY h.zone_code ) AS zone11,
-        ( SELECT sum( v.qty ) AS sum FROM b_hospitals h JOIN views_supplies_hospitals v ON v.hospital_id = h.id WHERE h.zone_code = '12' AND v.generic_id = g.id GROUP BY h.zone_code ) AS zone12,
-        ( SELECT sum( v.qty ) AS sum FROM b_hospitals h JOIN views_supplies_hospitals v ON v.hospital_id = h.id WHERE h.zone_code = '13' AND v.generic_id = g.id GROUP BY h.zone_code ) AS zone13,
-        ( SELECT sum( v.qty ) AS sum FROM b_hospitals h JOIN views_supplies_hospitals v ON v.hospital_id = h.id WHERE  v.generic_id = g.id GROUP BY g.id ) AS total
-    FROM
-        b_generics g
-        JOIN b_units u ON u.id = g.unit_id
-    WHERE
-        g.type = '${type}'
-        AND g.is_actived = 'Y'`);
+    return db.raw(`SELECT h.zone_code,sum(surgical_gown_qty) as surgical_gown_qty,
+    sum(cover_all1_qty) as cover_all1_qty,
+    sum(cover_all2_qty) as cover_all2_qty,
+    sum(n95_qty) as n95_qty,
+    sum(shoe_cover_qty) as shoe_cover_qty,
+    sum(surgical_hood_qty) as surgical_hood_qty,
+    sum(long_glove_qty) as long_glove_qty,
+    sum(face_shield_qty) as face_shield_qty,
+    sum(surgical_mask_qty) as surgical_mask_qty,
+    sum(powered_air_qty) as powered_air_qty,
+    sum(alcohol_70_qty) as alcohol_70_qty,
+    sum(alcohol_95_qty) as alcohol_95_qty,
+    sum(alcohol_gel_qty) as alcohol_gel_qty
+    from views_supplies_hospital_cross as v 
+    join b_hospitals as h on h.id = v.hospital_id
+    GROUP BY h.zone_code
+    order by h.zone_code asc
+    
+    `);
   }
 
   getZone(db: Knex, query, zone) {
