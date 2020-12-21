@@ -199,10 +199,11 @@ router.post('/2', async (req: Request, res: Response) => {
 
 router.post('/req-otp', async (req: Request, res: Response) => {
 
-  let tel = req.body.tel
+  const tel = req.body.tel
+  const appId = process.env.OTP_APP_ID;
 
   try {
-    let rs: any = await registerModel.reqOTP(tel);    
+    let rs: any = await registerModel.reqOTP(appId,tel);    
     res.send(rs);
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -210,11 +211,13 @@ router.post('/req-otp', async (req: Request, res: Response) => {
 });
 
 router.post('/verify-otp', async (req: Request, res: Response) => {
-  let transactionID = req.body.transactionID
+  let transactionId = req.body.transactionId
+  const appId = process.env.OTP_APP_ID;
   let otp = req.body.otp
   let tel = req.body.tel
+  let vendor = req.body.vendor
   try {
-    let rs: any = await registerModel.verifyOTP(tel, otp,transactionID);
+    let rs: any = await registerModel.verifyOTP(appId, tel, otp, transactionId,vendor);
     res.send(rs);
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });

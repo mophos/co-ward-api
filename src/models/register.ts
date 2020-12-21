@@ -41,13 +41,13 @@ export class Register {
             .insert(data);
     }
 
-    reqOTP(tel) {
+    reqOTP(appId, tel) {
         return new Promise((resolve, reject) => {
             var options = {
                 method: 'POST',
-                url: 'http://api-covid19.moph.go.th/authentication/ais/otp',
+                url: 'http://otp.dev.moph.go.th/otp',
                 headers: { 'content-type': 'application/json' },
-                body: { tel: tel, appId: '76503a47-cea5-482f-ae27-e151ca5a2722' },
+                body: { tel: tel, appId: appId },
                 json: true
             };
 
@@ -61,17 +61,18 @@ export class Register {
         });
 
     }
-    verifyOTP(tel, otp,transactionID) {
+    verifyOTP(appId, tel, otp, transactionId, vendor) {
         return new Promise((resolve, reject) => {
             var options = {
                 method: 'POST',
-                url: 'http://api-covid19.moph.go.th/authentication/ais/verify',
+                url: 'http://otp.dev.moph.go.th/otp/verify',
                 headers: { 'content-type': 'application/json' },
                 body: {
-                    transactionID: transactionID,
+                    transactionId: transactionId,
+                    vendor: vendor,
                     otp: otp,
-                    tel:tel,
-                    appId: '76503a47-cea5-482f-ae27-e151ca5a2722'
+                    tel: tel,
+                    appId: appId
                 },
                 json: true
             };
@@ -184,9 +185,9 @@ export class Register {
             .join('b_hospitals as h', 'h.hospcode', 'u.hospcode')
             .whereIn('u.position_id', ['5', '8', '74', '75', '76', '77', '79'])
             // .whereIn('u.position_id', ['5', '8'])
-            .whereIn('u.id', [ '4425'])
+            .whereIn('u.id', ['4425'])
             .orderBy('u.id');
-            // .where('u.app_register', 'MS-NCD')
+        // .where('u.app_register', 'MS-NCD')
         // .offset(1);
     }
 }
