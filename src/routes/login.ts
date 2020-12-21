@@ -19,6 +19,7 @@ const router: Router = Router();
 router.post('/', async (req: Request, res: Response) => {
   let username: string = req.body.username || '';
   let password: string = req.body.password || '';
+  console.log(username, password);
 
   let db = req.db;
 
@@ -39,6 +40,8 @@ router.post('/', async (req: Request, res: Response) => {
 
   try {
     let encPassword = crypto.createHash('md5').update(password).digest('hex');
+    console.log(encPassword);
+    
     let rs: any = await loginModel.login(db, username, encPassword);
 
     if (rs.length) {

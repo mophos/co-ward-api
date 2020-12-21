@@ -3,7 +3,7 @@ import { ReportModel } from '../models/report';
 import { Router, Request, Response } from 'express';
 import * as HttpStatus from 'http-status-codes';
 
-import { filter, map, findIndex, countBy, uniqBy } from 'lodash';
+import { filter, map, findIndex, orderBy, uniqBy } from 'lodash';
 import moment = require('moment');
 import { FullfillModel } from '../models/fulfill';
 import { DrugsModel } from '../models/drug';
@@ -320,75 +320,57 @@ router.get('/get-gcs', async (req: Request, res: Response) => {
 
 router.get('/get-medicals', async (req: Request, res: Response) => {
   const db = req.db;
-  const date = req.query.date;
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
   const type = req.decoded.type;
-  const _provinceCode = req.decoded.provinceCode;
+  const provinceCode = req.decoded.provinceCode;
   const zone = req.query.zone;
 
   try {
-    let zoneCodes = [];
-    let provinceCode = null;
+    let rows: any;
+    let zoneCodes: any = [];
+    const rs = await model.getMedicalCross(db);
     if (type == 'MANAGER') {
-      if (zone) {
+      if (zone !== '') {
         zoneCodes = [zone];
+        rows = filter(rs, { 'zone_code': zone });
       } else {
         zoneCodes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
+        rows = rs;
       }
     } else {
       if (providerType == 'ZONE') {
         zoneCodes = [zoneCode];
-      } else if (providerType == 'SSJ') {
-        zoneCodes = [zoneCode];
-        provinceCode = _provinceCode;
+        rows = filter(rs, { 'zone_code': zoneCode });
+      } else {
+        rows = filter(rs, { 'province_code': provinceCode });
+        zoneCodes = [rows[0].zone_code]
       }
+    }
+    let data: any = [];
+    for (const v of zoneCodes) {
+      const obj: any = {};
+      obj.zone_code = v;
+      const provinces = uniqBy(orderBy(filter(rows, { 'zone_code': v }), 'province_code', 'asc'), 'province_name');
+      let dataP: any = [];
+      for (const p of provinces) {
+        const objP: any = {};
+        objP.province_code = p.province_code;
+        objP.province_name = p.province_name;
+        objP.hospitals = orderBy(filter(rows, { 'province_name': p.province_name }), 'hospital_name', 'asc');
+        dataP.push(objP);
+      }
+      obj.provinces = dataP;
+      data.push(obj)
     }
 
-    let data: any = [];
-    for (const z of zoneCodes) {
-      const zone: any = {};
-      zone.name = z;
-      let provinces: any = [];
-      let province: any;
-      if (provinceCode) {
-        province = await model.getProvince(db, null, provinceCode);
-      } else {
-        province = await model.getProvince(db, z, null);
-      }
-      const hospital: any = await model.getHospitalDrugs(db)
-      for (const p of province) {
-        const _province: any = {};
-        _province.province_name = p.name_th;
-        const _hosp = filter(hospital, { province_code: p.code })
-        const hosp = [];
-        const sup: any = await model.getMedicals(db)
-        for (const h of _hosp) {
-          const _hospital: any = {};
-          _hospital.province_name = p.name_th;
-          const obj = {
-            hospital_id: h.id,
-            hospcode: h.hospcode,
-            hospname: h.hospname
-          };
-          const _sup = filter(sup, { hospital_id: h.id })
-          for (const s of _sup) {
-            obj[s.generic_id] = s.qty;
-          }
-          hosp.push(obj);
-        }
-        _province.hospitals = hosp;
-        provinces.push(_province);
-      }
-      zone.provinces = provinces;
-      data.push(zone);
-    }
     res.send({ ok: true, rows: data, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
+
 router.get('/admin/get-bed', async (req: Request, res: Response) => {
   const db = req.db;
 
@@ -737,7 +719,6 @@ router.get('/get-bed', async (req: Request, res: Response) => {
         provinceCode = _provinceCode;
       }
     }
-    console.log(zoneCodes, provinceCode);
 
     let data: any = [];
     for (const z of zoneCodes) {
@@ -773,65 +754,47 @@ router.get('/get-professional', async (req: Request, res: Response) => {
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
   const type = req.decoded.type;
-  const _provinceCode = req.decoded.provinceCode;
+  const provinceCode = req.decoded.provinceCode;
   const zone = req.query.zone;
 
   try {
-    let zoneCodes = [];
-    let provinceCode = null;
+    let rows: any;
+    let zoneCodes: any = [];
+    const rs = await model.getProfessionalCross(db);
     if (type == 'MANAGER') {
-      if (zone) {
+      if (zone !== '') {
         zoneCodes = [zone];
+        rows = filter(rs, { 'zone_code': zone });
       } else {
         zoneCodes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
+        rows = rs;
       }
     } else {
       if (providerType == 'ZONE') {
         zoneCodes = [zoneCode];
-      } else if (providerType == 'SSJ') {
-        zoneCodes = [zoneCode];
-        provinceCode = _provinceCode;
+        rows = filter(rs, { 'zone_code': zoneCode });
+      } else {
+        rows = filter(rs, { 'province_code': provinceCode });
+        zoneCodes = [rows[0].zone_code]
       }
+    }
+    let data: any = [];
+    for (const v of zoneCodes) {
+      const obj: any = {};
+      obj.zone_code = v;
+      const provinces = uniqBy(orderBy(filter(rows, { 'zone_code': v }), 'province_code', 'asc'), 'province_name');
+      let dataP: any = [];
+      for (const p of provinces) {
+        const objP: any = {};
+        objP.province_code = p.province_code;
+        objP.province_name = p.province_name;
+        objP.hospitals = orderBy(filter(rows, { 'province_name': p.province_name }), 'hospital_name', 'asc');
+        dataP.push(objP);
+      }
+      obj.provinces = dataP;
+      data.push(obj)
     }
 
-    let data: any = [];
-    for (const z of zoneCodes) {
-      const zone: any = {};
-      zone.name = z;
-      let provinces: any = [];
-      let province: any;
-      if (provinceCode) {
-        province = await model.getProvince(db, null, provinceCode);
-      } else {
-        province = await model.getProvince(db, z, null);
-      }
-      const hospital: any = await model.getHospital(db)
-      for (const p of province) {
-        const _province: any = {};
-        _province.province_name = p.name_th;
-        const _hosp = filter(hospital, { province_code: p.code })
-        const hosp = [];
-        const pro: any = await model.getProfessional(db)
-        for (const h of _hosp) {
-          const _hospital: any = {};
-          _hospital.province_name = p.name_th;
-          const obj = {
-            hospital_id: h.id,
-            hospcode: h.hospcode,
-            hospname: h.hospname
-          };
-          const _pro = filter(pro, { hospital_id: h.id })
-          for (const p of _pro) {
-            obj['p_' + p.professional_id] = p.qty;
-          }
-          hosp.push(obj);
-        }
-        _province.hospitals = hosp;
-        provinces.push(_province);
-      }
-      zone.provinces = provinces;
-      data.push(zone);
-    }
     res.send({ ok: true, rows: data, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -1486,8 +1449,7 @@ router.get('/fulfill-supplies', async (req: Request, res: Response) => {
       ws.cell(++row, 1).string(items.hospname);
       for (const itemD of supplies) {
         if (itemD.name in items)
-          console.log(items[itemD.name]);
-        ws.cell(row, col++).number(items[itemD.name]);
+          ws.cell(row, col++).number(items[itemD.name]);
       }
     }
     fse.ensureDirSync(process.env.TMP_PATH);
@@ -1641,7 +1603,7 @@ router.get('/check-admit-confirm-case/export', async (req: Request, res: Respons
     ws.cell(1, 16).string('วันที่บันทึกล่าสุด');
     let row = 2;
     for (const h of rs) {
-      if(h.cio_date === moment().format('YYYY-MM-DD')){
+      if (h.cio_date === moment().format('YYYY-MM-DD')) {
         ws.cell(row, 1).string(toString(h.cio_status));
         ws.cell(row, 2).string(toString(h.cio_remark));
       } else {
@@ -1880,10 +1842,10 @@ router.get('/local-quarantine-hotel', async (req: Request, res: Response) => {
 //   const month = '2020-07';
 
 //   try {
-   
+
 //     const rs :any = await model.summary1(db,month);
 //     console.log(rs[0]);
-    
+
 
 //     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
 //   } catch (error) {

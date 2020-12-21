@@ -99,6 +99,7 @@ export class ReportModel {
         .orderBy('bs.name')
         .orderBy('vh.hospname')
 
+console.log(sql.toString());
 
     return sql;
     // return db('views_bed_hospitals AS vbh')
@@ -120,8 +121,16 @@ export class ReportModel {
     return db('views_requisition_hospitals AS vrh')
   }
 
+  getMedicalCross(db: Knex) {
+    return db('views_requisition_hospital_cross')
+  }
+
   getProfessional(db: Knex) {
     return db('views_professional_hospitals AS vph')
+  }
+
+  getProfessionalCross(db: Knex) {
+    return db('view_professional_hospital_cross')
   }
 
   getSupplies(db: Knex, date, provinceCode, zoneCode: any[]) {
