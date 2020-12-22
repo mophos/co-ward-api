@@ -699,49 +699,48 @@ router.get('/get-bed', async (req: Request, res: Response) => {
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
   const type = req.decoded.type;
-  const _provinceCode = req.decoded.provinceCode;
+  const provinceCode = req.decoded.provinceCode;
   const zone = req.query.zone;
 
   try {
-    let zoneCodes = [];
-    let provinceCode = null;
+    let rows: any;
+    let zoneCodes: any = [];
+    const rs = await model.getUseBed(db);
     if (type == 'MANAGER') {
-      if (zone) {
+      if (zone !== '') {
         zoneCodes = [zone];
+        rows = filter(rs, { 'zone_code': zone });
       } else {
         zoneCodes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
+        rows = rs;
       }
     } else {
       if (providerType == 'ZONE') {
         zoneCodes = [zoneCode];
-      } else if (providerType == 'SSJ') {
-        zoneCodes = [zoneCode];
-        provinceCode = _provinceCode;
-      }
-    }
-
-    let data: any = [];
-    for (const z of zoneCodes) {
-      const zone: any = {};
-      zone.name = z;
-      let provinces: any = [];
-      let province: any;
-      if (provinceCode) {
-        province = await model.getProvince(db, null, provinceCode);
+        rows = filter(rs, { 'zone_code': zoneCode });
       } else {
-        province = await model.getProvince(db, z, null);
+        rows = filter(rs, { 'province_code': provinceCode });
+        zoneCodes = [rows[0].zone_code]
       }
-      const hospital: any = await model.getHospital(db)
-      for (const p of province) {
-        const _province: any = {};
-        _province.province_name = p.name_th;
-        const sup: any = await model.getBed(db, p.code);
-        _province.hospitals = sup;
-        provinces.push(_province);
-      }
-      zone.provinces = provinces;
-      data.push(zone);
     }
+    let data: any = [];
+    for (const v of zoneCodes) {
+      const obj: any = {};
+      obj.zone_code = v;
+      const provinces = uniqBy(orderBy(filter(rows, { 'zone_code': v }), 'province_code', 'asc'), 'province_name');
+      let dataP: any = [];
+      for (const p of provinces) {
+        const objP: any = {};
+        objP.province_code = p.province_code;
+        objP.province_name = p.province_name;
+        objP.hospitals = orderBy(filter(rows, { 'province_name': p.province_name }), 'hospital_name', 'asc');
+        dataP.push(objP);
+      }
+      obj.provinces = dataP;
+      data.push(obj)
+    }
+    console.log(data);
+  
     res.send({ ok: true, rows: data, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
