@@ -99,7 +99,48 @@ export class ReportModel {
         .orderBy('bs.name')
         .orderBy('vh.hospname')
 
-console.log(sql.toString());
+    console.log(sql.toString());
+
+    return sql;
+    // return db('views_bed_hospitals AS vbh')
+  }
+
+  getUseBed(db: Knex) {
+    const last = db('views_covid_case')
+      .max('updated_entry as updated_entry')
+      .whereRaw('hospital_id=vc.hospital_id')
+      .whereNotNull('updated_entry')
+      .as('updated_entry')
+
+    let sub = db('b_hospitals as vh')
+      .select('vh.id as hospital_id', 'vh.hospname', 'bs.name as sub_ministry_name', db.raw(`
+      sum( bed_id  =1 ) as aiir_usage_qty,
+      sum( bed_id = 2 ) as modified_aiir_usage_qty,
+      sum( bed_id = 3 ) as isolate_usage_qty,
+      sum( bed_id = 4 ) as cohort_usage_qty,
+      sum( bed_id = 5 ) AS hospitel_usage_qty`), last)
+      .join('views_covid_case_last as vc', (v) => {
+        v.on('vh.id', 'vc.hospital_id')
+        v.on('vc.status', db.raw(`'ADMIT'`))
+      })
+      .join('b_hospital_subministry as bs', 'bs.code', 'vh.sub_ministry_code')
+      // .where('vh.province_code', provinceCode)
+      .whereIn('vh.hosptype_code', ['05', '06', '07', '11', '12', '15'])
+      .groupBy('vh.id')
+      .as('sub')
+
+    let sql =
+      db('b_hospitals  as vh')
+        .select('vb.*', 'sub.*', 'vh.province_name', 'vh.province_name', 'vh.zone_code')
+        .join('views_bed_hospital_cross as vb', 'vh.id', 'vb.hospital_id')
+        .join(sub, 'sub.hospital_id', 'vh.id')
+        .join('b_hospital_subministry as bs', 'bs.code', 'vh.sub_ministry_code')
+        // .where('vh.province_code', provinceCode)
+        .whereIn('vh.hosptype_code', ['05', '06', '07', '11', '12', '15'])
+        .orderBy('bs.name')
+        .orderBy('vh.hospname')
+
+    console.log(sql.toString());
 
     return sql;
     // return db('views_bed_hospitals AS vbh')
