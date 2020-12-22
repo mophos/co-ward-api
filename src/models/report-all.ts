@@ -19,27 +19,28 @@ export class ReportAllModel {
   }
 
   report2(db: Knex, date, sector) {
-    const last = db('views_covid_case')
-      .max('updated_entry as updated_entry_last')
-      .whereRaw('hospital_id=vc.hospital_id')
-      .whereNotNull('updated_entry')
-      .as('updated_entry')
+//     const last = db('views_covid_case')
+//       .max('updated_entry as updated_entry_last')
+//       .whereRaw('hospital_id=vc.hospital_id')
+//       .whereNotNull('updated_entry')
+//       .as('updated_entry')
 
-    const sql = db('views_hospital_all as vh')
-      .select('vh.id', 'vh.hospname', 'vh.sub_ministry_name', db.raw(`
-sum( gcs_id = 1 ) AS severe,
-sum( gcs_id = 2 ) AS moderate,
-sum( gcs_id = 3 ) AS mild,
-sum( gcs_id = 4 ) AS asymptomatic,
-sum( gcs_id = 5 ) AS ip_pui,
-sum( gcs_id = 6 ) AS observe`), last)
-      .leftJoin('views_covid_case_last as vc', (v) => {
-        v.on('vh.id', 'vc.hospital_id')
-        v.on('vc.status', db.raw(`'ADMIT'`))
-      })
-      .groupBy('vh.id')
+//     const sql = db('views_hospital_all as vh')
+//       .select('vh.id', 'vh.hospname', 'vh.sub_ministry_name', db.raw(`
+// sum( gcs_id = 1 ) AS severe,
+// sum( gcs_id = 2 ) AS moderate,
+// sum( gcs_id = 3 ) AS mild,
+// sum( gcs_id = 4 ) AS asymptomatic,
+// sum( gcs_id = 5 ) AS ip_pui,
+// sum( gcs_id = 6 ) AS observe`), last)
+//       .leftJoin('views_covid_case_last as vc', (v) => {
+//         v.on('vh.id', 'vc.hospital_id')
+//         v.on('vc.status', db.raw(`'ADMIT'`))
+//       })
+//       .groupBy('vh.id')
 
-    return sql;
+    // return sql;
+    return db('temp_report_all_2');
   }
 
   report3(db: Knex, date, sector) {
