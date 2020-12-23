@@ -131,7 +131,7 @@ export class ReportModel {
 
     let sql =
       db('b_hospitals  as vh')
-        .select('vb.*', 'sub.*', 'vh.province_name', 'vh.province_name', 'vh.zone_code')
+        .select('vb.*', 'sub.*', 'vh.province_name', 'vh.province_name', 'vh.zone_code', 'vh.hospcode')
         .join('views_bed_hospital_cross as vb', 'vh.id', 'vb.hospital_id')
         .join(sub, 'sub.hospital_id', 'vh.id')
         .join('b_hospital_subministry as bs', 'bs.code', 'vh.sub_ministry_code')
