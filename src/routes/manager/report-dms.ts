@@ -13,7 +13,7 @@ const model = new ReportDmsModel();
 const router: Router = Router();
 
 router.get('/report1', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const sector = req.query.sector;
   const date = req.query.date;
   try {
@@ -26,7 +26,7 @@ router.get('/report1', async (req: Request, res: Response) => {
 });
 
 router.get('/report2', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const sector = req.query.sector;
   try {
@@ -39,7 +39,7 @@ router.get('/report2', async (req: Request, res: Response) => {
 });
 
 router.get('/report3', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const sector = req.query.sector;
   try {
@@ -51,7 +51,7 @@ router.get('/report3', async (req: Request, res: Response) => {
 });
 
 router.get('/report4', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const sector = req.query.sector;
 
@@ -66,7 +66,7 @@ router.get('/report4', async (req: Request, res: Response) => {
 });
 
 router.get('/report5', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const sector = req.query.sector;
   const date = req.query.date;
   try {
@@ -79,7 +79,7 @@ router.get('/report5', async (req: Request, res: Response) => {
 });
 
 router.get('/report6', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const sector = req.query.sector;
   try {
@@ -92,7 +92,7 @@ router.get('/report6', async (req: Request, res: Response) => {
 });
 
 router.get('/report7', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const sector = req.query.sector;
   try {
@@ -105,7 +105,7 @@ router.get('/report7', async (req: Request, res: Response) => {
 });
 
 router.get('/report8', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const sector = req.query.sector;
   try {
@@ -118,7 +118,7 @@ router.get('/report8', async (req: Request, res: Response) => {
 });
 
 router.get('/report9', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const sector = req.query.sector;
   try {
@@ -132,7 +132,7 @@ router.get('/report9', async (req: Request, res: Response) => {
 });
 
 router.get('/report10', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const sector = req.query.sector;
   try {
@@ -146,7 +146,7 @@ router.get('/report10', async (req: Request, res: Response) => {
 });
 
 router.get('/report1/excel', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const sector = req.query.sector;
   var wb = new excel4node.Workbook();
@@ -231,7 +231,7 @@ router.get('/report1/excel', async (req: Request, res: Response) => {
 });
 
 router.get('/report2/excel', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const sector = req.query.sector;
   var wb = new excel4node.Workbook();
@@ -323,7 +323,7 @@ router.get('/report2/excel', async (req: Request, res: Response) => {
 });
 
 router.get('/report3/excel', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const sector = req.query.sector;
   var wb = new excel4node.Workbook();
@@ -401,7 +401,7 @@ router.get('/report3/excel', async (req: Request, res: Response) => {
 });
 
 router.get('/report4/excel', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const sector = req.query.sector;
   var wb = new excel4node.Workbook();
@@ -498,7 +498,7 @@ router.get('/report4/excel', async (req: Request, res: Response) => {
 });
 
 router.get('/report5/excel', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const sector = req.query.sector;
   var wb = new excel4node.Workbook();
@@ -584,7 +584,7 @@ router.get('/report5/excel', async (req: Request, res: Response) => {
 });
 
 router.get('/report6/excel', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const sector = req.query.sector;
   var wb = new excel4node.Workbook();
@@ -724,7 +724,7 @@ router.get('/report6/excel', async (req: Request, res: Response) => {
 });
 
 router.get('/report7/excel', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const sector = req.query.sector;
   var wb = new excel4node.Workbook();
@@ -817,7 +817,7 @@ router.get('/report7/excel', async (req: Request, res: Response) => {
 });
 
 router.get('/report8/excel', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const sector = req.query.sector;
   var wb = new excel4node.Workbook();
@@ -902,7 +902,7 @@ router.get('/report8/excel', async (req: Request, res: Response) => {
 });
 
 router.get('/report9/excel', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const sector = req.query.sector;
   var wb = new excel4node.Workbook();
@@ -1049,7 +1049,7 @@ router.get('/report9/excel', async (req: Request, res: Response) => {
 });
 
 router.get('/report10/excel', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const sector = req.query.sector;
   var wb = new excel4node.Workbook();
@@ -1198,7 +1198,7 @@ router.get('/report10/excel', async (req: Request, res: Response) => {
 
 
 router.get('/report-homework', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const sector = req.query.sector;
   try {
     const rs: any = await model.homework(db, sector);
@@ -1210,7 +1210,7 @@ router.get('/report-homework', async (req: Request, res: Response) => {
 });
 
 router.get('/report-homework/excel', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const sector = req.query.sector;
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');

@@ -20,7 +20,7 @@ const router: Router = Router();
 
 router.get('/', async (req: Request, res: Response) => {
   try {
-    let rs: any = await model.getCovidCase(req.db);
+    let rs: any = await model.getCovidCase(req.dbReport);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -28,7 +28,7 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 router.get('/zone', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
 
   try {
     const zoneCode = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
@@ -48,7 +48,7 @@ router.get('/zone', async (req: Request, res: Response) => {
 });
 
 router.get('/covid-case', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   try {
     const z: any = await model.getCovidCase(db);
     res.send({ ok: true, rows: z, code: HttpStatus.OK });
@@ -59,7 +59,7 @@ router.get('/covid-case', async (req: Request, res: Response) => {
 });
 
 router.get('/total', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   try {
     const z: any = await model.getTotalSupplie(db, 'SUPPLIES');
     res.send({ ok: true, rows: z[0], code: HttpStatus.OK });
@@ -70,7 +70,7 @@ router.get('/total', async (req: Request, res: Response) => {
 });
 
 router.get('/records', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   try {
     const rs: any = await model.getPersonTime(db);
     res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
@@ -81,7 +81,7 @@ router.get('/records', async (req: Request, res: Response) => {
 });
 
 router.get('/supplies', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const query = req.query.query;
   const zone = req.query.zone;
@@ -104,7 +104,7 @@ router.get('/supplies', async (req: Request, res: Response) => {
 });
 
 router.get('/total-zone', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const zone = req.query.zone;
   try {
     const data: any = [];
@@ -131,7 +131,7 @@ router.get('/total-zone', async (req: Request, res: Response) => {
 });
 
 router.get('/get-gcs-admit', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
   const type = req.decoded.type;
@@ -229,7 +229,7 @@ router.get('/get-gcs-admit', async (req: Request, res: Response) => {
 });
 
 router.get('/get-gcs', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
   const type = req.decoded.type;
@@ -319,7 +319,7 @@ router.get('/get-gcs', async (req: Request, res: Response) => {
 });
 
 router.get('/get-medicals', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
   const type = req.decoded.type;
@@ -372,7 +372,7 @@ router.get('/get-medicals', async (req: Request, res: Response) => {
 });
 
 router.get('/admin/get-bed', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
 
   try {
     const hospital: any = await model.getHospitalByType(db);
@@ -400,7 +400,7 @@ router.get('/admin/get-bed', async (req: Request, res: Response) => {
 });
 
 router.get('/get-bed/excel', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const provinceCode = req.decoded.provinceCode;
   const providerType = req.decoded.providerType;
@@ -567,7 +567,7 @@ router.get('/get-bed/excel', async (req: Request, res: Response) => {
 });
 
 router.get('/get-gcs-admit/excel', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const provinceCode = req.decoded.provinceCode;
   const providerType = req.decoded.providerType;
@@ -695,7 +695,7 @@ router.get('/get-gcs-admit/excel', async (req: Request, res: Response) => {
 
 
 router.get('/get-bed', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
   const type = req.decoded.type;
@@ -749,7 +749,7 @@ router.get('/get-bed', async (req: Request, res: Response) => {
 });
 
 router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
   const type = req.decoded.type;
@@ -839,7 +839,7 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
 });
 
 router.get('/get-professional', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
   const type = req.decoded.type;
@@ -892,7 +892,7 @@ router.get('/get-professional', async (req: Request, res: Response) => {
 });
 
 // router.get('/get-medicals', async (req: Request, res: Response) => {
-//   const db = req.db;
+//   const db = req.dbReport;
 //   const date = req.query.date;
 //   const providerType = req.decoded.providerType;
 //   const zoneCode = req.decoded.zone_code;
@@ -964,7 +964,7 @@ router.get('/get-professional', async (req: Request, res: Response) => {
 // });
 
 router.get('/get-supplies', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
@@ -1032,7 +1032,7 @@ router.get('/get-supplies', async (req: Request, res: Response) => {
 });
 
 router.get('/get-gcs/export', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const _provinceCode = req.decoded.provinceCode;
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
@@ -1124,7 +1124,7 @@ router.get('/get-gcs/export', async (req: Request, res: Response) => {
 });
 
 router.get('/get-supplies/export', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
@@ -1345,13 +1345,13 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
 });
 
 router.get('/fulfill-drugs-1', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   let id = req.query.id
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
   try {
     id = Array.isArray(id) ? id : [id];
-    const rs: any = await fullfillModel.getProductsDrugs(req.db, 'ZONE', 'ASC');
+    const rs: any = await fullfillModel.getProductsDrugs(req.dbReport, 'ZONE', 'ASC');
     const center = wb.createStyle({
       alignment: {
         wrapText: true,
@@ -1454,7 +1454,7 @@ router.get('/fulfill-drugs-1', async (req: Request, res: Response) => {
 });
 
 router.get('/fulfill-drugs-2', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   let id = req.query.id
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
@@ -1519,14 +1519,14 @@ router.get('/fulfill-drugs-2', async (req: Request, res: Response) => {
 });
 
 router.get('/fulfill-supplies', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   let id = req.query.id
   var wb = new excel4node.Workbook();
   var ws = wb.addWorksheet('Sheet 1');
   try {
     id = Array.isArray(id) ? id : [id];
     let supplies: any = await suppliesModel.getSuppliesActived(db)
-    let rs: any = await fullfillModel.getFulFillSupplesItems(req.db, supplies, map(id, (v) => { return +v }));
+    let rs: any = await fullfillModel.getFulFillSupplesItems(req.dbReport, supplies, map(id, (v) => { return +v }));
     ws.cell(1, 1).string('ร.พ./รายการเวชภัณฑ์');
     let col = 2
     for (const items of supplies) {
@@ -1567,7 +1567,7 @@ router.get('/fulfill-supplies', async (req: Request, res: Response) => {
 });
 
 router.get('/province-case-date', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const startDate = req.query.startDate;
   const endDate = req.query.endDate;
@@ -1612,7 +1612,7 @@ router.get('/province-case-date', async (req: Request, res: Response) => {
 });
 
 router.get('/admit-confirm-case', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const type = req.decoded.type;
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
@@ -1643,7 +1643,7 @@ router.get('/admit-confirm-case', async (req: Request, res: Response) => {
 });
 
 router.post('/check-admit-confirm-case', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const status = req.body.status;
   const remark = req.body.remark || null;
   const covidCaseDetailId = req.body.covidCaseDetailId;
@@ -1664,7 +1664,7 @@ router.post('/check-admit-confirm-case', async (req: Request, res: Response) => 
 });
 
 router.get('/check-admit-confirm-case/export', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const zoneCode = req.decoded.zone_code;
   const right = req.decoded.rights;
   const showPersons = _.findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 ? true : false;
@@ -1740,7 +1740,7 @@ router.get('/check-admit-confirm-case/export', async (req: Request, res: Respons
 });
 
 router.get('/admit-confirm-case-summary', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const type = req.decoded.type;
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
@@ -1766,7 +1766,7 @@ router.get('/admit-confirm-case-summary', async (req: Request, res: Response) =>
 });
 
 router.get('/homework', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const type = req.decoded.type;
   try {
     if (type == 'MANAGER') {
@@ -1783,7 +1783,7 @@ router.get('/homework', async (req: Request, res: Response) => {
 });
 
 router.get('/homework-detail', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const type = req.decoded.type;
   const filter = req.query.filter;
   try {
@@ -1801,7 +1801,7 @@ router.get('/homework-detail', async (req: Request, res: Response) => {
 });
 
 router.get('/summary-local-quarantine-zone', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   try {
     const rs: any = await model.summaryLocalQuarantineZone(db);
     for (const v of rs[0]) {
@@ -1815,7 +1815,7 @@ router.get('/summary-local-quarantine-zone', async (req: Request, res: Response)
 });
 
 router.get('/summary-local-quarantine-zone/2', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   try {
     const rs: any = await model.summaryLocalQuarantineZone2(db);
     for (const v of rs[0]) {
@@ -1829,7 +1829,7 @@ router.get('/summary-local-quarantine-zone/2', async (req: Request, res: Respons
 });
 
 router.get('/summary-local-quarantine-province', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   try {
     const rs: any = await model.summaryLocalQuarantineProvince(db);
     for (const v of rs[0]) {
@@ -1843,7 +1843,7 @@ router.get('/summary-local-quarantine-province', async (req: Request, res: Respo
 });
 
 router.get('/local-quarantine', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
 
   try {
     const rs: any = await model.localQuarantineApi();
@@ -1888,7 +1888,7 @@ router.get('/local-quarantine', async (req: Request, res: Response) => {
 });
 
 router.get('/local-quarantine-hotel', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
 
   try {
     // const rs: any = await model.localQuarantineHotelApi();
@@ -1927,7 +1927,7 @@ router.get('/local-quarantine-hotel', async (req: Request, res: Response) => {
 
 
 // router.get('/xxx', async (req: Request, res: Response) => {
-//   const db = req.db;
+//   const db = req.dbReport;
 //   const month = '2020-07';
 
 //   try {

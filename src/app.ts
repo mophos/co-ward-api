@@ -94,6 +94,16 @@ let connection: MySqlConnectionConfig = {
   // debug: true
 }
 
+let connectionReport: MySqlConnectionConfig = {
+  host: process.env.DB_REPORT_HOST,
+  port: +process.env.DB_REPORT_PORT,
+  database: process.env.DB_REPORT_NAME,
+  user: process.env.DB_REPORT_USER,
+  password: process.env.DB_REPORT_PASSWORD,
+  multipleStatements: true,
+  // debug: true
+}
+
 let connectionEOC: MySqlConnectionConfig = {
   host: process.env.EOC_DB_HOST,
   port: +process.env.EOC_DB_PORT,
@@ -107,6 +117,20 @@ let connectionEOC: MySqlConnectionConfig = {
 let db = Knex({
   client: 'mysql',
   connection: connection,
+  pool: {
+    min: 0,
+    max: 500,
+    afterCreate: (conn, done) => {
+      conn.query('SET NAMES utf8', (err) => {
+        done(err, conn);
+      });
+    }
+  },
+});
+
+let dbReport = Knex({
+  client: 'mysql',
+  connection: connectionReport,
   pool: {
     min: 0,
     max: 100,
@@ -135,6 +159,7 @@ let dbEOC = Knex({
 app.use((req: Request, res: Response, next: NextFunction) => {
   req.db = db;
   req.dbEOC = dbEOC;
+  req.dbReport = dbReport;
   next();
 });
 

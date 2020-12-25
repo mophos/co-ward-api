@@ -11,7 +11,7 @@ const router: Router = Router();
 
 
 router.get('/zone', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
 
   try {
     const zoneCode = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
@@ -31,7 +31,7 @@ router.get('/zone', async (req: Request, res: Response) => {
 });
 
 router.get('/covid-case', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   try {
     const z: any = await model.getCovidCase(db);
     res.send({ ok: true, rows: z, code: HttpStatus.OK });
@@ -42,7 +42,7 @@ router.get('/covid-case', async (req: Request, res: Response) => {
 });
 
 router.get('/supplies', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const query = req.query.query;
 
@@ -56,7 +56,7 @@ router.get('/supplies', async (req: Request, res: Response) => {
 });
 
 router.get('/bed', async (req: Request, res: Response) => {
-  const db = req.db;
+  const db = req.dbReport;
   const date = req.query.date;
   const sector = req.query.sector;
   const provinceCode = req.decoded.provinceCode;
@@ -70,7 +70,7 @@ router.get('/bed', async (req: Request, res: Response) => {
 });
 
 // router.get('/hosp/excel', async (req: Request, res: Response) => {
-//   const db = req.db;
+//   const db = req.dbReport;
 //   const providerType = req.decoded.providerType;
 //   const zoneCode = req.decoded.zone_code;
 //   const type = req.decoded.type;
