@@ -740,11 +740,101 @@ router.get('/get-bed', async (req: Request, res: Response) => {
       data.push(obj)
     }
     console.log(data);
-  
+
     res.send({ ok: true, rows: data, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
+  const db = req.db;
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
+  const type = req.decoded.type;
+  const provinceCode = req.decoded.provinceCode;
+  const zone = req.query.zone;
+
+  try {
+    let rows: any;
+    let zoneCodes: any = [];
+    const rs = await model.getUseBed(db);
+    if (type == 'MANAGER') {
+      if (zone !== undefined) {
+        zoneCodes = [zone];
+        rows = filter(rs, { 'zone_code': zone });
+      } else {
+        zoneCodes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
+        rows = rs;
+      }
+    } else {
+      if (providerType == 'ZONE') {
+        zoneCodes = [zoneCode];
+        rows = filter(rs, { 'zone_code': zoneCode });
+      } else {
+        rows = filter(rs, { 'province_code': provinceCode });
+        zoneCodes = [rows[0].zone_code]
+      }
+    }
+
+    var wb = new excel4node.Workbook();
+    let row = 2;
+    for (const v of zoneCodes) {
+      const provinces = uniqBy(orderBy(filter(rows, { 'zone_code': v }), 'province_code', 'asc'), 'province_name');
+      for (const p of provinces) {
+        var ws = wb.addWorksheet(`${p.province_name}`);
+        ws.cell(1, 1).string('รหัสโรงพยาบาล');
+        ws.cell(1, 2).string('โรงพยาบาล');
+        ws.cell(1, 3).string('AIIR ทั้งหมด');
+        ws.cell(1, 4).string('AIIR ใช้ไปแล้ว');
+        ws.cell(1, 5).string('Modified AIIR ทั้งหมด');
+        ws.cell(1, 6).string('Modified AIIR ใช้ไปแล้ว');
+        ws.cell(1, 7).string('Isolate ทั้งหมด');
+        ws.cell(1, 8).string('Isolate ใช้ไปแล้ว');
+        ws.cell(1, 9).string('Cohort ทั้งหมด');
+        ws.cell(1, 10).string('Cohort ใช้ไปแล้ว');
+        ws.cell(1, 11).string('Hospitel ทั้งหมด');
+        ws.cell(1, 12).string('Hospitel ใช้ไปแล้ว');
+        const hospitals = orderBy(filter(rows, { 'province_name': p.province_name }), 'hospital_name', 'asc');
+        for (const h of hospitals) {
+          ws.cell(row, 1).string(h.hospcode.toString());
+          ws.cell(row, 2).string(h.hospname.toString());
+
+          ws.cell(row, 3).string((h['aiir_qty'].toString()));
+          ws.cell(row, 4).string((h['aiir_covid_qty'].toString()));
+          ws.cell(row, 5).string((h['modified_aiir_qty'].toString()));
+          ws.cell(row, 6).string((h['modified_aiir_covid_qty'].toString()));
+          ws.cell(row, 7).string((h['isolate_qty'].toString()));
+          ws.cell(row, 8).string((h['isolate_covid_qty'].toString()));
+          ws.cell(row, 9).string((h['cohort_qty'].toString()));
+          ws.cell(row, 10).string((h['cohort_covid_qty'].toString()));
+          ws.cell(row, 11).string((h['hospitel_qty'].toString()));
+          ws.cell(row, 12).string((h['hospitel_covid_qty'].toString()));
+          row++;
+        }
+      }
+    }
+
+    fse.ensureDirSync(process.env.TMP_PATH);
+    let filename = `get_bed` + moment().format('x') + '.xlsx'
+    let filenamePath = path.join(process.env.TMP_PATH, filename);
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+      }
+    })
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, message: error, code: HttpStatus.OK });
   }
 });
 
