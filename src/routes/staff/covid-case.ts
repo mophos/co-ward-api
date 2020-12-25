@@ -736,8 +736,9 @@ router.get('/beds', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   const hospitalType = req.decoded.hospitalType;
   try {
-    const rs = await covidCaseModel.getBeds(db, hospitalId, hospitalType);
-    res.send({ ok: true, rows: rs })
+    // const rs = await covidCaseModel.getBeds(db, hospitalId, hospitalType);
+    // res.send({ ok: true, rows: rs })
+    res.send({ ok: true, rows: [] })
   } catch (error) {
     res.send({ ok: false, error: error });
   }
@@ -748,8 +749,9 @@ router.get('/gcs', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   const hospitalType = req.decoded.hospitalType;
   try {
-    const rs = await covidCaseModel.getGcs(db, hospitalId, hospitalType);
-    res.send({ ok: true, rows: rs })
+    // const rs = await covidCaseModel.getGcs(db, hospitalId, hospitalType);
+    // res.send({ ok: true, rows: rs })
+    res.send({ ok: true, rows: [] })
   } catch (error) {
     res.send({ ok: false, error: error });
   }
@@ -771,8 +773,9 @@ router.get('/ventilators', async (req: Request, res: Response) => {
   const db = req.db;
   const hospitalId = req.decoded.hospitalId;
   try {
-    const rs = await covidCaseModel.getVentilators(db, hospitalId);
-    res.send({ ok: true, rows: rs })
+    // const rs = await covidCaseModel.getVentilators(db, hospitalId);
+    // res.send({ ok: true, rows: rs })
+    res.send({ ok: true, rows: [] })
   } catch (error) {
     res.send({ ok: false, error: error });
   }
