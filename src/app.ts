@@ -114,6 +114,30 @@ let connectionEOC: MySqlConnectionConfig = {
   // debug: true
 }
 
+let connectionOtp: MySqlConnectionConfig = {
+  host: process.env.DB_OTP_HOST,
+  port: +process.env.DB_OTP_PORT,
+  database: process.env.DB_OTP_NAME,
+  user: process.env.DB_OTP_USER,
+  password: process.env.DB_OTP_PASSWORD,
+  multipleStatements: true,
+  // debug: true
+}
+
+let dbOTP = Knex({
+  client: 'mysql',
+  connection: connectionOtp,
+  pool: {
+    min: 0,
+    max: 500,
+    afterCreate: (conn, done) => {
+      conn.query('SET NAMES utf8', (err) => {
+        done(err, conn);
+      });
+    }
+  },
+});
+
 let db = Knex({
   client: 'mysql',
   connection: connection,
@@ -160,6 +184,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   req.db = db;
   req.dbEOC = dbEOC;
   req.dbReport = dbReport;
+  req.dbOTP = dbOTP;
   next();
 });
 

@@ -40,7 +40,7 @@ export class Login {
   }
 
   getUserByPhone(db: Knex, phoneNumber) {
-    return db('um_users as u')
-      .where('u.telephone', phoneNumber)
+    return db('users as u')
+      .where('u.username', phoneNumber)
   }
 }
