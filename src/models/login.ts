@@ -38,4 +38,9 @@ export class Login {
     return db('sys_login_logs')
       .insert(data);
   }
+
+  getUserByPhone(db: Knex, phoneNumber) {
+    return db('users as u')
+      .where('u.username', phoneNumber)
+  }
 }

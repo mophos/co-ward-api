@@ -7,6 +7,7 @@ declare module 'express' {
     dbReport: any
     knex: Knex,
     decoded: any, // Actually should be something like `multer.Files`
-    files: any
+    files: any,
+    dbOTP: any
   }
 }
