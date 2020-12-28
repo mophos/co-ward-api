@@ -25,6 +25,18 @@ router.get('/report1', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/list/province', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+
+  try {
+    const rs: any = await model.getProvince(db);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error });
+  }
+});
+
 router.get('/report2', async (req: Request, res: Response) => {
   const db = req.dbReport;
   const date = req.query.date;
@@ -71,9 +83,12 @@ router.get('/report5', async (req: Request, res: Response) => {
   const date = req.query.date;
   try {
     const rs: any = await model.report5(db, date, sector);
+    console.log(rs);
+    
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
-
+    console.log(error);
+    
     res.send({ ok: false, error: error });
   }
 });
@@ -85,7 +100,7 @@ router.get('/report6', async (req: Request, res: Response) => {
   try {
     const rs: any = await model.report6(db, date, sector);
     console.log(rs);
-    
+
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
