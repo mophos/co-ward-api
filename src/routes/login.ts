@@ -154,7 +154,7 @@ router.post('/requis-otp', async (req: Request, res: Response) => {
         method: 'POST',
         url: 'http://otp.dev.moph.go.th/otp',
         headers: { 'content-type': 'application/json' },
-        body: { tel: tel, appId: process.env.APP_ID },
+        body: { tel: tel, appId: process.env.OTP_APP_ID },
         json: true
       };
 
@@ -194,7 +194,7 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
         otp: otp.toString(),
         transactionId: transactionID,
         vendor:"CAT",
-        appId:  process.env.APP_ID
+        appId:  process.env.OTP_APP_ID
       },
       json: true
     };
