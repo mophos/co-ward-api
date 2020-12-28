@@ -145,28 +145,32 @@ router.post('/update-password2', async (req: Request, res: Response) => {
 
 router.post('/requis-otp', async (req: Request, res: Response) => {
   let tel = req.body.tel;
+  const db = req.db;
   try {
-    console.log(tel);
-
-    var request = require("request");
-    var options = {
-      method: 'POST',
-      url: 'http://api-covid19.moph.go.th/authentication/ais',
-      headers: { 'content-type': 'application/json' },
-      body: { tel: tel, appId: '76503a47-cea5-482f-ae27-e151ca5a2721' },
-      json: true
-    };
-
-    request(options, await function (error, response, body) {
-      if (error) {
-        res.send(error.message);
-      }
-      else {
-        console.log(body);
-
-        res.send(body);
+    let rs: any = await loginModel.getUserByPhone(db, tel);
+    if (rs) {
+      var request = require("request");
+      var options = {
+        method: 'POST',
+        url: 'http://otp.dev.moph.go.th/otp',
+        headers: { 'content-type': 'application/json' },
+        body: { tel: tel, appId: '76503a47-cea5-482f-ae27-e151ca5a2721' },
+        json: true
       };
-    });
+
+      request(options, await function (error, response, body) {
+        if (error) {
+          res.send(error.message);
+        }
+        else {
+          console.log(body);
+
+          res.send(body);
+        };
+      });
+    } else {
+      res.send({ ok: false, error: 'ไม่พบเบอร์โทรศัพท์' });
+    }
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
@@ -183,12 +187,13 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
 
     var options = {
       method: 'POST',
-      url: 'http://api-covid19.moph.go.th/authentication/ais/verify',
+      url: 'http://otp.dev.moph.go.th/otp/verify',
       headers: { 'content-type': 'application/json' },
       body: {
         tel: tel,
         otp: otp.toString(),
-        transactionID: transactionID,
+        transactionId: transactionID,
+        vendor:"CAT",
         appId: '76503a47-cea5-482f-ae27-e151ca5a2721'
       },
       json: true
