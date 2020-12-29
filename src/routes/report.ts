@@ -168,7 +168,7 @@ router.get('/get-gcs-admit', async (req: Request, res: Response) => {
       } else {
         province = await model.getProvince(db, z, null);
       }
-      const hospital: any = await model.getHospital(db)
+      const hospital: any = await model.getHospitalAll(db)
       let sumProvince = 0;
       let severe = 0;
 
@@ -576,7 +576,7 @@ router.get('/get-gcs-admit/excel', async (req: Request, res: Response) => {
   try {
     var wb = new excel4node.Workbook();
     const gcs: any = await model.getGcsAdmit(db, date)
-    const hospital: any = await model.getHospital(db);
+    const hospital: any = await model.getHospitalAll(db);
 
     if (providerType === 'ZONE') {
       const province = await model.getProvince(db, zoneCode, null);

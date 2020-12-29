@@ -186,6 +186,11 @@ export class ReportModel {
       .whereIn('bh.hosptype_code', ['01', '05', '06', '07', '11', '12'])
   }
 
+  getHospitalAll(db: Knex) {
+    return db('b_hospitals AS bh')
+      // .whereIn('bh.hosptype_code', ['01', '05', '06', '07', '11', '12'])
+  }
+
   getHospitalByType(db: Knex) {
     return db('b_hospitals AS bh')
       .join('views_hospital_types as vht', 'vht.hospcode', 'bh.hospcode')
@@ -405,6 +410,7 @@ export class ReportModel {
     if (showPersons) {
       sql.select('first_name', 'last_name', 'cid', 'sat_id')
     }
+    console.log(sql.toString());
     return sql;
   }
 
