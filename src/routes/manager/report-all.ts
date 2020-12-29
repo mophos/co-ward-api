@@ -101,7 +101,7 @@ router.get('/report6', async (req: Request, res: Response) => {
     const rs: any = await model.report6(db, date, sector);
     console.log(rs);
 
-    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, message: error, code: HttpStatus.OK });
