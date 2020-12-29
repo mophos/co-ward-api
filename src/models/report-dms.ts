@@ -1,9 +1,5 @@
 import Knex = require('knex');
-import * as moment from 'moment';
-import { join } from 'bluebird';
-
 export class ReportDmsModel {
-
   report1(db: Knex, date: any, sector: any) {
     const sql = db('views_bed_hospital_cross as vc')
       .select('vc.*', 'vh.*')
@@ -18,7 +14,6 @@ export class ReportDmsModel {
       .groupBy('vh.sub_ministry_code')
     console.log(sql.toString());
     return sql;
-
   }
 
   report2(db: Knex, date, sector) {
@@ -61,19 +56,19 @@ export class ReportDmsModel {
 
     const sql = db('views_hospital_dms as vh')
       .select('vh.id', 'vh.hospname', 'vh.sub_ministry_name', db.raw(`
-sum( gcs_id = 1 ) AS severe,
-sum( gcs_id = 2 ) AS moderate,
-sum( gcs_id = 3 ) AS mild,
-sum( gcs_id = 4 ) AS asymptomatic,
-sum( gcs_id = 5 ) AS ip_pui,
-sum( gcs_id = 6 ) AS observe`), last)
+      sum( gcs_id = 1 ) AS severe,
+      sum( gcs_id = 2 ) AS moderate,
+      sum( gcs_id = 3 ) AS mild,
+      sum( gcs_id = 4 ) AS asymptomatic,
+      sum( gcs_id = 5 ) AS ip_pui,
+      sum( gcs_id = 6 ) AS observe`), last)
       .leftJoin('views_covid_case_last as vc', (v) => {
         v.on('vh.id', 'vc.hospital_id')
         v.on('vc.status', db.raw(`'ADMIT'`))
       })
       .where('vh.sector', sector)
       .groupBy('vh.id')
-      console.log(sql.toString());
+    console.log(sql.toString());
     return sql;
   }
 
@@ -96,7 +91,7 @@ sum( gcs_id = 6 ) AS observe`), last)
       .where('v.status', 'ADMIT')
       .where('vh.sector', sector)
       .orderBy('vh.sub_ministry_name')
-console.log(sql.toString());
+    console.log(sql.toString());
     return sql;
 
   }
@@ -123,7 +118,7 @@ console.log(sql.toString());
       .where('cl.entry_date', '<=', date)
       .where('vh.sector', sector)
       .groupBy('cl.hospital_id')
-console.log(sql.toString());
+    console.log(sql.toString());
     return sql;
   }
 
@@ -163,7 +158,7 @@ vc.updated_entry  as updated_entry`))
         // })
         .where('vh.sector', sector)
         .orderBy('vh.sub_ministry_name')
-console.log(sql.toString());
+    console.log(sql.toString());
     return sql;
   }
 
@@ -204,7 +199,7 @@ sum( bed_id = 5 ) AS hospitel_usage_qty`), last)
         .leftJoin(sub, 'sub.hospital_id', 'vh.id')
         .where('vh.sector', sector)
         .orderBy('vh.sub_ministry_name')
-console.log(sql.toString());
+    console.log(sql.toString());
     return sql;
   }
 
@@ -230,35 +225,35 @@ vc.updated_entry  as updated_entry`))
         .leftJoin(sub, 'sub.hospital_id', 'vh.id')
         .where('vh.sector', sector)
         .orderBy('vh.sub_ministry_name')
-console.log(sql.toString());
+    console.log(sql.toString());
     return sql;
   }
 
   report8(db: Knex, date, sector) {
-    const sql =  db('views_supplies_hospital_cross as v')
+    const sql = db('views_supplies_hospital_cross as v')
       .select('v.*', 'vh.hospname', 'vh.sub_ministry_name')
       .join('views_hospital_dms as vh', 'vh.id', 'v.hospital_id')
       .where('vh.sector', sector)
-      console.log(sql.toString());
-      return sql;
+    console.log(sql.toString());
+    return sql;
   }
 
   report9(db: Knex, date, sector) {
-    const sql =  db('views_professional_hospital_cross as v')
+    const sql = db('views_professional_hospital_cross as v')
       .select('v.*', 'vh.hospname', 'vh.sub_ministry_name')
       .join('views_hospital_dms as vh', 'vh.id', 'v.hospital_id')
       .where('vh.sector', sector)
-      console.log(sql.toString());
-      return sql;
+    console.log(sql.toString());
+    return sql;
   }
 
   report10(db: Knex, date, sector) {
-    const sql =  db('views_professional_hospital_cross as v')
+    const sql = db('views_professional_hospital_cross as v')
       .select('v.*', 'vh.hospname', 'vh.sub_ministry_name')
       .join('views_hospital_dms as vh', 'vh.id', 'v.hospital_id')
       .where('vh.sector', sector)
-      console.log(sql.toString());
-      return sql;
+    console.log(sql.toString());
+    return sql;
   }
 
   getHospitalByType(db: Knex) {
@@ -276,9 +271,9 @@ console.log(sql.toString());
       .select('*')
       .join('views_hospital_dms as vh', 'v.hospcode', 'vh.hospcode')
       .where('vh.sector', type)
-      console.log(sql.toString());
-      return sql;
-      
+    console.log(sql.toString());
+    return sql;
+
   }
 
 }

@@ -2,6 +2,10 @@ import Knex = require('knex');
 
 export class ReportAllModel {
 
+  getProvince(db: Knex) {
+    return db('b_province')
+  }
+
   report1(db: Knex, date: any, sector: any) {
     const sql = db('views_hospital_all as vh')
       .select('vc.*', 'vh.*')
@@ -13,34 +17,35 @@ export class ReportAllModel {
       .sum('hospitel_qty as hospitel_qty')
       .leftJoin('views_bed_hospital_cross as vc', 'vh.id', 'vc.hospital_id')
       .groupBy('vh.sub_ministry_code')
-
     return sql;
 
   }
 
   report2(db: Knex, date, sector) {
-//     const last = db('views_covid_case')
-//       .max('updated_entry as updated_entry_last')
-//       .whereRaw('hospital_id=vc.hospital_id')
-//       .whereNotNull('updated_entry')
-//       .as('updated_entry')
+    //     const last = db('views_covid_case')
+    //       .max('updated_entry as updated_entry_last')
+    //       .whereRaw('hospital_id=vc.hospital_id')
+    //       .whereNotNull('updated_entry')
+    //       .as('updated_entry')
 
-//     const sql = db('views_hospital_all as vh')
-//       .select('vh.id', 'vh.hospname', 'vh.sub_ministry_name', db.raw(`
-// sum( gcs_id = 1 ) AS severe,
-// sum( gcs_id = 2 ) AS moderate,
-// sum( gcs_id = 3 ) AS mild,
-// sum( gcs_id = 4 ) AS asymptomatic,
-// sum( gcs_id = 5 ) AS ip_pui,
-// sum( gcs_id = 6 ) AS observe`), last)
-//       .leftJoin('views_covid_case_last as vc', (v) => {
-//         v.on('vh.id', 'vc.hospital_id')
-//         v.on('vc.status', db.raw(`'ADMIT'`))
-//       })
-//       .groupBy('vh.id')
+    //     const sql = db('views_hospital_all as vh')
+    //       .select('vh.id', 'vh.hospname', 'vh.sub_ministry_name', db.raw(`
+    // sum( gcs_id = 1 ) AS severe,
+    // sum( gcs_id = 2 ) AS moderate,
+    // sum( gcs_id = 3 ) AS mild,
+    // sum( gcs_id = 4 ) AS asymptomatic,
+    // sum( gcs_id = 5 ) AS ip_pui,
+    // sum( gcs_id = 6 ) AS observe`), last)
+    //       .leftJoin('views_covid_case_last as vc', (v) => {
+    //         v.on('vh.id', 'vc.hospital_id')
+    //         v.on('vc.status', db.raw(`'ADMIT'`))
+    //       })
+    //       .groupBy('vh.id')
 
     // return sql;
-    return db('temp_report_all_2');
+    return db('temp_report_all_2 as t')
+      .select('t.*', 'h.zone_code', 'h.province_code')
+      .join('b_hospitals as h', 'h.id', 't.id');
   }
 
   report3(db: Knex, date, sector) {
@@ -53,7 +58,7 @@ export class ReportAllModel {
       .as('sub')
 
     let sql = db(sub)
-      .select('v.*', 'vh.hospname', 'vh.sub_ministry_name')
+      .select('v.*', 'vh.hospname', 'vh.sub_ministry_name', 'vh.zone_code', 'vh.province_code')
       .join('views_case_hospital_date_cross as v', (v) => {
         v.on('v.hospital_id', 'sub.hospital_id')
         v.on('v.entry_date', 'sub.entry_date')
@@ -71,6 +76,8 @@ export class ReportAllModel {
       .select('vh.id as hospital_id',
         'vh.hospname',
         'vh.sub_ministry_name',
+        'vh.zone_code',
+        'vh.province_code',
         db.raw(`sum((cl.gcs_id in (1,2,3,4) or cl.gcs_id is null) ) as admit,
         sum(c.status!='ADMIT' and (cl.gcs_id in (1,2,3,4) or cl.gcs_id is null) ) as discharge,
         sum(c.status='REFER' and hr.hospital_type='HOSPITEL'  and (cl.gcs_id in (1,2,3,4) or cl.gcs_id is null)  ) as discharge_hospitel,
@@ -95,23 +102,48 @@ export class ReportAllModel {
 
   report5(db: Knex, date, sector) {
     let sub = db('views_hospital_all as vh')
-      .select('vh.id as hospital_id', 'vh.hospname', 'vh.sub_ministry_name', db.raw(`
-ifnull(sum( gcs_id  =1 ),0) +
-ifnull(sum( gcs_id = 2 ),0) +
-ifnull(sum( gcs_id = 3 ),0) +
-ifnull(sum( gcs_id = 4 ),0) +
-ifnull(sum( gcs_id = 5 ),0) AS sum,
-vc.updated_entry  as updated_entry`))
+      .select('vh.id as hospital_id', 'vh.hospname', 'vh.province_code', 'vh.zone_code', 'vh.sub_ministry_name', db.raw(`
+      ifnull(sum( gcs_id  =1 ),0) +
+      ifnull(sum( gcs_id = 2 ),0) +
+      ifnull(sum( gcs_id = 3 ),0) +
+      ifnull(sum( gcs_id = 4 ),0) +
+      ifnull(sum( gcs_id = 5 ),0) AS sum,
+      vc.updated_entry  as updated_entry`))
       .leftJoin('views_covid_case_last as vc', (v) => {
         v.on('vh.id', 'vc.hospital_id')
         v.on('vc.status', db.raw(`'ADMIT'`))
       })
       .groupBy('vh.id')
+      .groupBy('vh.hospcode')
       .as('sub')
 
     let sql =
-      db('views_hospital_all  as vh')
-        .select('vb.*', 'sub.*', 'vh.hospname', 'vh.sub_ministry_name')
+      db('views_hospital_all as vh')
+        .select(
+          'vh.province_code',
+          'vh.zone_code',
+          'vb.hospital_id',
+          'vb.aiir_qty',
+          'vb.aiir_covid_qty',
+          'vb.aiir_spare_qty',
+          'vb.modified_aiir_qty',
+          'vb.modified_aiir_covid_qty',
+          'vb.modified_aiir_spare_qty',
+          'vb.isolate_qty',
+          'vb.isolate_covid_qty',
+          'vb.isolate_spare_qty',
+          'vb.cohort_qty',
+          'vb.cohort_covid_qty',
+          'vb.cohort_spare_qty',
+          'vb.hospitel_qty',
+          'vb.hospitel_covid_qty',
+          'vb.hospitel_spare_qty',
+          'vb.entry_date',
+          'sub.hospname',
+          'sub.sum',
+          'sub.updated_entry',
+          'vh.hospname',
+          'vh.sub_ministry_name')
         .leftJoin('views_bed_hospital_cross as vb', 'vh.id', 'vb.hospital_id')
         .leftJoin(sub, 'sub.hospital_id', 'vb.hospital_id')
         .orderBy('vh.sub_ministry_name')
@@ -120,33 +152,57 @@ vc.updated_entry  as updated_entry`))
   }
 
   report6(db: Knex, date, sector) {
-    // const last = db('views_covid_case')
-    //   .max('updated_entry as updated_entry_last')
-    //   .whereRaw('hospital_id=vc.hospital_id')
-    //   .whereNotNull('updated_entry')
-    //   .as('updated_entry')
-
-    // let sub = db('views_hospital_all as vh')
-    //   .select('vh.id as hospital_id', 'vh.hospname', 'vh.sub_ministry_name', db.raw(`
-    //   sum( bed_id  =1 ) as aiir_usage_qty,
-    //   sum( bed_id = 2 ) as modified_aiir_usage_qty,
-    //   sum( bed_id = 3 ) as isolate_usage_qty,
-    //   sum( bed_id = 4 ) as cohort_usage_qty,
-    //   sum( bed_id = 5 ) AS hospitel_usage_qty`), last)
-    //   .leftJoin('views_covid_case_last as vc', (v) => {
-    //     v.on('vh.id', 'vc.hospital_id')
-    //     v.on('vc.status', db.raw(`'ADMIT'`))
-    //   })
-    //   .groupBy('vh.id')
-    //   .as('sub')
-
-    // let sql =
-    //   db('views_hospital_all  as vh')
-    //     .select('vb.*', 'sub.*', 'vh.hospname', 'vh.sub_ministry_name')
-    //     .leftJoin('views_bed_hospital_cross as vb', 'vh.id', 'vb.hospital_id')
-    //     .leftJoin(sub, 'sub.hospital_id', 'vh.id')
-    //     .orderBy('vh.sub_ministry_name')
-    return db('temp_report_all_6_1');
+    const sql = `SELECT
+    vh.hospname,
+    SUM( vb.aiir_qty ) AS aiir_qty,
+    SUM( vb.modified_aiir_qty ) AS modified_aiir_qty,
+    SUM( vb.isolate_qty ) AS isolate_qty,
+    SUM( vb.cohort_qty ) AS cohort_qty,
+    SUM( vb.hospitel_qty ) AS hospitel_qty,
+    SUM( vb.aiir_covid_qty ) AS aiir_covid_qty,
+    SUM( vb.modified_aiir_covid_qty ) AS modified_aiir_covid_qty,
+    SUM( vb.isolate_covid_qty ) AS isolate_covid_qty,
+    SUM( vb.cohort_covid_qty ) AS cohort_covid_qty,
+    SUM( vb.hospitel_covid_qty ) AS hospitel_covid_qty,
+    SUM( vb.aiir_spare_qty ) AS aiir_spare_qty,
+    SUM( vb.modified_aiir_spare_qty ) AS modified_aiir_spare_qty,
+    SUM( vb.isolate_spare_qty ) AS isolate_spare_qty,
+    SUM( vb.cohort_spare_qty ) AS cohort_spare_qty,
+    SUM( vb.hospitel_spare_qty ) AS hospitel_spare_qty,
+    SUM( sub.aiir_usage_qty ) AS aiir_usage_qty,
+    SUM( sub.modified_aiir_usage_qty ) AS modified_aiir_qty,
+    SUM( sub.isolate_usage_qty ) AS isolate_usage_qty,
+    SUM( sub.cohort_usage_qty ) AS cohort_usage_qty,
+    SUM( sub.hospitel_usage_qty ) AS hospitel_usage_qty,
+    vh.sub_ministry_name,
+    vh.province_code,
+    vh.zone_code
+  FROM
+    views_hospital_all AS vh
+    LEFT JOIN views_bed_hospital_cross AS vb ON vh.id = vb.hospital_id
+    LEFT JOIN (
+    SELECT
+      vh.id AS hospital_id,
+      vh.hospname,
+      vh.sub_ministry_name,
+      sum( bed_id = 1 ) AS aiir_usage_qty,
+      sum( bed_id = 2 ) AS modified_aiir_usage_qty,
+      sum( bed_id = 3 ) AS isolate_usage_qty,
+      sum( bed_id = 4 ) AS cohort_usage_qty,
+      sum( bed_id = 5 ) AS hospitel_usage_qty,
+      ( SELECT max( updated_entry ) AS updated_entry_last FROM views_covid_case WHERE hospital_id = vc.hospital_id AND updated_entry IS NOT NULL ) AS updated_entry 
+    FROM
+      views_hospital_all AS vh
+      LEFT JOIN views_covid_case_last AS vc ON vh.id = vc.hospital_id 
+      AND vc.status = 'ADMIT' 
+    GROUP BY
+      vh.id 
+    ) AS sub ON sub.hospital_id = vh.id 
+  GROUP BY
+    vh.id
+  ORDER BY
+    vh.sub_ministry_name ASC`;
+    return db.raw(sql)
   }
 
   report6Ministry(db: Knex, date, sector) {
