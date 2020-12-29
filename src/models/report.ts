@@ -78,7 +78,7 @@ export class ReportModel {
       sum( bed_id = 3 ) as isolate_usage_qty,
       sum( bed_id = 4 ) as cohort_usage_qty,
       sum( bed_id = 5 ) AS hospitel_usage_qty`), last)
-      .leftJoin('views_covid_case_last as vc', (v) => {
+      .leftJoin('temp_views_covid_case_last as vc', (v) => {
         v.on('vh.id', 'vc.hospital_id')
         v.on('vc.status', db.raw(`'ADMIT'`))
       })
@@ -435,7 +435,7 @@ export class ReportModel {
     const subCioCheck = db('p_cio_check_confirm').groupBy('covid_case_detail_id').max('id as id')
 
     const cioCheck = db('p_cio_check_confirm as ci').whereIn('ci.id', subCioCheck).as('cc');
-    let sql = db('views_covid_case_last as cl')
+    let sql = db('temp_views_covid_case_last as cl')
       .select('du.d1', 'du.d2', 'du.d3', 'du.d4', 'du.d5', 'du.d7', 'du.d8', 'c.id as covid_case_id', 'cl.id as covid_case_detail_id', 'cc.status as cio_status', 'cc.remark as cio_remark', 'cc.created_date as cio_created_date', db.raw(`DATE_FORMAT(cc.created_date,'%Y-%m-%d') as cio_date`))
       .select('pt.hn', 'c.an', 'pt.hospital_id', last, db.raw(`DATEDIFF( now(),(${last}) ) as days`), 'h.hospname', 'h.hospcode', 'h.zone_code', 'h.province_name', 'c.date_admit', 'g.name as gcs_name', 'b.name as bed_name', 'm.name as medical_supplies_name')
       .join('p_covid_cases as c', 'c.id', 'cl.covid_case_id')
@@ -485,7 +485,7 @@ export class ReportModel {
       db.raw(`sum(if( i.generic_id = 8 ,i.qty,0)) AS 'd8'`))
       .join('view_covid_case_last AS l', 'l.id', 'i.covid_case_detail_id')
       .groupBy('i.covid_case_detail_id').as('du')
-    let sql = db('views_covid_case_last as cl')
+    let sql = db('temp_views_covid_case_last as cl')
       .select(db.raw('sum((du.d1 is not null) and (du.d1 > 0)) as d1'),
         db.raw('sum((du.d2 is not null) and (du.d2 > 0)) as d2'),
         db.raw('sum((du.d3 is not null) and (du.d3 > 0)) as d3'),
@@ -643,7 +643,7 @@ export class ReportModel {
         p_covid_cases p
         JOIN p_patients pp ON pp.id = p.patient_id
         JOIN b_hospitals h ON h.id = pp.hospital_id 
-        JOIN views_covid_case_last v on v.covid_case_id = p.id
+        JOIN temp_views_covid_case_last v on v.covid_case_id = p.id
       WHERE
         p.status = 'ADMIT' and p.is_deleted = 'N' and v.gcs_id in (1,2,3,4)
       GROUP BY
@@ -696,7 +696,7 @@ export class ReportModel {
         p_covid_cases p
         JOIN p_patients pp ON pp.id = p.patient_id
         JOIN b_hospitals h ON h.id = pp.hospital_id 
-        JOIN views_covid_case_last v on v.covid_case_id = p.id
+        JOIN temp_views_covid_case_last v on v.covid_case_id = p.id
       WHERE
         p.status = 'ADMIT' and p.is_deleted = 'N' and v.gcs_id in (1,2,3,4)
       GROUP BY
