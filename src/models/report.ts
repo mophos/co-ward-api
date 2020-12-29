@@ -15,7 +15,7 @@ export class ReportModel {
     //   .where('vcl.entry_date', date)
     //   .where('vcl.status', 'ADMIT')
     //   .groupBy('pp.hospital_id', 'vcl.gcs_id')
-    return db('views_case_hospital_date_cross as v')
+    let sql =  db('views_case_hospital_date_cross as v')
       .select('h.province_code', 'h.province_name', 'h.zone_code', 'h.hospcode', 'h.hospname', 'h.id as hospital_id')
       .sum('severe as severe')
       .sum('mild as mild')
@@ -30,6 +30,9 @@ export class ReportModel {
       .groupBy('h.id')
       .orderBy('h.zone_code')
       .orderBy('h.province_code')
+      console.log(sql.toString());
+      
+      return sql
   }
   getHeadGcs(db: Knex, date, provinces) {
     return db('views_case_hospital_date_cross as v')
@@ -218,7 +221,7 @@ export class ReportModel {
 
   getHospital(db: Knex) {
     return db('b_hospitals AS bh')
-      .whereIn('bh.hosptype_code', ['01', '05', '06', '07', '11', '12'])
+      // .whereIn('bh.hosptype_code', ['01', '05', '06', '07', '11', '12'])
   }
 
   getHospitalByType(db: Knex) {
@@ -468,6 +471,7 @@ export class ReportModel {
     if (showPersons) {
       sql.select('pp.first_name', 'pp.last_name', 'pp.cid', 'c.sat_id')
     }
+    console.log(sql.toString());
     return sql;
   }
 
@@ -569,6 +573,8 @@ export class ReportModel {
       .groupBy('h.zone_code')
       .orderBy('h.zone_code')
       .orderBy('h.province_code')
+      console.log(sql.toString());
+      
     return sql;
   }
 
