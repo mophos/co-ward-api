@@ -468,6 +468,7 @@ export class ReportModel {
     if (showPersons) {
       sql.select('pp.first_name', 'pp.last_name', 'pp.cid', 'c.sat_id')
     }
+    console.log(sql.toString());
     return sql;
   }
 
@@ -626,13 +627,15 @@ export class ReportModel {
   homework(db: Knex, filter = 'all') {
     const sql = db('views_review_homework as v')
       .select(db.raw(`b.zone_code,
-    sum(b.hosptype_code in ('05','06','07','11','12')) as government,
-    sum(b.hosptype_code in ('05','06','07','11','12') and v.register_last_date is not null) as government_register,
+    sum(b.hosptype_code in ('05','06','07','11','12','19','18')) as government,
+    sum(b.hosptype_code in ('05','06','07','11','12','19','18') and v.register_last_date is not null) as government_register,
       sum(b.hosptype_code in ('15')) as private,
     sum(b.hosptype_code in ('15') and v.register_last_date is not null) as private_register`))
       .join('b_hospitals as b', 'b.id', 'v.hospital_id')
+      .whereIn('b.hosptype_code',['15','05','06','07','11','12','19','18'])
       .groupBy('b.zone_code')
       .orderBy('b.zone_code')
+    // console.log(sql.toString());
 
     return sql;
   }
@@ -641,42 +644,23 @@ export class ReportModel {
     const sql = db('views_review_homework as v')
       .select('v.*', 'b.hospcode', 'b.hospname', 'bs.name as sub_ministry_name', 'b.zone_code')
       .join('b_hospitals as b', 'b.id', 'v.hospital_id')
-      .join('b_hospital_subministry as bs', 'bs.code', 'b.sub_ministry_code')
+      .leftJoin('b_hospital_subministry as bs', 'bs.code', 'b.sub_ministry_code')
       .orderBy('b.zone_code')
       .orderBy('b.province_name')
       .orderBy('bs.name')
+      .whereIn('b.hosptype_code',['15','05','06','07','11','12','19','18'])
     if (filter == 'register') {
       sql.whereNotNull('register_last_date')
     } else if (filter == 'nonregister') {
       sql.whereNull('register_last_date')
     }
+    // console.log(sql.toString());
+
     return sql;
   }
 
   getPersonTime(db: Knex) {
-    return db.raw(`SELECT
-      vt.zone_code,
-      SUM( IF ( ( v.gcs_id IN ( 1, 2, 3, 4 ) AND v.person_id IS NOT NULL ), 1, 0 ) ) AS person,
-      SUM( IF ( ( vt.gcs_id IN ( 1, 2, 3, 4 ) ), 1, 0 ) ) AS person_time,
-      SUM( IF ( ( v.gcs_id IS NULL AND v.person_id IS NOT NULL ), 1, 0 ) ) AS person_old,
-      SUM( IF ( ( vt.gcs_id IS NULL ), 1, 0 ) ) AS person_old_time,
-      SUM(
-    IF
-      (
-      ( ( v.gcs_id IN ( 1, 2, 3, 4 ) OR v.gcs_id IS NULL ) AND v.person_id IS NOT NULL ),
-      1,
-      0 
-      ) 
-      ) AS person_total,
-      SUM( IF ( ( vt.gcs_id IN ( 1, 2, 3, 4 ) OR v.gcs_id IS NULL ), 1, 0 ) ) AS person_time_total,
-      SUM( IF ( ( vt.status = 'DEATH' ), 1, 0 ) ) AS person_death
-    FROM
-      views_case_zone_total_times AS vt
-      LEFT JOIN views_case_zone_total_persons AS v ON vt.case_id = v.case_id 
-    GROUP BY
-      vt.zone_code 
-    ORDER BY
-      vt.zone_code`);
+    return db('temp_report_records');
   }
 
   getLocalQuarantine(db: Knex) {

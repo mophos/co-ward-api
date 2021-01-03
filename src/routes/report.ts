@@ -73,7 +73,7 @@ router.get('/records', async (req: Request, res: Response) => {
   const db = req.dbReport;
   try {
     const rs: any = await model.getPersonTime(db);
-    res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
