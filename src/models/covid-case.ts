@@ -69,7 +69,7 @@ export class CovidCaseModel {
   }
 
   getCasePresent(db: Knex, hospitalId, query) {
-    const _query = `%${query}%`;
+    const _query = `${query}%`;
     const last = db('views_covid_case')
       .max('updated_entry as updated_entry_last')
       .whereRaw('covid_case_id=cd.covid_case_id')
