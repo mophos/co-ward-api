@@ -83,8 +83,6 @@ router.get('/report5', async (req: Request, res: Response) => {
   const date = req.query.date;
   try {
     const rs: any = await model.report5(db, date, sector);
-    console.log(rs);
-    
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
