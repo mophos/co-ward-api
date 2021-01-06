@@ -18,7 +18,7 @@ export class BedModel {
 		let sql = `SELECT
 			b.id,
 			b.NAME,
-			t.count 
+			IFNULL(t.count,0)
 		FROM
 			b_beds b
 			LEFT JOIN (

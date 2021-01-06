@@ -147,7 +147,8 @@ export class ReportAllModel {
         .leftJoin('views_bed_hospital_cross as vb', 'vh.id', 'vb.hospital_id')
         .leftJoin(sub, 'sub.hospital_id', 'vb.hospital_id')
         .orderBy('vh.sub_ministry_name')
-
+          console.log(sql.toString());
+          
     return sql;
   }
 
