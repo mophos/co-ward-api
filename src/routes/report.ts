@@ -1617,8 +1617,9 @@ router.get('/admit-confirm-case', async (req: Request, res: Response) => {
   const provinceCode = req.decoded.provinceCode;
   // const showPersons = true;
   const right = req.decoded.rights;
+  // console.log(right);
 
-  const showPersons = _.findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 ? true : false;
+  const showPersons = _.findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 || _.findIndex(right, { name: 'STAFF_VIEW_PATIENT_INFO' }) > -1 ? true : false;
 
   try {
     if (type == 'MANAGER') {
@@ -1628,7 +1629,7 @@ router.get('/admit-confirm-case', async (req: Request, res: Response) => {
       const rs: any = await model.admitConfirmCaseProvice(db, zoneCode, null, showPersons);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else if (providerType == 'SSJ') {
-      const rs: any = await model.admitConfirmCaseProvice(db, zoneCode, provinceCode);
+      const rs: any = await model.admitConfirmCaseProvice(db, zoneCode, provinceCode, showPersons);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else {
       res.send({ ok: false, code: HttpStatus.UNAUTHORIZED, error: HttpStatus.UNAUTHORIZED });

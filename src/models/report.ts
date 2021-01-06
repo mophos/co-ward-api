@@ -99,7 +99,7 @@ export class ReportModel {
         .orderBy('bs.name')
         .orderBy('vh.hospname')
 
-    console.log(sql.toString());
+    // console.log(sql.toString());
 
     return sql;
     // return db('views_bed_hospitals AS vbh')
@@ -410,7 +410,7 @@ export class ReportModel {
     if (showPersons) {
       sql.select('first_name', 'last_name', 'cid', 'sat_id')
     }
-    console.log(sql.toString());
+    // console.log(sql.toString());
     return sql;
   }
 
@@ -459,7 +459,7 @@ export class ReportModel {
     if (showPersons) {
       sql.select('pp.first_name', 'pp.last_name', 'pp.cid', 'c.sat_id')
     }
-    console.log(sql.toString());
+    // console.log(sql.toString());
 
     return sql;
   }
