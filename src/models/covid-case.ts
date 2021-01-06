@@ -69,36 +69,40 @@ export class CovidCaseModel {
   }
 
   getCasePresent(db: Knex, hospitalId, query) {
+    const _query = `${query}%`;
     const last = db('views_covid_case')
       .max('updated_entry as updated_entry_last')
       .whereRaw('covid_case_id=cd.covid_case_id')
       .whereNotNull('updated_entry')
       .as('updated_entry')
 
-    return db('p_covid_cases as c')
-      .select(last, 'c.id as covid_case_id', 'c.status', 'c.date_admit', 'pt.hn', 'pt.person_id', 'cd.id as covid_case_details_id', 'p.*', 't.name as title_name',
-        'cd.bed_id', 'cd.gcs_id', 'cd.medical_supplie_id', db.raw(`ifnull(cd.create_date, null) as create_date`),
+    const sql = db('p_covid_cases as c')
+      .select('cd.updated_entry', 'c.id as covid_case_id', 'c.status', 'c.date_admit', 'pt.hn', 'pt.person_id', 'cd.id as covid_case_details_id', 'p.*', 't.name as title_name',
+        'ccd.bed_id', 'ccd.gcs_id', 'cd.medical_supplie_id', db.raw(`ifnull(cd.create_date, null) as create_date`),
         db.raw(`ifnull(cd.entry_date, null) as entry_date`),
-        db.raw(`(select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 1 or generic_id = 2) limit 1) as set1,
-      (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 3 or generic_id = 4) limit 1) as set2,
-      (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 7  limit 1) as set3,
-      (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 8  limit 1) as set4`))
+      //   db.raw(`(select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 1 or generic_id = 2) limit 1) as set1,
+      // (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 3 or generic_id = 4) limit 1) as set2,
+      // (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 7  limit 1) as set3,
+      // (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 8  limit 1) as set4`)
+      'vg.set1','vg.set2','vg.set3','vg.set4'
+      )
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .leftJoin('um_titles as t', 'p.title_id', 't.id')
-      .joinRaw(`left join ( select max(ccd.id) as covid_case_detail_id,cc.patient_id from p_covid_case_details as ccd
-    join p_covid_cases as cc on cc.id = ccd.covid_case_id
-    group by cc.patient_id ) as ccd on c.patient_id = ccd.patient_id
-    left join p_covid_case_details as cd on ccd.covid_case_detail_id = cd.id`)
-      // .leftJoin('p_covid_case_details as cd','ccs.covid_case_detail_id','cd.id')
+      .leftJoin('view_covid_case_last as ccd', 'ccd.covid_case_id', 'c.id')
+      .leftJoin('p_covid_case_details as cd', 'ccd.id', 'cd.id')
+      .leftJoin('view_generic_case_item as vg', 'vg.covid_case_detail_id', 'cd.id')
       .where('pt.hospital_id', hospitalId)
       .where('c.status', 'ADMIT')
       .where('c.is_deleted', 'N')
-      .where((v) => {
-        v.where('pt.hn', 'like', '%' + query + '%')
-        v.orWhere('p.first_name', 'like', '%' + query + '%')
-        v.orWhere('p.last_name', 'like', '%' + query + '%')
+    if (query) {
+      sql.where((v) => {
+        v.where('pt.hn', 'like', _query)
+        v.orWhere('p.first_name', 'like', _query)
+        v.orWhere('p.last_name', 'like', _query)
       });
+    }
+    return sql;
   }
 
   getInfo(db: Knex, hospitalId, covidCaseId) {
@@ -549,11 +553,10 @@ export class CovidCaseModel {
       .where('covid_case_detail_id', id)
       .where('is_approved', 'N')
   }
-
+  
   listOldPatient(db: Knex, hospitalId) {
     const sql = `SELECT covid_case_id FROM view_covid_case WHERE gcs_id IS NULL GROUP BY covid_case_id`;
-    const sqls = `SELECT t.id FROM ( SELECT p.id, pp.hospital_id, p.date_admit, SUBSTRING( p.date_discharge FROM 1 FOR 10 ) AS date_discharge, DATEDIFF( SUBSTRING( p.date_discharge FROM 1 FOR 10 ), p.date_admit ) + 1 AS date_diff, ( SELECT COUNT( * ) FROM p_covid_case_details WHERE covid_case_id = p.id GROUP BY covid_case_id ) AS count_detail FROM p_covid_cases p JOIN p_patients pp ON pp.id = p.patient_id 
-    WHERE p.status != 'ADMIT'  AND p.is_deleted = 'N' ) AS t WHERE t.date_diff != t.count_detail `;
+    const sqls = `select id from view_date_diff `;
 
     return db('views_covid_case_last as cl')
       .select('p.hn', 'pc.an', 'pp.first_name', 'pp.last_name', 'p.id as patient_id', 'pc.id as covid_case_id', 'pc.date_admit', 'pc.date_discharge')

@@ -32,7 +32,7 @@ export class ReportModel {
       .orderBy('h.province_code')
   }
   getHeadGcs(db: Knex, date, provinces) {
-    return db('views_case_hospital_date_cross as v')
+    return db('temp_views_case_hospital_date_cross as v')
       .select('h.province_code', 'h.province_name', 'h.zone_code', 'h.hospcode', 'h.hospname', 'h.id as hospital_id')
       .sum('severe as severe')
       .sum('mild as mild')
@@ -50,7 +50,7 @@ export class ReportModel {
   }
 
   getGcs(db: Knex, date) {
-    return db('views_case_dates AS vcl')
+    return db('temp_views_case_dates AS vcl')
       .select('vcl.gcs_id', 'bg.name as gcs_name', 'pp.hospital_id', 'pp.hn', 'p.an', 'vcl.date_admit', 'vcl.status')
       .join('p_covid_cases as p', 'p.id', 'vcl.covid_case_id')
       .join('p_patients AS pp', 'pp.id', 'vcl.patient_id')
@@ -78,7 +78,7 @@ export class ReportModel {
       sum( bed_id = 3 ) as isolate_usage_qty,
       sum( bed_id = 4 ) as cohort_usage_qty,
       sum( bed_id = 5 ) AS hospitel_usage_qty`), last)
-      .leftJoin('views_covid_case_last as vc', (v) => {
+      .leftJoin('temp_views_covid_case_last as vc', (v) => {
         v.on('vh.id', 'vc.hospital_id')
         v.on('vc.status', db.raw(`'ADMIT'`))
       })
@@ -106,42 +106,7 @@ export class ReportModel {
   }
 
   getUseBed(db: Knex) {
-    const last = db('views_covid_case')
-      .max('updated_entry as updated_entry')
-      .whereRaw('hospital_id=vc.hospital_id')
-      .whereNotNull('updated_entry')
-      .as('updated_entry')
-
-    let sub = db('b_hospitals as vh')
-      .select('vh.id as hospital_id', 'vh.hospname', 'bs.name as sub_ministry_name', db.raw(`
-      sum( bed_id  =1 ) as aiir_usage_qty,
-      sum( bed_id = 2 ) as modified_aiir_usage_qty,
-      sum( bed_id = 3 ) as isolate_usage_qty,
-      sum( bed_id = 4 ) as cohort_usage_qty,
-      sum( bed_id = 5 ) AS hospitel_usage_qty`), last)
-      .join('views_covid_case_last as vc', (v) => {
-        v.on('vh.id', 'vc.hospital_id')
-        v.on('vc.status', db.raw(`'ADMIT'`))
-      })
-      .join('b_hospital_subministry as bs', 'bs.code', 'vh.sub_ministry_code')
-      // .where('vh.province_code', provinceCode)
-      .whereIn('vh.hosptype_code', ['05', '06', '07', '11', '12', '15'])
-      .groupBy('vh.id')
-      .as('sub')
-
-    let sql =
-      db('b_hospitals  as vh')
-        .select('vb.*', 'sub.*', 'vh.province_name', 'vh.province_name', 'vh.zone_code', 'vh.hospcode')
-        .join('views_bed_hospital_cross as vb', 'vh.id', 'vb.hospital_id')
-        .join(sub, 'sub.hospital_id', 'vh.id')
-        .join('b_hospital_subministry as bs', 'bs.code', 'vh.sub_ministry_code')
-        // .where('vh.province_code', provinceCode)
-        .whereIn('vh.hosptype_code', ['05', '06', '07', '11', '12', '15'])
-        .orderBy('bs.name')
-        .orderBy('vh.hospname')
-
-    console.log(sql.toString());
-
+    let sql = db('temp_report_bed')
     return sql;
     // return db('views_bed_hospitals AS vbh')
   }
@@ -219,6 +184,11 @@ export class ReportModel {
   getHospital(db: Knex) {
     return db('b_hospitals AS bh')
       .whereIn('bh.hosptype_code', ['01', '05', '06', '07', '11', '12'])
+  }
+
+  getHospitalAll(db: Knex) {
+    return db('b_hospitals AS bh')
+      // .whereIn('bh.hosptype_code', ['01', '05', '06', '07', '11', '12'])
   }
 
   getHospitalByType(db: Knex) {
@@ -440,6 +410,7 @@ export class ReportModel {
     if (showPersons) {
       sql.select('first_name', 'last_name', 'cid', 'sat_id')
     }
+    console.log(sql.toString());
     return sql;
   }
 
@@ -464,7 +435,7 @@ export class ReportModel {
     const subCioCheck = db('p_cio_check_confirm').groupBy('covid_case_detail_id').max('id as id')
 
     const cioCheck = db('p_cio_check_confirm as ci').whereIn('ci.id', subCioCheck).as('cc');
-    let sql = db('views_covid_case_last as cl')
+    let sql = db('temp_views_covid_case_last as cl')
       .select('du.d1', 'du.d2', 'du.d3', 'du.d4', 'du.d5', 'du.d7', 'du.d8', 'c.id as covid_case_id', 'cl.id as covid_case_detail_id', 'cc.status as cio_status', 'cc.remark as cio_remark', 'cc.created_date as cio_created_date', db.raw(`DATE_FORMAT(cc.created_date,'%Y-%m-%d') as cio_date`))
       .select('pt.hn', 'c.an', 'pt.hospital_id', last, db.raw(`DATEDIFF( now(),(${last}) ) as days`), 'h.hospname', 'h.hospcode', 'h.zone_code', 'h.province_name', 'c.date_admit', 'g.name as gcs_name', 'b.name as bed_name', 'm.name as medical_supplies_name')
       .join('p_covid_cases as c', 'c.id', 'cl.covid_case_id')
@@ -514,7 +485,7 @@ export class ReportModel {
       db.raw(`sum(if( i.generic_id = 8 ,i.qty,0)) AS 'd8'`))
       .join('view_covid_case_last AS l', 'l.id', 'i.covid_case_detail_id')
       .groupBy('i.covid_case_detail_id').as('du')
-    let sql = db('views_covid_case_last as cl')
+    let sql = db('temp_views_covid_case_last as cl')
       .select(db.raw('sum((du.d1 is not null) and (du.d1 > 0)) as d1'),
         db.raw('sum((du.d2 is not null) and (du.d2 > 0)) as d2'),
         db.raw('sum((du.d3 is not null) and (du.d3 > 0)) as d3'),
@@ -556,13 +527,15 @@ export class ReportModel {
   homework(db: Knex, filter = 'all') {
     const sql = db('views_review_homework as v')
       .select(db.raw(`b.zone_code,
-    sum(b.hosptype_code in ('05','06','07','11','12')) as government,
-    sum(b.hosptype_code in ('05','06','07','11','12') and v.register_last_date is not null) as government_register,
+    sum(b.hosptype_code in ('05','06','07','11','12','19','18')) as government,
+    sum(b.hosptype_code in ('05','06','07','11','12','19','18') and v.register_last_date is not null) as government_register,
       sum(b.hosptype_code in ('15')) as private,
     sum(b.hosptype_code in ('15') and v.register_last_date is not null) as private_register`))
       .join('b_hospitals as b', 'b.id', 'v.hospital_id')
+      .whereIn('b.hosptype_code',['15','05','06','07','11','12','19','18'])
       .groupBy('b.zone_code')
       .orderBy('b.zone_code')
+    // console.log(sql.toString());
 
     return sql;
   }
@@ -571,42 +544,23 @@ export class ReportModel {
     const sql = db('views_review_homework as v')
       .select('v.*', 'b.hospcode', 'b.hospname', 'bs.name as sub_ministry_name', 'b.zone_code')
       .join('b_hospitals as b', 'b.id', 'v.hospital_id')
-      .join('b_hospital_subministry as bs', 'bs.code', 'b.sub_ministry_code')
+      .leftJoin('b_hospital_subministry as bs', 'bs.code', 'b.sub_ministry_code')
       .orderBy('b.zone_code')
       .orderBy('b.province_name')
       .orderBy('bs.name')
+      .whereIn('b.hosptype_code',['15','05','06','07','11','12','19','18'])
     if (filter == 'register') {
       sql.whereNotNull('register_last_date')
     } else if (filter == 'nonregister') {
       sql.whereNull('register_last_date')
     }
+    // console.log(sql.toString());
+
     return sql;
   }
 
   getPersonTime(db: Knex) {
-    return db.raw(`SELECT
-      vt.zone_code,
-      SUM( IF ( ( v.gcs_id IN ( 1, 2, 3, 4 ) AND v.person_id IS NOT NULL ), 1, 0 ) ) AS person,
-      SUM( IF ( ( vt.gcs_id IN ( 1, 2, 3, 4 ) ), 1, 0 ) ) AS person_time,
-      SUM( IF ( ( v.gcs_id IS NULL AND v.person_id IS NOT NULL ), 1, 0 ) ) AS person_old,
-      SUM( IF ( ( vt.gcs_id IS NULL ), 1, 0 ) ) AS person_old_time,
-      SUM(
-    IF
-      (
-      ( ( v.gcs_id IN ( 1, 2, 3, 4 ) OR v.gcs_id IS NULL ) AND v.person_id IS NOT NULL ),
-      1,
-      0 
-      ) 
-      ) AS person_total,
-      SUM( IF ( ( vt.gcs_id IN ( 1, 2, 3, 4 ) OR v.gcs_id IS NULL ), 1, 0 ) ) AS person_time_total,
-      SUM( IF ( ( vt.status = 'DEATH' ), 1, 0 ) ) AS person_death
-    FROM
-      views_case_zone_total_times AS vt
-      LEFT JOIN views_case_zone_total_persons AS v ON vt.case_id = v.case_id 
-    GROUP BY
-      vt.zone_code 
-    ORDER BY
-      vt.zone_code`);
+    return db('temp_report_records');
   }
 
   getLocalQuarantine(db: Knex) {
@@ -672,7 +626,7 @@ export class ReportModel {
         p_covid_cases p
         JOIN p_patients pp ON pp.id = p.patient_id
         JOIN b_hospitals h ON h.id = pp.hospital_id 
-        JOIN views_covid_case_last v on v.covid_case_id = p.id
+        JOIN temp_views_covid_case_last v on v.covid_case_id = p.id
       WHERE
         p.status = 'ADMIT' and p.is_deleted = 'N' and v.gcs_id in (1,2,3,4)
       GROUP BY
@@ -725,7 +679,7 @@ export class ReportModel {
         p_covid_cases p
         JOIN p_patients pp ON pp.id = p.patient_id
         JOIN b_hospitals h ON h.id = pp.hospital_id 
-        JOIN views_covid_case_last v on v.covid_case_id = p.id
+        JOIN temp_views_covid_case_last v on v.covid_case_id = p.id
       WHERE
         p.status = 'ADMIT' and p.is_deleted = 'N' and v.gcs_id in (1,2,3,4)
       GROUP BY
