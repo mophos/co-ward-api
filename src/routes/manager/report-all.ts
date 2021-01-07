@@ -701,21 +701,21 @@ router.get('/report6/excel', async (req: Request, res: Response) => {
     ws.cell(2, 16).string('คงเหลือ');
 
     ws.cell(3, 1).string('รวม');
-    ws.cell(3, 2).number(toNumber(sumBy(rs, 'aiir_qty'))).style(right);
+    ws.cell(3, 2).number(toNumber(sumBy(rs, 'aiir_covid_qty'))).style(right);
     ws.cell(3, 3).number(toNumber(sumBy(rs, 'aiir_usage_qty'))).style(right);
-    ws.cell(3, 4).number(toNumber((sumBy(rs, 'aiir_qty') - sumBy(rs, 'aiir_usage_qty')) || 0)).style(right);
-    ws.cell(3, 5).number(toNumber(sumBy(rs, 'modified_aiir_qty'))).style(right);
+    ws.cell(3, 4).number(toNumber((sumBy(rs, 'aiir_covid_qty') - sumBy(rs, 'aiir_usage_qty')) || 0)).style(right);
+    ws.cell(3, 5).number(toNumber(sumBy(rs, 'modified_aiir_covid_qty'))).style(right);
     ws.cell(3, 6).number(toNumber(sumBy(rs, 'modified_aiir_usage_qty'))).style(right);
-    ws.cell(3, 7).number(toNumber((sumBy(rs, 'modified_aiir_qty') - sumBy(rs, 'modified_aiir_usage_qty')) || 0)).style(right);
-    ws.cell(3, 8).number(toNumber(sumBy(rs, 'isolate_qty'))).style(right);
+    ws.cell(3, 7).number(toNumber((sumBy(rs, 'modified_aiir_covid_qty') - sumBy(rs, 'modified_aiir_usage_qty')) || 0)).style(right);
+    ws.cell(3, 8).number(toNumber(sumBy(rs, 'isolate_covid_qty'))).style(right);
     ws.cell(3, 9).number(toNumber(sumBy(rs, 'isolate_usage_qty'))).style(right);
-    ws.cell(3, 10).number(toNumber((sumBy(rs, 'isolate_qty') - sumBy(rs, 'isolate_usage_qty')) || 0)).style(right);
-    ws.cell(3, 11).number(toNumber(sumBy(rs, 'cohort_qty'))).style(right);
+    ws.cell(3, 10).number(toNumber((sumBy(rs, 'isolate_covid_qty') - sumBy(rs, 'isolate_usage_qty')) || 0)).style(right);
+    ws.cell(3, 11).number(toNumber(sumBy(rs, 'cohort_covid_qty'))).style(right);
     ws.cell(3, 12).number(toNumber(sumBy(rs, 'cohort_usage_qty'))).style(right);
-    ws.cell(3, 13).number(toNumber((sumBy(rs, 'cohort_qty') - sumBy(rs, 'cohort_usage_qty')) || 0)).style(right);
-    ws.cell(3, 14).number(toNumber(sumBy(rs, 'hospitel_qty'))).style(right);
+    ws.cell(3, 13).number(toNumber((sumBy(rs, 'cohort_covid_qty') - sumBy(rs, 'cohort_usage_qty')) || 0)).style(right);
+    ws.cell(3, 14).number(toNumber(sumBy(rs, 'hospitel_covid_qty'))).style(right);
     ws.cell(3, 15).number(toNumber(sumBy(rs, 'hospitel_usage_qty'))).style(right);
-    ws.cell(3, 16).number(toNumber((sumBy(rs, 'hospitel_qty') - sumBy(rs, 'hospitel_usage_qty')) || 0)).style(right);
+    ws.cell(3, 16).number(toNumber((sumBy(rs, 'hospitel_covid_qty') - sumBy(rs, 'hospitel_usage_qty')) || 0)).style(right);
 
     let row = 4;
     for (const items of rs) {
@@ -726,46 +726,46 @@ router.get('/report6/excel', async (req: Request, res: Response) => {
       }
       ws.cell(row, 1).string(toString(items['hospname']));
 
-      ws.cell(row, 2).number(toNumber(items['aiir_qty'])).style(right);
+      ws.cell(row, 2).number(toNumber(items['aiir_covid_qty'])).style(right);
       ws.cell(row, 3).number(toNumber((items['aiir_usage_qty']) || 0)).style(right);
-      ws.cell(row, 4).number(toNumber((items.aiir_qty - items.aiir_usage_qty) || 0)).style(right);
+      ws.cell(row, 4).number(toNumber((items.aiir_covid_qty - items.aiir_usage_qty) || 0)).style(right);
 
-      ws.cell(row, 5).number(toNumber(items['modified_aiir_qty'])).style(right);
+      ws.cell(row, 5).number(toNumber(items['modified_aiir_covid_qty'])).style(right);
       ws.cell(row, 6).number(toNumber((items['modified_aiir_usage_qty']) || 0)).style(right);
-      ws.cell(row, 7).number(toNumber((items.modified_aiir_qty - items.modified_aiir_usage_qty) || 0)).style(right);
+      ws.cell(row, 7).number(toNumber((items.modified_aiir_covid_qty - items.modified_aiir_usage_qty) || 0)).style(right);
 
-      ws.cell(row, 8).number(toNumber(items['isolate_qty'])).style(right);
+      ws.cell(row, 8).number(toNumber(items['isolate_covid_qty'])).style(right);
       ws.cell(row, 9).number(toNumber((items['isolate_usage_qty']) || 0)).style(right);
-      ws.cell(row, 10).number(toNumber((items.isolate_qty - items.isolate_usage_qty) || 0)).style(right);
+      ws.cell(row, 10).number(toNumber((items.isolate_covid_qty - items.isolate_usage_qty) || 0)).style(right);
 
-      ws.cell(row, 11).number(toNumber(items['cohort_qty'])).style(right);
+      ws.cell(row, 11).number(toNumber(items['cohort_covid_qty'])).style(right);
       ws.cell(row, 12).number(toNumber((items['cohort_usage_qty']) || 0)).style(right);
-      ws.cell(row, 13).number(toNumber((items.cohort_qty - items.cohort_usage_qty) || 0)).style(right);
+      ws.cell(row, 13).number(toNumber((items.cohort_covid_qty - items.cohort_usage_qty) || 0)).style(right);
 
-      ws.cell(row, 14).number(toNumber(items['hospitel_qty'])).style(right);
+      ws.cell(row, 14).number(toNumber(items['hospitel_covid_qty'])).style(right);
       ws.cell(row, 15).number(toNumber((items['hospitel_usage_qty']) || 0)).style(right);
-      ws.cell(row, 16).number(toNumber((items.hospitel_qty - items.hospitel_usage_qty) || 0)).style(right);
+      ws.cell(row, 16).number(toNumber((items.hospitel_covid_qty - items.hospitel_usage_qty) || 0)).style(right);
 
       ws.cell(row, 17).string(toString(items['sub_ministry_name'])).style(right);
       ws.cell(row++, 18).string(toString(items['entry_date'])).style(right);
     }
 
     ws.cell(row, 1).string('รวม');
-    ws.cell(row, 2).number(toNumber(sumBy(rs, 'aiir_qty'))).style(right);
+    ws.cell(row, 2).number(toNumber(sumBy(rs, 'aiir_covid_qty'))).style(right);
     ws.cell(row, 3).number(toNumber(sumBy(rs, 'aiir_usage_qty'))).style(right);
-    ws.cell(row, 4).number(toNumber((sumBy(rs, 'aiir_qty') - sumBy(rs, 'aiir_usage_qty')) || 0)).style(right);
-    ws.cell(row, 5).number(toNumber(sumBy(rs, 'modified_aiir_qty'))).style(right);
+    ws.cell(row, 4).number(toNumber((sumBy(rs, 'aiir_covid_qty') - sumBy(rs, 'aiir_usage_qty')) || 0)).style(right);
+    ws.cell(row, 5).number(toNumber(sumBy(rs, 'modified_aiir_covid_qty'))).style(right);
     ws.cell(row, 6).number(toNumber(sumBy(rs, 'modified_aiir_usage_qty'))).style(right);
-    ws.cell(row, 7).number(toNumber((sumBy(rs, 'modified_aiir_qty') - sumBy(rs, 'modified_aiir_usage_qty')) || 0)).style(right);
-    ws.cell(row, 8).number(toNumber(sumBy(rs, 'isolate_qty'))).style(right);
+    ws.cell(row, 7).number(toNumber((sumBy(rs, 'modified_aiir_covid_qty') - sumBy(rs, 'modified_aiir_usage_qty')) || 0)).style(right);
+    ws.cell(row, 8).number(toNumber(sumBy(rs, 'isolate_covid_qty'))).style(right);
     ws.cell(row, 9).number(toNumber(sumBy(rs, 'isolate_usage_qty'))).style(right);
-    ws.cell(row, 10).number(toNumber((sumBy(rs, 'isolate_qty') - sumBy(rs, 'isolate_usage_qty')) || 0)).style(right);
-    ws.cell(row, 11).number(toNumber(sumBy(rs, 'cohort_qty'))).style(right);
+    ws.cell(row, 10).number(toNumber((sumBy(rs, 'isolate_covid_qty') - sumBy(rs, 'isolate_usage_qty')) || 0)).style(right);
+    ws.cell(row, 11).number(toNumber(sumBy(rs, 'cohort_covid_qty'))).style(right);
     ws.cell(row, 12).number(toNumber(sumBy(rs, 'cohort_usage_qty'))).style(right);
-    ws.cell(row, 13).number(toNumber((sumBy(rs, 'cohort_qty') - sumBy(rs, 'cohort_usage_qty')) || 0)).style(right);
-    ws.cell(row, 14).number(toNumber(sumBy(rs, 'hospitel_qty'))).style(right);
+    ws.cell(row, 13).number(toNumber((sumBy(rs, 'cohort_covid_qty') - sumBy(rs, 'cohort_usage_qty')) || 0)).style(right);
+    ws.cell(row, 14).number(toNumber(sumBy(rs, 'hospitel_covid_qty'))).style(right);
     ws.cell(row, 15).number(toNumber(sumBy(rs, 'hospitel_usage_qty'))).style(right);
-    ws.cell(row, 16).number(toNumber((sumBy(rs, 'hospitel_qty') - sumBy(rs, 'hospitel_usage_qty')) || 0)).style(right);
+    ws.cell(row, 16).number(toNumber((sumBy(rs, 'hospitel_covid_qty') - sumBy(rs, 'hospitel_usage_qty')) || 0)).style(right);
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
@@ -841,21 +841,21 @@ router.get('/report6-ministry/excel', async (req: Request, res: Response) => {
     ws.cell(2, 16).string('คงเหลือ');
 
     ws.cell(3, 1).string('รวม');
-    ws.cell(3, 2).number(toNumber(sumBy(rs, 'aiir_qty'))).style(right);
+    ws.cell(3, 2).number(toNumber(sumBy(rs, 'aiir_covid_qty'))).style(right);
     ws.cell(3, 3).number(toNumber(sumBy(rs, 'aiir_usage_qty'))).style(right);
-    ws.cell(3, 4).number(toNumber((sumBy(rs, 'aiir_qty') - sumBy(rs, 'aiir_usage_qty')) || 0)).style(right);
-    ws.cell(3, 5).number(toNumber(sumBy(rs, 'modified_aiir_qty'))).style(right);
+    ws.cell(3, 4).number(toNumber((sumBy(rs, 'aiir_covid_qty') - sumBy(rs, 'aiir_usage_qty')) || 0)).style(right);
+    ws.cell(3, 5).number(toNumber(sumBy(rs, 'modified_aiir_covid_qty'))).style(right);
     ws.cell(3, 6).number(toNumber(sumBy(rs, 'modified_aiir_usage_qty'))).style(right);
-    ws.cell(3, 7).number(toNumber((sumBy(rs, 'modified_aiir_qty') - sumBy(rs, 'modified_aiir_usage_qty')) || 0)).style(right);
-    ws.cell(3, 8).number(toNumber(sumBy(rs, 'isolate_qty'))).style(right);
+    ws.cell(3, 7).number(toNumber((sumBy(rs, 'modified_aiir_covid_qty') - sumBy(rs, 'modified_aiir_usage_qty')) || 0)).style(right);
+    ws.cell(3, 8).number(toNumber(sumBy(rs, 'isolate_covid_qty'))).style(right);
     ws.cell(3, 9).number(toNumber(sumBy(rs, 'isolate_usage_qty'))).style(right);
-    ws.cell(3, 10).number(toNumber((sumBy(rs, 'isolate_qty') - sumBy(rs, 'isolate_usage_qty')) || 0)).style(right);
-    ws.cell(3, 11).number(toNumber(sumBy(rs, 'cohort_qty'))).style(right);
+    ws.cell(3, 10).number(toNumber((sumBy(rs, 'isolate_covid_qty') - sumBy(rs, 'isolate_usage_qty')) || 0)).style(right);
+    ws.cell(3, 11).number(toNumber(sumBy(rs, 'cohort_covid_qty'))).style(right);
     ws.cell(3, 12).number(toNumber(sumBy(rs, 'cohort_usage_qty'))).style(right);
-    ws.cell(3, 13).number(toNumber((sumBy(rs, 'cohort_qty') - sumBy(rs, 'cohort_usage_qty')) || 0)).style(right);
-    ws.cell(3, 14).number(toNumber(sumBy(rs, 'hospitel_qty'))).style(right);
+    ws.cell(3, 13).number(toNumber((sumBy(rs, 'cohort_covid_qty') - sumBy(rs, 'cohort_usage_qty')) || 0)).style(right);
+    ws.cell(3, 14).number(toNumber(sumBy(rs, 'hospitel_covid_qty'))).style(right);
     ws.cell(3, 15).number(toNumber(sumBy(rs, 'hospitel_usage_qty'))).style(right);
-    ws.cell(3, 16).number(toNumber((sumBy(rs, 'hospitel_qty') - sumBy(rs, 'hospitel_usage_qty')) || 0)).style(right);
+    ws.cell(3, 16).number(toNumber((sumBy(rs, 'hospitel_covid_qty') - sumBy(rs, 'hospitel_usage_qty')) || 0)).style(right);
 
     let row = 4;
     for (const items of rs) {
@@ -866,45 +866,45 @@ router.get('/report6-ministry/excel', async (req: Request, res: Response) => {
       }
       ws.cell(row, 1).string(toString(items['sub_ministry_name']));
 
-      ws.cell(row, 2).number(toNumber(items['aiir_qty'])).style(right);
+      ws.cell(row, 2).number(toNumber(items['aiir_covid_qty'])).style(right);
       ws.cell(row, 3).number(toNumber((items['aiir_usage_qty']) || 0)).style(right);
-      ws.cell(row, 4).number(toNumber((items.aiir_qty - items.aiir_usage_qty) || 0)).style(right);
+      ws.cell(row, 4).number(toNumber((items.aiir_covid_qty - items.aiir_usage_qty) || 0)).style(right);
 
-      ws.cell(row, 5).number(toNumber(items['modified_aiir_qty'])).style(right);
+      ws.cell(row, 5).number(toNumber(items['modified_aiir_covid_qty'])).style(right);
       ws.cell(row, 6).number(toNumber((items['modified_aiir_usage_qty']) || 0)).style(right);
-      ws.cell(row, 7).number(toNumber((items.modified_aiir_qty - items.modified_aiir_usage_qty) || 0)).style(right);
+      ws.cell(row, 7).number(toNumber((items.modified_aiir_covid_qty - items.modified_aiir_usage_qty) || 0)).style(right);
 
-      ws.cell(row, 8).number(toNumber(items['isolate_qty'])).style(right);
+      ws.cell(row, 8).number(toNumber(items['isolate_covid_qty'])).style(right);
       ws.cell(row, 9).number(toNumber((items['isolate_usage_qty']) || 0)).style(right);
-      ws.cell(row, 10).number(toNumber((items.isolate_qty - items.isolate_usage_qty) || 0)).style(right);
+      ws.cell(row, 10).number(toNumber((items.isolate_covid_qty - items.isolate_usage_qty) || 0)).style(right);
 
-      ws.cell(row, 11).number(toNumber(items['cohort_qty'])).style(right);
+      ws.cell(row, 11).number(toNumber(items['cohort_covid_qty'])).style(right);
       ws.cell(row, 12).number(toNumber((items['cohort_usage_qty']) || 0)).style(right);
-      ws.cell(row, 13).number(toNumber((items.cohort_qty - items.cohort_usage_qty) || 0)).style(right);
+      ws.cell(row, 13).number(toNumber((items.cohort_covid_qty - items.cohort_usage_qty) || 0)).style(right);
 
-      ws.cell(row, 14).number(toNumber(items['hospitel_qty'])).style(right);
+      ws.cell(row, 14).number(toNumber(items['hospitel_covid_qty'])).style(right);
       ws.cell(row, 15).number(toNumber((items['hospitel_usage_qty']) || 0)).style(right);
-      ws.cell(row, 16).number(toNumber((items.hospitel_qty - items.hospitel_usage_qty) || 0)).style(right);
+      ws.cell(row, 16).number(toNumber((items.hospitel_covid_qty - items.hospitel_usage_qty) || 0)).style(right);
 
       ws.cell(row++, 17).string(toString(items['entry_date'])).style(right);
     }
 
     ws.cell(row, 1).string('รวม');
-    ws.cell(row, 2).number(toNumber(sumBy(rs, 'aiir_qty'))).style(right);
+    ws.cell(row, 2).number(toNumber(sumBy(rs, 'aiir_covid_qty'))).style(right);
     ws.cell(row, 3).number(toNumber(sumBy(rs, 'aiir_usage_qty'))).style(right);
-    ws.cell(row, 4).number(toNumber((sumBy(rs, 'aiir_qty') - sumBy(rs, 'aiir_usage_qty')) || 0)).style(right);
-    ws.cell(row, 5).number(toNumber(sumBy(rs, 'modified_aiir_qty'))).style(right);
+    ws.cell(row, 4).number(toNumber((sumBy(rs, 'aiir_covid_qty') - sumBy(rs, 'aiir_usage_qty')) || 0)).style(right);
+    ws.cell(row, 5).number(toNumber(sumBy(rs, 'modified_aiir_covid_qty'))).style(right);
     ws.cell(row, 6).number(toNumber(sumBy(rs, 'modified_aiir_usage_qty'))).style(right);
-    ws.cell(row, 7).number(toNumber((sumBy(rs, 'modified_aiir_qty') - sumBy(rs, 'modified_aiir_usage_qty')) || 0)).style(right);
-    ws.cell(row, 8).number(toNumber(sumBy(rs, 'isolate_qty'))).style(right);
+    ws.cell(row, 7).number(toNumber((sumBy(rs, 'modified_aiir_covid_qty') - sumBy(rs, 'modified_aiir_usage_qty')) || 0)).style(right);
+    ws.cell(row, 8).number(toNumber(sumBy(rs, 'isolate_covid_qty'))).style(right);
     ws.cell(row, 9).number(toNumber(sumBy(rs, 'isolate_usage_qty'))).style(right);
-    ws.cell(row, 10).number(toNumber((sumBy(rs, 'isolate_qty') - sumBy(rs, 'isolate_usage_qty')) || 0)).style(right);
-    ws.cell(row, 11).number(toNumber(sumBy(rs, 'cohort_qty'))).style(right);
+    ws.cell(row, 10).number(toNumber((sumBy(rs, 'isolate_covid_qty') - sumBy(rs, 'isolate_usage_qty')) || 0)).style(right);
+    ws.cell(row, 11).number(toNumber(sumBy(rs, 'cohort_covid_qty'))).style(right);
     ws.cell(row, 12).number(toNumber(sumBy(rs, 'cohort_usage_qty'))).style(right);
-    ws.cell(row, 13).number(toNumber((sumBy(rs, 'cohort_qty') - sumBy(rs, 'cohort_usage_qty')) || 0)).style(right);
-    ws.cell(row, 14).number(toNumber(sumBy(rs, 'hospitel_qty'))).style(right);
+    ws.cell(row, 13).number(toNumber((sumBy(rs, 'cohort_covid_qty') - sumBy(rs, 'cohort_usage_qty')) || 0)).style(right);
+    ws.cell(row, 14).number(toNumber(sumBy(rs, 'hospitel_covid_qty'))).style(right);
     ws.cell(row, 15).number(toNumber(sumBy(rs, 'hospitel_usage_qty'))).style(right);
-    ws.cell(row, 16).number(toNumber((sumBy(rs, 'hospitel_qty') - sumBy(rs, 'hospitel_usage_qty')) || 0)).style(right);
+    ws.cell(row, 16).number(toNumber((sumBy(rs, 'hospitel_covid_qty') - sumBy(rs, 'hospitel_usage_qty')) || 0)).style(right);
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
@@ -980,21 +980,21 @@ router.get('/report6-sector/excel', async (req: Request, res: Response) => {
     ws.cell(2, 16).string('คงเหลือ');
 
     ws.cell(3, 1).string('รวม');
-    ws.cell(3, 2).number(toNumber(sumBy(rs, 'aiir_qty'))).style(right);
+    ws.cell(3, 2).number(toNumber(sumBy(rs, 'aiir_covid_qty'))).style(right);
     ws.cell(3, 3).number(toNumber(sumBy(rs, 'aiir_usage_qty'))).style(right);
-    ws.cell(3, 4).number(toNumber((sumBy(rs, 'aiir_qty') - sumBy(rs, 'aiir_usage_qty')) || 0)).style(right);
-    ws.cell(3, 5).number(toNumber(sumBy(rs, 'modified_aiir_qty'))).style(right);
+    ws.cell(3, 4).number(toNumber((sumBy(rs, 'aiir_covid_qty') - sumBy(rs, 'aiir_usage_qty')) || 0)).style(right);
+    ws.cell(3, 5).number(toNumber(sumBy(rs, 'modified_aiir_covid_qty'))).style(right);
     ws.cell(3, 6).number(toNumber(sumBy(rs, 'modified_aiir_usage_qty'))).style(right);
-    ws.cell(3, 7).number(toNumber((sumBy(rs, 'modified_aiir_qty') - sumBy(rs, 'modified_aiir_usage_qty')) || 0)).style(right);
-    ws.cell(3, 8).number(toNumber(sumBy(rs, 'isolate_qty'))).style(right);
+    ws.cell(3, 7).number(toNumber((sumBy(rs, 'modified_aiir_covid_qty') - sumBy(rs, 'modified_aiir_usage_qty')) || 0)).style(right);
+    ws.cell(3, 8).number(toNumber(sumBy(rs, 'isolate_covid_qty'))).style(right);
     ws.cell(3, 9).number(toNumber(sumBy(rs, 'isolate_usage_qty'))).style(right);
-    ws.cell(3, 10).number(toNumber((sumBy(rs, 'isolate_qty') - sumBy(rs, 'isolate_usage_qty')) || 0)).style(right);
-    ws.cell(3, 11).number(toNumber(sumBy(rs, 'cohort_qty'))).style(right);
+    ws.cell(3, 10).number(toNumber((sumBy(rs, 'isolate_covid_qty') - sumBy(rs, 'isolate_usage_qty')) || 0)).style(right);
+    ws.cell(3, 11).number(toNumber(sumBy(rs, 'cohort_covid_qty'))).style(right);
     ws.cell(3, 12).number(toNumber(sumBy(rs, 'cohort_usage_qty'))).style(right);
-    ws.cell(3, 13).number(toNumber((sumBy(rs, 'cohort_qty') - sumBy(rs, 'cohort_usage_qty')) || 0)).style(right);
-    ws.cell(3, 14).number(toNumber(sumBy(rs, 'hospitel_qty'))).style(right);
+    ws.cell(3, 13).number(toNumber((sumBy(rs, 'cohort_covid_qty') - sumBy(rs, 'cohort_usage_qty')) || 0)).style(right);
+    ws.cell(3, 14).number(toNumber(sumBy(rs, 'hospitel_covid_qty'))).style(right);
     ws.cell(3, 15).number(toNumber(sumBy(rs, 'hospitel_usage_qty'))).style(right);
-    ws.cell(3, 16).number(toNumber((sumBy(rs, 'hospitel_qty') - sumBy(rs, 'hospitel_usage_qty')) || 0)).style(right);
+    ws.cell(3, 16).number(toNumber((sumBy(rs, 'hospitel_covid_qty') - sumBy(rs, 'hospitel_usage_qty')) || 0)).style(right);
 
     let row = 4;
     for (const items of rs) {
@@ -1005,45 +1005,45 @@ router.get('/report6-sector/excel', async (req: Request, res: Response) => {
       }
       ws.cell(row, 1).string(toString(items['zone_code']));
 
-      ws.cell(row, 2).number(toNumber(items['aiir_qty'])).style(right);
+      ws.cell(row, 2).number(toNumber(items['aiir_covid_qty'])).style(right);
       ws.cell(row, 3).number(toNumber((items['aiir_usage_qty']) || 0)).style(right);
-      ws.cell(row, 4).number(toNumber((items.aiir_qty - items.aiir_usage_qty) || 0)).style(right);
+      ws.cell(row, 4).number(toNumber((items.aiir_covid_qty - items.aiir_usage_qty) || 0)).style(right);
 
-      ws.cell(row, 5).number(toNumber(items['modified_aiir_qty'])).style(right);
+      ws.cell(row, 5).number(toNumber(items['modified_aiir_covid_qty'])).style(right);
       ws.cell(row, 6).number(toNumber((items['modified_aiir_usage_qty']) || 0)).style(right);
-      ws.cell(row, 7).number(toNumber((items.modified_aiir_qty - items.modified_aiir_usage_qty) || 0)).style(right);
+      ws.cell(row, 7).number(toNumber((items.modified_aiir_covid_qty - items.modified_aiir_usage_qty) || 0)).style(right);
 
-      ws.cell(row, 8).number(toNumber(items['isolate_qty'])).style(right);
+      ws.cell(row, 8).number(toNumber(items['isolate_covid_qty'])).style(right);
       ws.cell(row, 9).number(toNumber((items['isolate_usage_qty']) || 0)).style(right);
-      ws.cell(row, 10).number(toNumber((items.isolate_qty - items.isolate_usage_qty) || 0)).style(right);
+      ws.cell(row, 10).number(toNumber((items.isolate_covid_qty - items.isolate_usage_qty) || 0)).style(right);
 
-      ws.cell(row, 11).number(toNumber(items['cohort_qty'])).style(right);
+      ws.cell(row, 11).number(toNumber(items['cohort_covid_qty'])).style(right);
       ws.cell(row, 12).number(toNumber((items['cohort_usage_qty']) || 0)).style(right);
-      ws.cell(row, 13).number(toNumber((items.cohort_qty - items.cohort_usage_qty) || 0)).style(right);
+      ws.cell(row, 13).number(toNumber((items.cohort_covid_qty - items.cohort_usage_qty) || 0)).style(right);
 
-      ws.cell(row, 14).number(toNumber(items['hospitel_qty'])).style(right);
+      ws.cell(row, 14).number(toNumber(items['hospitel_covid_qty'])).style(right);
       ws.cell(row, 15).number(toNumber((items['hospitel_usage_qty']) || 0)).style(right);
-      ws.cell(row, 16).number(toNumber((items.hospitel_qty - items.hospitel_usage_qty) || 0)).style(right);
+      ws.cell(row, 16).number(toNumber((items.hospitel_covid_qty - items.hospitel_usage_qty) || 0)).style(right);
 
       ws.cell(row++, 17).string(toString(items['entry_date'])).style(right);
     }
 
     ws.cell(row, 1).string('รวม');
-    ws.cell(row, 2).number(toNumber(sumBy(rs, 'aiir_qty'))).style(right);
+    ws.cell(row, 2).number(toNumber(sumBy(rs, 'aiir_covid_qty'))).style(right);
     ws.cell(row, 3).number(toNumber(sumBy(rs, 'aiir_usage_qty'))).style(right);
-    ws.cell(row, 4).number(toNumber((sumBy(rs, 'aiir_qty') - sumBy(rs, 'aiir_usage_qty')) || 0)).style(right);
-    ws.cell(row, 5).number(toNumber(sumBy(rs, 'modified_aiir_qty'))).style(right);
+    ws.cell(row, 4).number(toNumber((sumBy(rs, 'aiir_covid_qty') - sumBy(rs, 'aiir_usage_qty')) || 0)).style(right);
+    ws.cell(row, 5).number(toNumber(sumBy(rs, 'modified_aiir_covid_qty'))).style(right);
     ws.cell(row, 6).number(toNumber(sumBy(rs, 'modified_aiir_usage_qty'))).style(right);
-    ws.cell(row, 7).number(toNumber((sumBy(rs, 'modified_aiir_qty') - sumBy(rs, 'modified_aiir_usage_qty')) || 0)).style(right);
-    ws.cell(row, 8).number(toNumber(sumBy(rs, 'isolate_qty'))).style(right);
+    ws.cell(row, 7).number(toNumber((sumBy(rs, 'modified_aiir_covid_qty') - sumBy(rs, 'modified_aiir_usage_qty')) || 0)).style(right);
+    ws.cell(row, 8).number(toNumber(sumBy(rs, 'isolate_covid_qty'))).style(right);
     ws.cell(row, 9).number(toNumber(sumBy(rs, 'isolate_usage_qty'))).style(right);
-    ws.cell(row, 10).number(toNumber((sumBy(rs, 'isolate_qty') - sumBy(rs, 'isolate_usage_qty')) || 0)).style(right);
-    ws.cell(row, 11).number(toNumber(sumBy(rs, 'cohort_qty'))).style(right);
+    ws.cell(row, 10).number(toNumber((sumBy(rs, 'isolate_covid_qty') - sumBy(rs, 'isolate_usage_qty')) || 0)).style(right);
+    ws.cell(row, 11).number(toNumber(sumBy(rs, 'cohort_covid_qty'))).style(right);
     ws.cell(row, 12).number(toNumber(sumBy(rs, 'cohort_usage_qty'))).style(right);
-    ws.cell(row, 13).number(toNumber((sumBy(rs, 'cohort_qty') - sumBy(rs, 'cohort_usage_qty')) || 0)).style(right);
-    ws.cell(row, 14).number(toNumber(sumBy(rs, 'hospitel_qty'))).style(right);
+    ws.cell(row, 13).number(toNumber((sumBy(rs, 'cohort_covid_qty') - sumBy(rs, 'cohort_usage_qty')) || 0)).style(right);
+    ws.cell(row, 14).number(toNumber(sumBy(rs, 'hospitel_covid_qty'))).style(right);
     ws.cell(row, 15).number(toNumber(sumBy(rs, 'hospitel_usage_qty'))).style(right);
-    ws.cell(row, 16).number(toNumber((sumBy(rs, 'hospitel_qty') - sumBy(rs, 'hospitel_usage_qty')) || 0)).style(right);
+    ws.cell(row, 16).number(toNumber((sumBy(rs, 'hospitel_covid_qty') - sumBy(rs, 'hospitel_usage_qty')) || 0)).style(right);
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
