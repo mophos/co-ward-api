@@ -585,4 +585,21 @@ export class CovidCaseModel {
     return db('p_covid_case_details as cd').where('covid_case_id', covidCaseId);
   }
 
+  getCasePresentNotUpdate(db: Knex, hospitalId, date) {
+    const sql = db('p_covid_cases as c')
+      .select('c.id as covid_case_id', 'c.status', 'cd.id as covid_case_details_id',
+        'ccd.bed_id', 'ccd.gcs_id', 'cd.medical_supplie_id', db.raw(`ifnull(cd.create_date, null) as create_date`),
+        db.raw(`ifnull(cd.entry_date, null) as entry_date`),
+      'vg.set1','vg.set2','vg.set3','vg.set4'
+      )
+      .leftJoin('view_covid_case_last as ccd', 'ccd.covid_case_id', 'c.id')
+      .leftJoin('p_covid_case_details as cd', 'ccd.id', 'cd.id')
+      .leftJoin('view_generic_case_item as vg', 'vg.covid_case_detail_id', 'cd.id')
+      .where('pt.hospital_id', hospitalId)
+      .where('c.status', 'ADMIT')
+      .where('c.is_deleted', 'N')
+      .where('cd.entry_date','<',date)
+      // console.log(sql.toString());
+    return sql;
+  }
 }

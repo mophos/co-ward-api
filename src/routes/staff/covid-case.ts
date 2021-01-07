@@ -964,4 +964,99 @@ router.get('/detail/split-dates', async (req: Request, res: Response) => {
   }
 });
 
+async function setGenericSave(e: any) {
+  const drugs = [];
+
+  // set1
+  if (+e.set1 === 1) {
+    drugs.push({ genericId: 1 });
+  } else if (+e.set1 === 2) {
+    drugs.push({ genericId: 2 });
+  }
+
+  // set2
+  if (+e.set2 === 3) {
+    drugs.push({ genericId: 3 });
+    drugs.push({ genericId: 5 });
+  } else if (+e.set2 === 4) {
+    drugs.push({ genericId: 4 });
+  }
+
+  // set3
+  if (+e.set3 === 7) {
+    drugs.push({ genericId: 7 });
+  }
+
+  // set4
+  if (+e.set4 === 8) {
+    drugs.push({ genericId: 8 });
+  }
+  return drugs;
+}
+
+router.get('/update/all-case', async (req: Request, res: Response) => {
+  const db = req.db;
+  // const data = req.body.data;
+  const hospitalId = req.decoded.hospitalId;
+  const userId = req.decoded.id;
+  let date
+  try {
+    
+    const timeCut = await basicModel.timeCut();
+    if (!timeCut.ok) {
+      date = moment().add(1, 'days').format('YYYY-MM-DD')
+    } else {
+      date = moment().format('YYYY-MM-DD')
+    }
+    let rs: any = await covidCaseModel.getCasePresentNotUpdate(req.db, hospitalId, date);
+
+    const generic = await basicModel.getGenerics(db);
+
+    for (const data of rs) {
+      const detail: any = {
+        covid_case_id: data.covid_case_id || null,
+        gcs_id: data.gcs_id || null,
+        bed_id: data.bed_id || null,
+        medical_supplie_id: data.medical_supplie_id || null,
+        create_by: userId,
+        status: data.status
+      }
+
+      // if (detail.gcs_id === '1' || detail.gcs_id === '2' || detail.gcs_id === '3' || detail.gcs_id === '4') {
+      //   await covidCaseModel.updateCaseStatus(db, detail.covid_case_id)
+      // }
+
+     //   if (!timeCut.ok) {
+        detail.entry_date = date;
+     // } else {
+     //   detail.entry_date = moment().format('YYYY-MM-DD');
+     // }
+      await covidCaseModel.removeCovidCaseDetailItem(db, data.covid_case_details_id)
+      const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
+
+      const items = []
+      data.drugs = await setGenericSave(data);
+      for (const i of data.drugs) {
+        const item: any = {
+          covid_case_detail_id: covidCaseDetailId[0].insertId == 0 ? data.id : covidCaseDetailId[0].insertId,
+          generic_id: i.genericId,
+        }
+
+        const idx = _.findIndex(generic, { 'id': +i.genericId });
+
+        if (idx > -1) {
+          item.qty = generic[idx].pay_qty;
+          i.qty = generic[idx].pay_qty;
+        }
+        items.push(item);
+      }
+      await covidCaseModel.saveCovidCaseDetailItem(db, items);
+    }
+    res.send({ ok: true, code: HttpStatus.OK ,rows:rs});
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 export default router;
