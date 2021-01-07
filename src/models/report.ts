@@ -188,7 +188,7 @@ export class ReportModel {
 
   getHospitalAll(db: Knex) {
     return db('b_hospitals AS bh')
-      // .whereIn('bh.hosptype_code', ['01', '05', '06', '07', '11', '12'])
+    // .whereIn('bh.hosptype_code', ['01', '05', '06', '07', '11', '12'])
   }
 
   getHospitalByType(db: Knex) {
@@ -316,13 +316,13 @@ export class ReportModel {
     sum(powered_air_qty) as powered_air_qty,
     sum(alcohol_70_qty) as alcohol_70_qty,
     sum(alcohol_95_qty) as alcohol_95_qty,
-    sum(alcohol_gel_qty) as alcohol_gel_qty
+    sum(alcohol_gel_qty) as alcohol_gel_qty,
+    sum(disposable_glove_qty) as disposable_glove_qty
     from views_supplies_hospital_cross as v 
     join b_hospitals as h on h.id = v.hospital_id
     GROUP BY h.zone_code
-    order by h.zone_code asc
-    
-    `);
+    order by h.zone_code asc`
+    );
   }
 
   getZone(db: Knex, query, zone) {
@@ -532,7 +532,7 @@ export class ReportModel {
       sum(b.hosptype_code in ('15')) as private,
     sum(b.hosptype_code in ('15') and v.register_last_date is not null) as private_register`))
       .join('b_hospitals as b', 'b.id', 'v.hospital_id')
-      .whereIn('b.hosptype_code',['15','05','06','07','11','12','19','18'])
+      .whereIn('b.hosptype_code', ['15', '05', '06', '07', '11', '12', '19', '18'])
       .groupBy('b.zone_code')
       .orderBy('b.zone_code')
     // console.log(sql.toString());
@@ -548,7 +548,7 @@ export class ReportModel {
       .orderBy('b.zone_code')
       .orderBy('b.province_name')
       .orderBy('bs.name')
-      .whereIn('b.hosptype_code',['15','05','06','07','11','12','19','18'])
+      .whereIn('b.hosptype_code', ['15', '05', '06', '07', '11', '12', '19', '18'])
     if (filter == 'register') {
       sql.whereNotNull('register_last_date')
     } else if (filter == 'nonregister') {

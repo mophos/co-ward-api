@@ -1156,6 +1156,7 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
     ws.cell(1, 25, 1, 26, true).string('Alcohol 70%').style(center);
     ws.cell(1, 27, 1, 28, true).string('Alcohol 95%').style(center);
     ws.cell(1, 29, 1, 30, true).string('Alcohol Gel').style(center);
+    ws.cell(1, 31, 1, 32, true).string('Disposable Glove (latex,nonsterile)').style(center);
 
 
     ws.cell(2, 5).string('คงคลัง').style(center);
@@ -1184,6 +1185,8 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
     ws.cell(2, 28).string('อัตราการใช้ต่อเดือน').style(center);
     ws.cell(2, 29).string('คงคลัง').style(center);
     ws.cell(2, 30).string('อัตราการใช้ต่อเดือน').style(center);
+    ws.cell(2, 31).string('คงคลัง').style(center);
+    ws.cell(2, 32).string('อัตราการใช้ต่อเดือน').style(center);
     let row = 3;
 
     let zoneCodes = [];
@@ -1241,6 +1244,8 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
       ws.cell(row, 28).number(toNumber(i.alcohol_95_month_usage_qty));
       ws.cell(row, 29).number(toNumber(i.alcohol_gel_qty));
       ws.cell(row, 30).number(toNumber(i.alcohol_gel_month_usage_qty));
+      ws.cell(row, 31).number(toNumber(i.alcohol_gel_qty));
+      ws.cell(row, 32).number(toNumber(i.alcohol_gel_month_usage_qty));
       row++;
     }
     fse.ensureDirSync(process.env.TMP_PATH);
