@@ -315,7 +315,7 @@ export class BasicModel {
 	getPatientSMS(db: Knex) {
 
 		const last = db('p_covid_case_details')
-			.max('updated_entry as updated_entry_last')
+			.max('entry_date as updated_entry_last')
 			.whereRaw('covid_case_id=cl.covid_case_id')
 			.whereNotNull('updated_entry')
 			.as('updated_entry_last');
