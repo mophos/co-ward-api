@@ -1244,8 +1244,8 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
       ws.cell(row, 28).number(toNumber(i.alcohol_95_month_usage_qty));
       ws.cell(row, 29).number(toNumber(i.alcohol_gel_qty));
       ws.cell(row, 30).number(toNumber(i.alcohol_gel_month_usage_qty));
-      ws.cell(row, 31).number(toNumber(i.alcohol_gel_qty));
-      ws.cell(row, 32).number(toNumber(i.alcohol_gel_month_usage_qty));
+      ws.cell(row, 31).number(toNumber(i.disposable_glove_qty));
+      ws.cell(row, 32).number(toNumber(i.disposable_glove_month_usage_qty));
       row++;
     }
     fse.ensureDirSync(process.env.TMP_PATH);
