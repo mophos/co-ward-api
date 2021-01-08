@@ -241,6 +241,8 @@ router.post('/sd', async (req: Request, res: Response) => {
 
 async function saveCovidCase(db, req, data) {
   const hospitalId = req.decoded.hospitalId;
+  console.log('hospitalId', hospitalId);
+
   const userId = req.decoded.id;
 
   try {
@@ -422,7 +424,6 @@ async function saveCovidCase(db, req, data) {
           _data.updated_entry = _data.date_entry = moment().format('YYYY-MM-DD');
         }
 
-
         const covidCaseId = await covidCaseModel.saveCovidCase(db, _data);
         let dataIcd: any = [];
         if (data.returnFromAbroad == 'covid' || data.returnFromAbroad == 'other') {
@@ -471,9 +472,9 @@ async function saveCovidCase(db, req, data) {
           }
         }
         return ({ ok: true, code: HttpStatus.OK });
+      } else {
+        return ({ ok: false, error: 'ไม่มี personId' });
       }
-    } else {
-      return ({ ok: false, error: 'ไม่มี personId' });
     }
   } catch (error) {
     console.log(error);
