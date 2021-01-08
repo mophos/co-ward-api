@@ -151,6 +151,7 @@ export class ReportAllModel {
   report6(db: Knex, date, sector) {
     const sql = `SELECT
     vh.hospname,
+    bh.level,
     SUM( vb.aiir_qty ) AS aiir_qty,
     SUM( vb.modified_aiir_qty ) AS modified_aiir_qty,
     SUM( vb.isolate_qty ) AS isolate_qty,
@@ -176,6 +177,7 @@ export class ReportAllModel {
     vh.zone_code
   FROM
     views_hospital_all AS vh
+    JOIN b_hospitals as bh ON bh.id = vh.id
     LEFT JOIN views_bed_hospital_cross AS vb ON vh.id = vb.hospital_id
     LEFT JOIN (
     SELECT

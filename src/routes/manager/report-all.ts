@@ -678,7 +678,8 @@ router.get('/report6/excel', async (req: Request, res: Response) => {
     ws.cell(1, 11, 1, 13, true).string('Cohort').style(center);
     ws.cell(1, 14, 1, 16, true).string('Hospitel').style(center);
     ws.cell(1, 17, 2, 17, true).string('หน่วยงาน');
-    ws.cell(1, 18, 2, 18, true).string('ข้อมูลล่าสุด');
+    ws.cell(1, 18, 2, 18, true).string('ระดับขีดความสามารถ');
+    ws.cell(1, 19, 2, 19, true).string('ข้อมูลล่าสุด');
 
     ws.cell(2, 2).string('ทั้งหมด');
     ws.cell(2, 3).string('ใช้ไปแล้ว');
@@ -747,7 +748,8 @@ router.get('/report6/excel', async (req: Request, res: Response) => {
       ws.cell(row, 16).number(toNumber((items.hospitel_covid_qty - items.hospitel_usage_qty) || 0)).style(right);
 
       ws.cell(row, 17).string(toString(items['sub_ministry_name'])).style(right);
-      ws.cell(row++, 18).string(toString(items['entry_date'])).style(right);
+      ws.cell(row, 18).string(toString(items['level'])).style(right);
+      ws.cell(row++, 19).string(toString(items['entry_date'])).style(right);
     }
 
     ws.cell(row, 1).string('รวม');
