@@ -106,7 +106,9 @@ export class ReportModel {
   }
 
   getUseBed(db: Knex) {
-    let sql = db('temp_report_bed')
+    let sql = db('temp_report_bed as t')
+      .select('t.*', 'h.level')
+      .join('b_hospitals as h', 'h.id', 't.hospital_id')
     return sql;
     // return db('views_bed_hospitals AS vbh')
   }
