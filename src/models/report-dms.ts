@@ -12,7 +12,6 @@ export class ReportDmsModel {
       .join('views_hospital_dms as vh', 'vh.id', 'vc.hospital_id')
       .where('vh.sector', sector)
       .groupBy('vh.sub_ministry_code')
-    console.log(sql.toString());
     return sql;
   }
 
@@ -68,7 +67,6 @@ export class ReportDmsModel {
       })
       .where('vh.sector', sector)
       .groupBy('vh.id')
-    console.log(sql.toString());
     return sql;
   }
 
@@ -91,7 +89,6 @@ export class ReportDmsModel {
       .where('v.status', 'ADMIT')
       .where('vh.sector', sector)
       .orderBy('vh.sub_ministry_name')
-    console.log(sql.toString());
     return sql;
 
   }
@@ -118,7 +115,6 @@ export class ReportDmsModel {
       .where('cl.entry_date', '<=', date)
       .where('vh.sector', sector)
       .groupBy('cl.hospital_id')
-    console.log(sql.toString());
     return sql;
   }
 
@@ -158,7 +154,6 @@ vc.updated_entry  as updated_entry`))
         // })
         .where('vh.sector', sector)
         .orderBy('vh.sub_ministry_name')
-    console.log(sql.toString());
     return sql;
   }
 
@@ -199,7 +194,6 @@ sum( bed_id = 5 ) AS hospitel_usage_qty`), last)
         .leftJoin(sub, 'sub.hospital_id', 'vh.id')
         .where('vh.sector', sector)
         .orderBy('vh.sub_ministry_name')
-    console.log(sql.toString());
     return sql;
   }
 
@@ -225,7 +219,6 @@ vc.updated_entry  as updated_entry`))
         .leftJoin(sub, 'sub.hospital_id', 'vh.id')
         .where('vh.sector', sector)
         .orderBy('vh.sub_ministry_name')
-    console.log(sql.toString());
     return sql;
   }
 
@@ -234,7 +227,6 @@ vc.updated_entry  as updated_entry`))
       .select('v.*', 'vh.hospname', 'vh.sub_ministry_name')
       .join('views_hospital_dms as vh', 'vh.id', 'v.hospital_id')
       .where('vh.sector', sector)
-    console.log(sql.toString());
     return sql;
   }
 
@@ -243,7 +235,6 @@ vc.updated_entry  as updated_entry`))
       .select('v.*', 'vh.hospname', 'vh.sub_ministry_name')
       .join('views_hospital_dms as vh', 'vh.id', 'v.hospital_id')
       .where('vh.sector', sector)
-    console.log(sql.toString());
     return sql;
   }
 
@@ -252,7 +243,6 @@ vc.updated_entry  as updated_entry`))
       .select('v.*', 'vh.hospname', 'vh.sub_ministry_name')
       .join('views_hospital_dms as vh', 'vh.id', 'v.hospital_id')
       .where('vh.sector', sector)
-    console.log(sql.toString());
     return sql;
   }
 
@@ -271,7 +261,6 @@ vc.updated_entry  as updated_entry`))
       .select('*')
       .join('views_hospital_dms as vh', 'v.hospcode', 'vh.hospcode')
       .where('vh.sector', type)
-    console.log(sql.toString());
     return sql;
 
   }

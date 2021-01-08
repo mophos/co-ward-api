@@ -234,8 +234,6 @@ export class BasicModel {
 	}
 
 	getPerson(db: Knex, query: any, TypeQ = 'ID') {
-		console.log(query);
-
 		let sql = db('p_persons')
 		if (TypeQ === 'ID') {
 			sql.where('id', +query.id)

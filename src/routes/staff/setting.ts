@@ -39,8 +39,9 @@ router.get('/user', async (req: Request, res: Response) => {
 router.get('/beds', async (req: Request, res: Response) => {
   const db = req.db;
   const hospitalId = req.decoded.hospitalId;
+  const hospitalType = req.decoded.hospitalType;
   try {
-    const rs = await model.getBeds(db, hospitalId);
+    const rs = await model.getBeds(db, hospitalId, hospitalType);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -76,7 +77,7 @@ router.post('/beds', async (req: Request, res: Response) => {
     await model.removeBeds(db, hospitalId);
     const _data = [];
     let detail: any = [];
-    
+
     for (const i of data) {
       _data.push({
         hospital_id: hospitalId,
