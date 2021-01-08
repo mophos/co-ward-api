@@ -319,7 +319,7 @@ export class CovidCaseModel {
       .where('cid', cid)
   }
 
-  getPersonByName(db: Knex, firstname,lastname) {
+  getPersonByName(db: Knex, firstname, lastname) {
     return db('p_persons')
       .where('first_name', firstname)
       .where('last_name', lastname)
@@ -621,9 +621,17 @@ export class CovidCaseModel {
     return sql;
   }
 
-  checkAN(db:Knex,patientId,an){
+  checkAN(db: Knex, patientId, an) {
     return db('p_covid_cases as c')
-    .where('patient_id',patientId)
-    .where('an',an)
+      .where('patient_id', patientId)
+      .where('an', an)
+  }
+
+  checkANFromHN(db: Knex, hospitalId,hn, an) {
+    return db('p_covid_cases as c')
+      .join('p_patients as pt', 'pt.id', 'c.patient_id')
+      .where('pt.hospital_id', hospitalId)
+      .where('pt.hn', hn)
+      .where('c.an', an)
   }
 }
