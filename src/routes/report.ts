@@ -737,6 +737,7 @@ router.get('/get-bed', async (req: Request, res: Response) => {
         dataP.push(objP);
       }
       obj.provinces = dataP;
+      obj.timestamp = rs[0].timestamp;
       data.push(obj)
     }
     res.send({ ok: true, rows: data, code: HttpStatus.OK });

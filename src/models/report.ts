@@ -405,7 +405,7 @@ export class ReportModel {
     let sql = db('temp_report_admit_comfirm_case')
       .select('d1', 'd2', 'd3', 'd4', 'd5', 'd7', 'd8', 'hn', 'an', 'hospital_id', 'updated_entry_last', 'days',
         'hospname', 'hospcode', 'zone_code', 'province_name', 'date_admit', 'gcs_name', 'bed_name', 'medical_supplies_name',
-        'first_name', 'last_name', 'cid', 'sat_id'
+        'first_name', 'last_name', 'cid', 'sat_id','timestamp'
       )
     if (showPersons) {
       sql.select('first_name', 'last_name', 'cid', 'sat_id')
