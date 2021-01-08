@@ -95,8 +95,6 @@ export class ReportAllModel {
       .join('views_hospital_all as vh', 'vh.id', 'cl.hospital_id')
       .where('cl.entry_date', '<=', date)
       .groupBy('cl.hospital_id')
-    console.log(sql.toString());
-
     return sql;
   }
 
@@ -146,9 +144,7 @@ export class ReportAllModel {
           'vh.sub_ministry_name')
         .leftJoin('views_bed_hospital_cross as vb', 'vh.id', 'vb.hospital_id')
         .leftJoin(sub, 'sub.hospital_id', 'vb.hospital_id')
-        .orderBy('vh.sub_ministry_name')
-          console.log(sql.toString());
-          
+        .orderBy('vh.sub_ministry_name')          
     return sql;
   }
 
@@ -328,8 +324,6 @@ vc.updated_entry  as updated_entry`))
         .leftJoin('views_medical_supplies_hospital_cross as vb', 'vh.id', 'vb.hospital_id')
         .leftJoin(sub, 'sub.hospital_id', 'vh.id')
         .orderBy('vh.sub_ministry_name')
-    console.log(sql.toString());
-
     return sql;
   }
 

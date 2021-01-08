@@ -783,7 +783,6 @@ export class FullfillModel {
       .join('wm_fulfill_drugs as fd', 'fd.id', 'fdd.fulfill_drug_id')
       .where('fd.is_approved', 'N')
       .whereIn('fdd.fulfill_drug_id', ids);
-    console.log(sql.toString());
     return sql
   }
 
@@ -849,7 +848,6 @@ export class FullfillModel {
       .where('g.hospital_id', hospitalId)
     // .orderByRaw('(g.qty+ifnull(vf.qty,0))*100/gp.max')
     // .havingRaw('fill_qty > 0 and (qty+reserve_qty) < min')
-    console.log(sql.toString());
     return sql;
   }
 

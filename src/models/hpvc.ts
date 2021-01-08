@@ -11,9 +11,7 @@ export class HpvcModel {
       .leftJoin('um_users as u', 'u.id', 'h.created_by')
       .select('h.id', 'h.created_date', 'u.fname', db.raw(`group_concat( DISTINCT bh.name, ' ') as hpvc_name`), db.raw(`group_concat(DISTINCT g.name, ' ') as drug_name`))
       .where('h.person_id', personId)
-      .groupBy('h.id')
-      console.log(sql.toString());
-      
+      .groupBy('h.id')      
       return sql
     // .orderBy('id', 'DESC')
   }

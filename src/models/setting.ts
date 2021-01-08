@@ -5,13 +5,20 @@ export class BedModel {
 		return db('b_hospitals')
 			.where('hospcode', hospcode);
 	}
-	getBeds(db: Knex, hospitalId: any) {
-		return db('b_beds as b')
-			.select('b.id as bed_id', 'b.name', 'bh.qty', 'bh.covid_qty','bh.spare_qty')
+
+	getBeds(db: Knex, hospitalId: any, hospitalType: any) {
+		let sql = db('b_beds as b')
+			.select('b.id as bed_id', 'b.name', 'bh.qty', 'bh.covid_qty', 'bh.spare_qty')
 			.leftJoin('b_bed_hospitals as bh', (v) => {
 				v.on('b.id', 'bh.bed_id')
 				v.on('bh.hospital_id', db.raw(`${hospitalId}`));
 			})
+		if (hospitalType === 'HOSPITAL') {
+			sql.where('b.is_hospital', 'Y')
+		} else if (hospitalType === 'HOSPITEL') {
+			sql.where('b.is_hospitel', 'Y')
+		}
+		return sql;
 	}
 
 	getBedReamin(db: Knex, hospitalId: any) {
@@ -187,9 +194,9 @@ export class BedModel {
 	}
 
 	getLastCaseDetails(db) {
-		let s = db('view_covid_case_last ').where('status', 'ADMIT').where('entry_date', '<',  db.raw("now()")) // db.raw('date(now())') )
+		let s = db('view_covid_case_last ').where('status', 'ADMIT').where('entry_date', '<', db.raw("now()")) // db.raw('date(now())') )
 		console.log(s.toString());
-		
+
 		return s
 	}
 
