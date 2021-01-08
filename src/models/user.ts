@@ -4,12 +4,16 @@ export class UserModel {
 
   getUser(db: Knex, limit = 100, offset = 0, q = '') {
     return db('um_users as u')
-      .select('u.*', 'h.hospname')
-      .leftJoin('l_hospitals as h', 'h.hospcode', 'u.hospcode')
+      .select('u.*', 'h.hospname','up.name as position','ut.name as prename')
+      .leftJoin('b_hospitals as h', 'h.hospcode', 'u.hospcode')
+      .join('um_positions as up','up.id','u.position_id')
+      .join('um_titles as ut','ut.id','u.title_id')
       .where((v) => {
         v.where('u.username', 'like', '%' + q + '%')
         v.orWhere('u.fname', 'like', '%' + q + '%')
         v.orWhere('u.lname', 'like', '%' + q + '%')
+        v.orWhere('u.cid', 'like', '%' + q + '%')
+        v.orWhere('u.telephone', 'like', '%' + q + '%')
       })
       .where('u.is_deleted', 'N')
       .limit(limit)
@@ -17,14 +21,15 @@ export class UserModel {
   }
 
   getUserTotal(db: Knex, q = '') {
-    return db('um_users as uu')
+    return db('um_users as u')
       .count('* as count')
-      .join('um_titles as ut', 'ut.id', 'uu.title_id')
-      .where('uu.is_deleted', 'N')
+      .where('u.is_deleted', 'N')
       .where((v) => {
-        v.where('uu.username', 'like', '%' + q + '%')
-        v.orWhere('ut.name', 'like', '%' + q + '%')
-        v.orWhere('uu.lname', 'like', '%' + q + '%')
+        v.where('u.username', 'like', '%' + q + '%')
+        v.orWhere('u.fname', 'like', '%' + q + '%')
+        v.orWhere('u.lname', 'like', '%' + q + '%')
+        v.orWhere('u.cid', 'like', '%' + q + '%')
+        v.orWhere('u.telephone', 'like', '%' + q + '%')
       });
   }
 
@@ -37,12 +42,16 @@ export class UserModel {
   updateUser(db: Knex, id: any, data = {}) {
     return db('um_users')
       .update(data)
-      .update('update_date', db.fn.now())
       .where('id', id);
   }
 
   insertUser(db: Knex, data = {}) {
     return db('um_users')
+      .insert(data);
+  }
+
+  insertLogsUser(db: Knex, data = {}) {
+    return db('logs_um_users')
       .insert(data);
   }
 
