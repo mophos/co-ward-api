@@ -51,11 +51,11 @@ export class ReportModel {
 
   getGcs(db: Knex, date) {
     return db('temp_views_case_dates AS vcl')
-      .select('vcl.gcs_id', 'bg.name as gcs_name', 'pp.hospital_id', 'pp.hn', 'p.an', 'vcl.date_admit', 'vcl.status')
-      .join('p_covid_cases as p', 'p.id', 'vcl.covid_case_id')
-      .join('p_patients AS pp', 'pp.id', 'vcl.patient_id')
-      .join('b_hospitals AS bh', 'bh.id', 'pp.hospital_id')
-      .leftJoin('b_gcs as bg', 'bg.id', 'vcl.gcs_id')
+      // .select('vcl.gcs_id', 'bg.name as gcs_name', 'pp.hospital_id', 'pp.hn', 'p.an', 'vcl.date_admit', 'vcl.status')
+      // .join('p_covid_cases as p', 'p.id', 'vcl.covid_case_id')
+      // .join('p_patients AS pp', 'pp.id', 'vcl.patient_id')
+      // .join('b_hospitals AS bh', 'bh.id', 'pp.hospital_id')
+      // .leftJoin('b_gcs as bg', 'bg.id', 'vcl.gcs_id')
       .where('vcl.entry_date', date)
     // .groupBy('pp.hospital_id', )
   }
