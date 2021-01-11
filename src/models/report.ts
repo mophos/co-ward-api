@@ -415,6 +415,19 @@ export class ReportModel {
     // console.log(sql.toString());
     return sql;
   }
+  admitPuiCase(db: Knex, showPersons = false) {
+    // const last = db('p_covid_case_details')
+    let sql = db('temp_report_admit_pui_case')
+      .select('d1', 'd2', 'd3', 'd4', 'd5', 'd7', 'd8', 'hn', 'an', 'hospital_id', 'updated_entry_last', 'days',
+        'hospname', 'hospcode', 'zone_code', 'province_name', 'date_admit', 'gcs_name', 'bed_name', 'medical_supplies_name',
+        'first_name', 'last_name', 'cid', 'sat_id','timestamp'
+      )
+    if (showPersons) {
+      sql.select('first_name', 'last_name', 'cid', 'sat_id')
+    }
+    // console.log(sql.toString());
+    return sql;
+  }
 
   admitConfirmCaseProvice(db: Knex, zoneCode, provinceCode = null, showPersons = false) {
     const last = db('p_covid_case_details')
@@ -472,6 +485,10 @@ export class ReportModel {
   }
   admitConfirmCaseSummary(db: Knex) {
     let sql = db('temp_report_admit_comfirm_case_summary')
+    return sql;
+  }
+  admitPuiCaseSummary(db: Knex) {
+    let sql = db('temp_report_admit_pui_case_summary')
     return sql;
   }
 

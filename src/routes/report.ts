@@ -765,7 +765,6 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
         rows = filter(rs, { 'zone_code': zone });
       } else {
         zoneCodes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
-        // zoneCodes = ['01'];
         rows = rs;
       }
     } else {
@@ -779,75 +778,41 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
     }
 
     var wb = new excel4node.Workbook();
+    let row = 2;
     for (const v of zoneCodes) {
-      let row = 2;
-      var ws = wb.addWorksheet(`${v}`);
-      const data = orderBy(filter(rows, { 'zone_code': v }), 'province_code', 'asc')
-      for (const d of data) {
-        ws.cell(1, 1).string('จังหวัด');
-        ws.cell(1, 2).string('รหัสโรงพยาบาล');
-        ws.cell(1, 3).string('โรงพยาบาล');
-        ws.cell(1, 4).string('ระดับขีดความสามารถ');
-        ws.cell(1, 5).string('AIIR ทั้งหมด');
-        ws.cell(1, 6).string('AIIR ใช้ไปแล้ว');
-        ws.cell(1, 7).string('Modified AIIR ทั้งหมด');
-        ws.cell(1, 8).string('Modified AIIR ใช้ไปแล้ว');
-        ws.cell(1, 9).string('Isolate ทั้งหมด');
-        ws.cell(1, 10).string('Isolate ใช้ไปแล้ว');
-        ws.cell(1, 11).string('Cohort ทั้งหมด');
-        ws.cell(1, 12).string('Cohort ใช้ไปแล้ว');
-        ws.cell(1, 13).string('Hospitel ทั้งหมด');
-        ws.cell(1, 14).string('Hospitel ใช้ไปแล้ว');
+      const provinces = uniqBy(orderBy(filter(rows, { 'zone_code': v }), 'province_code', 'asc'), 'province_name');
+      for (const p of provinces) {
+        var ws = wb.addWorksheet(`${p.province_name}`);
+        ws.cell(1, 1).string('รหัสโรงพยาบาล');
+        ws.cell(1, 2).string('โรงพยาบาล');
+        ws.cell(1, 3).string('AIIR ทั้งหมด');
+        ws.cell(1, 4).string('AIIR ใช้ไปแล้ว');
+        ws.cell(1, 5).string('Modified AIIR ทั้งหมด');
+        ws.cell(1, 6).string('Modified AIIR ใช้ไปแล้ว');
+        ws.cell(1, 7).string('Isolate ทั้งหมด');
+        ws.cell(1, 8).string('Isolate ใช้ไปแล้ว');
+        ws.cell(1, 9).string('Cohort ทั้งหมด');
+        ws.cell(1, 10).string('Cohort ใช้ไปแล้ว');
+        ws.cell(1, 11).string('Hospitel ทั้งหมด');
+        ws.cell(1, 12).string('Hospitel ใช้ไปแล้ว');
+        const hospitals = orderBy(filter(rows, { 'province_name': p.province_name }), 'hospital_name', 'asc');
+        for (const h of hospitals) {
+          ws.cell(row, 1).string(h.hospcode.toString());
+          ws.cell(row, 2).string(h.hospname.toString());
 
-        ws.cell(row, 1).string(d.province_name);
-        ws.cell(row, 2).string(d.hospcode);
-        ws.cell(row, 3).string(d.hospname);
-        ws.cell(row, 4).string(d.level);
-
-        ws.cell(row, 5).number(d['aiir_covid_qty'] === null ? 0 : d['aiir_covid_qty']);
-        ws.cell(row, 6).number(d['aiir_usage_qty'] === null ? 0 : d['aiir_usage_qty']);
-        ws.cell(row, 7).number(d['modified_aiir_covid_qty'] === null ? 0 : d['modified_aiir_covid_qty']);
-        ws.cell(row, 8).number(d['modified_aiir_usage_qty'] === null ? 0 : d['modified_aiir_usage_qty']);
-        ws.cell(row, 9).number(d['isolate_covid_qty'] === null ? 0 : d['isolate_covid_qty']);
-        ws.cell(row, 10).number(d['isolate_usage_qty'] === null ? 0 : d['isolate_usage_qty']);
-        ws.cell(row, 11).number(d['cohort_covid_qty'] === null ? 0 : d['cohort_covid_qty']);
-        ws.cell(row, 12).number(d['cohort_usage_qty'] === null ? 0 : d['cohort_usage_qty']);
-        ws.cell(row, 13).number(d['hospitel_covid_qty'] === null ? 0 : d['hospitel_covid_qty']);
-        ws.cell(row, 14).number(d['hospitel_usage_qty'] === null ? 0 : d['hospitel_usage_qty']);
-        row++
+          ws.cell(row, 3).string((h['aiir_qty'].toString()));
+          ws.cell(row, 4).string((h['aiir_covid_qty'].toString()));
+          ws.cell(row, 5).string((h['modified_aiir_qty'].toString()));
+          ws.cell(row, 6).string((h['modified_aiir_covid_qty'].toString()));
+          ws.cell(row, 7).string((h['isolate_qty'].toString()));
+          ws.cell(row, 8).string((h['isolate_covid_qty'].toString()));
+          ws.cell(row, 9).string((h['cohort_qty'].toString()));
+          ws.cell(row, 10).string((h['cohort_covid_qty'].toString()));
+          ws.cell(row, 11).string((h['hospitel_qty'].toString()));
+          ws.cell(row, 12).string((h['hospitel_covid_qty'].toString()));
+          row++;
+        }
       }
-      // for (const p of provinces) {
-      //   var ws = wb.addWorksheet(`${p.province_name}`);
-      //   ws.cell(1, 1).string('รหัสโรงพยาบาล');
-      //   ws.cell(1, 2).string('โรงพยาบาล');
-      //   ws.cell(1, 3).string('AIIR ทั้งหมด');
-      //   ws.cell(1, 4).string('AIIR ใช้ไปแล้ว');
-      //   ws.cell(1, 5).string('Modified AIIR ทั้งหมด');
-      //   ws.cell(1, 6).string('Modified AIIR ใช้ไปแล้ว');
-      //   ws.cell(1, 7).string('Isolate ทั้งหมด');
-      //   ws.cell(1, 8).string('Isolate ใช้ไปแล้ว');
-      //   ws.cell(1, 9).string('Cohort ทั้งหมด');
-      //   ws.cell(1, 10).string('Cohort ใช้ไปแล้ว');
-      //   ws.cell(1, 11).string('Hospitel ทั้งหมด');
-      //   ws.cell(1, 12).string('Hospitel ใช้ไปแล้ว');
-      //   const hospitals = orderBy(filter(rows, { 'province_name': p.province_name }), 'hospital_name', 'asc');
-      //   for (const h of hospitals) {
-      //     ws.cell(row, 1).string(h.hospcode.toString());
-      //     ws.cell(row, 2).string(h.hospname.toString());
-
-      //     ws.cell(row, 3).string((h['aiir_qty'].toString()));
-      //     ws.cell(row, 4).string((h['aiir_covid_qty'].toString()));
-      //     ws.cell(row, 5).string((h['modified_aiir_qty'].toString()));
-      //     ws.cell(row, 6).string((h['modified_aiir_covid_qty'].toString()));
-      //     ws.cell(row, 7).string((h['isolate_qty'].toString()));
-      //     ws.cell(row, 8).string((h['isolate_covid_qty'].toString()));
-      //     ws.cell(row, 9).string((h['cohort_qty'].toString()));
-      //     ws.cell(row, 10).string((h['cohort_covid_qty'].toString()));
-      //     ws.cell(row, 11).string((h['hospitel_qty'].toString()));
-      //     ws.cell(row, 12).string((h['hospitel_covid_qty'].toString()));
-      //     row++;
-      //   }
-      // }
     }
 
     fse.ensureDirSync(process.env.TMP_PATH);
@@ -1682,6 +1647,38 @@ router.get('/admit-confirm-case', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/admit-pui-case', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const type = req.decoded.type;
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
+  const provinceCode = req.decoded.provinceCode;
+  // const showPersons = true;
+  const right = req.decoded.rights;
+  // console.log(right);
+
+  const showPersons = _.findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 || _.findIndex(right, { name: 'STAFF_VIEW_PATIENT_INFO' }) > -1 ? true : false;
+
+  try {
+    if (type == 'MANAGER') {
+      const rs: any = await model.admitPuiCase(db, showPersons);
+      res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    // } else if (providerType == 'ZONE') {
+    //   const rs: any = await model.admitConfirmCaseProvice(db, zoneCode, null, showPersons);
+    //   res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    // } else if (providerType == 'SSJ') {
+    //   const rs: any = await model.admitConfirmCaseProvice(db, zoneCode, provinceCode, showPersons);
+    //   res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    } else {
+      res.send({ ok: false, code: HttpStatus.UNAUTHORIZED, error: HttpStatus.UNAUTHORIZED });
+
+    }
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.post('/check-admit-confirm-case', async (req: Request, res: Response) => {
   const db = req.dbReport;
   const status = req.body.status;
@@ -1797,7 +1794,31 @@ router.get('/admit-confirm-case-summary', async (req: Request, res: Response) =>
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else {
       res.send({ ok: false, code: HttpStatus.UNAUTHORIZED });
+    }
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
 
+router.get('/admit-pui-case-summary', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const type = req.decoded.type;
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
+  const provinceCode = req.decoded.provinceCode;
+  try {
+    if (type == 'MANAGER') {
+      const rs: any = await model.admitConfirmPuiSummary(db);
+      res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    // } else if (providerType == 'ZONE') {
+    //   const rs: any = await model.admitConfirmCaseSummaryProvince(db, zoneCode);
+    //   res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    // } else if (providerType == 'SSJ') {
+    //   const rs: any = await model.admitConfirmCaseSummaryProvince(db, zoneCode, provinceCode);
+    //   res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    } else {
+      res.send({ ok: false, code: HttpStatus.UNAUTHORIZED });
     }
   } catch (error) {
     console.log(error);
