@@ -86,7 +86,7 @@ router.get('/report5', async (req: Request, res: Response) => {
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
-    
+
     res.send({ ok: false, error: error });
   }
 });
@@ -139,7 +139,7 @@ router.get('/report7', async (req: Request, res: Response) => {
     const rs: any = await model.report7(db, date, sector);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
-
+    console.log(error);
     res.send({ ok: false, error: error });
   }
 });
@@ -152,7 +152,7 @@ router.get('/report7-ministry', async (req: Request, res: Response) => {
     const rs: any = await model.report7Ministry(db, date, sector);
     res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
   } catch (error) {
-
+    console.log(error)
     res.send({ ok: false, error: error });
   }
 });
@@ -165,7 +165,7 @@ router.get('/report7-sector', async (req: Request, res: Response) => {
     const rs: any = await model.report7Sector(db, date, sector);
     res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
   } catch (error) {
-
+    console.log(error)
     res.send({ ok: false, error: error });
   }
 });
@@ -678,7 +678,8 @@ router.get('/report6/excel', async (req: Request, res: Response) => {
     ws.cell(1, 14, 1, 16, true).string('Hospitel').style(center);
     ws.cell(1, 17, 2, 17, true).string('หน่วยงาน');
     ws.cell(1, 18, 2, 18, true).string('ระดับขีดความสามารถ');
-    ws.cell(1, 19, 2, 19, true).string('ข้อมูลล่าสุด');
+    ws.cell(1, 19, 2, 19, true).string('Hospital Type');
+    ws.cell(1, 20, 2, 20, true).string('ข้อมูลล่าสุด');
 
     ws.cell(2, 2).string('ทั้งหมด');
     ws.cell(2, 3).string('ใช้ไปแล้ว');
@@ -748,7 +749,8 @@ router.get('/report6/excel', async (req: Request, res: Response) => {
 
       ws.cell(row, 17).string(toString(items['sub_ministry_name'])).style(right);
       ws.cell(row, 18).string(toString(items['level'])).style(right);
-      ws.cell(row++, 19).string(toString(items['entry_date'])).style(right);
+      ws.cell(row, 19).string(toString(items['hospital_type'])).style(right);
+      ws.cell(row++, 20).string(toString(items['entry_date'])).style(right);
     }
 
     ws.cell(row, 1).string('รวม');
