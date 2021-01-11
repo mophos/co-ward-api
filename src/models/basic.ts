@@ -335,9 +335,9 @@ export class BasicModel {
 		return new Promise((resolve, reject) => {
 			var options = {
 				method: 'POST',
-				url: 'http://api-covid19.moph.go.th/authentication/ais/sms',
+				url: 'http://otp.dev.moph.go.th/sms',
 				headers: { 'content-type': 'application/json' },
-				body: { tel: tel, text: text, appId: '76503a47-cea5-482f-ae27-e151ca5a2724' },
+				body: { tel: tel, message: text, appId: process.env.OTP_APP_ID },
 				json: true
 			};
 
