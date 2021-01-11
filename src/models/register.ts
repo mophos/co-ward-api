@@ -96,6 +96,18 @@ export class Register {
             .where('hospital_id', id)
     }
 
+    getCid(db: Knex, cid) {
+        return db('um_users')
+            .select('cid')
+            .where('cid', cid)
+    }
+
+    getUsername(db: Knex, username) {
+        return db('um_users')
+            .select('username')
+            .where('username', username)
+    }
+
     getGroupRight(db: Knex, groupName: any) {
         return db('um_group_right AS ug')
             .select('ur.name')
