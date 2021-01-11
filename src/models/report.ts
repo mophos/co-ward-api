@@ -107,7 +107,7 @@ export class ReportModel {
 
   getUseBed(db: Knex) {
     let sql = db('temp_report_bed as t')
-      .select('t.*', 'h.level')
+      .select('t.*', 'h.level', 'h.hospital_type')
       .join('b_hospitals as h', 'h.id', 't.hospital_id')
     return sql;
     // return db('views_bed_hospitals AS vbh')
@@ -407,7 +407,7 @@ export class ReportModel {
     let sql = db('temp_report_admit_comfirm_case')
       .select('d1', 'd2', 'd3', 'd4', 'd5', 'd7', 'd8', 'hn', 'an', 'hospital_id', 'updated_entry_last', 'days',
         'hospname', 'hospcode', 'zone_code', 'province_name', 'date_admit', 'gcs_name', 'bed_name', 'medical_supplies_name',
-        'first_name', 'last_name', 'cid', 'sat_id','timestamp'
+        'first_name', 'last_name', 'cid', 'sat_id', 'timestamp'
       )
     if (showPersons) {
       sql.select('first_name', 'last_name', 'cid', 'sat_id')

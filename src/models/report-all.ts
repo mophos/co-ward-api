@@ -201,7 +201,9 @@ export class ReportAllModel {
     //   vh.id
     // ORDER BY
     //   vh.sub_ministry_name ASC`;
-    let sql = db('temp_report_all_6')
+    let sql = db('temp_report_all_6 as t')
+      .select('t.*', 'h.hospital_type')
+      .join('b_hospitals as h', 'h.id', 't.id')
     return sql;
   }
 

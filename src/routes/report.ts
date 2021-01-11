@@ -798,6 +798,7 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
         ws.cell(1, 12).string('Cohort ใช้ไปแล้ว');
         ws.cell(1, 13).string('Hospitel ทั้งหมด');
         ws.cell(1, 14).string('Hospitel ใช้ไปแล้ว');
+        ws.cell(1, 15).string('Hospital Type');
 
         ws.cell(row, 1).string(d.province_name);
         ws.cell(row, 2).string(d.hospcode);
@@ -814,40 +815,9 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
         ws.cell(row, 12).number(d['cohort_usage_qty'] === null ? 0 : d['cohort_usage_qty']);
         ws.cell(row, 13).number(d['hospitel_covid_qty'] === null ? 0 : d['hospitel_covid_qty']);
         ws.cell(row, 14).number(d['hospitel_usage_qty'] === null ? 0 : d['hospitel_usage_qty']);
+        ws.cell(row, 15).string(d.hospital_type);
         row++
       }
-      // for (const p of provinces) {
-      //   var ws = wb.addWorksheet(`${p.province_name}`);
-      //   ws.cell(1, 1).string('รหัสโรงพยาบาล');
-      //   ws.cell(1, 2).string('โรงพยาบาล');
-      //   ws.cell(1, 3).string('AIIR ทั้งหมด');
-      //   ws.cell(1, 4).string('AIIR ใช้ไปแล้ว');
-      //   ws.cell(1, 5).string('Modified AIIR ทั้งหมด');
-      //   ws.cell(1, 6).string('Modified AIIR ใช้ไปแล้ว');
-      //   ws.cell(1, 7).string('Isolate ทั้งหมด');
-      //   ws.cell(1, 8).string('Isolate ใช้ไปแล้ว');
-      //   ws.cell(1, 9).string('Cohort ทั้งหมด');
-      //   ws.cell(1, 10).string('Cohort ใช้ไปแล้ว');
-      //   ws.cell(1, 11).string('Hospitel ทั้งหมด');
-      //   ws.cell(1, 12).string('Hospitel ใช้ไปแล้ว');
-      //   const hospitals = orderBy(filter(rows, { 'province_name': p.province_name }), 'hospital_name', 'asc');
-      //   for (const h of hospitals) {
-      //     ws.cell(row, 1).string(h.hospcode.toString());
-      //     ws.cell(row, 2).string(h.hospname.toString());
-
-      //     ws.cell(row, 3).string((h['aiir_qty'].toString()));
-      //     ws.cell(row, 4).string((h['aiir_covid_qty'].toString()));
-      //     ws.cell(row, 5).string((h['modified_aiir_qty'].toString()));
-      //     ws.cell(row, 6).string((h['modified_aiir_covid_qty'].toString()));
-      //     ws.cell(row, 7).string((h['isolate_qty'].toString()));
-      //     ws.cell(row, 8).string((h['isolate_covid_qty'].toString()));
-      //     ws.cell(row, 9).string((h['cohort_qty'].toString()));
-      //     ws.cell(row, 10).string((h['cohort_covid_qty'].toString()));
-      //     ws.cell(row, 11).string((h['hospitel_qty'].toString()));
-      //     ws.cell(row, 12).string((h['hospitel_covid_qty'].toString()));
-      //     row++;
-      //   }
-      // }
     }
 
     fse.ensureDirSync(process.env.TMP_PATH);
