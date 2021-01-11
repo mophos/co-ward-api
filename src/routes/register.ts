@@ -70,6 +70,36 @@ router.get('/get-node-supplies', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/get-cid', async (req: Request, res: Response) => {
+  let cid = req.query.cid
+  console.log(cid);
+  try {
+    let rs: any = await registerModel.getCid(req.db, cid);
+    if (rs.length > 0) {
+      res.send({ ok: false, message: 'รหัสบัตรประชาชนซ้้ำกับในระบบ' })
+    } else {
+      res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    }
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/get-username', async (req: Request, res: Response) => {
+  let username = req.query.username
+  console.log(username);
+  try {
+    let rs: any = await registerModel.getUsername(req.db, username);
+    if (rs.length > 0) {
+      res.send({ ok: false, message: 'Username กับในระบบ' })
+    } else {
+      res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    }
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.post('/upload-supplie', upload.any(), async (req: Request, res: Response) => {
   res.send({ ok: true, code: HttpStatus.OK });
 });
@@ -203,7 +233,7 @@ router.post('/req-otp', async (req: Request, res: Response) => {
   const appId = process.env.OTP_APP_ID;
 
   try {
-    let rs: any = await registerModel.reqOTP(appId,tel);    
+    let rs: any = await registerModel.reqOTP(appId, tel);
     res.send(rs);
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -217,7 +247,7 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
   let tel = req.body.tel
   let vendor = req.body.vendor
   try {
-    let rs: any = await registerModel.verifyOTP(appId, tel, otp, transactionId,vendor);
+    let rs: any = await registerModel.verifyOTP(appId, tel, otp, transactionId, vendor);
     res.send(rs);
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
