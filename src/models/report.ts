@@ -461,8 +461,6 @@ export class ReportModel {
     if (showPersons) {
       sql.select('pp.first_name', 'pp.last_name', 'pp.cid', 'c.sat_id')
     }
-    // console.log(sql.toString());
-
     return sql;
   }
 

@@ -86,7 +86,7 @@ router.get('/report5', async (req: Request, res: Response) => {
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
-    
+
     res.send({ ok: false, error: error });
   }
 });
@@ -139,7 +139,7 @@ router.get('/report7', async (req: Request, res: Response) => {
     const rs: any = await model.report7(db, date, sector);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
-
+    console.log(error);
     res.send({ ok: false, error: error });
   }
 });
@@ -152,7 +152,7 @@ router.get('/report7-ministry', async (req: Request, res: Response) => {
     const rs: any = await model.report7Ministry(db, date, sector);
     res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
   } catch (error) {
-
+    console.log(error)
     res.send({ ok: false, error: error });
   }
 });
@@ -165,7 +165,7 @@ router.get('/report7-sector', async (req: Request, res: Response) => {
     const rs: any = await model.report7Sector(db, date, sector);
     res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
   } catch (error) {
-
+    console.log(error)
     res.send({ ok: false, error: error });
   }
 });
