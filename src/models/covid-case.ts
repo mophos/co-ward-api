@@ -11,6 +11,7 @@ export class CovidCaseModel {
       .leftJoin('um_titles as t', 'p.title_id', 't.id')
       .where('pt.hospital_id', hospitalId)
       .where('c.is_deleted', 'N')
+      .groupBy('pt.id')
   }
 
 
@@ -80,11 +81,11 @@ export class CovidCaseModel {
       .select('cd.updated_entry', 'c.id as covid_case_id', 'c.status', 'c.date_admit', 'pt.hn', 'pt.person_id', 'cd.id as covid_case_details_id', 'p.*', 't.name as title_name',
         'ccd.bed_id', 'ccd.gcs_id', 'cd.medical_supplie_id', db.raw(`ifnull(cd.create_date, null) as create_date`),
         db.raw(`ifnull(cd.entry_date, null) as entry_date`),
-      //   db.raw(`(select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 1 or generic_id = 2) limit 1) as set1,
-      // (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 3 or generic_id = 4) limit 1) as set2,
-      // (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 7  limit 1) as set3,
-      // (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 8  limit 1) as set4`)
-      'vg.set1','vg.set2','vg.set3','vg.set4'
+        //   db.raw(`(select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 1 or generic_id = 2) limit 1) as set1,
+        // (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 3 or generic_id = 4) limit 1) as set2,
+        // (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 7  limit 1) as set3,
+        // (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 8  limit 1) as set4`)
+        'vg.set1', 'vg.set2', 'vg.set3', 'vg.set4'
       )
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
       .join('p_persons as p', 'pt.person_id', 'p.id')
@@ -308,9 +309,26 @@ export class CovidCaseModel {
       .where('id', id);
   }
 
+  getPerson(db: Knex, id) {
+    return db('p_persons')
+      .where('id', id)
+  }
+
   getPersonByCid(db: Knex, cid) {
     return db('p_persons')
       .where('cid', cid)
+  }
+
+  getPersonByName(db: Knex, firstname, lastname) {
+    return db('p_persons')
+      .where('first_name', firstname)
+      .where('last_name', lastname)
+  }
+
+  getPatientByHN(db: Knex, hospitalId, hn) {
+    return db('p_patients')
+      .where('hn', hn)
+      .where('hospital_id', hospitalId)
   }
 
   getPatientByPersonId(db: Knex, hospitalId, personId) {
@@ -553,7 +571,7 @@ export class CovidCaseModel {
       .where('covid_case_detail_id', id)
       .where('is_approved', 'N')
   }
-  
+
   listOldPatient(db: Knex, hospitalId) {
     const sql = `SELECT covid_case_id FROM view_covid_case WHERE gcs_id IS NULL GROUP BY covid_case_id`;
     const sqls = `select id from view_date_diff `;
@@ -590,7 +608,7 @@ export class CovidCaseModel {
       .select('c.id as covid_case_id', 'c.status', 'cd.id as covid_case_details_id',
         'ccd.bed_id', 'ccd.gcs_id', 'cd.medical_supplie_id', db.raw(`ifnull(cd.create_date, null) as create_date`),
         db.raw(`ifnull(cd.entry_date, null) as entry_date`),
-      'vg.set1','vg.set2','vg.set3','vg.set4'
+        'vg.set1', 'vg.set2', 'vg.set3', 'vg.set4'
       )
       .leftJoin('view_covid_case_last as ccd', 'ccd.covid_case_id', 'c.id')
       .leftJoin('p_covid_case_details as cd', 'ccd.id', 'cd.id')
@@ -598,8 +616,22 @@ export class CovidCaseModel {
       .where('pt.hospital_id', hospitalId)
       .where('c.status', 'ADMIT')
       .where('c.is_deleted', 'N')
-      .where('cd.entry_date','<',date)
-      // console.log(sql.toString());
+      .where('cd.entry_date', '<', date)
+    // console.log(sql.toString());
     return sql;
+  }
+
+  checkAN(db: Knex, patientId, an) {
+    return db('p_covid_cases as c')
+      .where('patient_id', patientId)
+      .where('an', an)
+  }
+
+  checkANFromHN(db: Knex, hospitalId,hn, an) {
+    return db('p_covid_cases as c')
+      .join('p_patients as pt', 'pt.id', 'c.patient_id')
+      .where('pt.hospital_id', hospitalId)
+      .where('pt.hn', hn)
+      .where('c.an', an)
   }
 }

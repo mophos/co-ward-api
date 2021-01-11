@@ -208,185 +208,301 @@ router.put('/confirm-date', async (req: Request, res: Response) => {
   }
 });
 
+//#######START CODE NEW ########################################
 router.post('/', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   const db = req.db;
-  const userId = req.decoded.id;
   const data = req.body.data;
-
   try {
-    const timeCut = await basicModel.timeCut();
-    const person = {
-      cid: data.cid || null,
-      passport: data.passport || null,
-      title_id: data.titleId,
-      first_name: data.fname,
-      middle_name: data.mname || null,
-      last_name: data.lname,
-      gender_id: data.genderId || null,
-      people_type: data.peopleType || null,
-      birth_date: data.birthDate,
-      telephone: data.tel || null,
-      house_no: data.houseNo || null,
-      room_no: data.roomNo || null,
-      village: data.village || null,
-      village_name: data.villageName || null,
-      road: data.road || null,
-      tambon_name: data.tambon_name || null,
-      ampur_name: data.ampur_name || null,
-      province_name: data.province_name || null,
-      tambon_code: data.tambonCode || null,
-      ampur_code: data.ampurCode || null,
-      province_code: data.provinceCode || null,
-      zipcode: data.zipcode || null,
-      current_house_no: data.houseNoCurr || null,
-      current_room_no: data.roomNoCurr || null,
-      current_village: data.villageCurr || null,
-      current_village_name: data.villageNameCurr || null,
-      current_road: data.roadCurr || null,
-      current_tambon_code: data.tambonCodeCurr || null,
-      current_ampur_code: data.ampurCodeCurr || null,
-      current_province_code: data.provinceCodeCurr || null,
-      current_tambon_name: data.tambonNameCurr || null,
-      current_ampur_name: data.ampurNameCurr || null,
-      current_province_name: data.provinceNameCurr || null,
-      current_zipcode: data.zipcodeCurr || null,
-      country_code: data.countryId,
-    }
 
-    let personId: any;
-    if (data.type == 'REFER') {
-      const dis = {
-        update_by: userId,
-        status: 'REFER'
-      }
-      await covidCaseModel.updateDischarge(db, data.covidCaseId, dis)
-
-      const detail: any = {
-        covid_case_id: data.covidCaseId,
-        status: 'REFER',
-        gcs_id: null,
-        bed_id: null,
-        medical_supplie_id: null,
-        create_by: userId
-      }
-      if (!timeCut.ok) {
-        detail.entry_date = moment().add(1, 'days').format('YYYY-MM-DD');
+    // check patient 
+    const rsPatient = await covidCaseModel.getPatientByHN(db, hospitalId, data.hn);
+    if (rsPatient.length && data.confirm != 'Y') {
+      if (data.type == 'CID' || (data.type == 'PASSPORT' && data.passport)) {
+        // มี patient
+        res.send(await saveCovidCase(db, req, data));
       } else {
-        detail.entry_date = moment().format('YYYY-MM-DD');
-      }
-      await covidCaseModel.saveCovidCaseDetail(db, detail);
-
-
-      personId = data.personId;
-    } else {
-      const rs = await covidCaseModel.savePerson(db, person);
-      if (rs[0].insertId == 0) {
-        if (data.type == 'PASSPORT') {
-          const rs = await covidCaseModel.getPersonByPassport(db, data.passport);
-          if (rs.length) {
-            personId = rs[0].id
-          }
-        } else if (data.type == 'CID') {
-          const rs = await covidCaseModel.getPersonByCid(db, data.cid);
-          if (rs.length) {
-            personId = rs[0].id
-          }
+        const rsPerson = await covidCaseModel.getPerson(db, rsPatient[0].person_id);
+        if (rsPerson.length) {
+          res.send({ ok: false, code: 3301, rows: rsPerson[0] });
+        } else {
+          res.send({ ok: false, error: 'มีบัครุนแรงติดต่อคุณแอมป์ด่วนค่ะ !!' });
         }
-      } else {
-        personId = rs[0].insertId;
       }
-    }
-
-    const patient = {
-      hospital_id: hospitalId,
-      hn: data.hn,
-      person_id: personId
-    }
-
-    const rsP = await covidCaseModel.getPatientByPersonId(db, hospitalId, personId);
-    let patientId;
-    if (rsP.length) {
-      patientId = rsP[0].id;
     } else {
-      const sp = await covidCaseModel.savePatient(db, patient);
-      patientId = sp[0];
+      // ไม่มี patient
+      res.send(await saveCovidCase(db, req, data));
     }
-
-    const _data: any = {
-      patient_id: patientId,
-      status: 'ADMIT',
-      an: data.an,
-      date_admit: data.admitDate,
-      confirm_date: data.confirmDate,
-      created_by: userId,
-      case_status: data.caseStatus
-    }
-
-    if (data.returnFromAbroad == 'covid' || data.returnFromAbroad == 'other') {
-      _data.return_from_abroad = data.returnFromAbroad === 'covid' ? 'Y' : 'N';
-    }
-    _data.updated_entry = moment().format('YYYY-MM-DD');
-    if (!timeCut.ok) {
-      _data.updated_entry = _data.date_entry = moment().add(1, 'days').format('YYYY-MM-DD');
-    } else {
-      _data.updated_entry = _data.date_entry = moment().format('YYYY-MM-DD');
-    }
-
-    const covidCaseId = await covidCaseModel.saveCovidCase(db, _data);
-    let dataIcd: any = [];
-    if (data.returnFromAbroad == 'covid' || data.returnFromAbroad == 'other') {
-      for (const v of data.icdCodes) {
-        const objIcds: any = {};
-        objIcds.covid_case_id = covidCaseId;
-        objIcds.icd_code = v;
-        dataIcd.push(objIcds);
-      }
-    }
-    await covidCaseModel.saveIcds(db, dataIcd);
-    // const detail: any = {
-    //   covid_case_id: covidCaseId[0],
-    //   status: 'ADMIT',
-    //   gcs_id: data.gcsId,
-    //   bed_id: data.bedId,
-    //   medical_supplie_id: data.medicalSupplieId || null,
-    //   create_by: userId
-    // }
-
-    for await (const v of data.detail) {
-      const obj: any = {};
-      obj.covid_case_id = covidCaseId[0];
-      obj.status = 'ADMIT';
-      obj.gcs_id = v.gcs_id;
-      obj.bed_id = v.bed_id;
-      obj.medical_supplie_id = v.medical_supplie_id || null;
-      obj.create_by = userId;
-      obj.entry_date = v.date;
-      obj.created_by = userId;
-      const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, obj);
-      const _covidCaseDetailId = covidCaseDetailId[0].insertId;
-
-      const generic = await basicModel.getGenerics(db);
-      for (const i of v.drugs) {
-        const item: any = {
-          covid_case_detail_id: _covidCaseDetailId,
-          generic_id: i.generic_id,
-        }
-        const idx = _.findIndex(generic, { 'id': +i.generic_id });
-        if (idx > -1) {
-          item.qty = generic[idx].first_pay_qty;
-          i.qty = generic[idx].first_pay_qty;
-        }
-        await covidCaseModel.saveCovidCaseDetailItem(db, item);
-      }
-    }
-
-    res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
-    console.log(error);
-    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+    res.send({ ok: false, error: error });
   }
 });
+router.post('/sd', async (req: Request, res: Response) => {
+  const db = req.db;
+  const data = req.body.data;
+  return await saveCovidCase(db, req, data);
+});
+
+async function saveCovidCase(db, req, data) {
+  const hospitalId = req.decoded.hospitalId;
+  console.log('hospitalId', hospitalId);
+
+  const userId = req.decoded.id;
+
+  try {
+    const an = await covidCaseModel.checkANFromHN(db, hospitalId, data.hn, data.an);
+    if (an.length) {
+      console.log('an1');
+      return ({ ok: false, error: 'AN ซ้ำ กรุณาตรวจสอบข้อมูลให้ถูกต้อง' });
+    } else {
+      console.log('an2');
+      const timeCut = await basicModel.timeCut();
+      const person = {
+        cid: data.cid || null,
+        passport: data.passport || null,
+        title_id: data.titleId,
+        first_name: data.fname,
+        middle_name: data.mname || null,
+        last_name: data.lname,
+        gender_id: data.genderId || null,
+        people_type: data.peopleType || null,
+        birth_date: data.birthDate,
+        telephone: data.tel || null,
+        house_no: data.houseNo || null,
+        room_no: data.roomNo || null,
+        village: data.village || null,
+        village_name: data.villageName || null,
+        road: data.road || null,
+        tambon_name: data.tambon_name || null,
+        ampur_name: data.ampur_name || null,
+        province_name: data.province_name || null,
+        tambon_code: data.tambonCode || null,
+        ampur_code: data.ampurCode || null,
+        province_code: data.provinceCode || null,
+        zipcode: data.zipcode || null,
+        current_house_no: data.houseNoCurr || null,
+        current_room_no: data.roomNoCurr || null,
+        current_village: data.villageCurr || null,
+        current_village_name: data.villageNameCurr || null,
+        current_road: data.roadCurr || null,
+        current_tambon_code: data.tambonCodeCurr || null,
+        current_ampur_code: data.ampurCodeCurr || null,
+        current_province_code: data.provinceCodeCurr || null,
+        current_tambon_name: data.tambonNameCurr || null,
+        current_ampur_name: data.ampurNameCurr || null,
+        current_province_name: data.provinceNameCurr || null,
+        current_zipcode: data.zipcodeCurr || null,
+        country_code: data.countryId,
+      }
+
+      let personId: any;
+      if (data.type == 'REFER') {
+        const dis = {
+          update_by: userId,
+          status: 'REFER'
+        }
+        await covidCaseModel.updateDischarge(db, data.covidCaseId, dis)
+
+        const detail: any = {
+          covid_case_id: data.covidCaseId,
+          status: 'REFER',
+          gcs_id: null,
+          bed_id: null,
+          medical_supplie_id: null,
+          create_by: userId
+        }
+        if (!timeCut.ok) {
+          detail.entry_date = moment().add(1, 'days').format('YYYY-MM-DD');
+        } else {
+          detail.entry_date = moment().format('YYYY-MM-DD');
+        }
+        await covidCaseModel.saveCovidCaseDetail(db, detail);
+
+
+        personId = data.personId;
+      } else {
+        //#######START CODE NEW ########################################
+        // check patient 
+        const rsPatient = await covidCaseModel.getPatientByHN(db, hospitalId, data.hn);
+        if (rsPatient.length) {
+          console.log('rs1');
+          // มี patient
+          const rs = await covidCaseModel.updatePerson(db, rsPatient[0].person_id, person);
+          personId = rsPatient[0].person_id;
+          // if (rs[0].insertId == 0) {
+          //   console.log('rs11');
+
+          //   // update
+          // } else {
+          //   console.log('rs12');
+          //   personId = rs[0].insertId;
+          // }
+        } else {
+          console.log('rs2');
+          // ไม่มี patient
+          if (data.type == 'PASSPORT') {
+            console.log('rs21');
+
+            if (data.passport) {
+
+              console.log('rs211');
+              const rs = await covidCaseModel.getPersonByPassport(db, data.passport);
+              if (rs.length) {
+                personId = rs[0].id
+              }
+            } else {
+              console.log('rs212');
+              // ไม่มี passport
+              personId = await savePerson(db, person);
+
+            }
+          } else if (data.type == 'CID') {
+            console.log('rs22');
+
+            const rs = await covidCaseModel.getPersonByCid(db, data.cid);
+            if (rs.length) {
+              console.log('rs221');
+              personId = rs[0].id
+            } else {
+              console.log('rs222');
+              personId = await savePerson(db, person);
+            }
+          } else {
+            console.log('rs23');
+
+            const rs = await covidCaseModel.getPersonByName(db, data.first_name, data.last_name);
+            if (rs.length == 1) {
+              console.log('rs231');
+              personId = rs[0].id
+            } else {
+              console.log('rs232');
+              personId = await savePerson(db, person);
+            }
+
+          }
+
+        }
+      }
+      //#######END CODE NEW ########################################
+
+      if (personId) {
+
+        const patient = {
+          hospital_id: hospitalId,
+          hn: data.hn,
+          person_id: personId
+        }
+
+        const rsP = await covidCaseModel.getPatientByPersonId(db, hospitalId, personId);
+        let patientId;
+        if (rsP.length) {
+          patientId = rsP[0].id;
+        } else {
+          const hn = await covidCaseModel.getPatientByHN(db, hospitalId, data.hn);
+          if (hn.length) {
+            patientId = hn[0].id;
+          } else {
+            const sp = await covidCaseModel.savePatient(db, patient);
+            patientId = sp[0];
+          }
+        }
+        console.log(patient);
+
+        const _data: any = {
+          patient_id: patientId,
+          status: 'ADMIT',
+          an: data.an,
+          date_admit: data.admitDate,
+          confirm_date: data.confirmDate,
+          created_by: userId,
+          case_status: data.caseStatus
+        }
+
+        if (data.returnFromAbroad == 'covid' || data.returnFromAbroad == 'other') {
+          _data.return_from_abroad = data.returnFromAbroad === 'covid' ? 'Y' : 'N';
+        }
+        _data.updated_entry = moment().format('YYYY-MM-DD');
+        if (!timeCut.ok) {
+          _data.updated_entry = _data.date_entry = moment().add(1, 'days').format('YYYY-MM-DD');
+        } else {
+          _data.updated_entry = _data.date_entry = moment().format('YYYY-MM-DD');
+        }
+
+        const covidCaseId = await covidCaseModel.saveCovidCase(db, _data);
+        let dataIcd: any = [];
+        if (data.returnFromAbroad == 'covid' || data.returnFromAbroad == 'other') {
+          for (const v of data.icdCodes) {
+            const objIcds: any = {};
+            objIcds.covid_case_id = covidCaseId;
+            objIcds.icd_code = v;
+            dataIcd.push(objIcds);
+          }
+        }
+        await covidCaseModel.saveIcds(db, dataIcd);
+        // const detail: any = {
+        //   covid_case_id: covidCaseId[0],
+        //   status: 'ADMIT',
+        //   gcs_id: data.gcsId,
+        //   bed_id: data.bedId,
+        //   medical_supplie_id: data.medicalSupplieId || null,
+        //   create_by: userId
+        // }
+
+        for await (const v of data.detail) {
+          const obj: any = {};
+          obj.covid_case_id = covidCaseId[0];
+          obj.status = 'ADMIT';
+          obj.gcs_id = v.gcs_id;
+          obj.bed_id = v.bed_id;
+          obj.medical_supplie_id = v.medical_supplie_id || null;
+          obj.create_by = userId;
+          obj.entry_date = v.date;
+          obj.created_by = userId;
+          const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, obj);
+          const _covidCaseDetailId = covidCaseDetailId[0].insertId;
+
+          const generic = await basicModel.getGenerics(db);
+          for (const i of v.drugs) {
+            const item: any = {
+              covid_case_detail_id: _covidCaseDetailId,
+              generic_id: i.generic_id,
+            }
+            const idx = _.findIndex(generic, { 'id': +i.generic_id });
+            if (idx > -1) {
+              item.qty = generic[idx].first_pay_qty;
+              i.qty = generic[idx].first_pay_qty;
+            }
+            await covidCaseModel.saveCovidCaseDetailItem(db, item);
+          }
+        }
+        return ({ ok: true, code: HttpStatus.OK });
+      } else {
+        return ({ ok: false, error: 'ไม่มี personId' });
+      }
+    }
+  } catch (error) {
+    console.log(error);
+    return ({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+}
+
+async function savePerson(db, person) {
+  console.log('savePerson');
+
+  let personId;
+  const rs = await covidCaseModel.savePerson(db, person);
+  if (rs[0].insertId == 0) {
+    // update
+    console.log('update personId', personId);
+    personId = rs[0].person_id;
+  } else {
+    personId = rs[0].insertId;
+  }
+  return personId;
+}
+//#######END CODE NEW ########################################
+
+
 
 router.post('/old', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
@@ -998,7 +1114,7 @@ router.get('/update/all-case', async (req: Request, res: Response) => {
   const userId = req.decoded.id;
   let date
   try {
-    
+
     const timeCut = await basicModel.timeCut();
     if (!timeCut.ok) {
       date = moment().add(1, 'days').format('YYYY-MM-DD')
@@ -1023,11 +1139,11 @@ router.get('/update/all-case', async (req: Request, res: Response) => {
       //   await covidCaseModel.updateCaseStatus(db, detail.covid_case_id)
       // }
 
-     //   if (!timeCut.ok) {
-        detail.entry_date = date;
-     // } else {
-     //   detail.entry_date = moment().format('YYYY-MM-DD');
-     // }
+      //   if (!timeCut.ok) {
+      detail.entry_date = date;
+      // } else {
+      //   detail.entry_date = moment().format('YYYY-MM-DD');
+      // }
       await covidCaseModel.removeCovidCaseDetailItem(db, data.covid_case_details_id)
       const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
 
@@ -1049,7 +1165,7 @@ router.get('/update/all-case', async (req: Request, res: Response) => {
       }
       await covidCaseModel.saveCovidCaseDetailItem(db, items);
     }
-    res.send({ ok: true, code: HttpStatus.OK ,rows:rs});
+    res.send({ ok: true, code: HttpStatus.OK, rows: rs });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
