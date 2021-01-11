@@ -1814,7 +1814,7 @@ router.get('/admit-pui-case-summary', async (req: Request, res: Response) => {
   const provinceCode = req.decoded.provinceCode;
   try {
     if (type == 'MANAGER') {
-      const rs: any = await model.admitConfirmPuiSummary(db);
+      const rs: any = await model.admitPuiCaseSummary(db);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     // } else if (providerType == 'ZONE') {
     //   const rs: any = await model.admitConfirmCaseSummaryProvince(db, zoneCode);
