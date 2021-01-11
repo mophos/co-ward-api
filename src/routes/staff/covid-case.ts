@@ -223,7 +223,11 @@ router.post('/', async (req: Request, res: Response) => {
         res.send(await saveCovidCase(db, req, data));
       } else {
         const rsPerson = await covidCaseModel.getPerson(db, rsPatient[0].person_id);
-        res.send({ ok: false, code: 3301, error: 'มีบัครุนแรงติดต่อคุณแอมป์ด่วนค่ะ !!', rows: rsPerson[0] });
+        if (rsPerson.length) {
+          res.send({ ok: false, code: 3301, rows: rsPerson[0] });
+        } else {
+          res.send({ ok: false, error: 'มีบัครุนแรงติดต่อคุณแอมป์ด่วนค่ะ !!' });
+        }
       }
     } else {
       // ไม่มี patient
