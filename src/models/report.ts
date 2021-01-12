@@ -420,7 +420,7 @@ export class ReportModel {
     let sql = db('temp_report_admit_pui_case')
       .select('d1', 'd2', 'd3', 'd4', 'd5', 'd7', 'd8', 'hn', 'an', 'hospital_id', 'updated_entry_last', 'days',
         'hospname', 'hospcode', 'zone_code', 'province_name', 'date_admit', 'gcs_name', 'bed_name', 'medical_supplies_name',
-        'first_name', 'last_name', 'cid', 'sat_id','timestamp'
+        'first_name', 'last_name', 'cid', 'sat_id', 'timestamp'
       )
     if (showPersons) {
       sql.select('first_name', 'last_name', 'cid', 'sat_id')
@@ -452,13 +452,14 @@ export class ReportModel {
     const cioCheck = db('p_cio_check_confirm as ci').whereIn('ci.id', subCioCheck).as('cc');
     let sql = db('temp_views_covid_case_last as cl')
       .select('du.d1', 'du.d2', 'du.d3', 'du.d4', 'du.d5', 'du.d7', 'du.d8', 'c.id as covid_case_id', 'cl.id as covid_case_detail_id', 'cc.status as cio_status', 'cc.remark as cio_remark', 'cc.created_date as cio_created_date', db.raw(`DATE_FORMAT(cc.created_date,'%Y-%m-%d') as cio_date`))
-      .select('pt.hn', 'c.an', 'pt.hospital_id', last, db.raw(`DATEDIFF( now(),(${last}) ) as days`), 'h.hospname', 'h.hospcode', 'h.zone_code', 'h.province_name', 'c.date_admit', 'g.name as gcs_name', 'b.name as bed_name', 'm.name as medical_supplies_name')
+      .select('pt.hn', 'c.an', 'pt.hospital_id', last, db.raw(`DATEDIFF( now(),(${last}) ) as days`), 'h.hospname', 'h.hospcode', 'h.zone_code', 'h.province_name', 'c.date_admit', 'g.name as gcs_name', 'b.name as bed_name', 'm.name as medical_supplies_name', 'bg.name as gender_name', 'pp.birth_date')
       .join('p_covid_cases as c', 'c.id', 'cl.covid_case_id')
       .join('p_patients as pt', 'pt.id', 'c.patient_id')
       .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
       .join('b_gcs as g', 'g.id', 'cl.gcs_id')
       .join('b_beds as b', 'b.id', 'cl.bed_id')
       .join('p_persons as pp', 'pp.id', 'pt.person_id')
+      .join('b_genders as bg', 'bg.id', 'pp.gender_id')
       .leftJoin('b_medical_supplies as m', 'm.id', 'cl.medical_supplie_id')
       .leftJoin(cioCheck, 'cc.covid_case_detail_id', 'cl.id')
       .leftJoin(drugUse, 'du.covid_case_detail_id', 'cl.id')
