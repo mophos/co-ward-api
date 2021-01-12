@@ -371,6 +371,59 @@ router.get('/get-medicals', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/medical-supplies', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
+  const type = req.decoded.type;
+  const provinceCode = req.decoded.provinceCode;
+  const zone = req.query.zone;
+
+  try {
+    let rows: any;
+    let zoneCodes: any = [];
+    const rs = await model.getMedicals(db);
+    if (type == 'MANAGER') {
+      if (zone !== '') {
+        zoneCodes = [zone];
+        rows = filter(rs, { 'zone_code': zone });
+      } else {
+        zoneCodes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
+        rows = rs;
+      }
+    } else {
+      if (providerType == 'ZONE') {
+        zoneCodes = [zoneCode];
+        rows = filter(rs, { 'zone_code': zoneCode });
+      } else {
+        rows = filter(rs, { 'province_code': provinceCode });
+        zoneCodes = [rows[0].zone_code]
+      }
+    }
+    let data: any = [];
+    for (const v of zoneCodes) {
+      const obj: any = {};
+      obj.zone_code = v;
+      const provinces = uniqBy(orderBy(filter(rows, { 'zone_code': v }), 'province_code', 'asc'), 'province_name');
+      let dataP: any = [];
+      for (const p of provinces) {
+        const objP: any = {};
+        objP.province_code = p.province_code;
+        objP.province_name = p.province_name;
+        objP.hospitals = orderBy(filter(rows, { 'province_name': p.province_name }), 'hospital_name', 'asc');
+        dataP.push(objP);
+      }
+      obj.provinces = dataP;
+      data.push(obj)
+    }
+
+    res.send({ ok: true, rows: data, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.get('/admin/get-bed', async (req: Request, res: Response) => {
   const db = req.dbReport;
 
@@ -698,6 +751,8 @@ router.get('/get-bed', async (req: Request, res: Response) => {
   const db = req.dbReport;
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
+  // console.log(req.decoded);
+  
   const type = req.decoded.type;
   const provinceCode = req.decoded.provinceCode;
   const zone = req.query.zone;
@@ -719,7 +774,11 @@ router.get('/get-bed', async (req: Request, res: Response) => {
         zoneCodes = [zoneCode];
         rows = filter(rs, { 'zone_code': zoneCode });
       } else {
+        console.log(provinceCode);
+        
         rows = filter(rs, { 'province_code': provinceCode });
+        console.log(rows);
+        
         zoneCodes = [rows[0].zone_code]
       }
     }
