@@ -51,11 +51,11 @@ export class ReportModel {
 
   getGcs(db: Knex, date) {
     return db('temp_views_case_dates AS vcl')
-      .select('vcl.gcs_id', 'bg.name as gcs_name', 'pp.hospital_id', 'pp.hn', 'p.an', 'vcl.date_admit', 'vcl.status')
-      .join('p_covid_cases as p', 'p.id', 'vcl.covid_case_id')
-      .join('p_patients AS pp', 'pp.id', 'vcl.patient_id')
-      .join('b_hospitals AS bh', 'bh.id', 'pp.hospital_id')
-      .leftJoin('b_gcs as bg', 'bg.id', 'vcl.gcs_id')
+      // .select('vcl.gcs_id', 'bg.name as gcs_name', 'pp.hospital_id', 'pp.hn', 'p.an', 'vcl.date_admit', 'vcl.status')
+      // .join('p_covid_cases as p', 'p.id', 'vcl.covid_case_id')
+      // .join('p_patients AS pp', 'pp.id', 'vcl.patient_id')
+      // .join('b_hospitals AS bh', 'bh.id', 'pp.hospital_id')
+      // .leftJoin('b_gcs as bg', 'bg.id', 'vcl.gcs_id')
       .where('vcl.entry_date', date)
     // .groupBy('pp.hospital_id', )
   }
@@ -106,7 +106,9 @@ export class ReportModel {
   }
 
   getUseBed(db: Knex) {
-    let sql = db('temp_report_bed')
+    let sql = db('temp_report_bed as t')
+      .select('t.*', 'h.level', 'h.hospital_type')
+      .join('b_hospitals as h', 'h.id', 't.hospital_id')
     return sql;
     // return db('views_bed_hospitals AS vbh')
   }
@@ -124,7 +126,9 @@ export class ReportModel {
   }
 
   getMedicals(db: Knex) {
-    return db('views_requisition_hospitals AS vrh')
+    return db('views_medical_supplies_hospital_cross AS vrh')
+    .join('b_hospitals as vh', 'vh.id', 'vrh.hospital_id')
+    .orderBy('vh.province_code')
   }
 
   getMedicalCross(db: Knex) {
@@ -405,7 +409,20 @@ export class ReportModel {
     let sql = db('temp_report_admit_comfirm_case')
       .select('d1', 'd2', 'd3', 'd4', 'd5', 'd7', 'd8', 'hn', 'an', 'hospital_id', 'updated_entry_last', 'days',
         'hospname', 'hospcode', 'zone_code', 'province_name', 'date_admit', 'gcs_name', 'bed_name', 'medical_supplies_name',
-        'first_name', 'last_name', 'cid', 'sat_id'
+        'first_name', 'last_name', 'cid', 'sat_id', 'timestamp'
+      )
+    if (showPersons) {
+      sql.select('first_name', 'last_name', 'cid', 'sat_id')
+    }
+    // console.log(sql.toString());
+    return sql;
+  }
+  admitPuiCase(db: Knex, showPersons = false) {
+    // const last = db('p_covid_case_details')
+    let sql = db('temp_report_admit_pui_case')
+      .select('d1', 'd2', 'd3', 'd4', 'd5', 'd7', 'd8', 'hn', 'an', 'hospital_id', 'updated_entry_last', 'days',
+        'hospname', 'hospcode', 'zone_code', 'province_name', 'date_admit', 'gcs_name', 'bed_name', 'medical_supplies_name',
+        'first_name', 'last_name', 'cid', 'sat_id','timestamp'
       )
     if (showPersons) {
       sql.select('first_name', 'last_name', 'cid', 'sat_id')
@@ -459,8 +476,6 @@ export class ReportModel {
     if (showPersons) {
       sql.select('pp.first_name', 'pp.last_name', 'pp.cid', 'c.sat_id')
     }
-    // console.log(sql.toString());
-
     return sql;
   }
 
@@ -470,6 +485,10 @@ export class ReportModel {
   }
   admitConfirmCaseSummary(db: Knex) {
     let sql = db('temp_report_admit_comfirm_case_summary')
+    return sql;
+  }
+  admitPuiCaseSummary(db: Knex) {
+    let sql = db('temp_report_admit_pui_case_summary')
     return sql;
   }
 

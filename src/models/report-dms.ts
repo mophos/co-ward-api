@@ -189,9 +189,10 @@ sum( bed_id = 5 ) AS hospitel_usage_qty`), last)
 
     let sql =
       db('views_hospital_dms  as vh')
-        .select('vb.*', 'sub.*', 'vh.hospname', 'vh.sub_ministry_name')
+        .select('vb.*', 'sub.*', 'vh.hospname', 'vh.sub_ministry_name', 'h.level', 'h.hospital_type')
         .leftJoin('views_bed_hospital_cross as vb', 'vh.id', 'vb.hospital_id')
         .leftJoin(sub, 'sub.hospital_id', 'vh.id')
+        .join('b_hospitals as h', 'h.id', 'vh.id')
         .where('vh.sector', sector)
         .orderBy('vh.sub_ministry_name')
     return sql;
