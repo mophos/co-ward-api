@@ -22,6 +22,7 @@ import registerRoute from './routes/register';
 
 import suppliesAdminRoute from './routes/admin/supplies';
 import userAdminRoute from './routes/admin/user';
+import patientAdminRoute from './routes/admin/patient';
 import userMinMaxAdminRoute from './routes/admin/supplies_min_max';
 import hospitalAdminRoute from './routes/admin/hospital';
 import restockAdminRoute from './routes/admin/restock';
@@ -275,6 +276,7 @@ api.use('/basic-auth', checkAuth, basicAuthRoute);
 api.use('/admin', checkAuth, adminAuth, admin)
 admin.use('/supplies', suppliesAdminRoute)
 admin.use('/user', userAdminRoute)
+admin.use('/patient', patientAdminRoute)
 admin.use('/supplies-min-max', userMinMaxAdminRoute)
 admin.use('/hospital', hospitalAdminRoute)
 admin.use('/restock', restockAdminRoute)
