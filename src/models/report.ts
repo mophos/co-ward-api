@@ -126,7 +126,9 @@ export class ReportModel {
   }
 
   getMedicals(db: Knex) {
-    return db('views_requisition_hospitals AS vrh')
+    return db('views_medical_supplies_hospital_cross AS vrh')
+    .join('b_hospitals as vh', 'vh.id', 'vrh.hospital_id')
+    .orderBy('vh.province_code')
   }
 
   getMedicalCross(db: Knex) {
