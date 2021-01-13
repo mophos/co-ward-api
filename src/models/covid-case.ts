@@ -610,6 +610,7 @@ export class CovidCaseModel {
         db.raw(`ifnull(cd.entry_date, null) as entry_date`),
         'vg.set1', 'vg.set2', 'vg.set3', 'vg.set4'
       )
+      .join('p_patients as pt', 'c.patient_id', 'pt.id')
       .leftJoin('view_covid_case_last as ccd', 'ccd.covid_case_id', 'c.id')
       .leftJoin('p_covid_case_details as cd', 'ccd.id', 'cd.id')
       .leftJoin('view_generic_case_item as vg', 'vg.covid_case_detail_id', 'cd.id')
