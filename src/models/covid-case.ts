@@ -153,7 +153,7 @@ export class CovidCaseModel {
 
   getDetails(db: Knex, covidCaseId) {
     return db('p_covid_case_details AS pc')
-      .select('bg.name as gcs_name', 'bb.name as bed_name', 'bm.name as medical_supplie_name', 'pc.status', 'pc.entry_date', 'uu.fname', 'uu.lname')
+      .select('pc.id', 'bg.name as gcs_name', 'bb.name as bed_name', 'bm.name as medical_supplie_name', 'pc.status', 'pc.entry_date', 'uu.fname', 'uu.lname')
       .leftJoin('b_gcs as bg', 'bg.id', 'pc.gcs_id')
       .leftJoin('b_beds as bb', 'bb.id', 'pc.bed_id')
       .leftJoin('b_medical_supplies as bm', 'bm.id', 'pc.medical_supplie_id')

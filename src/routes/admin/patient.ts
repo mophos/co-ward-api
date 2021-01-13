@@ -39,7 +39,7 @@ router.get('/history', async (req: Request, res: Response) => {
     }
 });
 
-router.post('/edit-info', async (req: Request, res: Response) => {
+router.put('/edit-info', async (req: Request, res: Response) => {
     try {
         const db = req.db;
         const decoded = req.decoded
@@ -128,9 +128,44 @@ router.get('/details', async (req: Request, res: Response) => {
     }
 });
 
+router.delete('/covid-case/:id', async (req: Request, res: Response) => {
+    const db = req.db;
+    const decoded = req.decoded
+    const caseId: any = req.params.id || ''
+    // const caseId = data.covid_case_id
+    let error = ''
+    try {
+        let oldCase: any = await patientModel.getCase(db, caseId);
+        console.log(oldCase);
+
+        if (oldCase[0]) {
+            oldCase[0].updated_by = decoded.id;
+            oldCase[0].update_date = moment().format('YYYY-MM-DD HH:mm:ss')
+            const rsUpdate = await patientModel.updateCase(db, caseId, { updated_by: decoded.id, update_date: moment().format('YYYY-MM-DD HH:mm:ss'), is_deleted: 'Y' });
+            if (rsUpdate) {
+                const rsLogs = await patientModel.saveLogsCase(db, oldCase[0]);
+                if (!rsLogs) {
+                    error += 'update logs case  error. '
+                }
+            } else {
+                error += 'update case  error. '
+            }
+            if (!error) {
+                res.send({ ok: true, code: HttpStatus.OK });
+            } else {
+                res.send({ ok: false, error: error, code: HttpStatus.NO_CONTENT });
+            }
+        } else {
+            res.send({ ok: false, error: 'case not found!!', code: HttpStatus.NO_CONTENT });
+        }
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+    }
+})
 
 
-router.post('/history', async (req: Request, res: Response) => {
+router.put('/covid-case', async (req: Request, res: Response) => {
     const db = req.db;
     const decoded = req.decoded
     const data: any = req.body.data || ''
@@ -140,15 +175,15 @@ router.post('/history', async (req: Request, res: Response) => {
 
     try {
         let error = ''
-        let oldCade: any = await patientModel.getCase(db, caseId);
-        console.log(oldCade);
+        let oldCase: any = await patientModel.getCase(db, caseId);
+        console.log(oldCase);
 
-        if (oldCade[0]) {
+        if (oldCase[0]) {
             const dataCase: any = {
                 an: data.an,
                 case_status: data.case_status
             }
-            const findEdit = findIndex(oldCade, v => {
+            const findEdit = findIndex(oldCase, v => {
                 let d = true
                 if (v.date_discharge) {
                     dataCase.date_discharge = data.date_discharge
@@ -160,13 +195,13 @@ router.post('/history', async (req: Request, res: Response) => {
                     v.case_status === dataCase.case_status
             })
             if (findEdit === -1) {
-                oldCade[0].updated_by = decoded.id;
-                oldCade[0].update_date = moment().format('YYYY-MM-DD HH:mm:ss')
+                oldCase[0].updated_by = decoded.id;
+                oldCase[0].update_date = moment().format('YYYY-MM-DD HH:mm:ss')
                 dataCase.updated_by = decoded.id;
                 dataCase.update_date = moment().format('YYYY-MM-DD HH:mm:ss')
                 const rsUpdate = await patientModel.updateCase(db, caseId, dataCase);
                 if (rsUpdate) {
-                    const rsLogs = await patientModel.saveLogsCase(db, oldCade[0]);
+                    const rsLogs = await patientModel.saveLogsCase(db, oldCase[0]);
                     if (!rsLogs) {
                         error += 'update logs case  error. '
                     }
@@ -189,6 +224,90 @@ router.post('/history', async (req: Request, res: Response) => {
     }
 });
 
+router.delete('/covid-case-detail/:id', async (req: Request, res: Response) => {
+    const db = req.db;
+    const decoded = req.decoded
+    const caseDetailId: any = req.params.id || ''
+    let error = ''
+    try {
+        let caseDetail: any = await patientModel.getCaseDetail(db, caseDetailId);
+        console.log(caseDetail);
 
+        if (caseDetail[0]) {
+            caseDetail[0].updated_by = decoded.id;
+            caseDetail[0].update_date = moment().format('YYYY-MM-DD HH:mm:ss')
+            const rsUpdate = await patientModel.deleteCaseDetail(db, caseDetailId);
+            if (rsUpdate) {
+                const rsLogs = await patientModel.saveLogsCaseDetail(db, caseDetail[0]);
+                if (!rsLogs) {
+                    error += 'update logs case deteil  error. '
+                }
+            } else {
+                error += 'update case detail error. '
+            }
+            if (!error) {
+                res.send({ ok: true, code: HttpStatus.OK });
+            } else {
+                res.send({ ok: false, error: error, code: HttpStatus.NO_CONTENT });
+            }
+        } else {
+            res.send({ ok: false, error: 'case detail not found!!', code: HttpStatus.NO_CONTENT });
+        }
+    }
+    catch (error) {
+        res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+    }
+})
+
+router.put('/covid-case-detail', async (req: Request, res: Response) => {
+    const db = req.db;
+    const decoded = req.decoded
+    const data: any = req.body.data || ''
+    const caseDetailId = data.id
+    // const oldInfo = await patientModel.getPerson(db, personId)
+    // const oldHn = await patientModel.getPatient(db, patientId)
+
+    try {
+        let error = ''
+        let oldCaseDetail: any = await patientModel.getCaseDetail(db, caseDetailId);
+        console.log(oldCaseDetail);
+
+        if (oldCaseDetail[0]) {
+            const dataCaseDetail: any = {
+                status: data.status
+            }
+            const findEdit = findIndex(oldCaseDetail, v => {
+                return v.id === caseDetailId &&
+                    v.status === dataCaseDetail.status
+            })
+            if (findEdit === -1) {
+                oldCaseDetail[0].updated_by = decoded.id;
+                oldCaseDetail[0].update_date = moment().format('YYYY-MM-DD HH:mm:ss')
+                dataCaseDetail.updated_by = decoded.id;
+                dataCaseDetail.update_date = moment().format('YYYY-MM-DD HH:mm:ss')
+                const rsUpdate = await patientModel.updateCaseDetail(db, caseDetailId, dataCaseDetail);
+                if (rsUpdate) {
+                    const rsLogs = await patientModel.saveLogsCaseDetail(db, oldCaseDetail[0]);
+                    if (!rsLogs) {
+                        error += 'update logs case detail error. '
+                    }
+                } else {
+                    error += 'update case detail error. '
+                }
+            } else {
+                error += 'case edit not found. '
+            }
+            if (!error) {
+                res.send({ ok: true, code: HttpStatus.OK });
+            } else {
+                res.send({ ok: false, error: error, code: HttpStatus.NO_CONTENT });
+            }
+        } else {
+            res.send({ ok: false, error: 'case not found!!', code: HttpStatus.NO_CONTENT });
+        }
+    } catch (error) {
+        res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+    }
+});
 
 export default router;

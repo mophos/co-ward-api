@@ -78,7 +78,6 @@ export class PatientModel {
     getCase(db: Knex, id) {
         const sql = db('p_covid_cases as c')
             .where('c.id', id)
-        console.log(sql.toString());
         return sql;
     }
 
@@ -91,5 +90,29 @@ export class PatientModel {
     saveLogsCase(db: Knex, data) {
         return db('logs_p_covid_cases')
             .insert(data);
+    }
+
+    getCaseDetail(db: Knex, id) {
+        const sql = db('p_covid_case_details as c')
+            .where('c.id', id)
+        return sql;
+    }
+
+    saveLogsCaseDetail(db: Knex, data) {
+        return db('logs_p_covid_case_details')
+            .insert(data);
+    }
+
+    deleteCaseDetail(db: Knex, id) {
+        const sql = db('p_covid_case_details as c')
+            .delete()
+            .where('c.id', id)
+        return sql;
+    }
+
+    updateCaseDetail(db: Knex, id, data) {
+        return db('p_covid_case_details')
+            .update(data)
+            .where('id', id);
     }
 }
