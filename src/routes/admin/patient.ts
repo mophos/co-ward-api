@@ -181,18 +181,20 @@ router.put('/covid-case', async (req: Request, res: Response) => {
         if (oldCase[0]) {
             const dataCase: any = {
                 an: data.an,
-                case_status: data.case_status
+                case_status: data.case_status,
+                status: data.status
             }
             const findEdit = findIndex(oldCase, v => {
                 let d = true
-                if (v.date_discharge) {
+                if (dataCase.status !== 'ADMIT') {
                     dataCase.date_discharge = data.date_discharge
-                    d = moment(v.date_discharge).format('YYYY-MM-DD HH:mm:ss') === dataCase.date_discharge
+                    d = moment(v.date_discharge).format('YYYY-MM-DD HH:mm:ss') === moment(dataCase.date_discharge).format('YYYY-MM-DD HH:mm:ss')
                 }
                 return v.id === caseId &&
                     v.an === dataCase.an &&
                     d &&
-                    v.case_status === dataCase.case_status
+                    v.case_status === dataCase.case_status &&
+                    v.status === dataCase.status
             })
             if (findEdit === -1) {
                 oldCase[0].updated_by = decoded.id;
