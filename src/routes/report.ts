@@ -2083,44 +2083,107 @@ function toNumber(value) {
     return 0;
   }
 }
+async function setDataDischargeDaily(rs) {
+  const data = await orderBy(map(groupBy(rs, vgz => { return vgz.zone_code }), (vmz, kmz) => {
+    return {
+      zone_code: kmz,
+      DISCHARGE: countBy(vmz, { "status": "DISCHARGE" }).true || 0,
+      NEGATIVE: countBy(vmz, { "status": "NEGATIVE" }).true || 0,
+      REFER: countBy(vmz, { "status": "REFER" }).true || 0,
+      DEATH: countBy(vmz, { "status": "DEATH" }).true || 0,
+      value: orderBy(map(groupBy(vmz, vgp => { return vgp.province_name }), (vmp, kmp) => {
+        return {
+          province_name: kmp,
+          DISCHARGE: countBy(vmp, { "status": "DISCHARGE" }).true || 0,
+          NEGATIVE: countBy(vmp, { "status": "NEGATIVE" }).true || 0,
+          REFER: countBy(vmp, { "status": "REFER" }).true || 0,
+          DEATH: countBy(vmp, { "status": "DEATH" }).true || 0,
+          value: orderBy(map(groupBy(vmp, vgh => { return vgh.hospname }), (vmh, kmh) => {
+            return {
+              hospname: kmh,
+              DISCHARGE: countBy(vmh, { "status": "DISCHARGE" }).true || 0,
+              NEGATIVE: countBy(vmh, { "status": "NEGATIVE" }).true || 0,
+              REFER: countBy(vmh, { "status": "REFER" }).true || 0,
+              DEATH: countBy(vmh, { "status": "DEATH" }).true || 0,
+              value: vmh
+            }
+          }), 'hospname', 'asc')
+        }
+      }), 'province_name', 'asc')
+    }
+  }), 'zone_code', 'asc')
+
+  return data;
+}
 
 router.get('/discharge-daily', async (req: Request, res: Response) => {
   const db = req.dbReport;
   const date = req.query.date || moment().format('YYYY-MM-DD');
   try {
     const rs: any = await model.dischargeCase(db, date);
-    const data = orderBy(map(groupBy(rs, vgz => { return vgz.zone_code }), (vmz, kmz) => {
-      return {
-        zone_code: kmz,
-        DISCHARGE: countBy(vmz, { "status": "DISCHARGE" }).true || 0,
-        NEGATIVE: countBy(vmz, { "status": "NEGATIVE" }).true || 0,
-        REFER: countBy(vmz, { "status": "REFER" }).true || 0,
-        DEATH: countBy(vmz, { "status": "DEATH" }).true || 0,
-        value: orderBy(map(groupBy(vmz, vgp => { return vgp.province_name }), (vmp, kmp) => {
-          return {
-            province_name: kmp,
-            DISCHARGE: countBy(vmp, { "status": "DISCHARGE" }).true || 0,
-            NEGATIVE: countBy(vmp, { "status": "NEGATIVE" }).true || 0,
-            REFER: countBy(vmp, { "status": "REFER" }).true || 0,
-            DEATH: countBy(vmp, { "status": "DEATH" }).true || 0,
-            value: orderBy(map(groupBy(vmp, vgh => { return vgh.hospname }), (vmh, kmh) => {
-              return {
-                hospname: kmh,
-                DISCHARGE: countBy(vmh, { "status": "DISCHARGE" }).true || 0,
-                NEGATIVE: countBy(vmh, { "status": "NEGATIVE" }).true || 0,
-                REFER: countBy(vmh, { "status": "REFER" }).true || 0,
-                DEATH: countBy(vmh, { "status": "DEATH" }).true || 0,
-                value: vmh
-              }
-            }),'hospname','asc')
-          }
-        }),'province_name','asc')
-      }
-    }),'zone_code','asc')
+    const data = await setDataDischargeDaily(rs);
     res.send({ ok: true, rows: data, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/discharge-daily/excel', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const date = req.query.date || moment().format('YYYY-MM-DD');
+  try {
+    const rs: any = await model.dischargeCase(db, date);
+    var wb = new excel4node.Workbook();
+    var ws = wb.addWorksheet('Sheet 1');
+    ws.cell(1, 1).string('zone_code');
+    ws.cell(1, 2).string('จังหวัด');
+    ws.cell(1, 3).string('รหัสโรงพยาบาล');
+    ws.cell(1, 4).string('โรงพยาบาล');
+    ws.cell(1, 5).string('hn');
+    ws.cell(1, 6).string('an');
+    ws.cell(1, 7).string('status');
+    ws.cell(1, 8).string('date_admit');
+    ws.cell(1, 9).string('date_discharge');
+    ws.cell(1, 10).string('refer_hospcode');
+    ws.cell(1, 11).string('refer_hospname');
+    for (const item of rs) {
+      let row = 2
+      ws.cell(row, 1).string(toString(item.zone_code));
+      ws.cell(row, 2).string(toString(item.province_name));
+      ws.cell(row, 3).string(toString(item.hospcode));
+      ws.cell(row, 4).string(toString(item.hospname));
+      ws.cell(row, 5).string(toString(item.hn));
+      ws.cell(row, 6).string(toString(item.an));
+      ws.cell(row, 7).string(toString(item.status));
+      ws.cell(row, 8).string(toString(item.date_admit));
+      ws.cell(row, 9).string(toString(item.date_discharge));
+      ws.cell(row, 10).string(toString(item.refer_hospcode));
+      ws.cell(row, 11).string(toString(item.refer_hospname));
+      row++;
+    }
+
+
+    fse.ensureDirSync(process.env.TMP_PATH);
+    let filename = `discharge-daily` + moment().format('x') + '.xlsx'
+    let filenamePath = path.join(process.env.TMP_PATH, filename);
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, message: error, code: HttpStatus.OK });
   }
 });
 
