@@ -3,7 +3,7 @@ import { ReportModel } from '../models/report';
 import { Router, Request, Response } from 'express';
 import * as HttpStatus from 'http-status-codes';
 
-import { filter, map, findIndex, orderBy, uniqBy } from 'lodash';
+import { filter, map, findIndex, orderBy, uniqBy, groupBy, countBy } from 'lodash';
 import moment = require('moment');
 import { FullfillModel } from '../models/fulfill';
 import { DrugsModel } from '../models/drug';
@@ -752,7 +752,7 @@ router.get('/get-bed', async (req: Request, res: Response) => {
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
   // console.log(req.decoded);
-  
+
   const type = req.decoded.type;
   const provinceCode = req.decoded.provinceCode;
   const zone = req.query.zone;
@@ -775,10 +775,10 @@ router.get('/get-bed', async (req: Request, res: Response) => {
         rows = filter(rs, { 'zone_code': zoneCode });
       } else {
         console.log(provinceCode);
-        
+
         rows = filter(rs, { 'province_code': provinceCode });
         console.log(rows);
-        
+
         zoneCodes = [rows[0].zone_code]
       }
     }
@@ -1727,12 +1727,12 @@ router.get('/admit-pui-case', async (req: Request, res: Response) => {
     if (type == 'MANAGER') {
       const rs: any = await model.admitPuiCase(db, showPersons);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
-    // } else if (providerType == 'ZONE') {
-    //   const rs: any = await model.admitConfirmCaseProvice(db, zoneCode, null, showPersons);
-    //   res.send({ ok: true, rows: rs, code: HttpStatus.OK });
-    // } else if (providerType == 'SSJ') {
-    //   const rs: any = await model.admitConfirmCaseProvice(db, zoneCode, provinceCode, showPersons);
-    //   res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+      // } else if (providerType == 'ZONE') {
+      //   const rs: any = await model.admitConfirmCaseProvice(db, zoneCode, null, showPersons);
+      //   res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+      // } else if (providerType == 'SSJ') {
+      //   const rs: any = await model.admitConfirmCaseProvice(db, zoneCode, provinceCode, showPersons);
+      //   res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else {
       res.send({ ok: false, code: HttpStatus.UNAUTHORIZED, error: HttpStatus.UNAUTHORIZED });
 
@@ -1875,12 +1875,12 @@ router.get('/admit-pui-case-summary', async (req: Request, res: Response) => {
     if (type == 'MANAGER') {
       const rs: any = await model.admitPuiCaseSummary(db);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
-    // } else if (providerType == 'ZONE') {
-    //   const rs: any = await model.admitConfirmCaseSummaryProvince(db, zoneCode);
-    //   res.send({ ok: true, rows: rs, code: HttpStatus.OK });
-    // } else if (providerType == 'SSJ') {
-    //   const rs: any = await model.admitConfirmCaseSummaryProvince(db, zoneCode, provinceCode);
-    //   res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+      // } else if (providerType == 'ZONE') {
+      //   const rs: any = await model.admitConfirmCaseSummaryProvince(db, zoneCode);
+      //   res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+      // } else if (providerType == 'SSJ') {
+      //   const rs: any = await model.admitConfirmCaseSummaryProvince(db, zoneCode, provinceCode);
+      //   res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else {
       res.send({ ok: false, code: HttpStatus.UNAUTHORIZED });
     }
@@ -2083,4 +2083,50 @@ function toNumber(value) {
     return 0;
   }
 }
+
+router.get('/discharge-daily', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const date = req.query.date || moment().format('YYYY-MM-DD');
+  try {
+    // zone, provice, hosp , status
+    const rs: any = await model.dischargeCase(db, date);
+    const data = map(groupBy(rs, vgz => { return vgz.zone_code }), (vmz, kmz) => {
+      return {
+        zone_code: kmz,
+        DISCHARGE: countBy(vmz, { "status": "DISCHARGE" }).true || 0,
+        NEGATIVE: countBy(vmz, { "status": "NEGATIVE" }).true || 0,
+        REFER: countBy(vmz, { "status": "REFER" }).true || 0,
+        DEATH: countBy(vmz, { "status": "DEATH" }).true || 0,
+        value: map(groupBy(vmz, vgp => { return vgp.province_name }), (vmp, kmp) => {
+          return {
+            province_name: kmp,
+            DISCHARGE: countBy(vmp, { "status": "DISCHARGE" }).true || 0,
+            NEGATIVE: countBy(vmp, { "status": "NEGATIVE" }).true || 0,
+            REFER: countBy(vmp, { "status": "REFER" }).true || 0,
+            DEATH: countBy(vmp, { "status": "DEATH" }).true || 0,
+            value: map(groupBy(vmp, vgh => { return vgh.hospname }), (vmh, kmh) => {
+              // const status = map(groupBy(vmh, vgs => { return vgs.status }), (vms, kms) => {
+              //   return { status: kms, count: vms.length, value: vms }
+              // })
+              return {
+                hospname: kmh,
+                DISCHARGE: countBy(vmh, { "status": "DISCHARGE" }).true || 0,
+                NEGATIVE: countBy(vmh, { "status": "NEGATIVE" }).true || 0,
+                REFER: countBy(vmh, { "status": "REFER" }).true || 0,
+                DEATH: countBy(vmh, { "status": "DEATH" }).true || 0,
+                value: vmh
+              }// , value: status
+            })
+          }
+        })
+      }
+    })
+    res.send({ ok: true, rows: data, code: HttpStatus.OK });
+    // map(groupBy(rs, vg => { return vg.status }), (vm, km) => { return { status: km, value: vm } })
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 export default router;

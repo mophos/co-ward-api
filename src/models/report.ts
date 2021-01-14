@@ -127,8 +127,8 @@ export class ReportModel {
 
   getMedicals(db: Knex) {
     return db('views_medical_supplies_hospital_cross AS vrh')
-    .join('b_hospitals as vh', 'vh.id', 'vrh.hospital_id')
-    .orderBy('vh.province_code')
+      .join('b_hospitals as vh', 'vh.id', 'vrh.hospital_id')
+      .orderBy('vh.province_code')
   }
 
   getMedicalCross(db: Knex) {
@@ -794,4 +794,17 @@ export class ReportModel {
 
   //   `);
   // }
+
+  dischargeCase(db: Knex, date) {
+    return db('p_covid_cases as pc')
+      .select('pc.*', 'p.hn', 'p.hospital_id', 'p.person_id', 'h.hospcode', 'h.hospname','h.zone_code', 'h.province_code', 'h.province_name')
+      .join('p_patients as p', 'p.id', ' pc.patient_id')
+      .join('b_hospitals as h', 'h.id', 'p.hospital_id')
+      .where('pc.is_deleted', 'N')
+      .whereIn('pc.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
+
+      .whereBetween('pc.date_discharge', [`${date} 00:00:00`, `${date} 23:59:00`])
+    // .limit(1000)
+    // return db('view_case_discharge')
+  }
 }
