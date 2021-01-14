@@ -2089,21 +2089,21 @@ router.get('/discharge-daily', async (req: Request, res: Response) => {
   const date = req.query.date || moment().format('YYYY-MM-DD');
   try {
     const rs: any = await model.dischargeCase(db, date);
-    const data = map(groupBy(rs, vgz => { return vgz.zone_code }), (vmz, kmz) => {
+    const data = orderBy(map(groupBy(rs, vgz => { return vgz.zone_code }), (vmz, kmz) => {
       return {
         zone_code: kmz,
         DISCHARGE: countBy(vmz, { "status": "DISCHARGE" }).true || 0,
         NEGATIVE: countBy(vmz, { "status": "NEGATIVE" }).true || 0,
         REFER: countBy(vmz, { "status": "REFER" }).true || 0,
         DEATH: countBy(vmz, { "status": "DEATH" }).true || 0,
-        value: map(groupBy(vmz, vgp => { return vgp.province_name }), (vmp, kmp) => {
+        value: orderBy(map(groupBy(vmz, vgp => { return vgp.province_name }), (vmp, kmp) => {
           return {
             province_name: kmp,
             DISCHARGE: countBy(vmp, { "status": "DISCHARGE" }).true || 0,
             NEGATIVE: countBy(vmp, { "status": "NEGATIVE" }).true || 0,
             REFER: countBy(vmp, { "status": "REFER" }).true || 0,
             DEATH: countBy(vmp, { "status": "DEATH" }).true || 0,
-            value: map(groupBy(vmp, vgh => { return vgh.hospname }), (vmh, kmh) => {
+            value: orderBy(map(groupBy(vmp, vgh => { return vgh.hospname }), (vmh, kmh) => {
               return {
                 hospname: kmh,
                 DISCHARGE: countBy(vmh, { "status": "DISCHARGE" }).true || 0,
@@ -2112,11 +2112,11 @@ router.get('/discharge-daily', async (req: Request, res: Response) => {
                 DEATH: countBy(vmh, { "status": "DEATH" }).true || 0,
                 value: vmh
               }
-            })
+            }),'hospname','asc')
           }
-        })
+        }),'province_name','asc')
       }
-    })
+    }),'zone_code','asc')
     res.send({ ok: true, rows: data, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
