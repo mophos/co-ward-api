@@ -200,6 +200,21 @@ router.get('/getAddCode', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/gender', async (req: Request, res: Response) => {
+  try {
+    let rs: any = await model.getGender(req.db);
+    if (rs) {
+      res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    } else {
+      res.send({ ok: false, code: HttpStatus.NOT_FOUND });
+    }
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+
+
 // router.post('/manageData', async (req: Request, res: Response) => {
 //   let db = req.db
 //   const query: any = req.body.query

@@ -150,7 +150,7 @@ router.post('/center', async (req: Request, res: Response) => {
 
 router.get('/export-balanc', async (req: Request, res: Response) => {
   try {
-    let filename = this.peopleId + `balanc` + moment().format('x');
+    let filename = `balanc` + moment().format('x');
     let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
     const wb = new excel4node.Workbook();
     const ws = wb.addWorksheet('Sheet 1');

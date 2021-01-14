@@ -352,7 +352,7 @@ export class BasicModel {
 
 	}
 
-	getAdd(db: Knex, t, a, p, z){
+	getAdd(db: Knex, t, a, p, z) {
 		return db.raw(`SELECT DISTINCT
 		province_code,
 		province_name,
@@ -371,6 +371,11 @@ export class BasicModel {
 		 and ampur_name = ?
 		 and province_name = ?
 		 and zip_code = ?`, [t, a, p, z]);
+	}
+
+	getGender(db: Knex){
+		return db('b_genders')
+		.where('is_deleted','N')
 	}
 
 }

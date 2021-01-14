@@ -49,6 +49,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 router.put('/:id', async (req: Request, res: Response) => {
   const id: any = +req.params.id
   const data: any = req.body.data
+  let tmpUser: any
   const decoded = req.decoded;
 
   try {
@@ -60,7 +61,12 @@ router.put('/:id', async (req: Request, res: Response) => {
       // _data.remark = data.remark;
       data.updated_by = decoded.id;
       data.updated_at = moment().format('YYYY-MM-DD HH:mm:ss')
-      data.password = crypto.createHash('md5').update(data.password).digest('hex');
+      tmpUser = await userModel.getUserById(req.db, id);
+      
+      tmpUser.updated_by = decoded.id;
+      tmpUser.updated_at = moment().format('YYYY-MM-DD HH:mm:ss')
+      // data.password = crypto.createHash('md5').update(data.password).digest('hex');
+       await userModel.insertLogsUser(req.db, tmpUser);
       let rs: any = await userModel.updateUser(req.db, id, data);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else {
