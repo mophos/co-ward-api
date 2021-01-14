@@ -804,9 +804,7 @@ export class ReportModel {
       .join('b_hospitals as h', 'h.id', 'p.hospital_id')
       .where('pc.is_deleted', 'N')
       .whereIn('pc.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
-
       .whereBetween('pc.date_discharge', [`${date} 00:00:00`, `${date} 23:59:00`])
-    // .limit(1000)
-    // return db('view_case_discharge')
   }
+
 }

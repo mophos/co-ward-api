@@ -2088,7 +2088,6 @@ router.get('/discharge-daily', async (req: Request, res: Response) => {
   const db = req.dbReport;
   const date = req.query.date || moment().format('YYYY-MM-DD');
   try {
-    // zone, provice, hosp , status
     const rs: any = await model.dischargeCase(db, date);
     const data = map(groupBy(rs, vgz => { return vgz.zone_code }), (vmz, kmz) => {
       return {
@@ -2105,9 +2104,6 @@ router.get('/discharge-daily', async (req: Request, res: Response) => {
             REFER: countBy(vmp, { "status": "REFER" }).true || 0,
             DEATH: countBy(vmp, { "status": "DEATH" }).true || 0,
             value: map(groupBy(vmp, vgh => { return vgh.hospname }), (vmh, kmh) => {
-              // const status = map(groupBy(vmh, vgs => { return vgs.status }), (vms, kms) => {
-              //   return { status: kms, count: vms.length, value: vms }
-              // })
               return {
                 hospname: kmh,
                 DISCHARGE: countBy(vmh, { "status": "DISCHARGE" }).true || 0,
@@ -2115,14 +2111,13 @@ router.get('/discharge-daily', async (req: Request, res: Response) => {
                 REFER: countBy(vmh, { "status": "REFER" }).true || 0,
                 DEATH: countBy(vmh, { "status": "DEATH" }).true || 0,
                 value: vmh
-              }// , value: status
+              }
             })
           }
         })
       }
     })
     res.send({ ok: true, rows: data, code: HttpStatus.OK });
-    // map(groupBy(rs, vg => { return vg.status }), (vm, km) => { return { status: km, value: vm } })
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
