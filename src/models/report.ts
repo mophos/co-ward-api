@@ -43,6 +43,7 @@ export class ReportModel {
       .sum('v.sum as countCase')
       .join('b_hospitals as h', 'h.id', 'v.hospital_id')
       .where('v.entry_date', date)
+      .where('v.status','ADMIT')
       .whereIn('h.province_code', provinces)
       .groupBy('h.id')
       .orderBy('h.zone_code')
@@ -57,6 +58,7 @@ export class ReportModel {
       // .join('b_hospitals AS bh', 'bh.id', 'pp.hospital_id')
       // .leftJoin('b_gcs as bg', 'bg.id', 'vcl.gcs_id')
       .where('vcl.entry_date', date)
+      .where('vcl.status', 'ADMIT')
     // .groupBy('pp.hospital_id', )
   }
 
