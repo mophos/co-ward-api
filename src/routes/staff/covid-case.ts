@@ -17,8 +17,9 @@ const router: Router = Router();
 
 router.get('/', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
+  const query = req.query.query || null;
   try {
-    let rs: any = await covidCaseModel.getCase(req.db, hospitalId);
+    let rs: any = await covidCaseModel.getCase(req.db, hospitalId, query);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);

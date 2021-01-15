@@ -3,15 +3,38 @@ import { join } from 'bluebird';
 
 export class CovidCaseModel {
 
-  getCase(db: Knex, hospitalId) {
-    return db('p_covid_cases as c')
+  getCase(db: Knex, hospitalId, query = null) {
+    const _query = `%${query}%`;
+    const id = db('p_covid_cases as c1')
+      .join('p_patients as pt1', 'c1.patient_id', 'pt1.id')
+      .join('p_persons as p1', 'pt1.person_id', 'p1.id')
+      .max('c1.id')
+      .where('pt1.hospital_id', hospitalId)
+      .where('c1.is_deleted', 'N')
+    if (query) {
+      id.where('pt1.hn', 'like', _query)
+        .orWhere('p1.first_name', 'like', _query)
+        .orWhere('p1.last_name', 'like', _query)
+        .orWhere('c1.status', 'like', _query)
+    }
+    id.groupBy('c1.patient_id');
+
+    const sql = db('p_covid_cases as c')
       .select('c.id as covid_case_id', 'c.an', 'c.confirm_date', 'c.status', 'c.date_admit', 'c.date_discharge', 'pt.hn', 'pt.person_id', 'p.*', 't.name as title_name')
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .leftJoin('um_titles as t', 'p.title_id', 't.id')
       .where('pt.hospital_id', hospitalId)
-      .where('c.is_deleted', 'N')
-      .groupBy('pt.id')
+      .whereIn('c.id', id)
+    if (query) {
+      sql.where('pt.hn', 'like', _query)
+        .orWhere('p.first_name', 'like', _query)
+        .orWhere('p.last_name', 'like', _query)
+        .orWhere('c.status', 'like', _query)
+    }
+    sql.where('c.is_deleted', 'N')
+    return sql;
+    // .groupBy('pt.id')
   }
 
 
@@ -628,7 +651,7 @@ export class CovidCaseModel {
       .where('an', an)
   }
 
-  checkANFromHN(db: Knex, hospitalId,hn, an) {
+  checkANFromHN(db: Knex, hospitalId, hn, an) {
     return db('p_covid_cases as c')
       .join('p_patients as pt', 'pt.id', 'c.patient_id')
       .where('pt.hospital_id', hospitalId)
