@@ -43,6 +43,7 @@ export class ReportModel {
       .sum('v.sum as countCase')
       .join('b_hospitals as h', 'h.id', 'v.hospital_id')
       .where('v.entry_date', date)
+      .where('v.status','ADMIT')
       .whereIn('h.province_code', provinces)
       .groupBy('h.id')
       .orderBy('h.zone_code')
@@ -57,6 +58,7 @@ export class ReportModel {
       // .join('b_hospitals AS bh', 'bh.id', 'pp.hospital_id')
       // .leftJoin('b_gcs as bg', 'bg.id', 'vcl.gcs_id')
       .where('vcl.entry_date', date)
+      .where('vcl.status', 'ADMIT')
     // .groupBy('pp.hospital_id', )
   }
 
@@ -127,8 +129,8 @@ export class ReportModel {
 
   getMedicals(db: Knex) {
     return db('views_medical_supplies_hospital_cross AS vrh')
-    .join('b_hospitals as vh', 'vh.id', 'vrh.hospital_id')
-    .orderBy('vh.province_code')
+      .join('b_hospitals as vh', 'vh.id', 'vrh.hospital_id')
+      .orderBy('vh.province_code')
   }
 
   getMedicalCross(db: Knex) {
@@ -794,4 +796,17 @@ export class ReportModel {
 
   //   `);
   // }
+
+  dischargeCase(db: Knex, date) {
+    return db('p_covid_cases as pc')
+      .select('pc.*', 'p.hn', 'p.hospital_id', 'p.person_id', 'h.hospcode', 'h.hospname','h.zone_code', 'h.province_code', 'h.province_name','rh.hospcode as refer_hospcode', 'rh.hospname as refer_hospname')
+      .join('p_patients as p', 'p.id', ' pc.patient_id')
+      .join('b_hospitals as h', 'h.id', 'p.hospital_id')
+      .leftJoin('b_hospitals as rh', 'rh.id', 'pc.hospital_id_refer')
+      .where('pc.is_deleted', 'N')
+      .whereIn('pc.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
+      .whereBetween('pc.date_discharge', [`${date} 00:00:00`, `${date} 23:59:00`])
+      .orderBy('h.zone_code').orderBy( 'h.province_name').orderBy( 'h.hospname')
+  }
+
 }
