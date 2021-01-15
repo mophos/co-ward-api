@@ -12,6 +12,7 @@ export class CovidCaseModel {
       .where('pt.hospital_id', hospitalId)
       .where('c.is_deleted', 'N')
       .groupBy('pt.id')
+      .orderBy('c.date_admit', 'DESC')
   }
 
 
@@ -628,7 +629,7 @@ export class CovidCaseModel {
       .where('an', an)
   }
 
-  checkANFromHN(db: Knex, hospitalId,hn, an) {
+  checkANFromHN(db: Knex, hospitalId, hn, an) {
     return db('p_covid_cases as c')
       .join('p_patients as pt', 'pt.id', 'c.patient_id')
       .where('pt.hospital_id', hospitalId)
