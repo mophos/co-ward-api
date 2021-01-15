@@ -33,6 +33,7 @@ export class CovidCaseModel {
         .orWhere('c.status', 'like', _query)
     }
     sql.where('c.is_deleted', 'N')
+    .orderBy('c.date_admit', 'DESC');
     return sql;
     // .groupBy('pt.id')
   }
