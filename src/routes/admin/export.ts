@@ -47,7 +47,7 @@ router.get('/requisition', async (req: Request, res: Response) => {
     ws.cell(1, 14).string('CoverAll2').style(center);
     ws.cell(1, 15).string('n95').style(center);
     ws.cell(1, 16).string('Shoe Cover').style(center);
-    ws.cell(1, 17).string('Surgical Hood').style(center);
+    ws.cell(1, 17).string('Hood cover').style(center);
 
     let row = 2;
     for (const v of rs[0]) {

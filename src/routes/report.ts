@@ -1213,8 +1213,8 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
     ws.cell(1, 9, 1, 10, true).string('Cover All-2').style(center);
     ws.cell(1, 11, 1, 12, true).string('N95').style(center);
     ws.cell(1, 13, 1, 14, true).string('Shoe Cover').style(center);
-    ws.cell(1, 15, 1, 16, true).string('Surgical hood').style(center);
-    ws.cell(1, 17, 1, 18, true).string('Long glove').style(center);
+    ws.cell(1, 15, 1, 16, true).string('Hood cover').style(center);
+    ws.cell(1, 17, 1, 18, true).string('Nitrile Glove').style(center);
     ws.cell(1, 19, 1, 20, true).string('Face shield').style(center);
     ws.cell(1, 21, 1, 22, true).string('Surgical Mask').style(center);
     ws.cell(1, 23, 1, 24, true).string('Powered air-purifying respirator').style(center);
@@ -1222,6 +1222,9 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
     ws.cell(1, 27, 1, 28, true).string('Alcohol 95%').style(center);
     ws.cell(1, 29, 1, 30, true).string('Alcohol Gel').style(center);
     ws.cell(1, 31, 1, 32, true).string('Disposable Glove (latex,nonsterile)').style(center);
+    ws.cell(1, 31, 1, 34, true).string('Isolation gown').style(center);
+    ws.cell(1, 31, 1, 36, true).string('Leg Cover').style(center);
+    ws.cell(1, 31, 1, 38, true).string('Disposable cap').style(center);
 
 
     ws.cell(2, 5).string('คงคลัง').style(center);
@@ -1252,6 +1255,12 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
     ws.cell(2, 30).string('อัตราการใช้ต่อเดือน').style(center);
     ws.cell(2, 31).string('คงคลัง').style(center);
     ws.cell(2, 32).string('อัตราการใช้ต่อเดือน').style(center);
+    ws.cell(2, 33).string('คงคลัง').style(center);
+    ws.cell(2, 34).string('อัตราการใช้ต่อเดือน').style(center);
+    ws.cell(2, 35).string('คงคลัง').style(center);
+    ws.cell(2, 36).string('อัตราการใช้ต่อเดือน').style(center);
+    ws.cell(2, 37).string('คงคลัง').style(center);
+    ws.cell(2, 38).string('อัตราการใช้ต่อเดือน').style(center);
     let row = 3;
 
     let zoneCodes = [];
@@ -1311,6 +1320,12 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
       ws.cell(row, 30).number(toNumber(i.alcohol_gel_month_usage_qty));
       ws.cell(row, 31).number(toNumber(i.disposable_glove_qty));
       ws.cell(row, 32).number(toNumber(i.disposable_glove_month_usage_qty));
+      ws.cell(row, 33).number(toNumber(i.isolation_gown_qty));
+      ws.cell(row, 34).number(toNumber(i.isolation_gown_month_usage_qty));
+      ws.cell(row, 35).number(toNumber(i.leg_cover_qty));
+      ws.cell(row, 36).number(toNumber(i.leg_cover_month_usage_qty));
+      ws.cell(row, 37).number(toNumber(i.disposable_cap_qty));
+      ws.cell(row, 38).number(toNumber(i.disposable_cap_month_usage_qty));
       row++;
     }
     fse.ensureDirSync(process.env.TMP_PATH);
@@ -1358,8 +1373,8 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
   //       ws.cell(1, 5).string('Cover All-2');
   //       ws.cell(1, 6).string('N95');
   //       ws.cell(1, 7).string('Shoe Cover');
-  //       ws.cell(1, 8).string('Surgical hood');
-  //       ws.cell(1, 9).string('Long glove');
+  //       ws.cell(1, 8).string('Hood cover');
+  //       ws.cell(1, 9).string('Nitrile Glove');
   //       ws.cell(1, 10).string('Face shield');
   //       ws.cell(1, 11).string('Surgical Mask');
   //       ws.cell(1, 12).string('Powered air-purifying respirator');

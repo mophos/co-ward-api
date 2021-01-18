@@ -323,7 +323,10 @@ export class ReportModel {
     sum(alcohol_70_qty) as alcohol_70_qty,
     sum(alcohol_95_qty) as alcohol_95_qty,
     sum(alcohol_gel_qty) as alcohol_gel_qty,
-    sum(disposable_glove_qty) as disposable_glove_qty
+    sum(disposable_glove_qty) as disposable_glove_qty,
+    sum(isolation_gown_qty) as isolation_gown_qty,
+    sum(leg_cover_qty) as leg_cover_qty,
+    sum(disposable_cap_qty) as disposable_cap_qty
     from views_supplies_hospital_cross as v 
     join b_hospitals as h on h.id = v.hospital_id
     GROUP BY h.zone_code
