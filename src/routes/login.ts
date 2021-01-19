@@ -148,7 +148,7 @@ router.post('/requis-otp', async (req: Request, res: Response) => {
   const db = req.dbOTP;
   try {
     let rs: any = await loginModel.getUserByPhone(db, tel);
-    console.log(rs);
+    // console.log(rs);
     
     if (rs[0]) {
       var request = require("request");
