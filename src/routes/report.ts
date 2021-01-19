@@ -2149,6 +2149,7 @@ router.get('/discharge-daily/excel', async (req: Request, res: Response) => {
   const date = req.query.date || moment().format('YYYY-MM-DD');
   try {
     const rs: any = await model.dischargeCase(db, date);
+    let row = 2
     var wb = new excel4node.Workbook();
     var ws = wb.addWorksheet('Sheet 1');
     ws.cell(1, 1).string('zone_code');
@@ -2163,7 +2164,8 @@ router.get('/discharge-daily/excel', async (req: Request, res: Response) => {
     ws.cell(1, 10).string('refer_hospcode');
     ws.cell(1, 11).string('refer_hospname');
     for (const item of rs) {
-      let row = 2
+      item.date_admit = moment(item.date_admit).format('DD/MM/YYYY')
+      item.date_discharge = moment(item.date_discharge).format('DD/MM/YYYY')
       ws.cell(row, 1).string(toString(item.zone_code));
       ws.cell(row, 2).string(toString(item.province_name));
       ws.cell(row, 3).string(toString(item.hospcode));
