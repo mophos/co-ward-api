@@ -118,7 +118,7 @@ export class Register {
     }
 
     sendMS(data) {
-        console.log(data);
+        // console.log(data);
         return new Promise((resolve, reject) => {
             var options = {
                 method: 'POST',
@@ -155,7 +155,7 @@ export class Register {
 
 
     sendMS2(data) {
-        console.log(data);
+        // console.log(data);
 
         return new Promise((resolve, reject) => {
             var options = {

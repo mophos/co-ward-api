@@ -103,7 +103,7 @@ export class smhModel {
     return new Promise((resolve: any, reject: any) => {
       var options = {
         method: 'GET',
-        url: `https://indev.moph.go.th/ncov-2019-api/patient/getPatient/${keys}`,
+        url: `https://indev.moph.go.th/ncov-2019-api/patient/getPatientByCID/${keys}`,
         agentOptions: {
           rejectUnauthorized: false
         },

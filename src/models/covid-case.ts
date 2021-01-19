@@ -290,8 +290,6 @@ export class CovidCaseModel {
   }
 
   saveCovidCaseDetailReq(db: Knex, data) {
-    console.log(data);
-
     let sql = `
     INSERT INTO p_covid_case_details
     (is_requisition,covid_case_id, gcs_id, bed_id, medical_supplie_id, entry_date,status,created_by,updated_entry)

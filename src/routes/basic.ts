@@ -185,10 +185,10 @@ router.get('/getAddCode', async (req: Request, res: Response) => {
     const ampur = req.query.a
     const province = req.query.p
     const zipcode = req.query.z
-    console.log( tambon, ampur, province, zipcode);
+    // console.log( tambon, ampur, province, zipcode);
     
     let rs: any = await model.getAdd(req.db, tambon, ampur, province, zipcode);
-    console.log(1,rs);
+    // console.log(1,rs);
     
     if (rs[0].length) {
       res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });

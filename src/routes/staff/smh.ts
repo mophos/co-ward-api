@@ -12,27 +12,6 @@ const model = new smhModel();
 const serialModel = new SerialModel();
 const router: Router = Router();
 
-var c = 0;
-var t;
-var timer_is_on = 0;
-
-function timedCount() {
-  c = c + 1;
-  t = setTimeout(timedCount, 1000);
-}
-
-function startCount() {
-  if (!timer_is_on) {
-    timer_is_on = 1;
-    timedCount();
-  }
-}
-
-function stopCount() {
-  clearTimeout(t);
-  timer_is_on = 0;
-}
-
 router.get('/', async (req: Request, res: Response) => {
   const db = req.db;
   const cid = req.query.cid;
@@ -41,14 +20,16 @@ router.get('/', async (req: Request, res: Response) => {
 
   try {
     const rs: any = await model.getPerson(db, cid);
+    const rsd: any = await labCovidAdd(db, cid);
+    console.log(rsd);
+
+    if (rsd.sat_id) {
+      obj.sat_id = rsd.sat_id;
+      obj.telephone = rsd.telephone;
+    }
     if (!rs.length) {
       const rsM: any = await model.infoCid(cid, token[0].token);
       const smh: any = await model.getSmarthealth(cid, token[0].token);
-      const rsd: any = await labCovidAdd(db, cid);
-      if (rsd.sat_id) {
-        obj.sat_id = rsd.sat_id;
-        obj.telephone = rsd.telephone;
-      }
       if (rsM.length) {
         console.log('มหาดไทย');
         const rsa: any = await model.infoCidAddress(cid, token[0].token);
@@ -141,21 +122,6 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
-async function labCovid(cid) {
-  const rs: any = await model.apiLogin();
-  if (rs.ok) {
-    const lab: any = await model.getLabCovid(cid, rs.token);
-    const obj: any = {};
-    if (lab.ok) {
-      obj.sat_id = lab.res[0].sat_id;
-      obj.telephone = replace(lab.res[0].mobile, /\s/g, '');
-    }
-    return obj;
-  } else {
-    return false;
-  }
-}
-
 async function labCovidAdd(db, cid) {
   try {
     const rs: any = await model.apiLogin();
@@ -165,18 +131,12 @@ async function labCovidAdd(db, cid) {
       if (lab.ok) {
         if (lab.res[0].sick_sub_district != null) {
           obj.tambon_code = lab.res[0].sick_sub_district.substring(4, 6);
-          const subd: any = await model.getSubDistrict(db, obj.tambon_code);
-          obj.tambon_name = subd[0].name_th;
-        }
-        if (lab.res[0].sick_district != null) {
-          obj.ampur_code = lab.res[0].sick_district.substring(2, 4);
-          const d: any = await model.getDistrict(db, obj.ampur_code);
-          obj.ampur_name = d[0].name_th;
-        }
-        if (lab.res[0].sick_province != null) {
-          obj.province_code = lab.res[0].sick_province;
-          const p: any = await model.getProvince(db, obj.province_code);
-          obj.province_name = p[0].name_th;
+          obj.ampur_code = lab.res[0].sick_sub_district.substring(2, 4);
+          obj.province_code = lab.res[0].sick_sub_district.substring(0, 2);
+          const adds: any = await model.getAddress(db, obj.tambon_code, obj.ampur_code, obj.province_code);
+          obj.tambon_name = adds[0].tambon_name;
+          obj.ampur_name = adds[0].ampur_name;
+          obj.province_name = adds[0].province_name;
         }
         obj.country_name = 'ไทย';
         obj.country_code = 20;
