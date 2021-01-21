@@ -2272,4 +2272,78 @@ router.get('/discharge-daily/excel', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/discharge-entrydate', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const date = req.query.date || moment().format('YYYY-MM-DD');
+  try {
+    const rs: any = await model.dischargeCaseEntryDate(db, date);
+    const data = await setDataDischargeDaily(rs);
+    console.log(data);
+    res.send({ ok: true, rows: data, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/discharge-entrydate/excel', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const date = req.query.date || moment().format('YYYY-MM-DD');
+  try {
+    const rs: any = await model.dischargeCaseEntryDate(db, date);
+    let row = 2
+    var wb = new excel4node.Workbook();
+    var ws = wb.addWorksheet('Sheet 1');
+    ws.cell(1, 1).string('zone_code');
+    ws.cell(1, 2).string('จังหวัด');
+    ws.cell(1, 3).string('รหัสโรงพยาบาล');
+    ws.cell(1, 4).string('โรงพยาบาล');
+    ws.cell(1, 5).string('hn');
+    ws.cell(1, 6).string('an');
+    ws.cell(1, 7).string('status');
+    ws.cell(1, 8).string('date_admit');
+    ws.cell(1, 9).string('date_discharge');
+    ws.cell(1, 10).string('refer_hospcode');
+    ws.cell(1, 11).string('refer_hospname');
+    for (const item of rs) {
+      item.date_admit = moment(item.date_admit).format('DD/MM/YYYY')
+      item.date_discharge = moment(item.date_discharge).format('DD/MM/YYYY')
+      ws.cell(row, 1).string(toString(item.zone_code));
+      ws.cell(row, 2).string(toString(item.province_name));
+      ws.cell(row, 3).string(toString(item.hospcode));
+      ws.cell(row, 4).string(toString(item.hospname));
+      ws.cell(row, 5).string(toString(item.hn));
+      ws.cell(row, 6).string(toString(item.an));
+      ws.cell(row, 7).string(toString(item.status));
+      ws.cell(row, 8).string(toString(item.date_admit));
+      ws.cell(row, 9).string(toString(item.date_discharge));
+      ws.cell(row, 10).string(toString(item.hospcode_refer));
+      ws.cell(row, 11).string(toString(item.hospname_refer));
+      row++;
+    }
+
+
+    fse.ensureDirSync(process.env.TMP_PATH);
+    let filename = `discharge-daily` + moment().format('x') + '.xlsx'
+    let filenamePath = path.join(process.env.TMP_PATH, filename);
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, message: error, code: HttpStatus.OK });
+  }
+});
+
 export default router;
