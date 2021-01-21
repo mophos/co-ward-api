@@ -2,7 +2,7 @@ import * as Knex from 'knex';
 
 export class Login {
   login(db: Knex, username: string, password: string) {
-    let sql= db('um_users as u')
+    let sql = db('um_users as u')
       .select('u.*', 'h.hospname', 'h.zone_code', 'h.hospital_type', 'h.id as hospital_id', 'h.hosptype_code as type_code', 'h.province_code', 'ut.name as title_name', 'up.name as position')
       .leftJoin('b_hospitals as h', 'h.hospcode', 'u.hospcode')
       .leftJoin('um_titles as ut', 'ut.id', 'u.title_id')
@@ -11,8 +11,8 @@ export class Login {
       .where('u.password', password)
       .where('u.is_deleted', 'N')
       .limit(1);
-      return sql;
-      
+    return sql;
+
   }
 
   rights(db: Knex, userId) {
@@ -23,6 +23,7 @@ export class Login {
 
   getUsername(db: Knex, cid, phoneNumber) {
     return db('um_users as u')
+      .select('cid', 'username','id')
       .where('u.cid', cid)
       .where('u.telephone', phoneNumber)
   }

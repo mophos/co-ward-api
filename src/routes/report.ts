@@ -2247,8 +2247,8 @@ router.get('/discharge-daily/excel', async (req: Request, res: Response) => {
       ws.cell(row, 11).string(toString(item.refer_hospname));
       row++;
     }
-
-
+    
+    
     fse.ensureDirSync(process.env.TMP_PATH);
     let filename = `discharge-daily` + moment().format('x') + '.xlsx'
     let filenamePath = path.join(process.env.TMP_PATH, filename);
@@ -2263,7 +2263,7 @@ router.get('/discharge-daily/excel', async (req: Request, res: Response) => {
         res.sendfile(filenamePath, (v) => {
           fse.removeSync(filenamePath);
         })
-
+        
       }
     });
   } catch (error) {
@@ -2272,4 +2272,14 @@ router.get('/discharge-daily/excel', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/lab-positive', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  try {
+    const rs: any = await model.labPositive(db);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
 export default router;

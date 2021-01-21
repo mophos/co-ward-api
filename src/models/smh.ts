@@ -43,6 +43,17 @@ export class smhModel {
     return db('b_subdistrict').where('id', code);
   }
 
+  
+  removeLabPositiveTmp(db:Knex){
+    return db('lab_positive_tmp').delete();
+  }
+  saveLabPositiveTmp(db:Knex,data){
+    return db('lab_positive_tmp').insert(data);
+  }
+  triggerLabPositive(db:Knex){
+    return db.raw('call lab_positive()');
+  }
+
   getSmarthealth(cid, token) {
     return new Promise((resolve: any, reject: any) => {
       var options = {
@@ -104,6 +115,29 @@ export class smhModel {
       var options = {
         method: 'GET',
         url: `https://indev.moph.go.th/ncov-2019-api/patient/getPatientByCID/${keys}`,
+        agentOptions: {
+          rejectUnauthorized: false
+        },
+        headers: {
+          authorization: `Bearer ${token}`
+        },
+        json: true
+      };
+      request(options, function (error, response, body) {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(body);
+        }
+      });
+    });
+  }
+
+  getLabPositive(token) {
+    return new Promise((resolve: any, reject: any) => {
+      var options = {
+        method: 'GET',
+        url: `https://indev.moph.go.th/ncov-2019-api/patient/getResultsPositive`,
         agentOptions: {
           rejectUnauthorized: false
         },

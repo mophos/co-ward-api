@@ -1,3 +1,4 @@
+import { smhModel } from './../models/smh';
 import * as express from 'express';
 import { Router, Request, Response } from 'express';
 import { Jwt } from '../models/jwt';
@@ -18,6 +19,7 @@ const serialModel = new SerialModel();
 const settingModel = new BedModel();
 import * as moment from 'moment';
 const model = new Login();
+const smHModel = new smhModel();
 const router: Router = Router();
 const requisition = new Requisition();
 const thpdModel = new ThpdModel();
@@ -288,6 +290,29 @@ router.get('/systemUpdate', async (req: Request, res: Response) => {
       let rs: any = await systemUpdate(db);
       if (rs.ok) {
         res.send({ ok: true, rows: rs.rows, code: HttpStatus.OK });
+      } else {
+        res.send({ ok: false, error: rs.error, code: HttpStatus.OK });
+      }
+    } else {
+      res.send({ ok: false, error: 'token ไม่ถูกต้อง' });
+    }
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/lab-positive', async (req: Request, res: Response) => {
+  let db = req.db
+  const timeKey = req.query.timeKey;
+  try {
+    if (process.env.TIME_KEY == timeKey) {
+      const rs: any = await smHModel.apiLogin();
+      const lab: any = await smHModel.getLabPositive(rs.token);
+      if (rs.ok) {
+        await smHModel.removeLabPositiveTmp(db);
+        await smHModel.saveLabPositiveTmp(db,lab.res);
+        await smHModel.triggerLabPositive(db);
+        res.send({ ok: true, rows: rs.res, code: HttpStatus.OK });
       } else {
         res.send({ ok: false, error: rs.error, code: HttpStatus.OK });
       }

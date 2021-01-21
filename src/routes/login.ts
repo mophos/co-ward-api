@@ -98,8 +98,12 @@ router.get('/get-username', async (req: Request, res: Response) => {
   const phoneNumber = req.query.phoneNumber;
 
   try {
-    let rs: any = await loginModel.getUsername(db, cid, phoneNumber);
-    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    if (cid && phoneNumber) {
+      let rs: any = await loginModel.getUsername(db, cid, phoneNumber);
+      res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    } else {
+      res.send({ ok: false, error: 'ข้อมูลไม่สมบูรณ์', code: HttpStatus.OK });
+    }
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
@@ -149,7 +153,7 @@ router.post('/requis-otp', async (req: Request, res: Response) => {
   try {
     let rs: any = await loginModel.getUserByPhone(db, tel);
     // console.log(rs);
-    
+
     if (rs[0]) {
       var request = require("request");
       var options = {
@@ -195,8 +199,8 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
         tel: tel,
         otp: otp.toString(),
         transactionId: transactionID,
-        vendor:"CAT",
-        appId:  process.env.OTP_APP_ID
+        vendor: "CAT",
+        appId: process.env.OTP_APP_ID
       },
       json: true
     };
