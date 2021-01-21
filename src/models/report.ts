@@ -812,6 +812,18 @@ export class ReportModel {
       .orderBy('h.zone_code').orderBy('h.province_name').orderBy('h.hospname')
   }
 
+  dischargeCaseEntryDate(db: Knex, date) {
+    return db('views_covid_case_last AS vc')
+      .select('vc.*', 'pc.date_discharge', 'pc.hospital_id_refer', 'bh.zone_code', 'bh.province_code', 'bh.province_name', 'bh.hospcode', 'bh.hospname', 'rh.hospcode as hospcode_refer', 'rh.hospname as hospname_refer', 'pc.an', 'p.hn')
+      .join('p_covid_cases AS pc', 'pc.id', 'vc.covid_case_id')
+      .join('p_patients as p', 'p.id', ' pc.patient_id')
+      .join('b_hospitals AS bh', 'bh.id', 'vc.hospital_id')
+      .leftJoin('b_hospitals as rh', 'rh.id', 'pc.hospital_id_refer')
+      .whereIn('vc.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
+      .whereBetween('vc.entry_date', [`${date} 00:00:00`, `${date} 23:59:00`])
+      .orderBy('bh.zone_code').orderBy('bh.province_name').orderBy('bh.hospname')
+  }
+
   labPositive(db: Knex) {
     return db('p_covid_cases as c')
       .select('l.*')

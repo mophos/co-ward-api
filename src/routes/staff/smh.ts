@@ -14,13 +14,16 @@ const router: Router = Router();
 
 router.get('/', async (req: Request, res: Response) => {
   const db = req.db;
-  const cid = req.query.cid;
+  const key = req.query.key;
+  const type = req.query.type;
   const obj: any = {};
   const token: any = await model.getToken(db);
+  console.log(key ,type);
+  
 
   try {
-    const rs: any = await model.getPerson(db, cid);
-    const rsd: any = await labCovidAdd(db, cid);
+    const rs: any = await model.getPerson(db, key);
+    const rsd: any = await labCovidAdd(db, key, type);
     console.log(rsd);
 
     if (rsd.sat_id) {
@@ -28,11 +31,11 @@ router.get('/', async (req: Request, res: Response) => {
       obj.telephone = rsd.telephone;
     }
     if (!rs.length) {
-      const rsM: any = await model.infoCid(cid, token[0].token);
-      const smh: any = await model.getSmarthealth(cid, token[0].token);
+      const rsM: any = await model.infoCid(key, token[0].token);
+      const smh: any = await model.getSmarthealth(key, token[0].token);
       if (rsM.length) {
         console.log('มหาดไทย');
-        const rsa: any = await model.infoCidAddress(cid, token[0].token);
+        const rsa: any = await model.infoCidAddress(key, token[0].token);
 
         const sCode = serialModel.paddingNumber(rsa.data.subdistrictCode, 2);
         const dCode = serialModel.paddingNumber(rsa.data.districtCode, 2);
@@ -60,7 +63,7 @@ router.get('/', async (req: Request, res: Response) => {
         obj.province_name = rsa.data.provinceDesc;
       } else if (smh.cid != undefined) {
         console.log('Smart Health');
-        const smha: any = await model.getSmarthealthAddress(cid, token[0].token);
+        const smha: any = await model.getSmarthealthAddress(key, token[0].token);
         const add: any = await model.getAddress(db, smha.tambon, smha.ampur, smha.changwat);
         obj.title_id = +smh.prename;
         obj.first_name = smh.name;
@@ -122,34 +125,46 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
-async function labCovidAdd(db, cid) {
+async function labCovidAdd(db, key, type) {
   try {
+    let set: any = false;
     const rs: any = await model.apiLogin();
     if (rs.ok) {
-      const lab: any = await model.getLabCovid(cid, rs.token);
-      const obj: any = {};
-      if (lab.ok) {
-        if (lab.res[0].sick_sub_district != null) {
-          obj.tambon_code = lab.res[0].sick_sub_district.substring(4, 6);
-          obj.ampur_code = lab.res[0].sick_sub_district.substring(2, 4);
-          obj.province_code = lab.res[0].sick_sub_district.substring(0, 2);
-          const adds: any = await model.getAddress(db, obj.tambon_code, obj.ampur_code, obj.province_code);
-          obj.tambon_name = adds[0].tambon_name;
-          obj.ampur_name = adds[0].ampur_name;
-          obj.province_name = adds[0].province_name;
-        }
-        obj.country_name = 'ไทย';
-        obj.country_code = 20;
-        obj.gender_id = null;
-        obj.sat_id = lab.res[0].sat_id;
-        obj.first_name = lab.res[0].first_name;
-        obj.last_name = lab.res[0].last_name;
-        obj.telephone = replace(lab.res[0].mobile, /\s/g, '');
-        obj.house_no = lab.res[0].sick_house_no;
-        obj.village = lab.res[0].sick_village;
-        obj.road = lab.res[0].sick_road;
+      let lab: any;
+      if (type === 'THAI') {
+        lab = await model.getLabCovidCid(key, rs.token);
+        set = true;
+      } else if (type === 'FOREIGN') {
+        lab = await model.getLabCovidPassport(key, rs.token);
+        set = true;
       }
-      return obj;
+      if (set) {
+        const obj: any = {};
+        if (lab.ok) {
+          if (lab.res[0].sick_sub_district != null) {
+            obj.tambon_code = lab.res[0].sick_sub_district.substring(4, 6);
+            obj.ampur_code = lab.res[0].sick_sub_district.substring(2, 4);
+            obj.province_code = lab.res[0].sick_sub_district.substring(0, 2);
+            const adds: any = await model.getAddress(db, obj.tambon_code, obj.ampur_code, obj.province_code);
+            if (adds[0] !== undefined) {
+              obj.tambon_name = adds[0].tambon_name;
+              obj.ampur_name = adds[0].ampur_name;
+              obj.province_name = adds[0].province_name;
+            }
+          }
+          obj.country_name = 'ไทย';
+          obj.country_code = 20;
+          obj.gender_id = null;
+          obj.sat_id = lab.res[0].sat_id;
+          obj.first_name = lab.res[0].first_name;
+          obj.last_name = lab.res[0].last_name;
+          obj.telephone = replace(lab.res[0].mobile, /\s/g, '');
+          obj.house_no = lab.res[0].sick_house_no;
+          obj.village = lab.res[0].sick_village;
+          obj.road = lab.res[0].sick_road;
+        }
+        return obj;
+      }
     } else {
       return false;
     }

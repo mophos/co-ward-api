@@ -43,14 +43,14 @@ export class smhModel {
     return db('b_subdistrict').where('id', code);
   }
 
-  
-  removeLabPositiveTmp(db:Knex){
+
+  removeLabPositiveTmp(db: Knex) {
     return db('lab_positive_tmp').delete();
   }
-  saveLabPositiveTmp(db:Knex,data){
+  saveLabPositiveTmp(db: Knex, data) {
     return db('lab_positive_tmp').insert(data);
   }
-  triggerLabPositive(db:Knex){
+  triggerLabPositive(db: Knex) {
     return db.raw('call lab_positive()');
   }
 
@@ -109,12 +109,36 @@ export class smhModel {
     });
   }
 
-  getLabCovid(keys, token) {
+  getLabCovidCid(keys, token) {
     keys = encodeURIComponent(keys);
     return new Promise((resolve: any, reject: any) => {
       var options = {
         method: 'GET',
         url: `https://indev.moph.go.th/ncov-2019-api/patient/getPatientByCID/${keys}`,
+        agentOptions: {
+          rejectUnauthorized: false
+        },
+        headers: {
+          authorization: `Bearer ${token}`
+        },
+        json: true
+      };
+      request(options, function (error, response, body) {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(body);
+        }
+      });
+    });
+  }
+
+  getLabCovidPassport(keys, token) {
+    keys = encodeURIComponent(keys);
+    return new Promise((resolve: any, reject: any) => {
+      var options = {
+        method: 'GET',
+        url: `https://indev.moph.go.th/ncov-2019-api/patient/getPatientByPassport/${keys}`,
         agentOptions: {
           rejectUnauthorized: false
         },
