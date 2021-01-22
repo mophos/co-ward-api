@@ -349,7 +349,12 @@ async function saveCovidCase(db, req, data) {
               console.log('rs211');
               const rs = await covidCaseModel.getPersonByPassport(db, data.passport);
               if (rs.length) {
+                console.log('rs2111');
                 personId = rs[0].id
+              } else {
+                console.log('rs2112');
+                // ไม่มีเจอ passport
+                personId = await savePerson(db, person);
               }
             } else {
               console.log('rs212');
