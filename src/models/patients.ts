@@ -115,4 +115,9 @@ export class PatientModel {
             .update(data)
             .where('id', id);
     }
+
+    getPatientDischarge(db: Knex, id) {
+        let sql = db()
+        return sql;
+    }
 }
