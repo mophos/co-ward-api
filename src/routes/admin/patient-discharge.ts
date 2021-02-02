@@ -12,10 +12,10 @@ const router: Router = Router();
 
 
 router.get('/', async (req: Request, res: Response) => {
-  const id: any = req.query.id
+  const hospitalId: any = req.query.hospitalId
 
   try {
-    let rs: any = await patientModel.getPatientDischarge(req.db, id);
+    let rs: any = await patientModel.getPatientDischarge(req.db, hospitalId);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
