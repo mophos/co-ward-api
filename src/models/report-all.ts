@@ -316,6 +316,7 @@ export class ReportAllModel {
       sum( medical_supplie_id = 1 ) AS invasive_ventilator,
       sum( medical_supplie_id = 2 ) AS non_invasive_ventilator,
       sum( medical_supplie_id = 3 ) AS high_flow,
+      sum( medical_supplie_id = 5 ) AS papr,
 vc.updated_entry  as updated_entry`))
       .leftJoin('views_covid_case_last as vc', (v) => {
         v.on('vh.id', 'vc.hospital_id')
@@ -337,13 +338,16 @@ vc.updated_entry  as updated_entry`))
     const sql = `SELECT
       SUM(vb.invasive_qty) AS invasive_qty,
       SUM(vb.non_invasive_qty) AS non_invasive_qty,
-      SUM(vb.invasive_covid_qty) AS invasive_covid_qty,
       SUM(vb.high_flow_qty) AS high_flow_qty,
-      SUM(vb.high_flow_covid_qty) AS high_flow_covid_qty,
+      SUM(vb.papr_qty) AS papr_qty,
+      SUM(vb.invasive_covid_qty) AS invasive_covid_qty,
       SUM(vb.non_invasive_covid_qty) AS non_invasive_covid_qty,
+      SUM(vb.high_flow_covid_qty) AS high_flow_covid_qty,
+      SUM(vb.papr_covid_qty) AS papr_covid_qty,
       SUM(sub.invasive_ventilator) AS invasive_ventilator,
       SUM(sub.non_invasive_ventilator) AS non_invasive_ventilator,
       SUM(sub.high_flow) AS high_flow,
+      SUM(sub.papr) AS papr,
       vh.sub_ministry_name
     FROM
       views_hospital_all AS vh
@@ -356,6 +360,7 @@ vc.updated_entry  as updated_entry`))
         sum( medical_supplie_id = 1 ) AS invasive_ventilator,
         sum( medical_supplie_id = 2 ) AS non_invasive_ventilator,
         sum( medical_supplie_id = 3 ) AS high_flow,
+        sum( medical_supplie_id = 5 ) AS papr,
         vc.updated_entry AS updated_entry 
       FROM
         views_hospital_all AS vh
@@ -375,13 +380,16 @@ vc.updated_entry  as updated_entry`))
     const sql = `SELECT
       SUM(vb.invasive_qty) AS invasive_qty,
       SUM(vb.non_invasive_qty) AS non_invasive_qty,
-      SUM(vb.invasive_covid_qty) AS invasive_covid_qty,
       SUM(vb.high_flow_qty) AS high_flow_qty,
-      SUM(vb.high_flow_covid_qty) AS high_flow_covid_qty,
+      SUM(vb.papr_qty) AS papr_qty,
+      SUM(vb.invasive_covid_qty) AS invasive_covid_qty,
       SUM(vb.non_invasive_covid_qty) AS non_invasive_covid_qty,
+      SUM(vb.high_flow_covid_qty) AS high_flow_covid_qty,
+      SUM(vb.papr_covid_qty) AS papr_covid_qty,
       SUM(sub.invasive_ventilator) AS invasive_ventilator,
       SUM(sub.non_invasive_ventilator) AS non_invasive_ventilator,
       SUM(sub.high_flow) AS high_flow,
+      SUM(sub.papr) AS papr,
       vh.zone_code
     FROM
       views_hospital_all AS vh
@@ -394,6 +402,7 @@ vc.updated_entry  as updated_entry`))
         sum( medical_supplie_id = 1 ) AS invasive_ventilator,
         sum( medical_supplie_id = 2 ) AS non_invasive_ventilator,
         sum( medical_supplie_id = 3 ) AS high_flow,
+        sum( medical_supplie_id = 5 ) AS papr,
         vc.updated_entry AS updated_entry 
       FROM
         views_hospital_all AS vh
