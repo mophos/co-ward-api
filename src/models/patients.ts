@@ -115,4 +115,15 @@ export class PatientModel {
             .update(data)
             .where('id', id);
     }
+
+    getPatientDischarge(db: Knex, hospitalId) {
+        let sql = db('p_patients AS p')
+            .select('p.hn', 'pc.*', 'pp.first_name', 'pp.last_name', 'pp.cid', 'pp.passport')
+            .join('p_covid_cases AS pc', 'pc.patient_id', 'p.id')
+            .join('p_persons as pp', 'pp.id', 'p.person_id')
+            .where('p.hospital_id', hospitalId)
+            .where('pc.is_deleted', 'N')
+            .where('pc.status', 'ADMIT')
+        return sql;
+    }
 }
