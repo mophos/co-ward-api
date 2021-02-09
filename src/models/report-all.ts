@@ -94,6 +94,7 @@ export class ReportAllModel {
       .leftJoin('b_hospitals AS hr', 'c.hospital_id_refer', 'hr.id')
       .join('views_hospital_all as vh', 'vh.id', 'cl.hospital_id')
       .where('cl.entry_date', '<=', date)
+      .where('cl.entry_date', '>=', '2020-12-15')
       .groupBy('cl.hospital_id')
     return sql;
   }

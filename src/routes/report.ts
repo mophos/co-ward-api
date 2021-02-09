@@ -466,6 +466,26 @@ router.get('/get-bed/excel', async (req: Request, res: Response) => {
     const hospital: any = await model.getHospital(db);
     if (providerType === 'ZONE') {
       const province = await model.getProvince(db, zoneCode, null);
+      let rowA = 2;
+      var wsA = wb.addWorksheet(`ทั้งหมด`);
+      wsA.cell(1, 1).string('รหัสโรงพยาบาล');
+      wsA.cell(1, 2).string('โรงพยาบาล');
+      wsA.cell(1, 3).string('AIIR ทั้งหมด');
+      wsA.cell(1, 4).string('AIIR ใช้ไปแล้ว');
+      wsA.cell(1, 5).string('AIIR คงเหลือ');
+      wsA.cell(1, 6).string('Modified AIIR ทั้งหมด');
+      wsA.cell(1, 7).string('Modified AIIR ใช้ไปแล้ว');
+      wsA.cell(1, 8).string('Modified AIIR คงเหลือ');
+      wsA.cell(1, 9).string('Isolate ทั้งหมด');
+      wsA.cell(1, 10).string('Isolate ใช้ไปแล้ว');
+      wsA.cell(1, 11).string('Isolate คงเหลือ');
+      wsA.cell(1, 12).string('Cohort ทั้งหมด');
+      wsA.cell(1, 13).string('Cohort ใช้ไปแล้ว');
+      wsA.cell(1, 14).string('Cohort คงเหลือ');
+      wsA.cell(1, 15).string('Hospitel ทั้งหมด');
+      wsA.cell(1, 16).string('Hospitel ใช้ไปแล้ว');
+      wsA.cell(1, 17).string('Hospitel คงเหลือ');
+
       for (let v = 0; v < province.length; v++) {
         var ws = wb.addWorksheet(`${province[v].name_th}`);
 
@@ -528,7 +548,31 @@ router.get('/get-bed/excel', async (req: Request, res: Response) => {
           ws.cell(row, 15).string(toString(h['hospitel_qty']));
           ws.cell(row, 16).string(toString(h['hospitel_usage_qty']));
           ws.cell(row, 17).string(toString(h['hospitel_qty'] - h['hospitel_usage_qty']));
+
+          wsA.cell(row, 1).string(h.hospcode.toString());
+          wsA.cell(row, 2).string(h.hospname);
+
+          wsA.cell(row, 3).string(toString(h['aiir_qty']));
+          wsA.cell(row, 4).string(toString(h['aiir_usage_qty']));
+          wsA.cell(row, 5).string(toString(h['aiir_qty'] - h['aiir_usage_qty']));
+
+          wsA.cell(row, 6).string(toString(h['modified_aiir_qty']));
+          wsA.cell(row, 7).string(toString(h['modified_aiir_usage_qty']));
+          wsA.cell(row, 8).string(toString(h['modified_aiir_qty'] - h['modified_aiir_usage_qty']));
+
+          wsA.cell(row, 9).string(toString(h['isolate_qty']));
+          wsA.cell(row, 10).string(toString(h['isolate_usage_qty']));
+          wsA.cell(row, 11).string(toString(h['isolate_qty'] - h['isolate_usage_qty']));
+
+          wsA.cell(row, 12).string(toString(h['cohort_qty']));
+          wsA.cell(row, 13).string(toString(h['cohort_usage_qty']));
+          wsA.cell(row, 14).string(toString(h['cohort_qty'] - h['cohort_usage_qty']));
+
+          wsA.cell(row, 15).string(toString(h['hospitel_qty']));
+          wsA.cell(row, 16).string(toString(h['hospitel_usage_qty']));
+          wsA.cell(row, 17).string(toString(h['hospitel_qty'] - h['hospitel_usage_qty']));
           row++;
+          rowA++;
         }
       }
     } else {
@@ -837,7 +881,29 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
     }
 
     var wb = new excel4node.Workbook();
-    let row = 2;
+
+    var wsAll = wb.addWorksheet(`ทั้งหมด`);
+    wsAll.cell(1, 1).string('จังหวัด');
+    wsAll.cell(1, 2).string('รหัสโรงพยาบาล');
+    wsAll.cell(1, 3).string('โรงพยาบาล');
+    wsAll.cell(1, 4).string('ระดับขีดความสามารถ');
+    wsAll.cell(1, 5).string('AIIR ทั้งหมด');
+    wsAll.cell(1, 6).string('AIIR ใช้ไปแล้ว');
+    wsAll.cell(1, 7).string('AIIR คงเหลือ');
+    wsAll.cell(1, 8).string('Modified AIIR ทั้งหมด');
+    wsAll.cell(1, 9).string('Modified AIIR ใช้ไปแล้ว');
+    wsAll.cell(1, 10).string('Modified AIIR คงเหลือ');
+    wsAll.cell(1, 11).string('Isolate ทั้งหมด');
+    wsAll.cell(1, 12).string('Isolate ใช้ไปแล้ว');
+    wsAll.cell(1, 13).string('Isolate คงเหลือ');
+    wsAll.cell(1, 14).string('Cohort ทั้งหมด');
+    wsAll.cell(1, 15).string('Cohort ใช้ไปแล้ว');
+    wsAll.cell(1, 16).string('Cohort คงเหลือ');
+    wsAll.cell(1, 17).string('Hospitel ทั้งหมด');
+    wsAll.cell(1, 18).string('Hospitel ใช้ไปแล้ว');
+    wsAll.cell(1, 19).string('Hospitel คงเหลือ');
+    wsAll.cell(1, 20).string('Hospital Type');
+    let rowAll = 2;
     for (const v of zoneCodes) {
       let row = 2;
       var ws = wb.addWorksheet(`${v}`);
@@ -849,15 +915,20 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
         ws.cell(1, 4).string('ระดับขีดความสามารถ');
         ws.cell(1, 5).string('AIIR ทั้งหมด');
         ws.cell(1, 6).string('AIIR ใช้ไปแล้ว');
-        ws.cell(1, 7).string('Modified AIIR ทั้งหมด');
-        ws.cell(1, 8).string('Modified AIIR ใช้ไปแล้ว');
-        ws.cell(1, 9).string('Isolate ทั้งหมด');
-        ws.cell(1, 10).string('Isolate ใช้ไปแล้ว');
-        ws.cell(1, 11).string('Cohort ทั้งหมด');
-        ws.cell(1, 12).string('Cohort ใช้ไปแล้ว');
-        ws.cell(1, 13).string('Hospitel ทั้งหมด');
-        ws.cell(1, 14).string('Hospitel ใช้ไปแล้ว');
-        ws.cell(1, 15).string('Hospital Type');
+        ws.cell(1, 7).string('AIIR คงเหลือ');
+        ws.cell(1, 8).string('Modified AIIR ทั้งหมด');
+        ws.cell(1, 9).string('Modified AIIR ใช้ไปแล้ว');
+        ws.cell(1, 10).string('Modified AIIR คงเหลือ');
+        ws.cell(1, 11).string('Isolate ทั้งหมด');
+        ws.cell(1, 12).string('Isolate ใช้ไปแล้ว');
+        ws.cell(1, 13).string('Isolate คงเหลือ');
+        ws.cell(1, 14).string('Cohort ทั้งหมด');
+        ws.cell(1, 15).string('Cohort ใช้ไปแล้ว');
+        ws.cell(1, 16).string('Cohort คงเหลือ');
+        ws.cell(1, 17).string('Hospitel ทั้งหมด');
+        ws.cell(1, 18).string('Hospitel ใช้ไปแล้ว');
+        ws.cell(1, 19).string('Hospitel คงเหลือ');
+        ws.cell(1, 20).string('Hospital Type');
 
         ws.cell(row, 1).string(d.province_name);
         ws.cell(row, 2).string(d.hospcode);
@@ -866,16 +937,44 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
 
         ws.cell(row, 5).number(d['aiir_covid_qty'] === null ? 0 : d['aiir_covid_qty']);
         ws.cell(row, 6).number(d['aiir_usage_qty'] === null ? 0 : d['aiir_usage_qty']);
-        ws.cell(row, 7).number(d['modified_aiir_covid_qty'] === null ? 0 : d['modified_aiir_covid_qty']);
-        ws.cell(row, 8).number(d['modified_aiir_usage_qty'] === null ? 0 : d['modified_aiir_usage_qty']);
-        ws.cell(row, 9).number(d['isolate_covid_qty'] === null ? 0 : d['isolate_covid_qty']);
-        ws.cell(row, 10).number(d['isolate_usage_qty'] === null ? 0 : d['isolate_usage_qty']);
-        ws.cell(row, 11).number(d['cohort_covid_qty'] === null ? 0 : d['cohort_covid_qty']);
-        ws.cell(row, 12).number(d['cohort_usage_qty'] === null ? 0 : d['cohort_usage_qty']);
-        ws.cell(row, 13).number(d['hospitel_covid_qty'] === null ? 0 : d['hospitel_covid_qty']);
-        ws.cell(row, 14).number(d['hospitel_usage_qty'] === null ? 0 : d['hospitel_usage_qty']);
-        ws.cell(row, 15).string(d.hospital_type);
+        ws.cell(row, 7).number(+d['aiir_covid_qty'] - +d['aiir_usage_qty']);
+        ws.cell(row, 8).number(d['modified_aiir_covid_qty']);
+        ws.cell(row, 9).number(d['modified_aiir_usage_qty']);
+        ws.cell(row, 10).number(+d['modified_aiir_covid_qty'] - +d['modified_aiir_usage_qty']);
+        ws.cell(row, 11).number(d['isolate_covid_qty']);
+        ws.cell(row, 12).number(d['isolate_usage_qty']);
+        ws.cell(row, 13).number(+d['isolate_covid_qty'] - +d['isolate_usage_qty']);
+        ws.cell(row, 14).number(d['cohort_covid_qty']);
+        ws.cell(row, 15).number(d['cohort_usage_qty']);
+        ws.cell(row, 16).number(+d['cohort_covid_qty'] - +d['cohort_usage_qty']);
+        ws.cell(row, 17).number(d['hospitel_covid_qty']);
+        ws.cell(row, 18).number(d['hospitel_usage_qty']);
+        ws.cell(row, 19).number(+d['hospitel_covid_qty'] - +d['hospitel_usage_qty']);
+        ws.cell(row, 20).string(d.hospital_type);
         row++
+
+        wsAll.cell(row, 1).string(d.province_name);
+        wsAll.cell(row, 2).string(d.hospcode);
+        wsAll.cell(row, 3).string(d.hospname);
+        wsAll.cell(row, 4).string(d.level);
+
+        wsAll.cell(row, 5).number(d['aiir_covid_qty'] || 0);
+        wsAll.cell(row, 6).number(d['aiir_usage_qty'] || 0);
+        wsAll.cell(row, 7).number(+d['aiir_covid_qty'] - +d['aiir_usage_qty'] || 0);
+        wsAll.cell(row, 8).number(d['modified_aiir_covid_qty'] || 0);
+        wsAll.cell(row, 9).number(d['modified_aiir_usage_qty'] || 0);
+        wsAll.cell(row, 10).number(+d['modified_aiir_covid_qty'] - +d['modified_aiir_usage_qty'] || 0);
+        wsAll.cell(row, 11).number(d['isolate_covid_qty'] || 0);
+        wsAll.cell(row, 12).number(d['isolate_usage_qty'] || 0);
+        wsAll.cell(row, 13).number(+d['isolate_covid_qty'] - +d['isolate_usage_qty'] || 0);
+        wsAll.cell(row, 14).number(d['cohort_covid_qty'] || 0);
+        wsAll.cell(row, 15).number(d['cohort_usage_qty'] || 0);
+        wsAll.cell(row, 16).number(+d['cohort_covid_qty'] - +d['cohort_usage_qty'] || 0);
+        wsAll.cell(row, 17).number(d['hospitel_covid_qty'] || 0);
+        wsAll.cell(row, 18).number(d['hospitel_usage_qty'] || 0);
+        wsAll.cell(row, 19).number(+d['hospitel_covid_qty'] - +d['hospitel_usage_qty'] || 0);
+        wsAll.cell(row, 20).string(d.hospital_type || 0);
+        rowAll++;
       }
     }
 
@@ -2247,8 +2346,8 @@ router.get('/discharge-daily/excel', async (req: Request, res: Response) => {
       ws.cell(row, 11).string(toString(item.refer_hospname));
       row++;
     }
-    
-    
+
+
     fse.ensureDirSync(process.env.TMP_PATH);
     let filename = `discharge-daily` + moment().format('x') + '.xlsx'
     let filenamePath = path.join(process.env.TMP_PATH, filename);
@@ -2263,7 +2362,7 @@ router.get('/discharge-daily/excel', async (req: Request, res: Response) => {
         res.sendfile(filenamePath, (v) => {
           fse.removeSync(filenamePath);
         })
-        
+
       }
     });
   } catch (error) {
