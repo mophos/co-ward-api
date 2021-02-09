@@ -204,6 +204,7 @@ sum( bed_id = 5 ) AS hospitel_usage_qty`), last)
       sum( medical_supplie_id = 1 ) AS invasive_ventilator,
       sum( medical_supplie_id = 2 ) AS non_invasive_ventilator,
       sum( medical_supplie_id = 3 ) AS high_flow,
+      sum( medical_supplie_id = 5 ) AS papr,
 vc.updated_entry  as updated_entry`))
       .leftJoin('views_covid_case_last as vc', (v) => {
         v.on('vh.id', 'vc.hospital_id')

@@ -434,6 +434,73 @@ export class ReportModel {
     return sql;
   }
 
+  admitPuiCaseByProvince(db: Knex, province: any) {
+    // const last = db('p_covid_case_details')
+    let sql = db('temp_report_admit_pui_case as c')
+      .select('c.d1', 'c.d2', 'c.d3', 'c.d4', 'c.d5', 'c.d7', 'c.d8', 'c.hn', 'c.an', 'c.hospital_id', 'c.updated_entry_last', 'c.days',
+        'c.hospname', 'c.hospcode', 'c.zone_code', 'c.province_name', 'c.date_admit', 'c.gcs_name', 'c.bed_name', 'c.medical_supplies_name',
+        'c.first_name', 'c.last_name', 'c.cid', 'c.sat_id', 'c.timestamp'
+      )
+    sql.join('b_hospitals as h', 'h.id', 'c.hospital_id')
+    sql.whereIn('h.province_code', province)
+    sql.orderBy('h.province_name')
+    // console.log(sql.toString());
+    return sql;
+  }
+
+  sumAdmitPuiCaseByProvince(db: Knex, province) {
+    let sql = `SELECT
+    sum( ( du.d1 IS NOT NULL ) AND ( du.d1 > 0 ) ) AS d1,
+    sum( ( du.d2 IS NOT NULL ) AND ( du.d2 > 0 ) ) AS d2,
+    sum( ( du.d3 IS NOT NULL ) AND ( du.d3 > 0 ) ) AS d3,
+    sum( ( du.d4 IS NOT NULL ) AND ( du.d4 > 0 ) ) AS d4,
+    sum( ( du.d5 IS NOT NULL ) AND ( du.d5 > 0 ) ) AS d5,
+    sum( ( du.d7 IS NOT NULL ) AND ( du.d7 > 0 ) ) AS d7,
+    sum( ( du.d8 IS NOT NULL ) AND ( du.d8 > 0 ) ) AS d8,
+    h.zone_code,
+    sum( cl.gcs_id IN ( 5 ) ) AS pui,
+    sum( cl.bed_id = 1 ) AS aiir,
+    sum( cl.bed_id = 2 ) AS modified_aiir,
+    sum( cl.bed_id = 3 ) AS isolate,
+    sum( cl.bed_id = 4 ) AS cohort,
+    sum( cl.bed_id = 5 ) AS hospitel,
+    sum( cl.medical_supplie_id = 1 ) AS invasive,
+    sum( cl.medical_supplie_id = 2 ) AS noninvasive,
+    sum( cl.medical_supplie_id = 3 ) AS high_flow ,
+    now() as timestamp
+  FROM
+    views_covid_case_last AS cl
+    INNER JOIN p_covid_cases AS c ON c.id = cl.covid_case_id
+    INNER JOIN p_patients AS pt ON pt.id = c.patient_id
+    INNER JOIN b_hospitals AS h ON h.id = pt.hospital_id
+    LEFT JOIN (
+    SELECT
+      i.covid_case_detail_id,
+      sum( IF ( i.generic_id = 1, i.qty, 0 ) ) AS 'd1',
+      sum( IF ( i.generic_id = 2, i.qty, 0 ) ) AS 'd2',
+      sum( IF ( i.generic_id = 3, i.qty, 0 ) ) AS 'd3',
+      sum( IF ( i.generic_id = 4, i.qty, 0 ) ) AS 'd4',
+      sum( IF ( i.generic_id = 5, i.qty, 0 ) ) AS 'd5',
+      sum( IF ( i.generic_id = 7, i.qty, 0 ) ) AS 'd7',
+      sum( IF ( i.generic_id = 8, i.qty, 0 ) ) AS 'd8' 
+    FROM
+      p_covid_case_detail_items AS i
+      INNER JOIN view_covid_case_last AS l ON l.id = i.covid_case_detail_id 
+    GROUP BY
+      i.covid_case_detail_id 
+    ) AS du ON du.covid_case_detail_id = cl.id 
+  WHERE
+    cl.status = 'ADMIT' 
+    AND gcs_id IN ( 5 )
+    AND province_code IN (?)
+  GROUP BY
+    h.province_code 
+  ORDER BY
+    h.zone_code ASC,
+    h.province_code ASC;`
+    return db.raw(sql, [province])
+  }
+
   admitConfirmCaseProvice(db: Knex, zoneCode, provinceCode = null, showPersons = false) {
     const subCioCheck = db('p_cio_check_confirm').groupBy('covid_case_detail_id').max('id as id')
     const cioCheck = db('p_cio_check_confirm as ci').whereIn('ci.id', subCioCheck).as('cc');

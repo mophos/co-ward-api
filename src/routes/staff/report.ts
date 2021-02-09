@@ -3,9 +3,9 @@ const excel4node = require('excel4node');
 import * as HttpStatus from 'http-status-codes';
 import { Router, Request, Response } from 'express';
 import { ReportModel } from '../../models/report';
+import { findIndex } from 'lodash';
 const path = require('path')
 const fse = require('fs-extra');
-import moment = require('moment');
 const model = new ReportModel();
 const router: Router = Router();
 
@@ -61,7 +61,7 @@ router.get('/bed', async (req: Request, res: Response) => {
   const sector = req.query.sector;
   const provinceCode = req.decoded.provinceCode;
   try {
-    const rs: any = await model.beds(db, date,provinceCode);
+    const rs: any = await model.beds(db, date, provinceCode);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -131,4 +131,53 @@ router.get('/bed', async (req: Request, res: Response) => {
 //     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
 //   }
 // });
+
+router.get('/admit-pui-case', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
+  const provinceCode = req.decoded.provinceCode;
+
+  try {
+    const province = [];
+    if (providerType === 'ZONE') {
+      const rsp: any = await model.getProvince(db, zoneCode, null);
+      for (const v of rsp) {
+        province.push(v.code);
+      }
+    } else if (providerType === 'SSJ') {
+      const rsp: any = await model.getProvince(db, null, provinceCode);
+      province.push(rsp[0].code);
+    }
+    const rs: any = await model.admitPuiCaseByProvince(db, province);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/admit-pui-case-summary', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
+  const provinceCode = req.decoded.provinceCode;
+  try {
+    const province = [];
+    if (providerType === 'ZONE') {
+      const rsp: any = await model.getProvince(db, zoneCode, null);
+      for (const v of rsp) {
+        province.push(v.code);
+      }
+    } else if (providerType === 'SSJ') {
+      const rsp: any = await model.getProvince(db, null, provinceCode);
+      province.push(rsp[0].code);
+    }
+    const rs: any = await model.sumAdmitPuiCaseByProvince(db, province);
+    res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
 export default router;
