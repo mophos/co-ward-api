@@ -410,7 +410,6 @@ export class ReportModel {
   }
 
   admitConfirmCase(db: Knex, showPersons = false) {
-    // const last = db('p_covid_case_details')
     let sql = db('temp_report_admit_comfirm_case')
       .select('d1', 'd2', 'd3', 'd4', 'd5', 'd7', 'd8', 'hn', 'an', 'hospital_id', 'updated_entry_last', 'days',
         'hospname', 'hospcode', 'zone_code', 'province_name', 'date_admit', 'gcs_name', 'bed_name', 'medical_supplies_name',
@@ -419,7 +418,6 @@ export class ReportModel {
     if (showPersons) {
       sql.select('first_name', 'last_name', 'cid', 'sat_id', 'sex', 'age')
     }
-    // console.log(sql.toString());
     return sql;
   }
   admitPuiCase(db: Knex, showPersons = false) {
@@ -437,51 +435,30 @@ export class ReportModel {
   }
 
   admitConfirmCaseProvice(db: Knex, zoneCode, provinceCode = null, showPersons = false) {
-    const last = db('p_covid_case_details')
-      .max('updated_entry as updated_entry_last')
-      .whereRaw('covid_case_id=cl.covid_case_id')
-      .whereNotNull('updated_entry')
-      .as('updated_entry_last')
-    const drugUse = db('p_covid_case_detail_items AS i').select(
-      'i.covid_case_detail_id',
-      db.raw(`sum(if( i.generic_id = 1 ,i.qty,0)) AS 'd1'`),
-      db.raw(`sum(if( i.generic_id = 2 ,i.qty,0)) AS 'd2'`),
-      db.raw(`sum(if( i.generic_id = 3 ,i.qty,0)) AS 'd3'`),
-      db.raw(`sum(if( i.generic_id = 4 ,i.qty,0)) AS 'd4'`),
-      db.raw(`sum(if( i.generic_id = 5 ,i.qty,0)) AS 'd5'`),
-      db.raw(`sum(if( i.generic_id = 7 ,i.qty,0)) AS 'd7'`),
-      db.raw(`sum(if( i.generic_id = 8 ,i.qty,0)) AS 'd8'`))
-      .join('view_covid_case_last AS l', 'l.id', 'i.covid_case_detail_id')
-      .groupBy('i.covid_case_detail_id').as('du')
-
     const subCioCheck = db('p_cio_check_confirm').groupBy('covid_case_detail_id').max('id as id')
-
     const cioCheck = db('p_cio_check_confirm as ci').whereIn('ci.id', subCioCheck).as('cc');
-    let sql = db('temp_views_covid_case_last as cl')
-      .select('du.d1', 'du.d2', 'du.d3', 'du.d4', 'du.d5', 'du.d7', 'du.d8', 'c.id as covid_case_id', 'cl.id as covid_case_detail_id', 'cc.status as cio_status', 'cc.remark as cio_remark', 'cc.created_date as cio_created_date', db.raw(`DATE_FORMAT(cc.created_date,'%Y-%m-%d') as cio_date`))
-      .select('pt.hn', 'c.an', 'pt.hospital_id', last, db.raw(`DATEDIFF( now(),(${last}) ) as days`), 'h.hospname', 'h.hospcode', 'h.zone_code', 'h.province_name', 'c.date_admit', 'g.name as gcs_name', 'b.name as bed_name', 'm.name as medical_supplies_name', 'bg.name as gender_name', 'pp.birth_date')
-      .join('p_covid_cases as c', 'c.id', 'cl.covid_case_id')
-      .join('p_patients as pt', 'pt.id', 'c.patient_id')
-      .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
-      .join('b_gcs as g', 'g.id', 'cl.gcs_id')
-      .join('b_beds as b', 'b.id', 'cl.bed_id')
-      .join('p_persons as pp', 'pp.id', 'pt.person_id')
-      .join('b_genders as bg', 'bg.id', 'pp.gender_id')
-      .leftJoin('b_medical_supplies as m', 'm.id', 'cl.medical_supplie_id')
-      .leftJoin(cioCheck, 'cc.covid_case_detail_id', 'cl.id')
-      .leftJoin(drugUse, 'du.covid_case_detail_id', 'cl.id')
-      .where('cl.status', 'ADMIT')
-      .where('h.zone_code', zoneCode)
-      .whereIn('gcs_id', [1, 2, 3, 4])
+
+    let sql = db('temp_report_admit_comfirm_case as t')
+      .select('t.d1', 't.d2', 't.d3', 't.d4', 't.d5', 't.d7', 't.d8', 't.hn', 't.an', 't.hospital_id', 't.updated_entry_last', 't.days',
+        't.hospname', 't.hospcode', 't.zone_code', 't.province_name', 't.date_admit', 't.gcs_name', 't.bed_name', 't.medical_supplies_name',
+        'first_name', 't.last_name', 't.cid', 't.sat_id', 't.timestamp' ,'t.sex', 't.age'
+      )
+      .leftJoin(cioCheck, 'cc.covid_case_detail_id', 't.covid_case_detail_id')
+      .join('b_hospitals as h', 'h.id', 't.hospital_id')
+      // .where('t.status', 'ADMIT')
+      .where('t.zone_code', zoneCode)
+      .whereIn('t.gcs_id', [1, 2, 3, 4])
       .orderBy('h.province_code')
-      .orderBy('h.hospname')
-      .orderBy('c.id')
-    if (provinceCode) {
-      sql.where('h.province_code', provinceCode);
-    }
+      .orderBy('t.hospname')
+      .orderBy('t.covid_case_id')
     if (showPersons) {
-      sql.select('pp.first_name', 'pp.last_name', 'pp.cid', 'c.sat_id')
+      sql.select('t.first_name', 't.last_name', 't.cid', 't.sat_id')
     }
+
+    if (provinceCode) {
+      sql.where('t.province_code', provinceCode);
+    }
+
     return sql;
   }
 
@@ -805,11 +782,11 @@ export class ReportModel {
       .select('pc.*', 'p.hn', 'p.hospital_id', 'p.person_id', 'h.hospcode', 'h.hospname', 'h.zone_code', 'h.province_code', 'h.province_name', 'rh.hospcode as refer_hospcode', 'rh.hospname as refer_hospname')
       .join('p_patients as p', 'p.id', ' pc.patient_id')
       .join('b_hospitals as h', 'h.id', 'p.hospital_id')
-      .join('views_covid_case_last as vl','vl.covid_case_id','pc.id')
+      .join('views_covid_case_last as vl', 'vl.covid_case_id', 'pc.id')
       .leftJoin('b_hospitals as rh', 'rh.id', 'pc.hospital_id_refer')
       .where('pc.is_deleted', 'N')
       .whereIn('pc.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
-      .whereIn('vl.gcs_id', [1,2,3,4])
+      .whereIn('vl.gcs_id', [1, 2, 3, 4])
       .whereBetween('pc.date_discharge', [`${date} 00:00:00`, `${date} 23:59:00`])
       .orderBy('h.zone_code').orderBy('h.province_name').orderBy('h.hospname')
   }
