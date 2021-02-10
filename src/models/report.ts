@@ -523,7 +523,7 @@ export class ReportModel {
     }
 
     if (provinceCode) {
-      sql.where('t.province_code', provinceCode);
+      sql.where('h.province_code', provinceCode);
     }
 
     return sql;
