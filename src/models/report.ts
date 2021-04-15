@@ -508,7 +508,7 @@ export class ReportModel {
     let sql = db('temp_report_admit_comfirm_case as t')
       .select('t.d1', 't.d2', 't.d3', 't.d4', 't.d5', 't.d7', 't.d8', 't.hn', 't.an', 't.hospital_id', 't.updated_entry_last', 't.days',
         't.hospname', 't.hospcode', 't.zone_code', 't.province_name', 't.date_admit', 't.gcs_name', 't.bed_name', 't.medical_supplies_name',
-        'first_name', 't.last_name', 't.cid', 't.sat_id', 't.timestamp' ,'t.sex', 't.age'
+        'first_name', 't.last_name', 't.cid', 't.sat_id', 't.timestamp', 't.sex', 't.age'
       )
       .leftJoin(cioCheck, 'cc.covid_case_detail_id', 't.covid_case_detail_id')
       .join('b_hospitals as h', 'h.id', 't.hospital_id')
@@ -543,53 +543,11 @@ export class ReportModel {
   }
 
   admitConfirmCaseSummaryProvince(db: Knex, zoneCode, provinceCode = null) {
-    const drugUse = db('p_covid_case_detail_items AS i').select(
-      'i.covid_case_detail_id',
-      db.raw(`sum(if( i.generic_id = 1 ,i.qty,0)) AS 'd1'`),
-      db.raw(`sum(if( i.generic_id = 2 ,i.qty,0)) AS 'd2'`),
-      db.raw(`sum(if( i.generic_id = 3 ,i.qty,0)) AS 'd3'`),
-      db.raw(`sum(if( i.generic_id = 4 ,i.qty,0)) AS 'd4'`),
-      db.raw(`sum(if( i.generic_id = 5 ,i.qty,0)) AS 'd5'`),
-      db.raw(`sum(if( i.generic_id = 7 ,i.qty,0)) AS 'd7'`),
-      db.raw(`sum(if( i.generic_id = 8 ,i.qty,0)) AS 'd8'`))
-      .join('view_covid_case_last AS l', 'l.id', 'i.covid_case_detail_id')
-      .groupBy('i.covid_case_detail_id').as('du')
-    let sql = db('temp_views_covid_case_last as cl')
-      .select(db.raw('sum((du.d1 is not null) and (du.d1 > 0)) as d1'),
-        db.raw('sum((du.d2 is not null) and (du.d2 > 0)) as d2'),
-        db.raw('sum((du.d3 is not null) and (du.d3 > 0)) as d3'),
-        db.raw('sum((du.d4 is not null) and (du.d4 > 0)) as d4'),
-        db.raw('sum((du.d5 is not null) and (du.d5 > 0)) as d5'),
-        db.raw('sum((du.d7 is not null) and (du.d7 > 0)) as d7'),
-        db.raw('sum((du.d8 is not null) and (du.d8 > 0)) as d8'))
-      .select(db.raw(`
-      h.province_name,
-      sum( cl.gcs_id in (1,2,3,4) ) AS confirm,
-      sum( cl.gcs_id = 1 ) AS severe,
-      sum( cl.gcs_id = 2 ) AS moderate,
-      sum( cl.gcs_id = 3 ) AS mild,
-      sum( cl.gcs_id = 4 ) AS asymptomatic ,
-      sum( cl.bed_id = 1 ) AS aiir ,
-      sum( cl.bed_id = 2 ) AS modified_aiir ,
-      sum( cl.bed_id = 3 ) AS isolate ,
-      sum( cl.bed_id = 4 ) AS cohort ,
-      sum( cl.bed_id = 5 ) AS   hospitel,
-      sum( cl.medical_supplie_id = 1 ) AS   invasive,
-      sum( cl.medical_supplie_id = 2 ) AS   noninvasive,
-      sum( cl.medical_supplie_id = 3 ) AS   high_flow`))
-      .join('p_covid_cases as c', 'c.id', 'cl.covid_case_id')
-      .join('p_patients as pt', 'pt.id', 'c.patient_id')
-      .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
-      .leftJoin(drugUse, 'du.covid_case_detail_id', 'cl.id')
-      .where('cl.status', 'ADMIT')
-      .where('h.zone_code', zoneCode)
-      .whereIn('gcs_id', [1, 2, 3, 4])
-      .groupBy('h.province_code')
-      .orderBy('h.province_code')
+    let sql = db('temp_report_admit_comfirm_case_summary_province as s')
+      .where('s.zone_code', zoneCode)
     if (provinceCode) {
-      sql.where('h.province_code', provinceCode);
+      sql.where('s.province_code', provinceCode);
     }
-
     return sql;
   }
 
