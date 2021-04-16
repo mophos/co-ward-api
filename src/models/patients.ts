@@ -15,7 +15,8 @@ export class PatientModel {
             .select('pe.id as person_id', 'pa.id as patient_id', 'pe.gender_id', 'pe.first_name', 'pe.title_id', 'pe.first_name', 'pe.last_name',
                 'pe.cid', 'pa.hn', 'h.hospname', 'h.id as hospital_id', 'h.hospcode', 'pe.birth_date', 'pe.passport',
                 'pe.room_no', 'pe.road', 'pe.village_name', 'pe.tambon_name',
-                'pe.ampur_name', 'pe.province_name', 'pe.zipcode', 'pe.telephone')
+                'pe.ampur_name', 'pe.province_name', 'pe.tambon_code', 'pe.house_no',
+                'pe.ampur_code', 'pe.province_code', 'pe.zipcode', 'pe.telephone')
             .join('p_patients as pa', 'pa.person_id', 'pe.id')
             // .join('p_covid_cases as pc', 'pc.patient_id', 'pa.id') 'pc.an','pc.status','pc.sat_id', 'pc.date_admit'
             .join('b_hospitals as h', 'h.id', 'pa.hospital_id')
