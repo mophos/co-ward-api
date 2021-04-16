@@ -46,15 +46,30 @@ router.put('/edit-info', async (req: Request, res: Response) => {
         const data: any = req.body.data || ''
         const personId = data.person_id
         const patientId = data.patient_id
+
         const oldInfo = await patientModel.getPerson(db, personId)
         const oldHn = await patientModel.getPatient(db, patientId)
-
+        console.log(data.birth_date);
+        
         const personData: any = {
             gender_id: data.gender_id,
             title_id: data.title_id,
             first_name: data.first_name,
             last_name: data.last_name,
-            cid: data.cid
+            telephone: data.telephone,
+            birth_date: data.birth_date,
+            cid: data.cid,
+            house_no: data.house_no,
+            room_no: data.room_no,
+            village_name: data.village_name,
+            road: data.road,
+            tambon_code: data.tambon_code,
+            tambon_name: data.tambon_name,
+            ampur_code: data.ampur_code,
+            ampur_name: data.ampur_name,
+            province_code: data.province_code,
+            province_name: data.province_name,
+            zipcode: data.zipcode
         }
         const patientData: any = {
             hn: data.hn
@@ -67,16 +82,30 @@ router.put('/edit-info', async (req: Request, res: Response) => {
                     v.title_id === personData.title_id &&
                     v.first_name === personData.first_name &&
                     v.last_name === personData.last_name &&
-                    v.cid === personData.cid
+                    v.telephone === personData.telephone &&
+                    v.birth_date === personData.birth_date &&
+                    v.cid === personData.cid &&
+                    v.house_no === personData.house_no &&
+                    v.room_no === personData.room_no &&
+                    v.village_name === personData.village_name &&
+                    v.road === personData.road &&
+                    v.tambon_code === personData.tambon_code &&
+                    v.tambon_name === personData.tambon_name &&
+                    v.ampur_code === personData.ampur_code &&
+                    v.ampur_name === personData.ampur_name &&
+                    v.province_code === personData.province_code &&
+                    v.province_name === personData.province_name &&
+                    v.zipcode === personData.zipcode
             })
             let peLogs, paLogs: any = false
+
             if (findEdit === -1) {
                 oldInfo[0].updated_by = decoded.id;
                 oldInfo[0].update_date = moment().format('YYYY-MM-DD HH:mm:ss')
                 personData.updated_by = decoded.id;
                 personData.update_date = moment().format('YYYY-MM-DD HH:mm:ss')
                 const rsUpdate = await patientModel.updatePerson(db, personId, personData);
-                console.log(rsUpdate);
+                console.log(rsUpdate, 'update');
                 if (rsUpdate) {
                     const rs = await patientModel.saveLogsPerson(db, oldInfo[0]);
                     peLogs = rs.length > 0 ? true : false;
@@ -89,9 +118,9 @@ router.put('/edit-info', async (req: Request, res: Response) => {
                 patientData.updated_by = decoded.id;
                 patientData.update_date = moment().format('YYYY-MM-DD HH:mm:ss')
                 const rsUpdate = await patientModel.updatePatient(db, patientId, patientData);
-                console.log(rsUpdate);
                 if (rsUpdate) {
                     const rs = await patientModel.saveLogsPatient(db, oldHn[0]);
+                    console.log(rs, 'patients');
                     paLogs = rs.length > 0 ? true : false;
                 }
             }
