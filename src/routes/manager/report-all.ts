@@ -1095,8 +1095,9 @@ router.get('/report7/excel', async (req: Request, res: Response) => {
     ws.cell(1, 2, 1, 3, true).string('Non-invasive ventilator (NIV)').style(center);
     ws.cell(1, 4, 1, 5, true).string('Invasive ventilator').style(center);
     ws.cell(1, 6, 1, 7, true).string('High Flow').style(center);
-    ws.cell(1, 8, 2, 8, true).string('หน่วยงาน');
-    ws.cell(1, 9, 2, 9, true).string('ข้อมูลล่าสุด');
+    ws.cell(1, 8, 1, 9, true).string('PAPR').style(center);
+    ws.cell(1, 10, 2, 10, true).string('หน่วยงาน');
+    ws.cell(1, 11, 2, 11, true).string('ข้อมูลล่าสุด');
 
     ws.cell(2, 2).string('ใช้กับผู้ป่วย Covid');
     ws.cell(2, 3).string('ทั้งหมด');
@@ -1107,6 +1108,9 @@ router.get('/report7/excel', async (req: Request, res: Response) => {
     ws.cell(2, 6).string('ใช้กับผู้ป่วย Covid');
     ws.cell(2, 7).string('ทั้งหมด');
 
+    ws.cell(2, 8).string('ใช้กับผู้ป่วย Covid');
+    ws.cell(2, 9).string('ทั้งหมด');
+
     ws.cell(3, 1).string('รวม');
     ws.cell(3, 2).number(toNumber(sumBy(rs, 'non_invasive_ventilator'))).style(right);
     ws.cell(3, 3).number(toNumber(sumBy(rs, 'non_invasive_qty'))).style(right);
@@ -1114,6 +1118,8 @@ router.get('/report7/excel', async (req: Request, res: Response) => {
     ws.cell(3, 5).number(toNumber(sumBy(rs, 'invasive_qty'))).style(right);
     ws.cell(3, 6).number(toNumber(sumBy(rs, 'high_flow'))).style(right);
     ws.cell(3, 7).number(toNumber(sumBy(rs, 'high_flow_qty'))).style(right);
+    ws.cell(3, 8).number(toNumber(sumBy(rs, 'papr'))).style(right);
+    ws.cell(3, 9).number(toNumber(sumBy(rs, 'papr_qty'))).style(right);
 
     let row = 4;
     for (const items of rs) {
@@ -1129,8 +1135,10 @@ router.get('/report7/excel', async (req: Request, res: Response) => {
       ws.cell(row, 5).number(toNumber(items['invasive_qty']));
       ws.cell(row, 6).number(toNumber(items['high_flow']));
       ws.cell(row, 7).number(toNumber(items['high_flow_qty']));
-      ws.cell(row, 8).string(toString(items['sub_ministry_name'])).style(right);
-      ws.cell(row++, 9).string(toString(items['updated_entry'])).style(right);
+      ws.cell(row, 8).number(toNumber(items['papr']));
+      ws.cell(row, 9).number(toNumber(items['papr_qty']));
+      ws.cell(row, 10).string(toString(items['sub_ministry_name'])).style(right);
+      ws.cell(row++, 11).string(toString(items['updated_entry'])).style(right);
     }
 
     ws.cell(row, 1).string('รวม');
@@ -1140,6 +1148,8 @@ router.get('/report7/excel', async (req: Request, res: Response) => {
     ws.cell(row, 5).number(toNumber(sumBy(rs, 'invasive_qty'))).style(right);
     ws.cell(row, 6).number(toNumber(sumBy(rs, 'high_flow'))).style(right);
     ws.cell(row, 7).number(toNumber(sumBy(rs, 'high_flow_qty'))).style(right);
+    ws.cell(row, 8).number(toNumber(sumBy(rs, 'papr'))).style(right);
+    ws.cell(row, 9).number(toNumber(sumBy(rs, 'papr_qty'))).style(right);
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
@@ -1190,6 +1200,7 @@ router.get('/report7-ministry/excel', async (req: Request, res: Response) => {
     ws.cell(1, 2, 1, 3, true).string('Non-invasive ventilator (NIV)').style(center);
     ws.cell(1, 4, 1, 5, true).string('Invasive ventilator').style(center);
     ws.cell(1, 6, 1, 7, true).string('High Flow').style(center);
+    ws.cell(1, 6, 1, 7, true).string('PAPR').style(center);
     ws.cell(1, 8, 2, 8, true).string('ข้อมูลล่าสุด');
 
     ws.cell(2, 2).string('ใช้กับผู้ป่วย Covid');
@@ -1201,6 +1212,9 @@ router.get('/report7-ministry/excel', async (req: Request, res: Response) => {
     ws.cell(2, 6).string('ใช้กับผู้ป่วย Covid');
     ws.cell(2, 7).string('ทั้งหมด');
 
+    ws.cell(2, 8).string('ใช้กับผู้ป่วย Covid');
+    ws.cell(2, 9).string('ทั้งหมด');
+
     ws.cell(3, 1).string('รวม');
     ws.cell(3, 2).number(toNumber(sumBy(rs, 'non_invasive_ventilator'))).style(right);
     ws.cell(3, 3).number(toNumber(sumBy(rs, 'non_invasive_qty'))).style(right);
@@ -1208,6 +1222,8 @@ router.get('/report7-ministry/excel', async (req: Request, res: Response) => {
     ws.cell(3, 5).number(toNumber(sumBy(rs, 'invasive_qty'))).style(right);
     ws.cell(3, 6).number(toNumber(sumBy(rs, 'high_flow'))).style(right);
     ws.cell(3, 7).number(toNumber(sumBy(rs, 'high_flow_qty'))).style(right);
+    ws.cell(3, 8).number(toNumber(sumBy(rs, 'papr'))).style(right);
+    ws.cell(3, 9).number(toNumber(sumBy(rs, 'papr_qty'))).style(right);
 
     let row = 4;
     for (const items of rs) {
@@ -1223,7 +1239,9 @@ router.get('/report7-ministry/excel', async (req: Request, res: Response) => {
       ws.cell(row, 5).number(toNumber(items['invasive_qty']));
       ws.cell(row, 6).number(toNumber(items['high_flow']));
       ws.cell(row, 7).number(toNumber(items['high_flow_qty']));
-      ws.cell(row++, 8).string(toString(items['updated_entry'])).style(right);
+      ws.cell(row, 8).number(toNumber(items['papr']));
+      ws.cell(row, 9).number(toNumber(items['papr_qty']));
+      ws.cell(row++, 10).string(toString(items['updated_entry'])).style(right);
     }
 
     ws.cell(row, 1).string('รวม');
@@ -1233,6 +1251,8 @@ router.get('/report7-ministry/excel', async (req: Request, res: Response) => {
     ws.cell(row, 5).number(toNumber(sumBy(rs, 'invasive_qty'))).style(right);
     ws.cell(row, 6).number(toNumber(sumBy(rs, 'high_flow'))).style(right);
     ws.cell(row, 7).number(toNumber(sumBy(rs, 'high_flow_qty'))).style(right);
+    ws.cell(row, 8).number(toNumber(sumBy(rs, 'papr'))).style(right);
+    ws.cell(row, 9).number(toNumber(sumBy(rs, 'papr_qty'))).style(right);
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
@@ -1283,7 +1303,8 @@ router.get('/report7-sector/excel', async (req: Request, res: Response) => {
     ws.cell(1, 2, 1, 3, true).string('Non-invasive ventilator (NIV)').style(center);
     ws.cell(1, 4, 1, 5, true).string('Invasive ventilator').style(center);
     ws.cell(1, 6, 1, 7, true).string('High Flow').style(center);
-    ws.cell(1, 8, 2, 8, true).string('ข้อมูลล่าสุด');
+    ws.cell(1, 8, 1, 9, true).string('PAPR').style(center);
+    ws.cell(1, 10, 2, 10, true).string('ข้อมูลล่าสุด');
 
     ws.cell(2, 2).string('ใช้กับผู้ป่วย Covid');
     ws.cell(2, 3).string('ทั้งหมด');
@@ -1294,6 +1315,9 @@ router.get('/report7-sector/excel', async (req: Request, res: Response) => {
     ws.cell(2, 6).string('ใช้กับผู้ป่วย Covid');
     ws.cell(2, 7).string('ทั้งหมด');
 
+    ws.cell(2, 8).string('ใช้กับผู้ป่วย Covid');
+    ws.cell(2, 9).string('ทั้งหมด');
+
     ws.cell(3, 1).string('รวม');
     ws.cell(3, 2).number(toNumber(sumBy(rs, 'non_invasive_ventilator'))).style(right);
     ws.cell(3, 3).number(toNumber(sumBy(rs, 'non_invasive_qty'))).style(right);
@@ -1301,6 +1325,8 @@ router.get('/report7-sector/excel', async (req: Request, res: Response) => {
     ws.cell(3, 5).number(toNumber(sumBy(rs, 'invasive_qty'))).style(right);
     ws.cell(3, 6).number(toNumber(sumBy(rs, 'high_flow'))).style(right);
     ws.cell(3, 7).number(toNumber(sumBy(rs, 'high_flow_qty'))).style(right);
+    ws.cell(3, 8).number(toNumber(sumBy(rs, 'papr'))).style(right);
+    ws.cell(3, 9).number(toNumber(sumBy(rs, 'papr_qty'))).style(right);
 
     let row = 4;
     for (const items of rs) {
@@ -1316,7 +1342,9 @@ router.get('/report7-sector/excel', async (req: Request, res: Response) => {
       ws.cell(row, 5).number(toNumber(items['invasive_qty']));
       ws.cell(row, 6).number(toNumber(items['high_flow']));
       ws.cell(row, 7).number(toNumber(items['high_flow_qty']));
-      ws.cell(row++, 8).string(toString(items['updated_entry'])).style(right);
+      ws.cell(row, 8).number(toNumber(items['papr']));
+      ws.cell(row, 9).number(toNumber(items['papr_qty']));
+      ws.cell(row++, 10).string(toString(items['updated_entry'])).style(right);
     }
 
     ws.cell(row, 1).string('รวม');
@@ -1326,6 +1354,8 @@ router.get('/report7-sector/excel', async (req: Request, res: Response) => {
     ws.cell(row, 5).number(toNumber(sumBy(rs, 'invasive_qty'))).style(right);
     ws.cell(row, 6).number(toNumber(sumBy(rs, 'high_flow'))).style(right);
     ws.cell(row, 7).number(toNumber(sumBy(rs, 'high_flow_qty'))).style(right);
+    ws.cell(row, 8).number(toNumber(sumBy(rs, 'papr'))).style(right);
+    ws.cell(row, 9).number(toNumber(sumBy(rs, 'papr_qty'))).style(right);
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
