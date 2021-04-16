@@ -255,4 +255,38 @@ export class smhModel {
       });
     });
   }
+
+  checklaser(token, cid, firstName, lastName, birthDay, laser) {
+    return new Promise((resolve: any, reject: any) => {
+      var options = {
+        method: 'POST',
+        url: `https://smarthealth.service.moph.go.th/phps/public/api/card/bylaser`,
+        agentOptions: {
+          rejectUnauthorized: false
+        },
+        headers:
+        {
+          'content-type': 'application/json',
+          'jwt-token': token
+        },
+        body: {
+          cid,
+          firstName,
+          lastName,
+          birthDay,
+          laser
+        },
+        json: true
+      };
+
+      request(options, function (error, response, body) {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(body);
+        }
+      });
+    });
+  }
+
 }

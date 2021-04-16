@@ -18,8 +18,8 @@ router.get('/', async (req: Request, res: Response) => {
   const type = req.query.type;
   const obj: any = {};
   const token: any = await model.getToken(db);
-  console.log(key ,type);
-  
+  console.log(key, type);
+
 
   try {
     const rs: any = await model.getPerson(db, key);
@@ -124,6 +124,8 @@ router.get('/', async (req: Request, res: Response) => {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
+
+
 
 async function labCovidAdd(db, key, type) {
   try {

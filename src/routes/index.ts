@@ -324,6 +324,23 @@ router.get('/lab-positive', async (req: Request, res: Response) => {
   }
 });
 
+
+
+router.post('/smh/laser', async (req: Request, res: Response) => {
+  const db = req.db;
+  const cid = req.body.cid;
+  const firstName = req.body.firstName;
+  const lastName = req.body.lastName;
+  const birthDay = req.body.birthDay;
+  const laser = req.body.laser;
+  try {
+    const token: any = await smHModel.getToken(db);
+    const rs: any = await smHModel.checklaser(token[0].token, cid, firstName, lastName, birthDay, laser);
+    res.send(rs);
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
 async function systemUpdate(db) {
   try {
     let lcd = await settingModel.getLastCaseDetails(db)
