@@ -50,7 +50,7 @@ router.put('/edit-info', async (req: Request, res: Response) => {
         const oldInfo = await patientModel.getPerson(db, personId)
         const oldHn = await patientModel.getPatient(db, patientId)
         console.log(data.birth_date);
-        
+
         const personData: any = {
             gender_id: data.gender_id,
             title_id: data.title_id,
@@ -214,14 +214,18 @@ router.put('/covid-case', async (req: Request, res: Response) => {
                 status: data.status
             }
             const findEdit = findIndex(oldCase, v => {
-                let d = true
+                let d = true;
+                let cd = true;
                 if (dataCase.status !== 'ADMIT') {
-                    dataCase.date_discharge = data.date_discharge
-                    d = moment(v.date_discharge).format('YYYY-MM-DD HH:mm:ss') === moment(dataCase.date_discharge).format('YYYY-MM-DD HH:mm:ss')
+                    dataCase.date_discharge = data.date_discharge;
+                    d = moment(v.date_discharge).format('YYYY-MM-DD HH:mm:ss') === moment(dataCase.date_discharge).format('YYYY-MM-DD HH:mm:ss');
+                    dataCase.confirm_date =  data.confirm_date;
+                    cd = moment(v.confirm_date).format('YYYY-MM-DD') === moment(dataCase.confirm_date).format('YYYY-MM-DD');
                 }
                 return v.id === caseId &&
                     v.an === dataCase.an &&
                     d &&
+                    cd &&
                     v.case_status === dataCase.case_status &&
                     v.status === dataCase.status
             })
@@ -305,11 +309,17 @@ router.put('/covid-case-detail', async (req: Request, res: Response) => {
 
         if (oldCaseDetail[0]) {
             const dataCaseDetail: any = {
-                status: data.status
+                status: data.status,
+                gcs_id: data.gcs_id,
+                medical_supplie_id: data.medical_supplie_id,
+                bed_id: data.bed_id
             }
             const findEdit = findIndex(oldCaseDetail, v => {
                 return v.id === caseDetailId &&
-                    v.status === dataCaseDetail.status
+                    v.status === dataCaseDetail.status &&
+                    v.gcs_id === dataCaseDetail.gcs_id &&
+                    v.bed_id === dataCaseDetail.bed_id &&
+                    v.medical_supplie_id === dataCaseDetail.medical_supplie_id 
             })
             if (findEdit === -1) {
                 oldCaseDetail[0].updated_by = decoded.id;

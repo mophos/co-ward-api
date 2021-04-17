@@ -12,7 +12,7 @@ export class PatientModel {
 
     getPersonEq(db: Knex, hn: any, hc: any) {
         let sql = db('p_persons as pe')
-            .select('pe.id as person_id', 'pa.id as patient_id', 'pe.gender_id', 'pe.first_name', 'pe.title_id', 'pe.first_name', 'pe.last_name',
+            .select('pe.id as person_id', 'pa.id as patient_id', 'pe.gender_id', 'g.name as gender_name', 'pe.first_name', 'pe.title_id', 'pe.first_name', 'pe.last_name',
                 'pe.cid', 'pa.hn', 'h.hospname', 'h.id as hospital_id', 'h.hospcode', 'pe.birth_date', 'pe.passport',
                 'pe.room_no', 'pe.road', 'pe.village_name', 'pe.tambon_name',
                 'pe.ampur_name', 'pe.province_name', 'pe.tambon_code', 'pe.house_no',
@@ -20,6 +20,7 @@ export class PatientModel {
             .join('p_patients as pa', 'pa.person_id', 'pe.id')
             // .join('p_covid_cases as pc', 'pc.patient_id', 'pa.id') 'pc.an','pc.status','pc.sat_id', 'pc.date_admit'
             .join('b_hospitals as h', 'h.id', 'pa.hospital_id')
+            .join('b_genders as g', 'g.id', 'pe.gender_id')
             // .where((w) => {
             // 	w.orWhere('pe.cid', `${queryPe}`)
             // 	w.orWhere('pe.first_name', `${queryPe}`)
@@ -62,7 +63,7 @@ export class PatientModel {
     getCasePresent(db: Knex, hospitalId, patientId) {
         const sql = db('p_covid_cases as c')
             .select('cd.updated_entry',
-                'c.id as covid_case_id', 'c.an', 'c.date_discharge', 'c.status', 'c.case_status', 'c.date_admit', 'pt.hn', 'pt.person_id', 'cd.id as covid_case_details_id',
+                'c.id as covid_case_id', 'c.an', 'c.date_discharge', 'c.status', 'c.case_status', 'c.confirm_date', 'c.date_admit', 'pt.hn', 'pt.person_id', 'cd.id as covid_case_details_id',
                 'ccd.bed_id', 'ccd.gcs_id', 'cd.medical_supplie_id', db.raw(`ifnull(cd.create_date, null) as create_date`),
                 db.raw(`ifnull(cd.entry_date, null) as entry_date`)
             )
