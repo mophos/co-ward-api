@@ -219,7 +219,16 @@ router.put('/covid-case', async (req: Request, res: Response) => {
                 if (dataCase.status !== 'ADMIT') {
                     dataCase.date_discharge = data.date_discharge;
                     d = moment(v.date_discharge).format('YYYY-MM-DD HH:mm:ss') === moment(dataCase.date_discharge).format('YYYY-MM-DD HH:mm:ss');
-                    dataCase.confirm_date =  data.confirm_date;
+                } else {
+                    dataCase.date_discharge = null;
+                    d = false;
+                }
+
+                if (dataCase.status == 'PUI') {
+                    dataCase.confirm_date = null;
+                    cd = false;
+                } else {
+                    dataCase.confirm_date = data.confirm_date;
                     cd = moment(v.confirm_date).format('YYYY-MM-DD') === moment(dataCase.confirm_date).format('YYYY-MM-DD');
                 }
                 return v.id === caseId &&
@@ -319,7 +328,7 @@ router.put('/covid-case-detail', async (req: Request, res: Response) => {
                     v.status === dataCaseDetail.status &&
                     v.gcs_id === dataCaseDetail.gcs_id &&
                     v.bed_id === dataCaseDetail.bed_id &&
-                    v.medical_supplie_id === dataCaseDetail.medical_supplie_id 
+                    v.medical_supplie_id === dataCaseDetail.medical_supplie_id
             })
             if (findEdit === -1) {
                 oldCaseDetail[0].updated_by = decoded.id;

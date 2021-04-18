@@ -4,11 +4,11 @@ export class HospitalModel {
 
 
   getHospTypes(db: Knex) {
-    return db('l_hospital_minitry_types')
+    return db('b_hospital_ministry_types')
   }
 
   getHospByType(db: Knex, offset, limit, q, hosptypeId) {
-    let sql = db('l_hospitals')
+    let sql = db('b_hospitals')
       .where('is_deleted', 'N')
       .where((v) => {
         v.where('hospname', 'like', '%' + q + '%')
@@ -23,7 +23,7 @@ export class HospitalModel {
   }
 
   getHospByTypeTotal(db: Knex, q, hosptypeId) {
-    let sql = db('l_hospitals')
+    let sql = db('b_hospitals')
       .count('* as count')
       .where((v) => {
         v.where('hospname', 'like', '%' + q + '%')
@@ -36,7 +36,7 @@ export class HospitalModel {
   }
 
   updateHospital(db: Knex, id: any, data = {}, userId) {
-    return db('l_hospitals')
+    return db('b_hospitals')
       .update(data)
       .update('updated_by', userId)
       .update('update_date', db.fn.now())
@@ -44,12 +44,12 @@ export class HospitalModel {
   }
 
   insertHospital(db: Knex, data = {}) {
-    return db('l_hospitals')
+    return db('b_hospitals')
       .insert(data);
   }
 
   deleteHospital(db: Knex, id: any, userId) {
-    return db('l_hospitals')
+    return db('b_hospitals')
       .update('is_deleted', 'Y')
       .update('updated_by', userId)
       .update('update_date', db.fn.now())
@@ -57,7 +57,7 @@ export class HospitalModel {
   }
 
   checkHospCode(db: Knex, code: any) {
-    return db('l_hospitals').where('hospcode', code);
+    return db('b_hospitals').where('hospcode', code);
   }
 
 }
