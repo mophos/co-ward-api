@@ -26,6 +26,13 @@ export class BasicModel {
 			.andWhere('is_actived', 'Y')
 	}
 
+	getGenericsType(db: Knex, type) {
+		return db('b_generics')
+			.where('is_deleted', 'N')
+			.andWhere('is_actived', 'Y')
+			.andWhere('type', type)
+	}
+
 	autocompleteTambon(db: Knex, query) {
 		const q = `%${query}%`;
 		const _q = `${query}%`;
@@ -373,9 +380,24 @@ export class BasicModel {
 		 and zip_code = ?`, [t, a, p, z]);
 	}
 
-	getGender(db: Knex){
+	getGender(db: Knex) {
 		return db('b_genders')
-		.where('is_deleted','N')
+			.where('is_deleted', 'N')
+	}
+
+	getGeneric(db: Knex, id) {
+		return db('p_covid_case_detail_items as pi')
+			.select('pi.*', 'g.name')
+			.join('b_generics as g', 'g.id', 'pi.generic_id')
+			.where('pi.covid_case_detail_id', id);
+	}
+
+	saveGeneric(db: Knex, data) {
+		return db('p_covid_case_detail_items').insert(data);
+	}
+
+	removeGeneric(db: Knex, id) {
+		return db('p_covid_case_detail_items').delete().where('covid_case_detail_id', id);
 	}
 
 }
