@@ -3,10 +3,28 @@ import * as Knex from 'knex';
 export class HospitalModel {
 
 
-  getHospTypes(db: Knex) {
+  getMinistryType(db: Knex) {
     return db('b_hospital_ministry_types')
   }
+  
+  getMinistry(db: Knex) {
+    return db('b_hospital_ministry')
+  }
 
+
+  getSubMinistry(db: Knex) {
+    return db('b_hospital_subministry')
+  }
+
+
+  getHospitalType(db: Knex) {
+    return db('b_hospital_types')
+  }
+
+  getHospTypes(db:Knex){
+    return null;
+  }
+  
   getHospByType(db: Knex, offset, limit, q, hosptypeId) {
     let sql = db('b_hospitals')
       .where('is_deleted', 'N')

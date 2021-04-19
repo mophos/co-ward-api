@@ -11,15 +11,6 @@ const hospitalModel = new HospitalModel();
 const router: Router = Router();
 
 
-router.get('/types', async (req: Request, res: Response) => {
-  try {
-    let rs: any = await hospitalModel.getHospTypes(req.db);
-    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
-  } catch (error) {
-    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
-  }
-});
-
 router.get('/', async (req: Request, res: Response) => {
   const hosptypeId = req.query.hosptype_id || undefined;
   const query = req.query.query || '';
@@ -107,5 +98,45 @@ router.delete('/:id', async (req: Request, res: Response) => {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
+
+
+router.get('/type', async (req: Request, res: Response) => {
+  try {
+    let rs: any = await hospitalModel.getHospitalType(req.db);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/ministry-type', async (req: Request, res: Response) => {
+  try {
+    let rs: any = await hospitalModel.getMinistryType(req.db);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/ministry', async (req: Request, res: Response) => {
+  try {
+    let rs: any = await hospitalModel.getMinistry(req.db);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+
+router.get('/sub-ministry', async (req: Request, res: Response) => {
+  try {
+    let rs: any = await hospitalModel.getSubMinistry(req.db);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+
 
 export default router;

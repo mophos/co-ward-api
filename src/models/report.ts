@@ -146,7 +146,7 @@ export class ReportModel {
   }
 
   getSupplies(db: Knex, date, provinceCode, zoneCode: any[]) {
-    const supplies = db('views_supplies_hospital_date_cross as ws')
+    const supplies = db('temp_views_supplies_hospital_date_cross as ws')
       .join('b_hospitals as h', 'h.id', 'ws.hospital_id')
       .max('ws.entry_date as entry_date')
       .select('ws.hospital_id')
@@ -167,7 +167,7 @@ export class ReportModel {
         v.on('supplies.hospital_id', 'h.id')
         // v.on('supplies.entry_date', 'ws.entry_date')
       })
-      .leftJoin('views_supplies_hospital_date_cross as sd', (v) => {
+      .leftJoin('temp_views_supplies_hospital_date_cross as sd', (v) => {
         v.on('sd.hospital_id', 'supplies.hospital_id')
         v.on('sd.entry_date', 'supplies.entry_date')
       })
