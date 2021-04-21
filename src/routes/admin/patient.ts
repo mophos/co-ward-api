@@ -149,6 +149,9 @@ router.get('/details', async (req: Request, res: Response) => {
     const covidCaseId = req.query.covidCaseId;
     try {
         let rs: any = await covidCaseModel.getDetails(req.db, covidCaseId);
+        for (const v of rs) {
+            v.s_entry_date = moment(v.entry_date).format('YYYY-MM-D');
+        }
         res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } catch (error) {
         console.log(error);
@@ -216,6 +219,11 @@ router.put('/covid-case', async (req: Request, res: Response) => {
             const findEdit = findIndex(oldCase, v => {
                 let d = true;
                 let cd = true;
+                let ad = true;
+
+                dataCase.date_admit = data.date_admit;
+                ad = moment(v.date_admit).format('YYYY-MM-DD HH:mm:ss') === moment(dataCase.date_admit).format('YYYY-MM-DD HH:mm:ss');
+
                 if (dataCase.status !== 'ADMIT') {
                     dataCase.date_discharge = data.date_discharge;
                     d = moment(v.date_discharge).format('YYYY-MM-DD HH:mm:ss') === moment(dataCase.date_discharge).format('YYYY-MM-DD HH:mm:ss');
@@ -235,6 +243,7 @@ router.put('/covid-case', async (req: Request, res: Response) => {
                     v.an === dataCase.an &&
                     d &&
                     cd &&
+                    ad &&
                     v.case_status === dataCase.case_status &&
                     v.status === dataCase.status
             })
