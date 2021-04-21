@@ -111,7 +111,7 @@ router.get('/report6-ministry', async (req: Request, res: Response) => {
   const sector = req.query.sector;
   try {
     const rs: any = await model.report6Ministry(db, date, sector);
-    res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, message: error, code: HttpStatus.OK });
@@ -124,7 +124,7 @@ router.get('/report6-sector', async (req: Request, res: Response) => {
   const sector = req.query.sector;
   try {
     const rs: any = await model.report6Sector(db, date, sector);
-    res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, message: error, code: HttpStatus.OK });
@@ -241,37 +241,42 @@ router.get('/report1/excel', async (req: Request, res: Response) => {
     ws.cell(3, 6).string('(3) Single room');
     ws.cell(2, 7, 3, 7, true).string('(4) Cohort ward (bed)');
     ws.cell(2, 8, 3, 8, true).string('(5) Hospitel (room)');
+    ws.cell(2, 9, 3, 9, true).string('(6) Cohort ICU (bed)');
 
     ws.cell(4, 1).string('รวม');
     ws.cell(4, 2).number(toNumber(sumBy(rs, 'hospital_qty'))).style(right);
-    ws.cell(4, 3).number(toNumber(sumBy(rs, 'aiir_qty') + sumBy(rs, 'modified_aiir_qty') + sumBy(rs, 'isolate_qty') + sumBy(rs, 'cohort_qty') + sumBy(rs, 'hospitel_qty'))).style(right);
+    ws.cell(4, 3).number(toNumber(sumBy(rs, 'aiir_qty') + sumBy(rs, 'modified_aiir_qty') + sumBy(rs, 'isolate_qty') + sumBy(rs, 'cohort_qty') + sumBy(rs, 'hospitel_qty')+ sumBy(rs, 'cohort_icu_qty'))).style(right);
     ws.cell(4, 4).number(toNumber(sumBy(rs, 'aiir_qty'))).style(right);
     ws.cell(4, 5).number(toNumber(sumBy(rs, 'modified_aiir_qty'))).style(right);
     ws.cell(4, 6).number(toNumber(sumBy(rs, 'isolate_qty'))).style(right);
     ws.cell(4, 7).number(toNumber(sumBy(rs, 'cohort_qty'))).style(right);
     ws.cell(4, 8).number(toNumber(sumBy(rs, 'hospitel_qty'))).style(right);
+    ws.cell(4, 9).number(toNumber(sumBy(rs, 'cohort_icu_qty'))).style(right);
 
     let row = 5;
     for (const items of rs) {
       ws.cell(row, 1).string(toString(items['sub_ministry_name']));
       ws.cell(row, 2).number(toNumber(items['hospital_qty'])).style(right);
-      ws.cell(row, 3).number(toNumber(items.aiir_qty + items.modified_aiir_qty + items.isolate_qty + items.cohort_qty + items.hospitel_qty)).style(right);
+      ws.cell(row, 3).number(toNumber(items.aiir_qty + items.modified_aiir_qty + items.isolate_qty + items.cohort_qty + items.hospitel_qty +items.cohort_icu_qty)).style(right);
       ws.cell(row, 4).number(toNumber(items['aiir_qty'])).style(right);
       ws.cell(row, 5).number(toNumber(items['modified_aiir_qty'])).style(right);
       ws.cell(row, 6).number(toNumber(items['isolate_qty'])).style(right);
       ws.cell(row, 7).number(toNumber(items['cohort_qty'])).style(right);
       ws.cell(row, 8).number(toNumber(items['hospitel_qty'])).style(right);
+      ws.cell(row, 8).number(toNumber(items['hospitel_qty'])).style(right);
+      ws.cell(row, 9).number(toNumber(items['cohort_icu_qty'])).style(right);
       row += 1;
     }
 
     ws.cell(row, 1).string('รวม');
     ws.cell(row, 2).number(toNumber(sumBy(rs, 'hospital_qty'))).style(right);
-    ws.cell(row, 3).number(toNumber(sumBy(rs, 'aiir_qty') + sumBy(rs, 'modified_aiir_qty') + sumBy(rs, 'isolate_qty') + sumBy(rs, 'cohort_qty') + sumBy(rs, 'hospitel_qty'))).style(right);
+    ws.cell(row, 3).number(toNumber(sumBy(rs, 'aiir_qty') + sumBy(rs, 'modified_aiir_qty') + sumBy(rs, 'isolate_qty') + sumBy(rs, 'cohort_qty') + sumBy(rs, 'hospitel_qty')+ sumBy(rs, 'cohort_icu_qty') )).style(right);
     ws.cell(row, 4).number(toNumber(sumBy(rs, 'aiir_qty'))).style(right);
     ws.cell(row, 5).number(toNumber(sumBy(rs, 'modified_aiir_qty'))).style(right);
     ws.cell(row, 6).number(toNumber(sumBy(rs, 'isolate_qty'))).style(right);
     ws.cell(row, 7).number(toNumber(sumBy(rs, 'cohort_qty'))).style(right);
     ws.cell(row, 8).number(toNumber(sumBy(rs, 'hospitel_qty'))).style(right);
+    ws.cell(row, 9).number(toNumber(sumBy(rs, 'cohort_icu_qty'))).style(right);
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
