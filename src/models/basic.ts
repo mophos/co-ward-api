@@ -28,8 +28,6 @@ export class BasicModel {
 
 	getGenericsType(db: Knex, type) {
 		return db('b_generics')
-			.where('is_deleted', 'N')
-			.andWhere('is_actived', 'Y')
 			.andWhere('type', type)
 	}
 
