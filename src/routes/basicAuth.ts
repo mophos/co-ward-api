@@ -158,6 +158,53 @@ router.get('/open-systems', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/generic/history', async (req: Request, res: Response) => {
+  const db = req.db;
+  const id = req.query.id;
+  try {
+    const rs = await model.getGeneric(db, id);
+    res.send({ ok: true, rows: rs });
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
+
+router.get('/generics', async (req: Request, res: Response) => {
+  const db = req.db;
+
+  try {
+    const rs = await model.getGenericsType(db, 'DRUG');
+    res.send({ ok: true, rows: rs });
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
+
+router.post('/generic/history', async (req: Request, res: Response) => {
+  const db = req.db;
+  const id = req.query.id;
+  const data = req.body.data;
+
+  try {
+    console.log(data);
+
+    let _data: any = [];
+    for (const v of data) {
+      const obj: any = {};
+      obj.covid_case_detail_id = id;
+      obj.generic_id = v;
+      _data.push(obj);
+    }
+    
+    await model.removeGeneric(db, id);
+    await model.saveGeneric(db, _data);
+    res.send({ ok: true });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error });
+  }
+});
+
 router.post('/broadcast', async (req: Request, res: Response) => {
   const db = req.db;
   const userId = req.decoded.id;
