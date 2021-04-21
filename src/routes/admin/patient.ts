@@ -223,7 +223,8 @@ router.put('/covid-case', async (req: Request, res: Response) => {
                     dataCase.date_discharge = null;
                     d = false;
                 }
-
+                console.log(data.confirm_date);
+                
                 if (dataCase.status == 'IPPUI') {
                     dataCase.confirm_date = null;
                     cd = false;
@@ -231,13 +232,17 @@ router.put('/covid-case', async (req: Request, res: Response) => {
                     if(data.confirm_date){
                         dataCase.confirm_date = moment(data.confirm_date).format('YYYY-MM-DD');
                         cd = moment(v.confirm_date).format('YYYY-MM-DD') === moment(dataCase.confirm_date).format('YYYY-MM-DD');
-                    } 
+                    }  else {
+                        dataCase.confirm_date = null;
+                    }
                 }
                 return v.id === caseId &&
                     v.an === dataCase.an &&
                     d &&
                     cd &&
                     v.case_status === dataCase.case_status &&
+                    v.confirm_date === dataCase.confirm_date &&
+                    v.date_discharge === dataCase.date_discharge &&
                     v.status === dataCase.status
             })
             if (findEdit === -1) {
@@ -245,6 +250,8 @@ router.put('/covid-case', async (req: Request, res: Response) => {
                 oldCase[0].update_date = moment().format('YYYY-MM-DD HH:mm:ss')
                 dataCase.updated_by = decoded.id;
                 dataCase.update_date = moment().format('YYYY-MM-DD HH:mm:ss')
+                console.log(dataCase);
+                
                 const rsUpdate = await patientModel.updateCase(db, caseId, dataCase);
                 if (rsUpdate) {
                     const rsLogs = await patientModel.saveLogsCase(db, oldCase[0]);
