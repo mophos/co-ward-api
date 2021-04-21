@@ -228,8 +228,10 @@ router.put('/covid-case', async (req: Request, res: Response) => {
                     dataCase.confirm_date = null;
                     cd = false;
                 } else {
-                    dataCase.confirm_date = moment(data.confirm_date).format('YYYY-MM-DD');
-                    cd = moment(v.confirm_date).format('YYYY-MM-DD') === moment(dataCase.confirm_date).format('YYYY-MM-DD');
+                    if(data.confirm_date){
+                        dataCase.confirm_date = moment(data.confirm_date).format('YYYY-MM-DD');
+                        cd = moment(v.confirm_date).format('YYYY-MM-DD') === moment(dataCase.confirm_date).format('YYYY-MM-DD');
+                    } 
                 }
                 return v.id === caseId &&
                     v.an === dataCase.an &&
