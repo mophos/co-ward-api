@@ -172,7 +172,7 @@ export class ReportModel {
         v.on('sd.entry_date', 'supplies.entry_date')
       })
 
-      .whereIn('h.hosptype_code', ['01', '05', '06', '07', '11', '12', '15'])
+      .whereIn('h.hosptype_code', ['01', '05', '06', '07', '11', '12', '15','19'])
     if (zoneCode.length) {
       sql.whereIn('h.zone_code', zoneCode)
     }
