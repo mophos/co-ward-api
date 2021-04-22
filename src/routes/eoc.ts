@@ -23,10 +23,10 @@ router.get('/beds', async (req: Request, res: Response) => {
         for (let i = 0; i < 13; i++) {
           const detail = _.filter(rs, { zone_code: zoneCode[i] });
           const provinces = _.map(detail, 'province_code');
-          const province = _.uniqBy(provinces);
+          const province = _.uniq(provinces);
           const province_ = [];
           for (const p of province) {
-            const _detail = _.filter(detail, { province_code: p });
+            const _detail: any = _.filter(detail, { province_code: p });
             province_.push({
               province_code: _detail[0].province_code,
               province_name: _detail[0].province_name,
