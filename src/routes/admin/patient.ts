@@ -232,15 +232,15 @@ router.put('/covid-case', async (req: Request, res: Response) => {
                     d = false;
                 }
                 console.log(data.confirm_date);
-                
+
                 if (dataCase.status == 'IPPUI') {
                     dataCase.confirm_date = null;
                     cd = false;
                 } else {
-                    if(data.confirm_date){
+                    if (data.confirm_date) {
                         dataCase.confirm_date = moment(data.confirm_date).format('YYYY-MM-DD');
                         cd = moment(v.confirm_date).format('YYYY-MM-DD') === moment(dataCase.confirm_date).format('YYYY-MM-DD');
-                    }  else {
+                    } else {
                         dataCase.confirm_date = null;
                     }
                 }
@@ -260,7 +260,7 @@ router.put('/covid-case', async (req: Request, res: Response) => {
                 dataCase.updated_by = decoded.id;
                 dataCase.update_date = moment().format('YYYY-MM-DD HH:mm:ss')
                 console.log(dataCase);
-                
+
                 const rsUpdate = await patientModel.updateCase(db, caseId, dataCase);
                 if (rsUpdate) {
                     const rsLogs = await patientModel.saveLogsCase(db, oldCase[0]);
@@ -375,6 +375,48 @@ router.put('/covid-case-detail', async (req: Request, res: Response) => {
         }
     } catch (error) {
         res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+    }
+});
+
+router.post('/covid-case-detail', async (req: Request, res: Response) => {
+    const db = req.db;
+    const data: any = req.body.data;
+    const caseId: any = req.query.caseId;
+    let error = ''
+    try {
+        let caseDetail: any = await patientModel.getCaseDetailByCaseId(db, caseId);
+        console.log(caseDetail);
+
+        if (caseDetail.length > 0) {
+            for (const v of caseDetail) {
+                v.updated_by = req.decoded.id;
+                v.update_date = moment().format('YYYY-MM-DD HH:mm:ss');
+            }
+
+            for (const v of data) {
+                v.covid_case_id = caseId
+            }
+            const rsd = await patientModel.deleteCaseDetailByCaseId(db, caseId);
+            const rsi = await patientModel.insertCaseDetail(db, data);
+            if (rsd && rsi) {
+                const rsLogs = await patientModel.saveLogsCaseDetail(db, caseDetail);
+                if (!rsLogs) {
+                    error += 'update logs case deteil  error. '
+                }
+            } else {
+                error += 'insert case detail error. '
+            }
+            if (!error) {
+                res.send({ ok: true, code: HttpStatus.OK });
+            } else {
+                res.send({ ok: false, error: error, code: HttpStatus.NO_CONTENT });
+            }
+        } else {
+            res.send({ ok: false, error: 'case detail not found!!', code: HttpStatus.NO_CONTENT });
+        }
+    } catch (error) {
+        console.log(error);
+        res.send({ ok: false, message: error });
     }
 });
 
