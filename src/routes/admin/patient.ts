@@ -378,4 +378,46 @@ router.put('/covid-case-detail', async (req: Request, res: Response) => {
     }
 });
 
+router.post('/covid-case-detail', async (req: Request, res: Response) => {
+    const db = req.db;
+    const data: any = req.body.data;
+    const caseId: any = req.query.caseId;
+    let error = ''
+    try {
+        let caseDetail: any = await patientModel.getCaseDetailByCaseId(db, caseId);
+        console.log(caseDetail);
+
+        if (caseDetail.length > 0) {
+            for (const v of caseDetail) {
+                v.updated_by = req.decoded.id;
+                v.update_date = moment().format('YYYY-MM-DD HH:mm:ss');
+            }
+
+            for (const v of data) {
+                v.covid_case_id = caseId
+            }
+            const rsd = await patientModel.deleteCaseDetailByCaseId(db, caseId);
+            const rsi = await patientModel.insertCaseDetail(db, data);
+            if (rsd && rsi) {
+                const rsLogs = await patientModel.saveLogsCaseDetail(db, caseDetail);
+                if (!rsLogs) {
+                    error += 'update logs case deteil  error. '
+                }
+            } else {
+                error += 'insert case detail error. '
+            }
+            if (!error) {
+                res.send({ ok: true, code: HttpStatus.OK });
+            } else {
+                res.send({ ok: false, error: error, code: HttpStatus.NO_CONTENT });
+            }
+        } else {
+            res.send({ ok: false, error: 'case detail not found!!', code: HttpStatus.NO_CONTENT });
+        }
+    } catch (error) {
+        console.log(error);
+        res.send({ ok: false, message: error });
+    }
+});
+
 export default router;
