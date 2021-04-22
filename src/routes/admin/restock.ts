@@ -60,7 +60,7 @@ router.get('/create', async (req: Request, res: Response) => {
     }
     rsHead = await restockModel.insertRestock(req.db, head);
     let hocp_: any = await restockModel.getSuppliesRestockByHosp(req.db);
-    let _hosp = chunk(hocp_, 15)
+    let _hosp: any = chunk(hocp_, 15)
     let hospData = []
     let dataSet = []
     for (const hocp of _hosp) {
@@ -72,7 +72,7 @@ router.get('/create', async (req: Request, res: Response) => {
           restock_id: rsHead,
           hospcode: _hocp.hospcode,
         })
-        let tmp = filter(data, { 'hospcode': _hocp.hospcode })
+        let tmp: any = filter(data, { 'hospcode': _hocp.hospcode })
         for (const _data of tmp) {
           dataSet.push({
             restock_detail_id: detailId,
@@ -284,7 +284,7 @@ router.get('/export/:id', async (req: Request, res: Response) => {
       lockCell(ws, xl.getExcelCellRef(2, col))
     }
     let row = 3;
-    let _detail = chunk(detail, 500)
+    let _detail: any = chunk(detail, 500)
 
     for (const _d of _detail) {
       let items = await restockModel.getRestockDetailItems(db, map(_d, 'restock_detail_id'))
@@ -294,7 +294,7 @@ router.get('/export/:id', async (req: Request, res: Response) => {
         ws.cell(row, 2).string(d.hospname.toString());
         lockCell(ws, xl.getExcelCellRef(row, 1))
         lockCell(ws, xl.getExcelCellRef(row, 2))
-        let tmp = filter(items, { 'restock_detail_id': d.restock_detail_id })
+        let tmp: any = filter(items, { 'restock_detail_id': d.restock_detail_id })
         for (const i of tmp) {
           const idx = _.findIndex(supplieId, { 'id': i.supplies_id })
           if (idx > -1) {

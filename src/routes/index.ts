@@ -243,7 +243,7 @@ router.post('/sms-patient', async (req: Request, res: Response) => {
   try {
     if (process.env.TIME_KEY == timeKey) {
       const rs = await basicModel.getPatientSMS(db);
-      const hospital = uniqBy(rs, 'hospital_id');
+      const hospital: any = uniqBy(rs, 'hospital_id');
       let t = ` มีผู้ป่วยทั้งหมด ${hospital.length} รพ(${rs.length} ราย) ที่ไม่ได้อัพเดตสถานะมามากกว่า 2 วันในระบบ CO-ward\n\n`;
       let i = 1;
       for (const h of hospital) {
@@ -256,7 +256,7 @@ router.post('/sms-patient', async (req: Request, res: Response) => {
       await basicModel.sendSMS('0845551771', t); // ผอ สธฉ
 
       for (const h of hospital) {
-        const person = filter(rs, { 'hospital_id': h.hospital_id });
+        const person: any = filter(rs, { 'hospital_id': h.hospital_id });
 
         let text = `${h.hospname} \nไม่ได้อัพเดตข้อมูล ในระบบCO-ward จำนวน ${person.length} ราย`;
         let i = 1;

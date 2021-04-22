@@ -71,14 +71,14 @@ router.post('/drugs', async (req: Request, res: Response) => {
       code: await serialModel.getSerial(db, 'FD')
     }
     const fulfillId = await model.saveFulFillDrug(db, head);
-    const hospitals = uniqBy(data, 'hospital_id');
+    const hospitals: any = uniqBy(data, 'hospital_id');
     for (const h of hospitals) {
       const obj: any = {
         fulfill_drug_id: fulfillId[0],
         hospital_id: h.hospital_id
       }
       const fulfillDetailId = await model.saveFulFillDrugDetail(db, obj);
-      const _data = filter(data, { 'hospital_id': h.hospital_id });
+      const _data: any = filter(data, { 'hospital_id': h.hospital_id });
       console.log(_data);
 
       const items = [{

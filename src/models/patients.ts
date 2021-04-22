@@ -64,12 +64,12 @@ export class PatientModel {
         const sql = db('p_covid_cases as c')
             .select('cd.updated_entry',
                 'c.id as covid_case_id', 'c.an', 'c.date_discharge', 'c.status', 'c.case_status', 'c.confirm_date', 'c.date_admit', 'pt.hn', 'pt.person_id', 'cd.id as covid_case_details_id',
-                'ccd.bed_id', 'ccd.gcs_id', 'cd.medical_supplie_id', db.raw(`ifnull(cd.create_date, null) as create_date`),
+                'cd.bed_id', 'cd.gcs_id', 'cd.medical_supplie_id', db.raw(`ifnull(cd.create_date, null) as create_date`),
                 db.raw(`ifnull(cd.entry_date, null) as entry_date`)
             )
             .join('p_patients as pt', 'c.patient_id', 'pt.id')
-            .leftJoin('view_covid_case_last as ccd', 'ccd.covid_case_id', 'c.id')
-            .leftJoin('p_covid_case_details as cd', 'ccd.id', 'cd.id')
+            // .leftJoin('view_covid_case_last as ccd', 'ccd.covid_case_id', 'c.id')
+            .leftJoin('p_covid_case_details as cd', 'c.id', 'cd.covid_case_id')
             .where('pt.hospital_id', hospitalId)
             .where('c.is_deleted', 'N')
             .where('pt.id', patientId)
