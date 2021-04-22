@@ -71,13 +71,13 @@ const staff = express.Router();
 const manager = express.Router();
 
 
-//view engine setup
+// view engine setup
 app.set('views', path.join(__dirname, '../views'));
 app.engine('.ejs', ejs.renderFile);
 app.set('view engine', 'ejs');
 
-//uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname,'../public','favicon.ico')));
+// uncomment after placing your favicon in /public
+// app.use(favicon(path.join(__dirname,'../public','favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -86,7 +86,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 app.use(cors());
 
-let connection: MySqlConnectionConfig = {
+const connection: MySqlConnectionConfig = {
   host: process.env.DB_HOST,
   port: +process.env.DB_PORT,
   database: process.env.DB_NAME,
@@ -94,9 +94,9 @@ let connection: MySqlConnectionConfig = {
   password: process.env.DB_PASSWORD,
   multipleStatements: true,
   // debug: true
-}
+};
 
-let connectionReport: MySqlConnectionConfig = {
+const connectionReport: MySqlConnectionConfig = {
   host: process.env.DB_REPORT_HOST,
   port: +process.env.DB_REPORT_PORT,
   database: process.env.DB_REPORT_NAME,
@@ -104,9 +104,9 @@ let connectionReport: MySqlConnectionConfig = {
   password: process.env.DB_REPORT_PASSWORD,
   multipleStatements: true,
   // debug: true
-}
+};
 
-let connectionEOC: MySqlConnectionConfig = {
+const connectionEOC: MySqlConnectionConfig = {
   host: process.env.EOC_DB_HOST,
   port: +process.env.EOC_DB_PORT,
   database: process.env.EOC_DB_NAME,
@@ -114,9 +114,9 @@ let connectionEOC: MySqlConnectionConfig = {
   password: process.env.EOC_DB_PASSWORD,
   multipleStatements: true,
   // debug: true
-}
+};
 
-let connectionOtp: MySqlConnectionConfig = {
+const connectionOtp: MySqlConnectionConfig = {
   host: process.env.DB_OTP_HOST,
   port: +process.env.DB_OTP_PORT,
   database: process.env.DB_OTP_NAME,
@@ -124,9 +124,9 @@ let connectionOtp: MySqlConnectionConfig = {
   password: process.env.DB_OTP_PASSWORD,
   multipleStatements: true,
   // debug: true
-}
+};
 
-let dbOTP = Knex({
+const dbOTP = Knex({
   client: 'mysql',
   connection: connectionOtp,
   pool: {
@@ -140,7 +140,7 @@ let dbOTP = Knex({
   },
 });
 
-let db = Knex({
+const db = Knex({
   client: 'mysql',
   connection: connection,
   pool: {
@@ -154,7 +154,7 @@ let db = Knex({
   },
 });
 
-let dbReport = Knex({
+const dbReport = Knex({
   client: 'mysql',
   connection: connectionReport,
   pool: {
@@ -168,7 +168,7 @@ let dbReport = Knex({
   },
 });
 
-let dbEOC = Knex({
+const dbEOC = Knex({
   client: 'mysql',
   connection: connectionEOC,
   pool: {
@@ -190,7 +190,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-let checkAuth = (req: Request, res: Response, next: NextFunction) => {
+const checkAuth = (req: Request, res: Response, next: NextFunction) => {
   let token: string = null;
 
   if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
@@ -212,9 +212,9 @@ let checkAuth = (req: Request, res: Response, next: NextFunction) => {
         code: HttpStatus.UNAUTHORIZED
       });
     });
-}
+};
 
-let adminAuth = (req, res, next) => {
+const adminAuth = (req, res, next) => {
   const decoded = req.decoded;
 
   try {
@@ -230,9 +230,9 @@ let adminAuth = (req, res, next) => {
   } catch (error) {
     res.send({ ok: false, error: error.message });
   }
-}
+};
 
-let staffAuth = (req, res, next) => {
+const staffAuth = (req, res, next) => {
   const decoded = req.decoded;
   try {
     if (decoded) {
@@ -247,9 +247,9 @@ let staffAuth = (req, res, next) => {
   } catch (error) {
     res.send({ ok: false, error: error.message });
   }
-}
+};
 
-let managerAuth = (req, res, next) => {
+const managerAuth = (req, res, next) => {
   const decoded = req.decoded;
   try {
     if (decoded) {
@@ -264,62 +264,62 @@ let managerAuth = (req, res, next) => {
   } catch (error) {
     res.send({ ok: false, error: error.message });
   }
-}
+};
 
 app.use('/v1', api);
 api.use('/login', loginRoute);
 api.use('/register', registerRoute);
 api.use('/basic', basicRoute);
-api.use('/report', checkAuth, reportRoute)
+api.use('/report', checkAuth, reportRoute);
 api.use('/basic-auth', checkAuth, basicAuthRoute);
 
-//admin
-api.use('/admin', checkAuth, adminAuth, admin)
-admin.use('/supplies', suppliesAdminRoute)
-admin.use('/user', userAdminRoute)
-admin.use('/patient', patientAdminRoute)
-admin.use('/patient-discharge', patientDischargeAdminRoute)
-admin.use('/supplies-min-max', userMinMaxAdminRoute)
-admin.use('/hospital', hospitalAdminRoute)
-admin.use('/restock', restockAdminRoute)
-admin.use('/restock-collection', restockCollectionAdminRoute)
-admin.use('/drugs', drugAdminRoute)
-admin.use('/fulfill', fulfillRoute)
-admin.use('/min-max', minMaxRoute)
-admin.use('/node-surgical', nodeSurgicalRoute)
-admin.use('/export', ExportRoute)
+// admin
+api.use('/admin', checkAuth, adminAuth, admin);
+admin.use('/supplies', suppliesAdminRoute);
+admin.use('/user', userAdminRoute);
+admin.use('/patient', patientAdminRoute);
+admin.use('/patient-discharge', patientDischargeAdminRoute);
+admin.use('/supplies-min-max', userMinMaxAdminRoute);
+admin.use('/hospital', hospitalAdminRoute);
+admin.use('/restock', restockAdminRoute);
+admin.use('/restock-collection', restockCollectionAdminRoute);
+admin.use('/drugs', drugAdminRoute);
+admin.use('/fulfill', fulfillRoute);
+admin.use('/min-max', minMaxRoute);
+admin.use('/node-surgical', nodeSurgicalRoute);
+admin.use('/export', ExportRoute);
 
-//manager
-api.use('/manager', checkAuth, managerAuth, manager)
-manager.use('/patient-info', patientInfoRoute)
-manager.use('/report-dms', reportDmsRoute)
-manager.use('/report-all', reportAllRoute)
-manager.use('/services', servicesRoute)
-manager.use('/eoc', eocRoute)
+// manager
+api.use('/manager', checkAuth, managerAuth, manager);
+manager.use('/patient-info', patientInfoRoute);
+manager.use('/report-dms', reportDmsRoute);
+manager.use('/report-all', reportAllRoute);
+manager.use('/services', servicesRoute);
+manager.use('/eoc', eocRoute);
 
-//staff
-api.use('/staff', checkAuth, staffAuth, staff)
-staff.use('/supplies', suppliesStaffRoute)
-staff.use('/users', userRoute)
-staff.use('/smh', smhRoute)
-staff.use('/balance', balanceStaffRoute)
-staff.use('/pay', payStaffRoute)
-staff.use('/report', reportStaffRoute)
-staff.use('/receives', receiveRoute)
-staff.use('/bed', bedStaffRoute)
-staff.use('/requisition', requisitionStaffRoute)
-staff.use('/request-products', requestProductRoute)
-staff.use('/setting', settingStaffRoute)
-staff.use('/drugs', drugStaffRoute)
-staff.use('/covid-case', covidCaseRoute)
-staff.use('/approve-drugs', approveDrugsRoute)
-staff.use('/approve-supplies', approveSuppliesRoute)
-staff.use('/hpvc', hpvcRoute)
+// staff
+api.use('/staff', checkAuth, staffAuth, staff);
+staff.use('/supplies', suppliesStaffRoute);
+staff.use('/users', userRoute);
+staff.use('/smh', smhRoute);
+staff.use('/balance', balanceStaffRoute);
+staff.use('/pay', payStaffRoute);
+staff.use('/report', reportStaffRoute);
+staff.use('/receives', receiveRoute);
+staff.use('/bed', bedStaffRoute);
+staff.use('/requisition', requisitionStaffRoute);
+staff.use('/request-products', requestProductRoute);
+staff.use('/setting', settingStaffRoute);
+staff.use('/drugs', drugStaffRoute);
+staff.use('/covid-case', covidCaseRoute);
+staff.use('/approve-drugs', approveDrugsRoute);
+staff.use('/approve-supplies', approveSuppliesRoute);
+staff.use('/hpvc', hpvcRoute);
 
-//index
+// index
 app.use('/', indexRoute);
 
-//error handlers
+// error handlers
 
 if (process.env.NODE_ENV === 'development') {
   app.use((err: any, req: Request, res: Response, next: NextFunction) => {
