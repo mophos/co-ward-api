@@ -655,6 +655,7 @@ export class CovidCaseModel {
       .join('p_patients as pt', 'pt.id', 'c.patient_id')
       .where('pt.hospital_id', hospitalId)
       .where('pt.hn', hn)
+      .where('c..is_deleted', 'N')
       .where('c.an', an)
   }
 }

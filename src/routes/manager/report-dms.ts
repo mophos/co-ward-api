@@ -175,37 +175,41 @@ router.get('/report1/excel', async (req: Request, res: Response) => {
     ws.cell(3, 6).string('(3) Single room');
     ws.cell(2, 7, 3, 7, true).string('(4) Cohort ward (bed)');
     ws.cell(2, 8, 3, 8, true).string('(5) Hospitel (room)');
+    ws.cell(2, 9, 3, 9, true).string('(6) Cohort ICU (bed)');
 
     ws.cell(4, 1).string('รวม');
     ws.cell(4, 2).number(toNumber(sumBy(rs, 'hospital_qty'))).style(right);
-    ws.cell(4, 3).number(toNumber(sumBy(rs, 'aiir_qty') + sumBy(rs, 'modified_aiir_qty') + sumBy(rs, 'isolate_qty') + sumBy(rs, 'cohort_qty') + sumBy(rs, 'hospitel_qty'))).style(right);
+    ws.cell(4, 3).number(toNumber(sumBy(rs, 'aiir_qty') + sumBy(rs, 'modified_aiir_qty') + sumBy(rs, 'isolate_qty') + sumBy(rs, 'cohort_qty') + sumBy(rs, 'hospitel_qty')+sumBy(rs, 'cohort_icu_qty'))).style(right);
     ws.cell(4, 4).number(toNumber(sumBy(rs, 'aiir_qty'))).style(right);
     ws.cell(4, 5).number(toNumber(sumBy(rs, 'modified_aiir_qty'))).style(right);
     ws.cell(4, 6).number(toNumber(sumBy(rs, 'isolate_qty'))).style(right);
     ws.cell(4, 7).number(toNumber(sumBy(rs, 'cohort_qty'))).style(right);
     ws.cell(4, 8).number(toNumber(sumBy(rs, 'hospitel_qty'))).style(right);
+    ws.cell(4, 9).number(toNumber(sumBy(rs, 'cohort_icu_qty'))).style(right);
 
     let row = 5;
     for (const items of rs) {
       ws.cell(row, 1).string(toString(items['sub_ministry_name']));
       ws.cell(row, 2).number(toNumber(items['hospital_qty'])).style(right);
-      ws.cell(row, 3).number(toNumber(items.aiir_qty + items.modified_aiir_qty + items.isolate_qty + items.cohort_qty + items.hospitel_qty)).style(right);
+      ws.cell(row, 3).number(toNumber(items.aiir_qty + items.modified_aiir_qty + items.isolate_qty + items.cohort_qty + items.hospitel_qty + items.cohort_icu_qty)).style(right);
       ws.cell(row, 4).number(toNumber(items['aiir_qty'])).style(right);
       ws.cell(row, 5).number(toNumber(items['modified_aiir_qty'])).style(right);
       ws.cell(row, 6).number(toNumber(items['isolate_qty'])).style(right);
       ws.cell(row, 7).number(toNumber(items['cohort_qty'])).style(right);
       ws.cell(row, 8).number(toNumber(items['hospitel_qty'])).style(right);
+      ws.cell(row, 9).number(toNumber(items['cohort_icu_qty'])).style(right);
       row += 1;
     }
 
     ws.cell(row, 1).string('รวม');
     ws.cell(row, 2).number(toNumber(sumBy(rs, 'hospital_qty'))).style(right);
-    ws.cell(row, 3).number(toNumber(sumBy(rs, 'aiir_qty') + sumBy(rs, 'modified_aiir_qty') + sumBy(rs, 'isolate_qty') + sumBy(rs, 'cohort_qty') + sumBy(rs, 'hospitel_qty'))).style(right);
+    ws.cell(row, 3).number(toNumber(sumBy(rs, 'aiir_qty') + sumBy(rs, 'modified_aiir_qty') + sumBy(rs, 'isolate_qty') + sumBy(rs, 'cohort_qty') + sumBy(rs, 'hospitel_qty')+ sumBy(rs, 'cohort_icu_qty'))).style(right);
     ws.cell(row, 4).number(toNumber(sumBy(rs, 'aiir_qty'))).style(right);
     ws.cell(row, 5).number(toNumber(sumBy(rs, 'modified_aiir_qty'))).style(right);
     ws.cell(row, 6).number(toNumber(sumBy(rs, 'isolate_qty'))).style(right);
     ws.cell(row, 7).number(toNumber(sumBy(rs, 'cohort_qty'))).style(right);
     ws.cell(row, 8).number(toNumber(sumBy(rs, 'hospitel_qty'))).style(right);
+    ws.cell(row, 9).number(toNumber(sumBy(rs, 'cohort_icu_qty'))).style(right);
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
@@ -610,9 +614,10 @@ router.get('/report6/excel', async (req: Request, res: Response) => {
     ws.cell(1, 8, 1, 10, true).string('Isolate').style(center);
     ws.cell(1, 11, 1, 13, true).string('Cohort').style(center);
     ws.cell(1, 14, 1, 16, true).string('Hospitel').style(center);
-    ws.cell(1, 17, 2, 17, true).string('หน่วยงาน');
-    ws.cell(1, 18, 2, 18, true).string('Hospital Type');
-    ws.cell(1, 19, 2, 19, true).string('ข้อมูลล่าสุด');
+    ws.cell(1, 17, 1, 19, true).string('Cohort ICU').style(center);
+    ws.cell(1, 20, 2, 20, true).string('หน่วยงาน');
+    ws.cell(1, 21, 2, 21, true).string('Hospital Type');
+    ws.cell(1, 22, 2, 22, true).string('ข้อมูลล่าสุด');
 
     ws.cell(2, 2).string('ทั้งหมด');
     ws.cell(2, 3).string('ใช้ไปแล้ว');
@@ -634,6 +639,10 @@ router.get('/report6/excel', async (req: Request, res: Response) => {
     ws.cell(2, 15).string('ใช้ไปแล้ว');
     ws.cell(2, 16).string('คงเหลือ');
 
+    ws.cell(2, 17).string('ทั้งหมด');
+    ws.cell(2, 18).string('ใช้ไปแล้ว');
+    ws.cell(2, 19).string('คงเหลือ');
+
     ws.cell(3, 1).string('รวม');
     ws.cell(3, 2).number(toNumber(sumBy(rs, 'aiir_qty'))).style(right);
     ws.cell(3, 3).number(toNumber(sumBy(rs, 'aiir_usage_qty'))).style(right);
@@ -650,6 +659,9 @@ router.get('/report6/excel', async (req: Request, res: Response) => {
     ws.cell(3, 14).number(toNumber(sumBy(rs, 'hospitel_qty'))).style(right);
     ws.cell(3, 15).number(toNumber(sumBy(rs, 'hospitel_usage_qty'))).style(right);
     ws.cell(3, 16).number(toNumber((sumBy(rs, 'hospitel_qty') - sumBy(rs, 'hospitel_usage_qty')) || 0)).style(right);
+    ws.cell(3, 17).number(toNumber(sumBy(rs, 'cohort_icu_qty'))).style(right);
+    ws.cell(3, 18).number(toNumber(sumBy(rs, 'cohort_icu_usage_qty'))).style(right);
+    ws.cell(3, 19).number(toNumber((sumBy(rs, 'cohort_icu_qty') - sumBy(rs, 'cohort_icu_usage_qty')) || 0)).style(right);
 
     let row = 4;
     for (const items of rs) {
@@ -680,9 +692,13 @@ router.get('/report6/excel', async (req: Request, res: Response) => {
       ws.cell(row, 15).number(toNumber((items['hospitel_usage_qty']) || 0)).style(right);
       ws.cell(row, 16).number(toNumber((items.hospitel_qty - items.hospitel_usage_qty) || 0)).style(right);
 
-      ws.cell(row, 17).string(toString(items['sub_ministry_name'])).style(right);
-      ws.cell(row, 18).string(toString(items['hospital_type'])).style(right);
-      ws.cell(row++, 19).string(toString(items['entry_date'])).style(right);
+      ws.cell(row, 17).number(toNumber(items['cohort_icu_qty'])).style(right);
+      ws.cell(row, 18).number(toNumber((items['cohort_icu_usage_qty']) || 0)).style(right);
+      ws.cell(row, 19).number(toNumber((items.cohort_icu_qty - items.cohort_icu_usage_qty) || 0)).style(right);
+
+      ws.cell(row, 20).string(toString(items['sub_ministry_name'])).style(right);
+      ws.cell(row, 21).string(toString(items['hospital_type'])).style(right);
+      ws.cell(row++, 22).string(toString(items['entry_date'])).style(right);
     }
 
     ws.cell(row, 1).string('รวม');
@@ -701,6 +717,9 @@ router.get('/report6/excel', async (req: Request, res: Response) => {
     ws.cell(row, 14).number(toNumber(sumBy(rs, 'hospitel_qty'))).style(right);
     ws.cell(row, 15).number(toNumber(sumBy(rs, 'hospitel_usage_qty'))).style(right);
     ws.cell(row, 16).number(toNumber((sumBy(rs, 'hospitel_qty') + sumBy(rs, 'hospitel_usage_qty')) || 0)).style(right);
+    ws.cell(row, 17).number(toNumber(sumBy(rs, 'cohort_icu_qty'))).style(right);
+    ws.cell(row, 18).number(toNumber(sumBy(rs, 'cohort_icu_usage_qty'))).style(right);
+    ws.cell(row, 19).number(toNumber((sumBy(rs, 'cohort_icu_qty') + sumBy(rs, 'cohort_icu_usage_qty')) || 0)).style(right);
 
     fse.ensureDirSync(process.env.TMP_PATH);
 

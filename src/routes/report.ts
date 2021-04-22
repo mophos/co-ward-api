@@ -899,10 +899,13 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
     wsAll.cell(1, 14).string('Cohort ทั้งหมด');
     wsAll.cell(1, 15).string('Cohort ใช้ไปแล้ว');
     wsAll.cell(1, 16).string('Cohort คงเหลือ');
-    wsAll.cell(1, 17).string('Hospitel ทั้งหมด');
-    wsAll.cell(1, 18).string('Hospitel ใช้ไปแล้ว');
-    wsAll.cell(1, 19).string('Hospitel คงเหลือ');
-    wsAll.cell(1, 20).string('Hospital Type');
+    wsAll.cell(1, 17).string('Cohort ICU ทั้งหมด');
+    wsAll.cell(1, 18).string('Cohort ICU ใช้ไปแล้ว');
+    wsAll.cell(1, 19).string('Cohort ICU คงเหลือ');
+    wsAll.cell(1, 20).string('Hospitel ทั้งหมด');
+    wsAll.cell(1, 21).string('Hospitel ใช้ไปแล้ว');
+    wsAll.cell(1, 22).string('Hospitel คงเหลือ');
+    wsAll.cell(1, 23).string('Hospital Type');
     let rowAll = 2;
     for (const v of zoneCodes) {
       let row = 2;
@@ -925,16 +928,18 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
         ws.cell(1, 14).string('Cohort ทั้งหมด');
         ws.cell(1, 15).string('Cohort ใช้ไปแล้ว');
         ws.cell(1, 16).string('Cohort คงเหลือ');
-        ws.cell(1, 17).string('Hospitel ทั้งหมด');
-        ws.cell(1, 18).string('Hospitel ใช้ไปแล้ว');
-        ws.cell(1, 19).string('Hospitel คงเหลือ');
-        ws.cell(1, 20).string('Hospital Type');
+        ws.cell(1, 17).string('Cohort ICU ทั้งหมด');
+        ws.cell(1, 18).string('Cohort ICU ใช้ไปแล้ว');
+        ws.cell(1, 19).string('Cohort ICU คงเหลือ');
+        ws.cell(1, 20).string('Hospitel ทั้งหมด');
+        ws.cell(1, 21).string('Hospitel ใช้ไปแล้ว');
+        ws.cell(1, 22).string('Hospitel คงเหลือ');
+        ws.cell(1, 23).string('Hospital Type');
 
         ws.cell(row, 1).string(d.province_name);
         ws.cell(row, 2).string(d.hospcode);
         ws.cell(row, 3).string(d.hospname);
         ws.cell(row, 4).string(d.level);
-
         ws.cell(row, 5).number(d['aiir_covid_qty'] === null ? 0 : d['aiir_covid_qty'] || 0);
         ws.cell(row, 6).number(d['aiir_usage_qty'] === null ? 0 : d['aiir_usage_qty'] || 0);
         ws.cell(row, 7).number(+d['aiir_covid_qty'] - +d['aiir_usage_qty'] || 0);
@@ -947,17 +952,19 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
         ws.cell(row, 14).number(d['cohort_covid_qty'] || 0);
         ws.cell(row, 15).number(d['cohort_usage_qty'] || 0);
         ws.cell(row, 16).number(+d['cohort_covid_qty'] - +d['cohort_usage_qty'] || 0);
-        ws.cell(row, 17).number(d['hospitel_covid_qty'] || 0);
-        ws.cell(row, 18).number(d['hospitel_usage_qty'] || 0);
-        ws.cell(row, 19).number(+d['hospitel_covid_qty'] - +d['hospitel_usage_qty'] || 0);
-        ws.cell(row, 20).string(d.hospital_type);
+        ws.cell(row, 17).number(d['cohort_icu_covid_qty'] || 0);
+        ws.cell(row, 18).number(d['cohort_icu_usage_qty'] || 0);
+        ws.cell(row, 19).number(+d['cohort_icu_covid_qty'] - +d['cohort_icu_usage_qty'] || 0);
+        ws.cell(row, 20).number(d['hospitel_covid_qty'] || 0);
+        ws.cell(row, 21).number(d['hospitel_usage_qty'] || 0);
+        ws.cell(row, 22).number(+d['hospitel_covid_qty'] - +d['hospitel_usage_qty'] || 0);
+        ws.cell(row, 23).string(d.hospital_type);
         row++
 
         wsAll.cell(rowAll, 1).string(d.province_name);
         wsAll.cell(rowAll, 2).string(d.hospcode);
         wsAll.cell(rowAll, 3).string(d.hospname);
         wsAll.cell(rowAll, 4).string(d.level);
-
         wsAll.cell(rowAll, 5).number(d['aiir_covid_qty'] || 0);
         wsAll.cell(rowAll, 6).number(d['aiir_usage_qty'] || 0);
         wsAll.cell(rowAll, 7).number(+d['aiir_covid_qty'] - +d['aiir_usage_qty'] || 0);
@@ -970,10 +977,13 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
         wsAll.cell(rowAll, 14).number(d['cohort_covid_qty'] || 0);
         wsAll.cell(rowAll, 15).number(d['cohort_usage_qty'] || 0);
         wsAll.cell(rowAll, 16).number(+d['cohort_covid_qty'] - +d['cohort_usage_qty'] || 0);
-        wsAll.cell(rowAll, 17).number(d['hospitel_covid_qty'] || 0);
-        wsAll.cell(rowAll, 18).number(d['hospitel_usage_qty'] || 0);
-        wsAll.cell(rowAll, 19).number(+d['hospitel_covid_qty'] - +d['hospitel_usage_qty'] || 0);
-        wsAll.cell(rowAll, 20).string(d.hospital_type || 0);
+        wsAll.cell(rowAll, 17).number(d['cohort_icu_covid_qty'] || 0);
+        wsAll.cell(rowAll, 18).number(d['cohort_icu_usage_qty'] || 0);
+        wsAll.cell(rowAll, 19).number(+d['cohort_icu_covid_qty'] - +d['cohort_icu_usage_qty'] || 0);
+        wsAll.cell(rowAll, 20).number(d['hospitel_covid_qty'] || 0);
+        wsAll.cell(rowAll, 21).number(d['hospitel_usage_qty'] || 0);
+        wsAll.cell(rowAll, 22).number(+d['hospitel_covid_qty'] - +d['hospitel_usage_qty'] || 0);
+        wsAll.cell(rowAll, 23).string(d.hospital_type || 0);
         rowAll++;
       }
     }
