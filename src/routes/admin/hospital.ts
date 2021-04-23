@@ -74,6 +74,8 @@ router.post('/', async (req: Request, res: Response) => {
       const dupCode: any = await hospitalModel.checkHospCode(req.db, data.hospcode)
       data.created_by = decoded.id || 0;
       if (dupCode.length == 0 && data.hospcode.length === 5) {
+        const zone = await hospitalModel.getZone(req.db, data.province_code);
+        data.zone_code = zone[0].zone_code;
         let rs: any = await hospitalModel.insertHospital(req.db, data);
         res.send({ ok: true, rows: rs, code: HttpStatus.OK });
       } else {
