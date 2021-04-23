@@ -533,10 +533,10 @@ router.get('/report5/excel', async (req: Request, res: Response) => {
     ws.cell(2, 5).string('ว่าง');
 
     ws.cell(3, 1).string('รวม');
-    ws.cell(3, 2).number(toNumber(sumBy(rs, 'aiir_qty' || 0) + sumBy(rs, 'modified_aiir_qty' || 0) + sumBy(rs, 'isolate_qty' || 0) + sumBy(rs, 'cohort_qty' || 0))).style(right);
-    ws.cell(3, 3).number(toNumber(sumBy(rs, 'aiir_usage_qty' || 0) + sumBy(rs, 'modified_aiir_usage_qty' || 0) + sumBy(rs, 'isolate_usage_qty' || 0) + sumBy(rs, 'cohort_usage_qty' || 0))).style(right);
-    ws.cell(3, 4).number(toNumber(sumBy(rs, 'aiir_spare_qty' || 0) + sumBy(rs, 'modified_aiir_spare_qty' || 0) + sumBy(rs, 'isolate_spare_qty' || 0) + sumBy(rs, 'cohort_spare_qty' || 0))).style(right);
-    ws.cell(3, 5).number(toNumber((sumBy(rs, 'aiir_qty' || 0) + sumBy(rs, 'modified_aiir_qty' || 0) + sumBy(rs, 'isolate_qty' || 0) + sumBy(rs, 'cohort_qty' || 0)) - (sumBy(rs, 'aiir_usage_qty' || 0) + sumBy(rs, 'modified_aiir_usage_qty' || 0) + sumBy(rs, 'isolate_usage_qty' || 0) + sumBy(rs, 'cohort_usage_qty' || 0)) - (sumBy(rs, 'aiir_spare_qty' || 0) + sumBy(rs, 'modified_aiir_spare_qty' || 0) + sumBy(rs, 'isolate_spare_qty' || 0) + sumBy(rs, 'cohort_spare_qty' || 0)))).style(right);
+    ws.cell(3, 2).number(toNumber(sumBy(rs, 'aiir_qty' ) || 0 + sumBy(rs, 'modified_aiir_qty' ) || 0 + sumBy(rs, 'isolate_qty' ) || 0 + sumBy(rs, 'cohort_qty' ) || 0)).style(right);
+    ws.cell(3, 3).number(toNumber(sumBy(rs, 'aiir_usage_qty' ) || 0 + sumBy(rs, 'modified_aiir_usage_qty' ) || 0 + sumBy(rs, 'isolate_usage_qty' ) || 0 + sumBy(rs, 'cohort_usage_qty' ) || 0)).style(right);
+    ws.cell(3, 4).number(toNumber(sumBy(rs, 'aiir_spare_qty' ) || 0 + sumBy(rs, 'modified_aiir_spare_qty' ) || 0 + sumBy(rs, 'isolate_spare_qty' ) || 0 + sumBy(rs, 'cohort_spare_qty' ) || 0)).style(right);
+    ws.cell(3, 5).number(toNumber((sumBy(rs, 'aiir_qty' ) || 0 + sumBy(rs, 'modified_aiir_qty' ) || 0 + sumBy(rs, 'isolate_qty' ) || 0 + sumBy(rs, 'cohort_qty' ) || 0) - (sumBy(rs, 'aiir_usage_qty' ) || 0 + sumBy(rs, 'modified_aiir_usage_qty' ) || 0 + sumBy(rs, 'isolate_usage_qty' ) || 0 + sumBy(rs, 'cohort_usage_qty' ) || 0) - (sumBy(rs, 'aiir_spare_qty' ) || 0 + sumBy(rs, 'modified_aiir_spare_qty' ) || 0 + sumBy(rs, 'isolate_spare_qty' ) || 0 + sumBy(rs, 'cohort_spare_qty' ) || 0))).style(right);
     ws.cell(3, 6).string('');
     ws.cell(3, 7).string('');
 
@@ -557,10 +557,10 @@ router.get('/report5/excel', async (req: Request, res: Response) => {
     }
 
     ws.cell(row, 1).string('รวม');
-    ws.cell(row, 2).number(toNumber(sumBy(rs, 'aiir_qty' || 0) + sumBy(rs, 'modified_aiir_qty' || 0) + sumBy(rs, 'isolate_qty' || 0) + sumBy(rs, 'cohort_qty' || 0))).style(right);
-    ws.cell(row, 3).number(toNumber(sumBy(rs, 'aiir_usage_qty' || 0) + sumBy(rs, 'modified_aiir_usage_qty' || 0) + sumBy(rs, 'isolate_usage_qty' || 0) + sumBy(rs, 'cohort_usage_qty' || 0))).style(right);
-    ws.cell(row, 4).number(toNumber(sumBy(rs, 'aiir_spare_qty' || 0) + sumBy(rs, 'modified_aiir_spare_qty' || 0) + sumBy(rs, 'isolate_spare_qty' || 0) + sumBy(rs, 'cohort_spare_qty' || 0))).style(right);
-    ws.cell(row, 5).number(toNumber(sumBy(rs, 'aiir_qty' || 0) + sumBy(rs, 'modified_aiir_qty' || 0) + sumBy(rs, 'isolate_qty' || 0) + sumBy(rs, 'cohort_qty' || 0) + sumBy(rs, 'aiir_usage_qty' || 0) + sumBy(rs, 'modified_aiir_usage_qty' || 0) + sumBy(rs, 'isolate_usage_qty' || 0) + sumBy(rs, 'cohort_usage_qty' || 0) + sumBy(rs, 'aiir_spare_qty' || 0) + sumBy(rs, 'modified_aiir_spare_qty' || 0) + sumBy(rs, 'isolate_spare_qty' || 0) + sumBy(rs, 'cohort_spare_qty' || 0))).style(right);
+    ws.cell(row, 2).number(toNumber(sumBy(rs, 'aiir_qty' ) || 0 + sumBy(rs, 'modified_aiir_qty' ) || 0 + sumBy(rs, 'isolate_qty' ) || 0 + sumBy(rs, 'cohort_qty' ) || 0)).style(right);
+    ws.cell(row, 3).number(toNumber(sumBy(rs, 'aiir_usage_qty' ) || 0 + sumBy(rs, 'modified_aiir_usage_qty' ) || 0 + sumBy(rs, 'isolate_usage_qty' ) || 0 + sumBy(rs, 'cohort_usage_qty' ) || 0)).style(right);
+    ws.cell(row, 4).number(toNumber(sumBy(rs, 'aiir_spare_qty' ) || 0 + sumBy(rs, 'modified_aiir_spare_qty' ) || 0 + sumBy(rs, 'isolate_spare_qty' ) || 0 + sumBy(rs, 'cohort_spare_qty' ) || 0)).style(right);
+    ws.cell(row, 5).number(toNumber(sumBy(rs, 'aiir_qty' ) || 0 + sumBy(rs, 'modified_aiir_qty' ) || 0 + sumBy(rs, 'isolate_qty' ) || 0 + sumBy(rs, 'cohort_qty' ) || 0 + sumBy(rs, 'aiir_usage_qty' ) || 0 + sumBy(rs, 'modified_aiir_usage_qty' ) || 0 + sumBy(rs, 'isolate_usage_qty' ) || 0 + sumBy(rs, 'cohort_usage_qty' ) || 0 + sumBy(rs, 'aiir_spare_qty' ) || 0 + sumBy(rs, 'modified_aiir_spare_qty' ) || 0 + sumBy(rs, 'isolate_spare_qty' ) || 0 + sumBy(rs, 'cohort_spare_qty' ) || 0)).style(right);
     ws.cell(row, 6).string('');
     ws.cell(row, 7).string('');
 
