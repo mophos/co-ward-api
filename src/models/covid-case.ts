@@ -261,6 +261,14 @@ export class CovidCaseModel {
 
   }
 
+  updateAnCovidCase(db: Knex, id, an) {
+    return db('p_covid_cases')
+      .where('id', id)
+      .update('updated_entry', db.fn.now())
+      .update('an', an)
+
+  }
+
   updateCovidCaseAllow(db: Knex, id, data) {
     return db('p_covid_cases')
       .where('id', id)
