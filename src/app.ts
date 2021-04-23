@@ -267,8 +267,8 @@ const managerAuth = (req, res, next) => {
   }
 };
 
-app.use('/v1', oldRoute)
-app.use('/v2', api);
+app.use('/v2', oldRoute)
+app.use('/v1', api);
 api.use('/login', loginRoute);
 api.use('/register', registerRoute);
 api.use('/basic', basicRoute);
