@@ -47,7 +47,7 @@ router.put('/edit-info', async (req: Request, res: Response) => {
         const personId = data.person_id
         const patientId = data.patient_id
 
-        const oldInfo = await patientModel.getPerson(db, personId)
+        const oldInfo: any = await patientModel.getPerson(db, personId)
         const oldHn = await patientModel.getPatient(db, patientId)
         console.log(data.birth_date);
 
@@ -76,7 +76,7 @@ router.put('/edit-info', async (req: Request, res: Response) => {
         }
 
         if (oldInfo && oldHn) {
-            const findEdit = findIndex(oldInfo, v => {
+            const findEdit = findIndex(oldInfo, (v: any) => {
                 return v.id === personId &&
                     v.gender_id === personData.gender_id &&
                     v.title_id === personData.title_id &&
@@ -111,7 +111,7 @@ router.put('/edit-info', async (req: Request, res: Response) => {
                     peLogs = rs.length > 0 ? true : false;
                 }
             }
-            const findHn = findIndex(oldHn, v => v.hn === patientData.hn)
+            const findHn = findIndex(oldHn, (v: any) => v.hn === patientData.hn)
             if (findHn === -1) {
                 oldHn[0].updated_by = decoded.id;
                 oldHn[0].update_date = moment().format('YYYY-MM-DD HH:mm:ss')
@@ -216,7 +216,7 @@ router.put('/covid-case', async (req: Request, res: Response) => {
                 case_status: data.case_status,
                 status: data.status
             }
-            const findEdit = findIndex(oldCase, v => {
+            const findEdit = findIndex(oldCase, (v: any) => {
                 let d = true;
                 let cd = true;
                 let ad = true;
@@ -232,15 +232,15 @@ router.put('/covid-case', async (req: Request, res: Response) => {
                     d = false;
                 }
                 console.log(data.confirm_date);
-                
+
                 if (dataCase.status == 'IPPUI') {
                     dataCase.confirm_date = null;
                     cd = false;
                 } else {
-                    if(data.confirm_date){
+                    if (data.confirm_date) {
                         dataCase.confirm_date = moment(data.confirm_date).format('YYYY-MM-DD');
                         cd = moment(v.confirm_date).format('YYYY-MM-DD') === moment(dataCase.confirm_date).format('YYYY-MM-DD');
-                    }  else {
+                    } else {
                         dataCase.confirm_date = null;
                     }
                 }
@@ -260,7 +260,7 @@ router.put('/covid-case', async (req: Request, res: Response) => {
                 dataCase.updated_by = decoded.id;
                 dataCase.update_date = moment().format('YYYY-MM-DD HH:mm:ss')
                 console.log(dataCase);
-                
+
                 const rsUpdate = await patientModel.updateCase(db, caseId, dataCase);
                 if (rsUpdate) {
                     const rsLogs = await patientModel.saveLogsCase(db, oldCase[0]);
@@ -341,7 +341,7 @@ router.put('/covid-case-detail', async (req: Request, res: Response) => {
                 medical_supplie_id: data.medical_supplie_id,
                 bed_id: data.bed_id
             }
-            const findEdit = findIndex(oldCaseDetail, v => {
+            const findEdit = findIndex(oldCaseDetail, (v: any) => {
                 return v.id === caseDetailId &&
                     v.status === dataCaseDetail.status &&
                     v.gcs_id === dataCaseDetail.gcs_id &&
@@ -375,6 +375,48 @@ router.put('/covid-case-detail', async (req: Request, res: Response) => {
         }
     } catch (error) {
         res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+    }
+});
+
+router.post('/covid-case-detail', async (req: Request, res: Response) => {
+    const db = req.db;
+    const data: any = req.body.data;
+    const caseId: any = req.query.caseId;
+    let error = ''
+    try {
+        let caseDetail: any = await patientModel.getCaseDetailByCaseId(db, caseId);
+        console.log(caseDetail);
+
+        if (caseDetail.length > 0) {
+            for (const v of caseDetail) {
+                v.updated_by = req.decoded.id;
+                v.update_date = moment().format('YYYY-MM-DD HH:mm:ss');
+            }
+
+            for (const v of data) {
+                v.covid_case_id = caseId
+            }
+            const rsd = await patientModel.deleteCaseDetailByCaseId(db, caseId);
+            const rsi = await patientModel.insertCaseDetail(db, data);
+            if (rsd && rsi) {
+                const rsLogs = await patientModel.saveLogsCaseDetail(db, caseDetail);
+                if (!rsLogs) {
+                    error += 'update logs case deteil  error. '
+                }
+            } else {
+                error += 'insert case detail error. '
+            }
+            if (!error) {
+                res.send({ ok: true, code: HttpStatus.OK });
+            } else {
+                res.send({ ok: false, error: error, code: HttpStatus.NO_CONTENT });
+            }
+        } else {
+            res.send({ ok: false, error: 'case detail not found!!', code: HttpStatus.NO_CONTENT });
+        }
+    } catch (error) {
+        console.log(error);
+        res.send({ ok: false, message: error });
     }
 });
 

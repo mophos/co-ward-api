@@ -175,7 +175,7 @@ router.get('/get-gcs-admit', async (req: Request, res: Response) => {
       for (const p of province) {
         const _province: any = {};
         _province.province_name = p.name_th;
-        const s = filter(hospital, { province_code: p.code })
+        const s: any = filter(hospital, { province_code: p.code })
         const hosp = [];
         let severe = 0;
         let moderate = 0;
@@ -185,7 +185,7 @@ router.get('/get-gcs-admit', async (req: Request, res: Response) => {
         for (const h of s) {
           const _hospital: any = {};
           _hospital.province_name = p.name_th;
-          const _gcs = filter(gcs, { hospital_id: h.id })
+          const _gcs: any = filter(gcs, { hospital_id: h.id })
           if (_gcs.length) {
             const obj: any = {
               hospital_id: h.id,
@@ -281,7 +281,7 @@ router.get('/get-gcs', async (req: Request, res: Response) => {
         let mild = 0;
         let ippui = 0;
         let asymptomatic = 0;
-        const s = filter(gcs, { province_code: p.code })
+        const s: any = filter(gcs, { province_code: p.code })
         console.log(s);
 
         for (const i of s) {
@@ -351,7 +351,7 @@ router.get('/get-medicals', async (req: Request, res: Response) => {
     for (const v of zoneCodes) {
       const obj: any = {};
       obj.zone_code = v;
-      const provinces = uniqBy(orderBy(filter(rows, { 'zone_code': v }), 'province_code', 'asc'), 'province_name');
+      const provinces: any = uniqBy(orderBy(filter(rows, { 'zone_code': v }), 'province_code', 'asc'), 'province_name');
       let dataP: any = [];
       for (const p of provinces) {
         const objP: any = {};
@@ -404,7 +404,7 @@ router.get('/medical-supplies', async (req: Request, res: Response) => {
     for (const v of zoneCodes) {
       const obj: any = {};
       obj.zone_code = v;
-      const provinces = uniqBy(orderBy(filter(rows, { 'zone_code': v }), 'province_code', 'asc'), 'province_name');
+      const provinces: any = uniqBy(orderBy(filter(rows, { 'zone_code': v }), 'province_code', 'asc'), 'province_name');
       let dataP: any = [];
       for (const p of provinces) {
         const objP: any = {};
@@ -437,7 +437,7 @@ router.get('/admin/get-bed', async (req: Request, res: Response) => {
         hospcode: h.hospcode,
         hospname: h.hospname
       };
-      const _bed = filter(bed, { hospital_id: h.id })
+      const _bed: any = filter(bed, { hospital_id: h.id })
       for (const b of _bed) {
         obj[b.bed_name + '_qty'] = b.qty;
         obj[b.bed_name + '_covid_qty'] = b.covid_qty;
@@ -507,7 +507,7 @@ router.get('/get-bed/excel', async (req: Request, res: Response) => {
         ws.cell(1, 16).string('Hospitel ใช้ไปแล้ว');
         ws.cell(1, 17).string('Hospitel คงเหลือ');
 
-        const _hosp = filter(hospital, { province_code: province[v].code });
+        const _hosp: any = filter(hospital, { province_code: province[v].code });
         let row = 2;
         const hosp = [];
         for (const h of _hosp) {
@@ -516,7 +516,7 @@ router.get('/get-bed/excel', async (req: Request, res: Response) => {
             hospcode: h.hospcode,
             hospname: h.hospname
           };
-          const _bed = filter(bed, { id: h.id });
+          const _bed: any = filter(bed, { id: h.id });
 
           for (const b of _bed) {
             obj[b.bed_name + '_qty'] = b.qty;
@@ -598,14 +598,14 @@ router.get('/get-bed/excel', async (req: Request, res: Response) => {
 
       let row = 2;
       const hosp = [];
-      const _hosp = filter(hospital, { province_code: provinceCode });
+      const _hosp: any = filter(hospital, { province_code: provinceCode });
       for (const h of _hosp) {
         const obj = {
           hospital_id: h.id,
           hospcode: h.hospcode,
           hospname: h.hospname
         };
-        const _bed = filter(bed, { id: h.id })
+        const _bed: any = filter(bed, { id: h.id })
         for (const b of _bed) {
           obj[b.bed_name + '_qty'] = b.qty;
           obj[b.bed_name + '_covid_qty'] = b.covid_qty;
@@ -689,10 +689,10 @@ router.get('/get-gcs-admit/excel', async (req: Request, res: Response) => {
 
         let row = 2;
 
-        const s = filter(hospital, { province_code: province[v].code })
+        const s: any = filter(hospital, { province_code: province[v].code })
         const hosp: any = [];
         for (const h of s) {
-          const _gcs = filter(gcs, { hospital_id: h.id })
+          const _gcs: any = filter(gcs, { hospital_id: h.id })
           if (_gcs.length) {
             const obj: any = {
               hospital_id: h.id,
@@ -734,10 +734,10 @@ router.get('/get-gcs-admit/excel', async (req: Request, res: Response) => {
 
       let row = 2;
 
-      const s = filter(hospital, { province_code: provinceCode })
+      const s: any = filter(hospital, { province_code: provinceCode })
       const hosp: any = [];
       for (const h of s) {
-        const _gcs = filter(gcs, { hospital_id: h.id })
+        const _gcs: any = filter(gcs, { hospital_id: h.id })
         if (_gcs.length) {
           const obj: any = {
             hospital_id: h.id,
@@ -830,7 +830,7 @@ router.get('/get-bed', async (req: Request, res: Response) => {
     for (const v of zoneCodes) {
       const obj: any = {};
       obj.zone_code = v;
-      const provinces = uniqBy(orderBy(filter(rows, { 'zone_code': v }), 'province_code', 'asc'), 'province_name');
+      const provinces: any = uniqBy(orderBy(filter(rows, { 'zone_code': v }), 'province_code', 'asc'), 'province_name');
       let dataP: any = [];
       for (const p of provinces) {
         const objP: any = {};
@@ -910,7 +910,7 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
     for (const v of zoneCodes) {
       let row = 2;
       var ws = wb.addWorksheet(`${v}`);
-      const data = orderBy(filter(rows, { 'zone_code': v }), 'province_code', 'asc')
+      const data: any = orderBy(filter(rows, { 'zone_code': v }), 'province_code', 'asc')
       for (const d of data) {
         ws.cell(1, 1).string('จังหวัด');
         ws.cell(1, 2).string('รหัสโรงพยาบาล');
@@ -1043,7 +1043,7 @@ router.get('/get-professional', async (req: Request, res: Response) => {
     for (const v of zoneCodes) {
       const obj: any = {};
       obj.zone_code = v;
-      const provinces = uniqBy(orderBy(filter(rows, { 'zone_code': v }), 'province_code', 'asc'), 'province_name');
+      const provinces: any = uniqBy(orderBy(filter(rows, { 'zone_code': v }), 'province_code', 'asc'), 'province_name');
       let dataP: any = [];
       for (const p of provinces) {
         const objP: any = {};
@@ -2276,21 +2276,21 @@ function toNumber(value) {
   }
 }
 async function setDataDischargeDaily(rs) {
-  const data = await orderBy(map(groupBy(rs, vgz => { return vgz.zone_code }), (vmz, kmz) => {
+  const data = await orderBy(map(groupBy(rs, vgz => { return vgz.zone_code }), (vmz: any, kmz) => {
     return {
       zone_code: kmz,
       DISCHARGE: countBy(vmz, { "status": "DISCHARGE" }).true || 0,
       NEGATIVE: countBy(vmz, { "status": "NEGATIVE" }).true || 0,
       REFER: countBy(vmz, { "status": "REFER" }).true || 0,
       DEATH: countBy(vmz, { "status": "DEATH" }).true || 0,
-      value: orderBy(map(groupBy(vmz, vgp => { return vgp.province_name }), (vmp, kmp) => {
+      value: orderBy(map(groupBy(vmz, vgp => { return vgp.province_name }), (vmp: any, kmp) => {
         return {
           province_name: kmp,
           DISCHARGE: countBy(vmp, { "status": "DISCHARGE" }).true || 0,
           NEGATIVE: countBy(vmp, { "status": "NEGATIVE" }).true || 0,
           REFER: countBy(vmp, { "status": "REFER" }).true || 0,
           DEATH: countBy(vmp, { "status": "DEATH" }).true || 0,
-          value: orderBy(map(groupBy(vmp, vgh => { return vgh.hospname }), (vmh, kmh) => {
+          value: orderBy(map(groupBy(vmp, vgh => { return vgh.hospname }), (vmh: any, kmh) => {
             return {
               hospname: kmh,
               DISCHARGE: countBy(vmh, { "status": "DISCHARGE" }).true || 0,
