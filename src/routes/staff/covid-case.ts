@@ -261,13 +261,13 @@ async function saveCovidCase(db, req, data) {
       const person = {
         cid: data.cid || null,
         passport: data.passport || null,
-        title_id: data.titleId,
+        title_id: data.titleId || null,
         first_name: data.fname,
         middle_name: data.mname || null,
         last_name: data.lname,
         gender_id: data.genderId || null,
         people_type: data.peopleType || null,
-        birth_date: data.birthDate,
+        birth_date: data.birthDate || null,
         telephone: data.tel || null,
         house_no: data.houseNo || null,
         room_no: data.roomNo || null,
@@ -293,7 +293,7 @@ async function saveCovidCase(db, req, data) {
         current_ampur_name: data.ampurNameCurr || null,
         current_province_name: data.provinceNameCurr || null,
         current_zipcode: data.zipcodeCurr || null,
-        country_code: data.countryId,
+        country_code: data.countryId || null,
       }
 
       let personId: any;
