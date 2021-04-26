@@ -172,7 +172,7 @@ export class ReportModel {
         v.on('sd.entry_date', 'supplies.entry_date')
       })
 
-      .whereIn('h.hosptype_code', ['01', '05', '06', '07', '11', '12', '15','19'])
+      .whereIn('h.hosptype_code', ['01', '05', '06', '07', '11', '12', '15', '19'])
     if (zoneCode.length) {
       sql.whereIn('h.zone_code', zoneCode)
     }
@@ -409,7 +409,7 @@ export class ReportModel {
       .orderBy('p.code');
   }
 
-  admitConfirmCase(db: Knex, showPersons = false) {
+  admitConfirmCase(db: Knex, showPersons = false, limit = 1000, offset = 0) {
     let sql = db('temp_report_admit_comfirm_case')
       .select('d1', 'd2', 'd3', 'd4', 'd5', 'd7', 'd8', 'hn', 'an', 'hospital_id', 'updated_entry_last', 'days',
         'hospname', 'hospcode', 'zone_code', 'province_name', 'date_admit', 'gcs_name', 'bed_name', 'medical_supplies_name',
@@ -418,9 +418,21 @@ export class ReportModel {
     if (showPersons) {
       sql.select('first_name', 'last_name', 'cid', 'sat_id', 'sex', 'age')
     }
+    sql.limit(limit)
+    sql.offset(offset)
+      .orderBy('zone_code')
+      .orderBy('province_name')
+      .orderBy('hospname')
     return sql;
   }
-  admitPuiCase(db: Knex, showPersons = false) {
+
+  admitConfirmCaseTotal(db: Knex) {
+    let sql = db('temp_report_admit_comfirm_case')
+      .count('* as total')
+    return sql;
+  }
+
+  admitPuiCase(db: Knex, showPersons = false, limit = 1000, offset = 0) {
     // const last = db('p_covid_case_details')
     let sql = db('temp_report_admit_pui_case')
       .select('d1', 'd2', 'd3', 'd4', 'd5', 'd7', 'd8', 'hn', 'an', 'hospital_id', 'updated_entry_last', 'days',
@@ -430,7 +442,15 @@ export class ReportModel {
     if (showPersons) {
       sql.select('first_name', 'last_name', 'cid', 'sat_id')
     }
+    sql.limit(limit)
+    sql.offset(offset)
     // console.log(sql.toString());
+    return sql;
+  }
+
+  admitPuiCaseTotal(db: Knex) {
+    let sql = db('temp_report_admit_pui_case')
+      .count('* as total')
     return sql;
   }
 
