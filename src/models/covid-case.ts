@@ -165,8 +165,8 @@ export class CovidCaseModel {
   }
 
   getHistoryCID(db: Knex, cid) {
-    let sql = db('p_covid_cases as c')
-      .select('c.id as covid_case_id', 'c.confirm_date', 'c.status', 'c.date_admit', 'h.hospname', 'c.an', 'c.date_discharge')
+    return db('p_covid_cases as c')
+      .select('c.id as covid_case_id', 'c.confirm_date', 'c.status', 'c.date_admit', 'h.hospname', 'c.an', 'c.date_discharge', 'c.reason')
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .join('b_hospitals as h', 'pt.hospital_id', 'h.id')
@@ -175,8 +175,7 @@ export class CovidCaseModel {
         v.where('p.cid', cid)
         v.orWhere('p.passport', cid)
       })
-      .orderBy('c.date_admit').toString();
-    return sql;
+      .orderBy('c.date_admit');
   }
 
   getDetails(db: Knex, covidCaseId) {
