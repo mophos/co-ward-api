@@ -261,6 +261,14 @@ export class CovidCaseModel {
 
   }
 
+  updateAnCovidCase(db: Knex, id, an) {
+    return db('p_covid_cases')
+      .where('id', id)
+      .update('updated_entry', db.fn.now())
+      .update('an', an)
+
+  }
+
   updateCovidCaseAllow(db: Knex, id, data) {
     return db('p_covid_cases')
       .where('id', id)
@@ -441,11 +449,28 @@ export class CovidCaseModel {
   }
 
   getGcs(db, hospitalId, hospitalType) {
+
+//     SELECT
+// 	g.*,
+// 	count(*) AS qty -- 	`pd`.`hospital_id` AS `hos
+// FROM
+// 	`view_covid_case_last` `pd`
+// 	JOIN `b_gcs` `g` ON `g`.`id` = `pd`.`gcs_id` 
+// WHERE
+// 	`pd`.`status` = 'ADMIT' -- 	and pd.hospital_id = ''
+// GROUP BY
+// 	`g`.`id`
+    const view = db('view_covid_case_last as v')
+      .select('v.hospital_id', 'v.gcs_id')
+      .count('* as qty')
+      // .join('b_gcs as g', 'g.id', 'v.gcs_id')
+      .where('v.status', 'ADMIT')
+      .where('v.hospital_id', hospitalId)
+      .groupBy('v.gcs_id').as('bh')
+
+
     return db('b_gcs AS bg')
-      .leftJoin('view_gcs_sum_hospitals as bh', (v) => {
-        v.on('bg.id', 'bh.gcs_id')
-        v.on('bh.hospital_id', db.raw(`${hospitalId}`));
-      })
+      .leftJoin(view, 'bg.id', 'bh.gcs_id')
       .where((v) => {
         v.where('bg.is_hospital', hospitalType == 'HOSPITAL' ? 'Y' : 'N')
         v.orWhere('bg.is_hospitel', hospitalType == 'HOSPITEL' ? 'Y' : 'N')

@@ -18,6 +18,7 @@ import { Jwt } from './models/jwt';
 
 import indexRoute from './routes/index';
 import loginRoute from './routes/login';
+import oldRoute from './routes/old';
 import registerRoute from './routes/register';
 
 import suppliesAdminRoute from './routes/admin/supplies';
@@ -266,6 +267,7 @@ const managerAuth = (req, res, next) => {
   }
 };
 
+app.use('/v2', oldRoute)
 app.use('/v1', api);
 api.use('/login', loginRoute);
 api.use('/register', registerRoute);

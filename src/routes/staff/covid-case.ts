@@ -127,7 +127,6 @@ router.get('/approved-detail', async (req: Request, res: Response) => {
 });
 
 router.put('/', async (req: Request, res: Response) => {
-  const hospitalId = req.decoded.hospitalId;
   const data = req.body.data;
   const db = req.db;
   try {
@@ -186,6 +185,58 @@ router.put('/', async (req: Request, res: Response) => {
     } else {
       res.send({ ok: false, error: `คุณไม่สามารถแก้ไขได้ เนื่องจากเกินกำหนดเวลา` });
     }
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.put('/person', async (req: Request, res: Response) => {
+  const data = req.body.data;
+  const db = req.db;
+  try {
+    const person = {
+      cid: data.cid,
+      passport: data.passport || null,
+      title_id: data.titleId,
+      first_name: data.fname,
+      last_name: data.lname,
+      gender_id: data.genderId,
+      birth_date: data.birthDate,
+      telephone: data.tel,
+      house_no: data.houseNo,
+      room_no: data.roomNo,
+      village: data.village,
+      village_name: data.villageName,
+      road: data.road,
+      tambon_name: data.tambon_name,
+      ampur_name: data.ampur_name,
+      province_name: data.province_name,
+      tambon_code: data.tambonCode,
+      ampur_code: data.ampurCode,
+      province_code: data.provinceCode,
+      zipcode: data.zipcode,
+      current_house_no: data.houseNoCurr || null,
+      current_room_no: data.roomNoCurr || null,
+      current_village: data.villageCurr || null,
+      current_village_name: data.villageNameCurr || null,
+      current_road: data.roadCurr || null,
+      current_tambon_code: data.tambonCodeCurr || null,
+      current_ampur_code: data.ampurCodeCurr || null,
+      current_province_code: data.provinceCodeCurr || null,
+      current_tambon_name: data.tambonNameCurr || null,
+      current_ampur_name: data.ampurNameCurr || null,
+      current_province_name: data.provinceNameCurr || null,
+      current_zipcode: data.zipcodeCurr || null,
+      country_code: data.countryCode,
+    }
+    await covidCaseModel.updatePerson(db, data.personId, person);
+    const patient = {
+      hn: data.hn
+    }
+    await covidCaseModel.updatePatient(db, data.patientId, patient);
+    await covidCaseModel.updateAnCovidCase(db, data.covidCaseId, data.an);
+    res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -261,13 +312,13 @@ async function saveCovidCase(db, req, data) {
       const person = {
         cid: data.cid || null,
         passport: data.passport || null,
-        title_id: data.titleId,
+        title_id: data.titleId || null,
         first_name: data.fname,
         middle_name: data.mname || null,
         last_name: data.lname,
         gender_id: data.genderId || null,
         people_type: data.peopleType || null,
-        birth_date: data.birthDate,
+        birth_date: data.birthDate || null,
         telephone: data.tel || null,
         house_no: data.houseNo || null,
         room_no: data.roomNo || null,
@@ -293,7 +344,7 @@ async function saveCovidCase(db, req, data) {
         current_ampur_name: data.ampurNameCurr || null,
         current_province_name: data.provinceNameCurr || null,
         current_zipcode: data.zipcodeCurr || null,
-        country_code: data.countryId,
+        country_code: data.countryId || null,
       }
 
       let personId: any;
