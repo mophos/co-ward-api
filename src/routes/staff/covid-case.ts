@@ -239,6 +239,9 @@ router.put('/person', async (req: Request, res: Response) => {
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
+    if (error.message.search('p_patients.idx') > -1) {
+      error.message = 'HN ซ้ำ '
+    } 
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });

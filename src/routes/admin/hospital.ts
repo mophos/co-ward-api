@@ -43,10 +43,12 @@ router.put('/:id', async (req: Request, res: Response) => {
   const userId = req.decoded.id || 0;
 
   try {
+    const zone: any = await hospitalModel.getZone(req.db, data.province_code);
+    data.zone_code = zone[0].zone_code;
     if (typeof id === 'number' && typeof data === 'object' && id && data) {
-
       const dupCode: any = await hospitalModel.checkHospCode(req.db, data.hospcode)
       if (dupCode.length == 0 && data.hospcode.length === 5) {
+        console.log(data);
         let rs: any = await hospitalModel.updateHospital(req.db, id, data, userId);
         res.send({ ok: true, rows: rs, code: HttpStatus.OK });
       } else {
