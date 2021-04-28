@@ -78,6 +78,7 @@ export class ReportAllModel {
         'vh.sub_ministry_name',
         'vh.zone_code',
         'vh.province_code',
+        'vh.province_name',
         db.raw(`sum((cl.gcs_id in (1,2,3,4) or cl.gcs_id is null) ) as admit,
         sum(c.status!='ADMIT' and (cl.gcs_id in (1,2,3,4) or cl.gcs_id is null) ) as discharge,
         sum(c.status='REFER' and hr.hospital_type='HOSPITEL'  and (cl.gcs_id in (1,2,3,4) or cl.gcs_id is null)  ) as discharge_hospitel,

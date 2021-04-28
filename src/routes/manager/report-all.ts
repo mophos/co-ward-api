@@ -489,8 +489,9 @@ router.get('/report4/excel', async (req: Request, res: Response) => {
       horizontal: 'right',
     },
   });
+
   try {
-    const rs: any = await model.report4(db, date, sector);
+    let rs: any = await model.report4(db, date, sector);
     ws.cell(1, 1, 2, 1, true).string('โรงพยาบาล');
     ws.cell(1, 2, 1, 5, true).string('Positive ยอดสะสม').style(center);
     ws.cell(1, 6, 1, 9, true).string('PUI ยอดสะสม').style(center);
@@ -563,7 +564,7 @@ router.get('/report4/excel', async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-
+    console.log(error);
     res.send({ ok: false, error: error });
   }
 });
@@ -832,7 +833,7 @@ router.get('/report6-ministry/excel', async (req: Request, res: Response) => {
     },
   });
   try {
-    let rs: any = await model.report6Ministry(db, date, sector);    
+    let rs: any = await model.report6Ministry(db, date, sector);
 
     ws.cell(1, 1, 2, 1, true).string('สังกัด');
     ws.cell(1, 2, 1, 4, true).string('AIIR').style(center);
