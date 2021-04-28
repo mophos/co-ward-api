@@ -13,7 +13,7 @@ export class BedModel {
 
   getBedStockDetails(db: Knex, id: any, hospitalId) {
     return db('wm_bed_details as  bsd')
-      .select('bsd.*', 'b.name','bh.qty as qty_total')
+      .select('bsd.*', 'b.name', 'bh.qty as qty_total')
       .join('b_beds as b', 'b.id', 'bsd.bed_id')
       .leftJoin('b_bed_hospitals as bh', (v) => {
         v.on('b.id', 'bh.bed_id')
@@ -70,5 +70,43 @@ export class BedModel {
       sql.where('ch.province_code', provinceCode)
     }
     return sql
+  }
+
+  getHospBed(db: Knex, provinceCode, zoneCode) {
+    let sql = db('b_hospitals as h')
+      .select('h.id', 'h.hospname', 'h.hosptype_id', 'v.*', 'h.hospital_type')
+      .join('views_bed_hopital_cross as v', 'v.hospital_id', 'h.id')
+      .where('zone_code', zoneCode)
+      .where('province_code', provinceCode);
+    return sql;
+  }
+
+  getSumBed(db: Knex, provinceCode, zoneCode) {
+    let sql = db('b_hospitals as h')
+      .select('h.id', 'h.hospname', 'h.hosptype_id', 'v.*', 'h.hospital_type')
+      .join('view_bed_sum_hospitals as v', 'v.hospital_id', 'h.id')
+      .where('h.zone_code', zoneCode)
+      .where('h.province_code', provinceCode);
+    return sql;
+  }
+
+  saveHeadBw(db: Knex, data) {
+    return db('wm_beds')
+      .insert(data, 'id');
+  }
+
+  removeBeds(db: Knex, hospitalId) {
+    return db('b_bed_hospitals')
+      .where('hospital_id', hospitalId)
+      .del();
+  }
+  saveBeds(db: Knex, data) {
+    return db('b_bed_hospitals')
+      .insert(data);
+  }
+
+  saveDetailB(db: Knex, data) {
+    return db('wm_bed_details')
+      .insert(data);
   }
 }

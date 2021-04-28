@@ -122,7 +122,7 @@ router.put('/edit-info', async (req: Request, res: Response) => {
                     const rs = await patientModel.saveLogsPatient(db, oldHn[0]);
                     console.log(rs, 'patients');
                     paLogs = rs.length > 0 ? true : false;
-                }
+                } 
             }
             if (peLogs || paLogs) {
                 res.send({ ok: true, code: HttpStatus.OK });

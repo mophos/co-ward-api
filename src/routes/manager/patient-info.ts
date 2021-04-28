@@ -5,6 +5,7 @@ import * as HttpStatus from 'http-status-codes';
 
 import { Router, Request, Response } from 'express';
 import { smhModel } from '../../models/smh';
+import moment = require('moment');
 
 const model = new smhModel();
 const covidCaseModel = new CovidCaseModel();
@@ -17,12 +18,9 @@ router.get('/', async (req: Request, res: Response) => {
 
     const rs: any = await model.apiLogin();
     const lab: any = await model.getLabCovidCid(keys, rs.token);
-
     const data: any = [];
     if (lab.ok) {
       for (const v of lab.res) {
-        console.log('lab.res', lab.res);
-
         const obj: any = {};
         obj.tname = v.title_name;
         obj.fname = v.first_name;
@@ -54,11 +52,10 @@ router.get('/', async (req: Request, res: Response) => {
         obj.fname = v.first_name;
         obj.lname = v.last_name;
         obj.tel = v.telephone;
-        obj.cid = v.cid;
+        obj.cid = v.cid === null ? v.passport : v.cid;
 
         if (v.province_code !== null && v.ampur_code !== null && v.tambon_code !== null) {
           const add: any = await model.getAddress(db, v.tambon_code, v.ampur_code, v.province_code);
-
           obj.ampur_name = add[0].ampur_name;
           obj.tambon_name = add[0].tambon_name;
           obj.province_name = add[0].province_name;
@@ -82,7 +79,6 @@ router.get('/cid', async (req: Request, res: Response) => {
   const cid = req.query.cid;
   try {
     const rs: any = await covidCaseModel.getHistoryCID(db, cid);
-    console.log(rs);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
 
   } catch (error) {
