@@ -12,10 +12,12 @@ export class CovidCaseModel {
       .where('pt1.hospital_id', hospitalId)
       .where('c1.is_deleted', 'N')
     if (query) {
-      id.where('pt1.hn', 'like', _query)
-        .orWhere('p1.first_name', 'like', _query)
-        .orWhere('p1.last_name', 'like', _query)
-        .orWhere('c1.status', 'like', _query)
+      id.where((w) => {
+        w.where('pt1.hn', 'like', _query)
+          .orWhere('p1.first_name', 'like', _query)
+          .orWhere('p1.last_name', 'like', _query)
+          .orWhere('c1.status', 'like', _query)
+      });
     }
     id.groupBy('c1.patient_id');
 
@@ -27,10 +29,13 @@ export class CovidCaseModel {
       .where('pt.hospital_id', hospitalId)
       .whereIn('c.id', id)
     if (query) {
-      sql.where('pt.hn', 'like', _query)
-        .orWhere('p.first_name', 'like', _query)
-        .orWhere('p.last_name', 'like', _query)
-        .orWhere('c.status', 'like', _query)
+      sql.where((w) => {
+        w.where('pt.hn', 'like', _query)
+          .orWhere('p.first_name', 'like', _query)
+          .orWhere('p.last_name', 'like', _query)
+          .orWhere('c.status', 'like', _query)
+
+      })
     }
     sql.where('c.is_deleted', 'N')
       .orderBy('c.date_admit', 'DESC');
@@ -450,16 +455,16 @@ export class CovidCaseModel {
 
   getGcs(db, hospitalId, hospitalType) {
 
-//     SELECT
-// 	g.*,
-// 	count(*) AS qty -- 	`pd`.`hospital_id` AS `hos
-// FROM
-// 	`view_covid_case_last` `pd`
-// 	JOIN `b_gcs` `g` ON `g`.`id` = `pd`.`gcs_id` 
-// WHERE
-// 	`pd`.`status` = 'ADMIT' -- 	and pd.hospital_id = ''
-// GROUP BY
-// 	`g`.`id`
+    //     SELECT
+    // 	g.*,
+    // 	count(*) AS qty -- 	`pd`.`hospital_id` AS `hos
+    // FROM
+    // 	`view_covid_case_last` `pd`
+    // 	JOIN `b_gcs` `g` ON `g`.`id` = `pd`.`gcs_id` 
+    // WHERE
+    // 	`pd`.`status` = 'ADMIT' -- 	and pd.hospital_id = ''
+    // GROUP BY
+    // 	`g`.`id`
     const view = db('view_covid_case_last as v')
       .select('v.hospital_id', 'v.gcs_id')
       .count('* as qty')
