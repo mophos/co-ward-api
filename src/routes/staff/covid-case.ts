@@ -300,7 +300,6 @@ router.post('/sd', async (req: Request, res: Response) => {
 
 async function saveCovidCase(db, req, data) {
   const hospitalId = req.decoded.hospitalId;
-  console.log('hospitalId', hospitalId);
 
   const userId = req.decoded.id;
 
@@ -466,7 +465,6 @@ async function saveCovidCase(db, req, data) {
             patientId = sp[0];
           }
         }
-        console.log(patient);
 
         const _data: any = {
           patient_id: patientId,
@@ -553,7 +551,6 @@ async function savePerson(db, person) {
   const rs = await covidCaseModel.savePerson(db, person);
   if (rs[0].insertId == 0) {
     // update
-    console.log('update personId', personId);
     personId = rs[0].person_id;
   } else {
     personId = rs[0].insertId;
@@ -1035,7 +1032,6 @@ router.post('/requisition', async (req: Request, res: Response) => {
     dataReqId = Array.isArray(dataReqId) ? dataReqId : [dataReqId];
     const _data: any = [];
     for (const v of data) {
-      console.log(v);
 
       if (v.stock_qty - v.requisition_qty < 0) {
       } else {
@@ -1083,7 +1079,6 @@ router.post('/update/old-patient', async (req: Request, res: Response) => {
         entry_date: v.date,
         is_requisition: 'Y'
       }
-      console.log(detail);
       await covidCaseModel.saveCovidCaseDetailReq(db, detail);
     }
 

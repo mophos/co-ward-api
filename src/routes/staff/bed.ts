@@ -56,14 +56,11 @@ router.get('/save/bed/:date', async (req: Request, res: Response) => {
 
 router.get('/hosp-bed', async (req: Request, res: Response) => {
   const db = req.db;
-  console.log(3);
 
   const provinceCode = req.decoded.provinceCode;
   const zoneCode = req.decoded.zone_code;
   try {
     // console.log(1);
-
-    console.log(req.decoded);
 
     const bed = await bedModel.getHospBed(db, provinceCode, zoneCode);
     const sum = await bedModel.getSumBed(db, provinceCode, zoneCode);
