@@ -29,7 +29,7 @@ export class ReportModel {
       .where('v.status', 'ADMIT')
       .groupBy('h.id')
       .orderBy('h.zone_code')
-      .orderBy('h.province_code')
+      .orderBy('h.province_code');
   }
   getHeadGcs(db: Knex, date, provinces) {
     return db('temp_views_case_hospital_date_cross as v')
@@ -47,7 +47,7 @@ export class ReportModel {
       .whereIn('h.province_code', provinces)
       .groupBy('h.id')
       .orderBy('h.zone_code')
-      .orderBy('h.province_code')
+      .orderBy('h.province_code');
   }
 
   getGcs(db: Knex, date) {
@@ -58,12 +58,12 @@ export class ReportModel {
       // .join('b_hospitals AS bh', 'bh.id', 'pp.hospital_id')
       // .leftJoin('b_gcs as bg', 'bg.id', 'vcl.gcs_id')
       .where('vcl.entry_date', date)
-      .where('vcl.status', 'ADMIT')
+      .where('vcl.status', 'ADMIT');
     // .groupBy('pp.hospital_id', )
   }
 
   getBad(db: Knex) {
-    return db('views_bed_hospitals AS vbh')
+    return db('views_bed_hospitals AS vbh');
   }
 
   getBed(db: Knex, provinceCode) {
@@ -71,7 +71,7 @@ export class ReportModel {
       .max('updated_entry as updated_entry')
       .whereRaw('hospital_id=vc.hospital_id')
       .whereNotNull('updated_entry')
-      .as('updated_entry')
+      .as('updated_entry');
 
     let sub = db('b_hospitals as vh')
       .select('vh.id as hospital_id', 'vh.hospname', 'bs.name as sub_ministry_name', db.raw(`
@@ -88,7 +88,7 @@ export class ReportModel {
       .where('vh.province_code', provinceCode)
       .whereIn('vh.hosptype_code', ['05', '06', '07', '11', '12', '15'])
       .groupBy('vh.id')
-      .as('sub')
+      .as('sub');
 
     let sql =
       db('b_hospitals  as vh')
@@ -99,7 +99,7 @@ export class ReportModel {
         .where('vh.province_code', provinceCode)
         .whereIn('vh.hosptype_code', ['05', '06', '07', '11', '12', '15'])
         .orderBy('bs.name')
-        .orderBy('vh.hospname')
+        .orderBy('vh.hospname');
 
     // console.log(sql.toString());
 
@@ -110,7 +110,7 @@ export class ReportModel {
   getUseBed(db: Knex) {
     let sql = db('temp_report_bed as t')
       .select('t.*', 'h.level', 'h.hospital_type')
-      .join('b_hospitals as h', 'h.id', 't.hospital_id')
+      .join('b_hospitals as h', 'h.id', 't.hospital_id');
     return sql;
     // return db('views_bed_hospitals AS vbh')
   }
@@ -124,25 +124,25 @@ export class ReportModel {
       .join('b_hospitals as vh', 'vh.id', 'vc.hospital_id')
       // .whereIn('vh.hosptype_code', ['01', '02', '05', '06', '07', '11', '12'])
       // .where('vh.province_code', provinceCode)
-      .orderBy('vh.province_code')
+      .orderBy('vh.province_code');
   }
 
   getMedicals(db: Knex) {
     return db('views_medical_supplies_hospital_cross AS vrh')
       .join('b_hospitals as vh', 'vh.id', 'vrh.hospital_id')
-      .orderBy('vh.province_code')
+      .orderBy('vh.province_code');
   }
 
   getMedicalCross(db: Knex) {
-    return db('views_requisition_hospital_cross')
+    return db('views_requisition_hospital_cross');
   }
 
   getProfessional(db: Knex) {
-    return db('views_professional_hospitals AS vph')
+    return db('views_professional_hospitals AS vph');
   }
 
   getProfessionalCross(db: Knex) {
-    return db('view_professional_hospital_cross')
+    return db('view_professional_hospital_cross');
   }
 
   getSupplies(db: Knex, date, provinceCode, zoneCode: any[]) {
@@ -152,12 +152,12 @@ export class ReportModel {
       .select('ws.hospital_id')
       .groupBy('ws.hospital_id')
       .where('ws.entry_date', '<=', date)
-      .as('supplies')
+      .as('supplies');
     if (zoneCode.length) {
-      supplies.whereIn('h.zone_code', zoneCode)
+      supplies.whereIn('h.zone_code', zoneCode);
     }
     if (provinceCode) {
-      supplies.where('h.province_code', provinceCode)
+      supplies.where('h.province_code', provinceCode);
     }
 
 
@@ -172,16 +172,16 @@ export class ReportModel {
         v.on('sd.entry_date', 'supplies.entry_date')
       })
 
-      .whereIn('h.hosptype_code', ['01', '05', '06', '07', '11', '12', '15', '19'])
+      .whereIn('h.hosptype_code', ['01', '05', '06', '07', '11', '12', '15', '19']);
     if (zoneCode.length) {
-      sql.whereIn('h.zone_code', zoneCode)
+      sql.whereIn('h.zone_code', zoneCode);
     }
     if (provinceCode) {
-      sql.where('h.province_code', provinceCode)
+      sql.where('h.province_code', provinceCode);
     }
     sql.orderBy('h.zone_code')
       .orderBy('h.province_code')
-      .orderBy('h.hospcode')
+      .orderBy('h.hospcode');
     // console.log(sql.toString());
 
     return sql;
@@ -189,32 +189,32 @@ export class ReportModel {
 
   getHospital(db: Knex) {
     return db('b_hospitals AS bh')
-      .whereIn('bh.hosptype_code', ['01', '05', '06', '07', '11', '12'])
+      .whereIn('bh.hosptype_code', ['01', '05', '06', '07', '11', '12']);
   }
 
   getHospitalAll(db: Knex) {
-    return db('b_hospitals AS bh')
+    return db('b_hospitals AS bh');
     // .whereIn('bh.hosptype_code', ['01', '05', '06', '07', '11', '12'])
   }
 
   getHospitalByType(db: Knex) {
     return db('b_hospitals AS bh')
       .join('views_hospital_types as vht', 'vht.hospcode', 'bh.hospcode')
-      .where('vht.type', 'B')
+      .where('vht.type', 'B');
   }
 
   getHospitalDrugs(db: Knex) {
     return db('b_hospitals AS bh')
-      .whereIn('bh.hosptype_code', ['01', '05', '06', '07', '11', '15'])
+      .whereIn('bh.hosptype_code', ['01', '05', '06', '07', '11', '15']);
   }
 
   getProvince(db: Knex, zoneCode = null, provinceCode = null) {
-    const sql = db('b_province')
+    const sql = db('b_province');
     if (zoneCode) {
-      sql.where('zone_code', zoneCode)
+      sql.where('zone_code', zoneCode);
     }
     if (provinceCode) {
-      sql.where('code', provinceCode)
+      sql.where('code', provinceCode);
     }
     return sql;
   }
@@ -229,14 +229,14 @@ export class ReportModel {
       .where('h.zone_code', zoneCode)
       // .where('c.status', 'ADMIT')
       .groupBy('h.id')
-      .orderBy('h.province_name')
+      .orderBy('h.province_name');
   }
 
   getCovidCase(db: Knex) {
     return db('p_covid_cases as p')
       .join('p_patients as pp', 'pp.id', 'p.patient_id')
       .join('view_case_lasted as pc', 'pc.covid_case_id', 'p.id')
-      .join('b_gcs as g', 'g.id', 'pc.gcs_id')
+      .join('b_gcs as g', 'g.id', 'pc.gcs_id');
     // .where('p.status', 'ADMIT')
   }
 
@@ -271,7 +271,7 @@ export class ReportModel {
       .where((v) => {
         v.where('h.hospname', 'like', '%' + query + '%')
         v.orWhere('h.hospcode', 'like', '%' + query + '%')
-      })
+      });
   }
 
   getSupplieZone(db: Knex, date: any, query: any, zoneCode) {
@@ -306,7 +306,7 @@ export class ReportModel {
       .where((v) => {
         v.where('h.hospname', 'like', '%' + query + '%')
         v.orWhere('h.hospcode', 'like', '%' + query + '%')
-      })
+      });
   }
 
   getTotalSupplie(db: Knex, type) {
@@ -342,7 +342,7 @@ export class ReportModel {
       .whereNot('zone_code', null)
       .whereNot('zone_code', '-')
       .groupBy('zone_code')
-      .orderBy('zone_code')
+      .orderBy('zone_code');
   }
 
   getGenerics(db: Knex, type) {
@@ -376,7 +376,7 @@ export class ReportModel {
       .join('b_gcs as bg', 'bg.id', 'vcl.gcs_id')
       .where('vcl.entry_date', date)
       .where('bh.code', provinceCode)
-      .groupBy('vcl.gcs_id')
+      .groupBy('vcl.gcs_id');
   }
 
   beds(db: Knex, date, provinceCode) {
@@ -388,7 +388,7 @@ export class ReportModel {
       .join('b_hospitals as vh', 'vh.id', 'vc.hospital_id')
       .whereIn('vh.hosptype_code', ['01', '02', '05', '06', '07', '11', '12'])
       .where('vh.province_code', provinceCode)
-      .orderBy('vh.province_code')
+      .orderBy('vh.province_code');
   }
 
   provinceCaseDate(db: Knex, date) {
@@ -400,9 +400,9 @@ export class ReportModel {
       .sum('v.asymptomatic as asymptomatic')
       .leftJoin('b_hospitals as h', 'h.province_code', 'p.code')
       .leftJoin('views_case_hospital_date_cross as v', (v) => {
-        v.on('v.hospital_id', 'h.id')
-        v.on('v.entry_date', db.raw(`'${date}'`))
-        v.on('v.status', db.raw(`'ADMIT'`))
+        v.on('v.hospital_id', 'h.id');
+        v.on('v.entry_date', db.raw(`'${date}'`));
+        v.on('v.status', db.raw(`'ADMIT'`));
       })
       .groupBy('p.code')
       .orderBy('h.zone_code')
@@ -414,21 +414,21 @@ export class ReportModel {
       .select('d1', 'd2', 'd3', 'd4', 'd5', 'd7', 'd8', 'hn', 'an', 'hospital_id', 'updated_entry_last', 'days',
         'hospname', 'hospcode', 'zone_code', 'province_name', 'date_admit', 'gcs_name', 'bed_name', 'medical_supplies_name',
         'first_name', 'last_name', 'cid', 'sat_id', 'timestamp'
-      )
+      );
     if (showPersons) {
-      sql.select('first_name', 'last_name', 'cid', 'sat_id', 'sex', 'age')
+      sql.select('first_name', 'last_name', 'cid', 'sat_id', 'sex', 'age');
     }
-    sql.limit(limit)
+    sql.limit(limit);
     sql.offset(offset)
       .orderBy('zone_code')
       .orderBy('province_name')
-      .orderBy('hospname')
+      .orderBy('hospname');
     return sql;
   }
 
   admitConfirmCaseTotal(db: Knex) {
     let sql = db('temp_report_admit_comfirm_case')
-      .count('* as total')
+      .count('* as total');
     return sql;
   }
 
@@ -438,19 +438,19 @@ export class ReportModel {
       .select('d1', 'd2', 'd3', 'd4', 'd5', 'd7', 'd8', 'hn', 'an', 'hospital_id', 'updated_entry_last', 'days',
         'hospname', 'hospcode', 'zone_code', 'province_name', 'date_admit', 'gcs_name', 'bed_name', 'medical_supplies_name',
         'first_name', 'last_name', 'cid', 'sat_id', 'timestamp'
-      )
+      );
     if (showPersons) {
-      sql.select('first_name', 'last_name', 'cid', 'sat_id')
+      sql.select('first_name', 'last_name', 'cid', 'sat_id');
     }
-    sql.limit(limit)
-    sql.offset(offset)
+    sql.limit(limit);
+    sql.offset(offset);
     // console.log(sql.toString());
     return sql;
   }
 
   admitPuiCaseTotal(db: Knex) {
     let sql = db('temp_report_admit_pui_case')
-      .count('* as total')
+      .count('* as total');
     return sql;
   }
 
@@ -460,10 +460,10 @@ export class ReportModel {
       .select('c.d1', 'c.d2', 'c.d3', 'c.d4', 'c.d5', 'c.d7', 'c.d8', 'c.hn', 'c.an', 'c.hospital_id', 'c.updated_entry_last', 'c.days',
         'c.hospname', 'c.hospcode', 'c.zone_code', 'c.province_name', 'c.date_admit', 'c.gcs_name', 'c.bed_name', 'c.medical_supplies_name',
         'c.first_name', 'c.last_name', 'c.cid', 'c.sat_id', 'c.timestamp'
-      )
-    sql.join('b_hospitals as h', 'h.id', 'c.hospital_id')
-    sql.whereIn('h.province_code', province)
-    sql.orderBy('h.province_name')
+      );
+    sql.join('b_hospitals as h', 'h.id', 'c.hospital_id');
+    sql.whereIn('h.province_code', province);
+    sql.orderBy('h.province_name');
     // console.log(sql.toString());
     return sql;
   }
@@ -517,12 +517,12 @@ export class ReportModel {
     h.province_code 
   ORDER BY
     h.zone_code ASC,
-    h.province_code ASC;`
-    return db.raw(sql, [province])
+    h.province_code ASC;`;
+    return db.raw(sql, [province]);
   }
 
   admitConfirmCaseProvice(db: Knex, zoneCode, provinceCode = null, showPersons = false) {
-    const subCioCheck = db('p_cio_check_confirm').groupBy('covid_case_detail_id').max('id as id')
+    const subCioCheck = db('p_cio_check_confirm').groupBy('covid_case_detail_id').max('id as id');
     const cioCheck = db('p_cio_check_confirm as ci').whereIn('ci.id', subCioCheck).as('cc');
 
     let sql = db('temp_report_admit_comfirm_case as t')
@@ -537,9 +537,9 @@ export class ReportModel {
       .whereIn('t.gcs_id', [1, 2, 3, 4])
       .orderBy('h.province_code')
       .orderBy('t.hospname')
-      .orderBy('t.covid_case_id')
+      .orderBy('t.covid_case_id');
     if (showPersons) {
-      sql.select('t.first_name', 't.last_name', 't.cid', 't.sat_id')
+      sql.select('t.first_name', 't.last_name', 't.cid', 't.sat_id');
     }
 
     if (provinceCode) {
@@ -554,17 +554,17 @@ export class ReportModel {
       .insert(data);
   }
   admitConfirmCaseSummary(db: Knex) {
-    let sql = db('temp_report_admit_comfirm_case_summary')
+    let sql = db('temp_report_admit_comfirm_case_summary');
     return sql;
   }
   admitPuiCaseSummary(db: Knex) {
-    let sql = db('temp_report_admit_pui_case_summary')
+    let sql = db('temp_report_admit_pui_case_summary');
     return sql;
   }
 
   admitConfirmCaseSummaryProvince(db: Knex, zoneCode, provinceCode = null) {
     let sql = db('temp_report_admit_comfirm_case_summary_province as s')
-      .where('s.zone_code', zoneCode)
+      .where('s.zone_code', zoneCode);
     if (provinceCode) {
       sql.where('s.province_code', provinceCode);
     }
@@ -581,7 +581,7 @@ export class ReportModel {
       .join('b_hospitals as b', 'b.id', 'v.hospital_id')
       .whereIn('b.hosptype_code', ['15', '05', '06', '07', '11', '12', '19', '18'])
       .groupBy('b.zone_code')
-      .orderBy('b.zone_code')
+      .orderBy('b.zone_code');
     // console.log(sql.toString());
 
     return sql;
@@ -595,11 +595,11 @@ export class ReportModel {
       .orderBy('b.zone_code')
       .orderBy('b.province_name')
       .orderBy('bs.name')
-      .whereIn('b.hosptype_code', ['15', '05', '06', '07', '11', '12', '19', '18'])
+      .whereIn('b.hosptype_code', ['15', '05', '06', '07', '11', '12', '19', '18']);
     if (filter == 'register') {
-      sql.whereNotNull('register_last_date')
+      sql.whereNotNull('register_last_date');
     } else if (filter == 'nonregister') {
-      sql.whereNull('register_last_date')
+      sql.whereNull('register_last_date');
     }
     // console.log(sql.toString());
 
@@ -767,7 +767,7 @@ export class ReportModel {
     GROUP BY
       lh.zone_code 
     ORDER BY
-      lh.zone_code`)
+      lh.zone_code`);
   }
 
   localQuarantineApi() {
@@ -833,7 +833,7 @@ export class ReportModel {
       .whereIn('pc.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
       .whereIn('vl.gcs_id', [1, 2, 3, 4])
       .whereBetween('pc.date_discharge', [`${date} 00:00:00`, `${date} 23:59:00`])
-      .orderBy('h.zone_code').orderBy('h.province_name').orderBy('h.hospname')
+      .orderBy('h.zone_code').orderBy('h.province_name').orderBy('h.hospname');
   }
 
   dischargeCaseEntryDate(db: Knex, date) {
@@ -845,7 +845,7 @@ export class ReportModel {
       .leftJoin('b_hospitals as rh', 'rh.id', 'pc.hospital_id_refer')
       .whereIn('vc.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
       .whereBetween('vc.entry_date', [`${date} 00:00:00`, `${date} 23:59:00`])
-      .orderBy('bh.zone_code').orderBy('bh.province_name').orderBy('bh.hospname')
+      .orderBy('bh.zone_code').orderBy('bh.province_name').orderBy('bh.hospname');
   }
 
   labPositive(db: Knex) {
@@ -853,5 +853,41 @@ export class ReportModel {
       .select('l.*')
       .rightJoin('lab_positive as l', 'c.sat_id', 'l.sat_id')
       .whereNull('c.id');
+  }
+
+
+  getCaseDc(db: Knex, showPersons = false, query = null, zoneCode, provinceCode = null) {
+    const _query = `%${query}%`;
+    const sql = db('view_covid_case_last as c')
+      .select('c.id as covid_case_id', 'h.hospname','h.province_name', 'c.an', 'c.confirm_date', 'c.status', 'c.date_admit', 'c.date_discharge', 'pt.hn')
+      .join('p_patients as pt', 'c.patient_id', 'pt.id')
+      .join('b_hospitals AS h', 'h.id', 'c.hospital_id')
+      .whereIn('c.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
+      // .where('pt.hospital_id', hospitalId)
+      .where('h.zone_code', zoneCode);
+    if (showPersons) {
+      sql.select('pt.person_id', 'p.*', 't.name as title_name')
+        .join('p_persons as p', 'pt.person_id', 'p.id')
+        .leftJoin('um_titles as t', 'p.title_id', 't.id');
+    }
+    if (provinceCode) {
+      sql.where('h.province_code', provinceCode);
+    }
+    if (query) {
+      sql.where((w) => {
+        w.where('pt.hn', 'like', _query)
+        .orWhere('h.hospname', 'like', _query)
+        .orWhere('h.province_name', 'like', _query)
+        .orWhere('c.status', 'like', _query);
+        if (showPersons) {
+          w.orWhere('p.first_name', 'like', _query)
+            .orWhere('p.last_name', 'like', _query);
+        }
+      });
+    }
+
+    sql.orderBy('c.date_admit', 'DESC');
+    return sql;
+    // .groupBy('pt.id')
   }
 }
