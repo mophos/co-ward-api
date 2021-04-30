@@ -1877,6 +1877,8 @@ router.get('/admit-confirm-case', async (req: Request, res: Response) => {
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
   const provinceCode = req.decoded.provinceCode;
+  const limit = +req.query.limit || 1000;
+  const offset = +req.query.offset || 0;
   // const showPersons = true;
   const right = req.decoded.rights;
   // console.log(right);
@@ -1885,8 +1887,39 @@ router.get('/admit-confirm-case', async (req: Request, res: Response) => {
 
   try {
     if (type == 'MANAGER') {
-      const rs: any = await model.admitConfirmCase(db, showPersons);
+      const rsTotal: any = await model.admitConfirmCaseTotal(db);
+      const rs: any = await model.admitConfirmCase(db, showPersons, limit, offset);
+      res.send({ ok: true, rows: rs, total: rsTotal[0].total, code: HttpStatus.OK });
+    } else if (providerType == 'ZONE') {
+      const rs: any = await model.admitConfirmCaseProvice(db, zoneCode, null, showPersons);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    } else if (providerType == 'SSJ') {
+      const rs: any = await model.admitConfirmCaseProvice(db, zoneCode, provinceCode, showPersons);
+      res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    } else {
+      res.send({ ok: false, code: HttpStatus.UNAUTHORIZED, error: HttpStatus.UNAUTHORIZED });
+
+    }
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/admit-confirm-case/total', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const type = req.decoded.type;
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
+  const provinceCode = req.decoded.provinceCode;
+  const right = req.decoded.rights;
+
+  const showPersons = _.findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 || _.findIndex(right, { name: 'STAFF_VIEW_PATIENT_INFO' }) > -1 ? true : false;
+
+  try {
+    if (type == 'MANAGER') {
+      const rs: any = await model.admitConfirmCaseTotal(db);
+      res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
     } else if (providerType == 'ZONE') {
       const rs: any = await model.admitConfirmCaseProvice(db, zoneCode, null, showPersons);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
@@ -1909,6 +1942,8 @@ router.get('/admit-pui-case', async (req: Request, res: Response) => {
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
   const provinceCode = req.decoded.provinceCode;
+  const limit = +req.query.limit || 10000;
+  const offset = +req.query.offset || 0;
   // const showPersons = true;
   const right = req.decoded.rights;
   // console.log(right);
@@ -1917,8 +1952,9 @@ router.get('/admit-pui-case', async (req: Request, res: Response) => {
 
   try {
     if (type == 'MANAGER') {
-      const rs: any = await model.admitPuiCase(db, showPersons);
-      res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+      const rs: any = await model.admitPuiCase(db, showPersons, limit, offset);
+      const rsTotal: any = await model.admitPuiCaseTotal(db);
+      res.send({ ok: true, rows: rs, total: rsTotal[0].total, code: HttpStatus.OK });
       // } else if (providerType == 'ZONE') {
       //   const rs: any = await model.admitConfirmCaseProvice(db, zoneCode, null, showPersons);
       //   res.send({ ok: true, rows: rs, code: HttpStatus.OK });
@@ -2031,6 +2067,231 @@ router.get('/check-admit-confirm-case/export', async (req: Request, res: Respons
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
+
+router.get('/admit-confirm-case/export', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const zoneCode = req.decoded.zone_code;
+  const right = req.decoded.rights;
+  const showPersons = _.findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 ? true : false;
+
+  try {
+    var wb = new excel4node.Workbook();
+    const rs: any = await model.admitConfirmCaseSummary(db);
+    var ws1 = wb.addWorksheet('สรุป');
+    ws1.cell(1, 1).string('เขต');
+    ws1.cell(1, 2).string('รวม');
+    ws1.cell(1, 3).string('Severe');
+    ws1.cell(1, 4).string('moderate');
+    ws1.cell(1, 5).string('mild');
+    ws1.cell(1, 6).string('asymptomatic');
+    ws1.cell(1, 7).string('aiir');
+    ws1.cell(1, 8).string('modified_aiir');
+    ws1.cell(1, 9).string('isolate');
+    ws1.cell(1, 10).string('cohort');
+    ws1.cell(1, 11).string('Hospitel');
+    ws1.cell(1, 12).string('invasive');
+    ws1.cell(1, 13).string('noninvasive');
+    ws1.cell(1, 14).string('high_flow');
+    ws1.cell(1, 15).string('Darunavir 600 mg.');
+    ws1.cell(1, 16).string('Lopinavir 200 mg./Ritonavir 50 mg.');
+    ws1.cell(1, 17).string('Ritonavir 100 mg.');
+    ws1.cell(1, 18).string('Azithromycin 250 mg.');
+    ws1.cell(1, 19).string('Favipiravi(คน)');
+    let row = 2;
+    for (const l of rs) {
+      ws1.cell(row, 1).number(toNumber(+l.zone_code || 0));
+      ws1.cell(row, 2).number(toNumber(l.confirm || 0));
+      ws1.cell(row, 3).number(toNumber(l.severe || 0));
+      ws1.cell(row, 4).number(toNumber(l.moderate || 0));
+      ws1.cell(row, 5).number(toNumber(l.mild || 0));
+      ws1.cell(row, 6).number(toNumber(l.asymptomatic || 0));
+      ws1.cell(row, 7).number(toNumber(l.aiir || 0));
+      ws1.cell(row, 8).number(toNumber(l.modified_aiir || 0));
+      ws1.cell(row, 9).number(toNumber(l.isolate || 0));
+      ws1.cell(row, 10).number(toNumber(l.cohort || 0));
+      ws1.cell(row, 11).number(toNumber(l.hospitel || 0));
+      ws1.cell(row, 12).number(toNumber(l.invasive || 0));
+      ws1.cell(row, 13).number(toNumber(l.noninvasive || 0));
+      ws1.cell(row, 14).number(toNumber(l.high_flow || 0));
+      ws1.cell(row, 15).number(toNumber(l.d3 || 0));
+      ws1.cell(row, 16).number(toNumber(l.d4 || 0));
+      ws1.cell(row, 17).number(toNumber(l.d5 || 0));
+      ws1.cell(row, 18).number(toNumber(l.d7 || 0));
+      ws1.cell(row, 19).number(toNumber(l.d8 || 0));
+      row++;
+    }
+    var ws2 = wb.addWorksheet('รายคน');
+    ws2.row(1).filter();
+    ws2.cell(1, 1).string('เขต');
+    ws2.cell(1, 2).string('จังหวัด');
+    ws2.cell(1, 3).string('โรงพยาบาล');
+    ws2.cell(1, 4).string('HN');
+    ws2.cell(1, 5).string('AN');
+    ws2.cell(1, 6).string('วันที่ ADMIT');
+    ws2.cell(1, 7).string('ความรุนแรง');
+    ws2.cell(1, 8).string('เตียง');
+    ws2.cell(1, 9).string('เครื่องช่วยหายใจ');
+    ws2.cell(1, 10).string('วันที่บันทึกล่าสุด');
+    ws2.cell(1, 11).string('ไม่ได้บันทึกมา');
+    ws2.cell(1, 12).string('Darunavir 600 mg.');
+    ws2.cell(1, 13).string('Lopinavir 200 mg./Ritonavir 50 mg.');
+    ws2.cell(1, 14).string('Ritonavir 100 mg.');
+    ws2.cell(1, 15).string('Azithromycin 250 mg.');
+    ws2.cell(1, 16).string('Favipiravi');
+
+    row = 2;
+    const rs2: any = await model.admitConfirmCase(db, showPersons, 1000000, 0);
+    // const rs2 = [];
+    for (const i of rs2) {
+      ws2.cell(row, 1).string(toString(i.zone_code));
+      ws2.cell(row, 2).string(toString(i.province_name));
+      ws2.cell(row, 3).string(toString(i.hospname));
+      ws2.cell(row, 4).string(toString(i.hn));
+      ws2.cell(row, 5).string(toString(i.an));
+      ws2.cell(row, 6).string(toString(moment(i.date_admit).format('DD-MM-YYYY')));
+      ws2.cell(row, 7).string(toString(i.gcs_name));
+      ws2.cell(row, 8).string(toString(i.bed_name));
+      ws2.cell(row, 9).string(toString(i.medical_supplies_name));
+      ws2.cell(row, 10).string(toString(moment(i.updated_entry_last).format('DD-MM-YYYY')));
+      ws2.cell(row, 11).string(toString(i.days));
+      ws2.cell(row, 12).string(toString(i.d3 > 0 ? '/' : ''));
+      ws2.cell(row, 13).string(toString(i.d4 > 0 ? '/' : ''));
+      ws2.cell(row, 14).string(toString(i.d5 > 0 ? '/' : ''));
+      ws2.cell(row, 15).string(toString(i.d7 > 0 ? '/' : ''));
+      ws2.cell(row, 16).string(toString(i.d8 > 0 ? '/' : ''));
+      row++;
+    }
+    fse.ensureDirSync(process.env.TMP_PATH);
+    let filename = `cio_check` + moment().format('x') + '.xlsx'
+    let filenamePath = path.join(process.env.TMP_PATH, filename);
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/admit-pui-case/export', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const zoneCode = req.decoded.zone_code;
+  const right = req.decoded.rights;
+  const showPersons = _.findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 ? true : false;
+
+  try {
+    var wb = new excel4node.Workbook();
+    const rs: any = await model.admitPuiCaseSummary(db);
+    var ws1 = wb.addWorksheet('สรุป');
+    ws1.cell(1, 1).string('เขต');
+    ws1.cell(1, 2).string('รวม');
+    ws1.cell(1, 3).string('aiir');
+    ws1.cell(1, 4).string('modified_aiir');
+    ws1.cell(1, 5).string('isolate');
+    ws1.cell(1, 6).string('cohort');
+    ws1.cell(1, 7).string('Hospitel');
+    ws1.cell(1, 8).string('invasive');
+    ws1.cell(1, 9).string('noninvasive');
+    ws1.cell(1, 10).string('high_flow');
+    ws1.cell(1, 11).string('Darunavir 600 mg.');
+    ws1.cell(1, 12).string('Lopinavir 200 mg./Ritonavir 50 mg.');
+    ws1.cell(1, 13).string('Ritonavir 100 mg.');
+    ws1.cell(1, 14).string('Azithromycin 250 mg.');
+    ws1.cell(1, 15).string('Favipiravi(คน)');
+    let row = 2;
+    for (const l of rs) {
+      ws1.cell(row, 1).number(toNumber(+l.zone_code || 0));
+      ws1.cell(row, 2).number(toNumber(l.pui || 0));
+      ws1.cell(row, 3).number(toNumber(l.aiir || 0));
+      ws1.cell(row, 4).number(toNumber(l.modified_aiir || 0));
+      ws1.cell(row, 5).number(toNumber(l.isolate || 0));
+      ws1.cell(row, 6).number(toNumber(l.cohort || 0));
+      ws1.cell(row, 7).number(toNumber(l.hospitel || 0));
+      ws1.cell(row, 8).number(toNumber(l.invasive || 0));
+      ws1.cell(row, 9).number(toNumber(l.noninvasive || 0));
+      ws1.cell(row, 10).number(toNumber(l.high_flow || 0));
+      ws1.cell(row, 11).number(toNumber(l.d3 || 0));
+      ws1.cell(row, 12).number(toNumber(l.d4 || 0));
+      ws1.cell(row, 13).number(toNumber(l.d5 || 0));
+      ws1.cell(row, 14).number(toNumber(l.d7 || 0));
+      ws1.cell(row, 15).number(toNumber(l.d8 || 0));
+      row++;
+    }
+    var ws2 = wb.addWorksheet('รายคน');
+    ws2.row(1).filter();
+    ws2.cell(1, 1).string('เขต');
+    ws2.cell(1, 2).string('จังหวัด');
+    ws2.cell(1, 3).string('โรงพยาบาล');
+    ws2.cell(1, 4).string('HN');
+    ws2.cell(1, 5).string('AN');
+    ws2.cell(1, 6).string('วันที่ ADMIT');
+    ws2.cell(1, 7).string('ความรุนแรง');
+    ws2.cell(1, 8).string('เตียง');
+    ws2.cell(1, 9).string('เครื่องช่วยหายใจ');
+    ws2.cell(1, 10).string('วันที่บันทึกล่าสุด');
+    ws2.cell(1, 11).string('ไม่ได้บันทึกมา');
+    ws2.cell(1, 12).string('Darunavir 600 mg.');
+    ws2.cell(1, 13).string('Lopinavir 200 mg./Ritonavir 50 mg.');
+    ws2.cell(1, 14).string('Ritonavir 100 mg.');
+    ws2.cell(1, 15).string('Azithromycin 250 mg.');
+    ws2.cell(1, 16).string('Favipiravi');
+
+    row = 2;
+    const rs2: any = await model.admitPuiCase(db, showPersons, 1000000, 0);
+    // const rs2 = [];
+    for (const i of rs2) {
+      ws2.cell(row, 1).string(toString(i.zone_code));
+      ws2.cell(row, 2).string(toString(i.province_name));
+      ws2.cell(row, 3).string(toString(i.hospname));
+      ws2.cell(row, 4).string(toString(i.hn));
+      ws2.cell(row, 5).string(toString(i.an));
+      ws2.cell(row, 6).string(toString(moment(i.date_admit).format('DD-MM-YYYY')));
+      ws2.cell(row, 7).string(toString(i.gcs_name));
+      ws2.cell(row, 8).string(toString(i.bed_name));
+      ws2.cell(row, 9).string(toString(i.medical_supplies_name));
+      ws2.cell(row, 10).string(toString(moment(i.updated_entry_last).format('DD-MM-YYYY')));
+      ws2.cell(row, 11).string(toString(i.days));
+      ws2.cell(row, 12).string(toString(i.d3 > 0 ? '/' : ''));
+      ws2.cell(row, 13).string(toString(i.d4 > 0 ? '/' : ''));
+      ws2.cell(row, 14).string(toString(i.d5 > 0 ? '/' : ''));
+      ws2.cell(row, 15).string(toString(i.d7 > 0 ? '/' : ''));
+      ws2.cell(row, 16).string(toString(i.d8 > 0 ? '/' : ''));
+      row++;
+    }
+    fse.ensureDirSync(process.env.TMP_PATH);
+    let filename = `cio_check` + moment().format('x') + '.xlsx'
+    let filenamePath = path.join(process.env.TMP_PATH, filename);
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 
 router.get('/admit-confirm-case-summary', async (req: Request, res: Response) => {
   const db = req.dbReport;

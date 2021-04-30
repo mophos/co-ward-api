@@ -14,6 +14,7 @@ export class smhModel {
       .join('um_titles as t', 't.id', 'p.title_id')
       .where((v) => {
         v.where('p.cid', 'like', '%' + keys + '%')
+        v.orWhere('p.passport', 'like', '%' + keys + '%')
         v.orWhere('p.first_name', 'like', '%' + keys + '%')
         v.orWhere('p.last_name', 'like', '%' + keys + '%')
       });

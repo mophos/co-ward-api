@@ -54,6 +54,28 @@ router.get('/save/bed/:date', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/hosp-bed', async (req: Request, res: Response) => {
+  const db = req.db;
+
+  const provinceCode = req.decoded.provinceCode;
+  const zoneCode = req.decoded.zone_code;
+  try {
+    // console.log(1);
+
+    const bed = await bedModel.getHospBed(db, provinceCode, zoneCode);
+    const sum = await bedModel.getSumBed(db, provinceCode, zoneCode);
+    const rs = {
+      bed, sum
+    };
+    // console.log(rs);
+
+    res.send({ ok: true, rows: rs, code: 500 });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.get('/:id', async (req: Request, res: Response) => {
   const db = req.db;
   const id = req.params.id;
@@ -92,6 +114,49 @@ router.get('/check-bed', async (req: Request, res: Response) => {
   }
 });
 
+router.post('/bed-save', async (req: Request, res: Response) => {
+  const db = req.db;
+  const id = req.decoded.id;
+  const hospitalId = req.body.hospitalId;
+  const data = req.body.data;
+  try {
+    const head: any = {};
+    head.date = moment().format('YYYY-MM_DD');
+    head.create_by = id;
+    head.hospital_id = hospitalId;
+    let rs: any = await bedModel.saveHeadBw(db, [head]);
+    await bedModel.removeBeds(db, hospitalId);
+    const _data = [];
+    let detail: any = [];
+
+    for (const i of data) {
+      _data.push({
+        hospital_id: hospitalId,
+        bed_id: i.bed_id,
+        qty: i.qty > 0 ? i.qty : null,
+        covid_qty: i.covid_qty > 0 ? i.covid_qty : null,
+        spare_qty: i.spare_qty > 0 ? i.spare_qty : null,
+        created_by: id
+      });
+
+      detail.push({
+        wm_bed_id: rs,
+        bed_id: i.bed_id,
+        qty: i.qty > 0 ? i.qty : null,
+        covid_qty: i.covid_qty > 0 ? i.covid_qty : null,
+        spare_qty: i.spare_qty > 0 ? i.spare_qty : null
+      });
+    }
+    await bedModel.saveBeds(db, _data);
+    await bedModel.saveDetail(db, detail);
+    res.send({ ok: true, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.post('/', async (req: Request, res: Response) => {
   const db = req.db;
   const id = req.decoded.id;
@@ -121,5 +186,6 @@ router.post('/', async (req: Request, res: Response) => {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
+
 
 export default router;

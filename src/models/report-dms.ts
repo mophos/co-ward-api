@@ -178,7 +178,8 @@ sum( bed_id  =1 ) as aiir_usage_qty,
 sum( bed_id = 2 ) as modified_aiir_usage_qty,
 sum( bed_id = 3 ) as isolate_usage_qty,
 sum( bed_id = 4 ) as cohort_usage_qty,
-sum( bed_id = 5 ) AS hospitel_usage_qty`), last)
+sum( bed_id = 5 ) AS hospitel_usage_qty,
+sum( bed_id = 7 ) AS cohort_icu_usage_qty`), last)
       .leftJoin('views_covid_case_last as vc', (v) => {
         v.on('vh.id', 'vc.hospital_id')
         v.on('vc.status', db.raw(`'ADMIT'`))
