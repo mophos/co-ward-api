@@ -180,4 +180,28 @@ router.get('/admit-pui-case-summary', async (req: Request, res: Response) => {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
+
+router.get('/discharge-case', async (req: Request, res: Response) => {
+
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
+  const provinceCode = req.decoded.provinceCode;
+  const query = req.query.query || null;
+  const right = req.decoded.rights;
+  const showPersons = findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 || findIndex(right, { name: 'STAFF_VIEW_PATIENT_INFO' }) > -1 ? true : false;
+  try {
+
+    if (providerType === 'ZONE') {
+      const rs: any = await model.getCaseDc(req.db, showPersons, query, zoneCode, null);
+
+      res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    } else if (providerType === 'SSJ') {
+      const rs: any = await model.getCaseDc(req.db, showPersons, query, zoneCode, provinceCode);
+      res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    }
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
 export default router;
