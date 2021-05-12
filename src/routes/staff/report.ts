@@ -3,11 +3,12 @@ const excel4node = require('excel4node');
 import * as HttpStatus from 'http-status-codes';
 import { Router, Request, Response } from 'express';
 import { ReportModel } from '../../models/report';
-import { findIndex } from 'lodash';
+import { findIndex, sumBy } from 'lodash';
 const path = require('path')
 const fse = require('fs-extra');
 const model = new ReportModel();
 const router: Router = Router();
+import moment = require('moment');
 
 
 router.get('/zone', async (req: Request, res: Response) => {
@@ -204,4 +205,82 @@ router.get('/discharge-case', async (req: Request, res: Response) => {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
+
+
+router.get('/discharge-case/excel', async (req: Request, res: Response) => {
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
+  const provinceCode = req.decoded.provinceCode;
+  const query = req.query.query || null;
+  const rights = req.decoded.rights;
+  const showPersons = findIndex(rights, { name: 'MANAGER_REPORT_PERSON' }) > -1 || findIndex(rights, { name: 'STAFF_VIEW_PATIENT_INFO' }) > -1 ? true : false;
+  var wb = new excel4node.Workbook();
+  var ws = wb.addWorksheet('Sheet 1');
+  var center = wb.createStyle({
+    alignment: {
+      wrapText: true,
+      horizontal: 'center',
+    },
+  });
+  var right = wb.createStyle({
+    alignment: {
+      wrapText: true,
+      horizontal: 'right',
+    },
+  });
+
+  try {
+    let rs: any
+    if (providerType === 'ZONE') {
+      rs = await model.getCaseDc(req.db, showPersons, query, zoneCode, null);
+
+    } else if (providerType === 'SSJ') {
+      rs = await model.getCaseDc(req.db, showPersons, query, zoneCode, provinceCode);
+    }
+
+    ws.cell(1, 1, 1, 1, true).string('จังหวัด');
+    ws.cell(1, 2, 1, 2, true).string('โรงพยาบาล');
+    ws.cell(1, 3, 1, 3, true).string('HN');
+    ws.cell(1, 4, 1, 4, true).string('ชื่อ-นามสกุล');
+    ws.cell(1, 5, 1, 5, true).string('วันที่ Admit');
+    ws.cell(1, 6, 1, 6, true).string('สถานะ');
+    ws.cell(1, 7, 1, 7, true).string('วันที่ d/c');
+
+    let row = 2
+    for (const items of rs) {
+      items.date_admit = moment(items.date_admit).format('DD/MM/YYYY');
+      items.date_discharge = moment(items.date_discharge).format('DD/MM/YYYY');
+      ws.cell(row, 1).string(items['province_name']);
+      ws.cell(row, 2).string(items['hospname']);
+      ws.cell(row, 3).string(items['hn']);
+      ws.cell(row, 4).string((items['title_name']) + ' ' + (items['first_name']) + ' ' + (items['last_name']));
+      ws.cell(row, 5).string(items['date_admit']);
+      ws.cell(row, 6).string(items['status']);
+      ws.cell(row++, 7).string(items['date_discharge']);
+    }
+
+    fse.ensureDirSync(process.env.TMP_PATH);
+
+    let filename = `report1` + moment().format('x');
+    let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath, (v) => {
+          // fse.removeSync(filenamePath);
+        })
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error });
+  }
+});
+
+
 export default router;
