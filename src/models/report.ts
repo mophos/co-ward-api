@@ -859,7 +859,7 @@ export class ReportModel {
   getCaseDc(db: Knex, showPersons = false, query = null, zoneCode, provinceCode = null) {
     const _query = `%${query}%`;
     const sql = db('view_covid_case_last as c')
-      .select('c.id as covid_case_id', 'h.hospname','h.province_name', 'c.an', 'c.confirm_date', 'c.status', 'c.date_admit', 'c.date_discharge', 'pt.hn')
+      .select('c.id as covid_case_id', 'h.hospname','h.province_name as hosp_province', 'c.an', 'c.confirm_date', 'c.status', 'c.date_admit', 'c.date_discharge', 'pt.hn')
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
       .join('b_hospitals AS h', 'h.id', 'c.hospital_id')
       .whereIn('c.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
@@ -887,6 +887,8 @@ export class ReportModel {
     }
 
     sql.orderBy('c.date_admit', 'DESC');
+    console.log(sql.toString());
+    
     return sql;
     // .groupBy('pt.id')
   }
