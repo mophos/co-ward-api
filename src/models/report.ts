@@ -557,8 +557,17 @@ export class ReportModel {
     let sql = db('temp_report_admit_comfirm_case_summary');
     return sql;
   }
+
+  admitConfirmCaseSummaryDms(db: Knex) {
+    let sql = db('temp_report_admit_comfirm_case_summary_dms');
+    return sql;
+  }
   admitPuiCaseSummary(db: Knex) {
     let sql = db('temp_report_admit_pui_case_summary');
+    return sql;
+  }
+  admitPuiCaseSummaryDms(db: Knex) {
+    let sql = db('temp_report_admit_pui_case_summary_dms');
     return sql;
   }
 
@@ -827,6 +836,21 @@ export class ReportModel {
       .select('pc.*', 'p.hn', 'p.hospital_id', 'p.person_id', 'h.hospcode', 'h.hospname', 'h.zone_code', 'h.province_code', 'h.province_name', 'rh.hospcode as refer_hospcode', 'rh.hospname as refer_hospname')
       .join('p_patients as p', 'p.id', ' pc.patient_id')
       .join('b_hospitals as h', 'h.id', 'p.hospital_id')
+      .join('views_covid_case_last as vl', 'vl.covid_case_id', 'pc.id')
+      .leftJoin('b_hospitals as rh', 'rh.id', 'pc.hospital_id_refer')
+      .where('pc.is_deleted', 'N')
+      .whereIn('pc.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
+      .whereIn('vl.gcs_id', [1, 2, 3, 4])
+      .whereBetween('pc.date_discharge', [`${date} 00:00:00`, `${date} 23:59:00`])
+      .orderBy('h.zone_code').orderBy('h.province_name').orderBy('h.hospname');
+  }
+
+  dischargeCaseDms(db: Knex, date) {
+    return db('p_covid_cases as pc')
+      .select('pc.*', 'p.hn', 'p.hospital_id', 'p.person_id', 'h.hospcode', 'h.hospname', 'h.zone_code', 'h.province_code', 'h.province_name', 'rh.hospcode as refer_hospcode', 'rh.hospname as refer_hospname')
+      .join('p_patients as p', 'p.id', ' pc.patient_id')
+      .join('b_hospitals as h', 'h.id', 'p.hospital_id')
+      .join('views_hospital_dms as vhd', 'vhd.id', 'h.id')
       .join('views_covid_case_last as vl', 'vl.covid_case_id', 'pc.id')
       .leftJoin('b_hospitals as rh', 'rh.id', 'pc.hospital_id_refer')
       .where('pc.is_deleted', 'N')

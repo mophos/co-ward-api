@@ -386,22 +386,26 @@ router.post('/covid-case-detail', async (req: Request, res: Response) => {
     let error = ''
     try {
         let caseDetail: any = await patientModel.getCaseDetailByCaseId(db, caseId);
+        let caseDetailId: any = [];
         if (caseDetail.length > 0) {
             for (const v of caseDetail) {
                 v.updated_by = req.decoded.id;
                 v.update_date = moment().format('YYYY-MM-DD HH:mm:ss');
+                caseDetailId.push(v.id);
+            }
+            const rsLogs = await patientModel.saveLogsCaseDetail(db, caseDetail);
+
+            if (!rsLogs) {
+                error += 'update logs case deteil  error. '
             }
 
             for (const v of data) {
-                v.covid_case_id = caseId
+                v.covid_case_id = +caseId
             }
-            const rsd = await patientModel.deleteCaseDetailByCaseId(db, caseId);
+
+            await patientModel.deleteCaseDetailByCaseId(db, caseDetailId);
             const rsi = await patientModel.insertCaseDetail(db, data);
-            if (rsd && rsi) {
-                const rsLogs = await patientModel.saveLogsCaseDetail(db, caseDetail);
-                if (!rsLogs) {
-                    error += 'update logs case deteil  error. '
-                }
+            if (rsi) {
             } else {
                 error += 'insert case detail error. '
             }

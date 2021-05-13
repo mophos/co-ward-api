@@ -2492,6 +2492,173 @@ router.get('/admit-confirm-case/export', async (req: Request, res: Response) => 
   }
 });
 
+router.get('/admit-confirm-case/export/dms', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const zoneCode = req.decoded.zone_code;
+  const right = req.decoded.rights;
+  const showPersons = _.findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 ? true : false;
+
+  try {
+    var wb = new excel4node.Workbook();
+    const rs: any = await model.admitConfirmCaseSummaryDms(db);
+    var ws1 = wb.addWorksheet('สรุป');
+    ws1.cell(1, 1).string('เขต');
+    ws1.cell(1, 2).string('รวม');
+    ws1.cell(1, 3).string('Severe');
+    ws1.cell(1, 4).string('moderate');
+    ws1.cell(1, 5).string('mild');
+    ws1.cell(1, 6).string('asymptomatic');
+    ws1.cell(1, 7).string('aiir');
+    ws1.cell(1, 8).string('modified_aiir');
+    ws1.cell(1, 9).string('isolate');
+    ws1.cell(1, 10).string('cohort');
+    ws1.cell(1, 11).string('cohort_icu');
+    ws1.cell(1, 12).string('Hospitel');
+    ws1.cell(1, 13).string('invasive');
+    ws1.cell(1, 14).string('noninvasive');
+    ws1.cell(1, 15).string('high_flow');
+    ws1.cell(1, 16).string('Darunavir 600 mg.');
+    ws1.cell(1, 17).string('Lopinavir 200 mg./Ritonavir 50 mg.');
+    ws1.cell(1, 18).string('Ritonavir 100 mg.');
+    ws1.cell(1, 19).string('Azithromycin 250 mg.');
+    ws1.cell(1, 20).string('Favipiravi(คน)');
+    let row = 2;
+    for (const l of rs) {
+      ws1.cell(row, 1).number(toNumber(+l.zone_code || 0));
+      ws1.cell(row, 2).number(toNumber(l.confirm || 0));
+      ws1.cell(row, 3).number(toNumber(l.severe || 0));
+      ws1.cell(row, 4).number(toNumber(l.moderate || 0));
+      ws1.cell(row, 5).number(toNumber(l.mild || 0));
+      ws1.cell(row, 6).number(toNumber(l.asymptomatic || 0));
+      ws1.cell(row, 7).number(toNumber(l.aiir || 0));
+      ws1.cell(row, 8).number(toNumber(l.modified_aiir || 0));
+      ws1.cell(row, 9).number(toNumber(l.isolate || 0));
+      ws1.cell(row, 10).number(toNumber(l.cohort || 0));
+      ws1.cell(row, 11).number(toNumber(l.cohort_icu || 0));
+      ws1.cell(row, 12).number(toNumber(l.hospitel || 0));
+      ws1.cell(row, 13).number(toNumber(l.invasive || 0));
+      ws1.cell(row, 14).number(toNumber(l.noninvasive || 0));
+      ws1.cell(row, 15).number(toNumber(l.high_flow || 0));
+      ws1.cell(row, 16).number(toNumber(l.d3 || 0));
+      ws1.cell(row, 17).number(toNumber(l.d4 || 0));
+      ws1.cell(row, 18).number(toNumber(l.d5 || 0));
+      ws1.cell(row, 19).number(toNumber(l.d7 || 0));
+      ws1.cell(row, 20).number(toNumber(l.d8 || 0));
+      row++;
+    }
+    var ws2 = wb.addWorksheet('รายคน');
+    ws2.row(1).filter();
+    if (showPersons) {
+      ws2.cell(1, 1).string('เขต');
+      ws2.cell(1, 2).string('จังหวัด');
+      ws2.cell(1, 3).string('โรงพยาบาล');
+      ws2.cell(1, 4).string('HN');
+      ws2.cell(1, 5).string('AN');
+      ws2.cell(1, 6).string('CID');
+      ws2.cell(1, 7).string('ชื่อ');
+      ws2.cell(1, 8).string('นามสกุล');
+      ws2.cell(1, 9).string('SAT ID');
+      ws2.cell(1, 10).string('เพศ');
+      ws2.cell(1, 11).string('อายุ');
+      ws2.cell(1, 12).string('วันที่ ADMIT');
+      ws2.cell(1, 13).string('ความรุนแรง');
+      ws2.cell(1, 14).string('เตียง');
+      ws2.cell(1, 15).string('เครื่องช่วยหายใจ');
+      ws2.cell(1, 16).string('วันที่บันทึกล่าสุด');
+      ws2.cell(1, 17).string('ไม่ได้บันทึกมา');
+      ws2.cell(1, 18).string('Darunavir 600 mg.');
+      ws2.cell(1, 19).string('Lopinavir 200 mg./Ritonavir 50 mg.');
+      ws2.cell(1, 20).string('Ritonavir 100 mg.');
+      ws2.cell(1, 21).string('Azithromycin 250 mg.');
+      ws2.cell(1, 22).string('Favipiravi');
+    } else {
+      ws2.cell(1, 1).string('เขต');
+      ws2.cell(1, 2).string('จังหวัด');
+      ws2.cell(1, 3).string('โรงพยาบาล');
+      ws2.cell(1, 4).string('HN');
+      ws2.cell(1, 5).string('AN');
+      ws2.cell(1, 6).string('วันที่ ADMIT');
+      ws2.cell(1, 7).string('ความรุนแรง');
+      ws2.cell(1, 8).string('เตียง');
+      ws2.cell(1, 9).string('เครื่องช่วยหายใจ');
+      ws2.cell(1, 10).string('วันที่บันทึกล่าสุด');
+      ws2.cell(1, 11).string('ไม่ได้บันทึกมา');
+      ws2.cell(1, 12).string('Darunavir 600 mg.');
+      ws2.cell(1, 13).string('Lopinavir 200 mg./Ritonavir 50 mg.');
+      ws2.cell(1, 14).string('Ritonavir 100 mg.');
+      ws2.cell(1, 15).string('Azithromycin 250 mg.');
+      ws2.cell(1, 16).string('Favipiravi');
+    }
+    row = 2;
+    const rs2: any = await model.admitConfirmCase(db, showPersons, 1000000, 0);
+    // const rs2 = [];
+    for (const i of rs2) {
+      if (showPersons) {
+        ws2.cell(row, 1).string(toString(i.zone_code));
+        ws2.cell(row, 2).string(toString(i.province_name));
+        ws2.cell(row, 3).string(toString(i.hospname));
+        ws2.cell(row, 4).string(toString(i.hn));
+        ws2.cell(row, 5).string(toString(i.an));
+        ws2.cell(row, 6).string(toString(i.cid));
+        ws2.cell(row, 7).string(toString(i.first_name));
+        ws2.cell(row, 8).string(toString(i.last_name));
+        ws2.cell(row, 9).string(toString(i.sat_id));
+        ws2.cell(row, 10).string(toString(i.sex));
+        ws2.cell(row, 11).string(toString(i.age));
+        ws2.cell(row, 12).string(toString(moment(i.date_admit).format('DD-MM-YYYY')));
+        ws2.cell(row, 13).string(toString(i.gcs_name));
+        ws2.cell(row, 14).string(toString(i.bed_name));
+        ws2.cell(row, 15).string(toString(i.medical_supplies_name));
+        ws2.cell(row, 16).string(toString(moment(i.updated_entry_last).format('DD-MM-YYYY')));
+        ws2.cell(row, 17).string(toString(i.days));
+        ws2.cell(row, 18).string(toString(i.d3 > 0 ? '/' : ''));
+        ws2.cell(row, 19).string(toString(i.d4 > 0 ? '/' : ''));
+        ws2.cell(row, 20).string(toString(i.d5 > 0 ? '/' : ''));
+        ws2.cell(row, 21).string(toString(i.d7 > 0 ? '/' : ''));
+        ws2.cell(row, 22).string(toString(i.d8 > 0 ? '/' : ''));
+      } else {
+        ws2.cell(row, 1).string(toString(i.zone_code));
+        ws2.cell(row, 2).string(toString(i.province_name));
+        ws2.cell(row, 3).string(toString(i.hospname));
+        ws2.cell(row, 4).string(toString(i.hn));
+        ws2.cell(row, 5).string(toString(i.an));
+        ws2.cell(row, 6).string(toString(moment(i.date_admit).format('DD-MM-YYYY')));
+        ws2.cell(row, 7).string(toString(i.gcs_name));
+        ws2.cell(row, 8).string(toString(i.bed_name));
+        ws2.cell(row, 9).string(toString(i.medical_supplies_name));
+        ws2.cell(row, 10).string(toString(moment(i.updated_entry_last).format('DD-MM-YYYY')));
+        ws2.cell(row, 11).string(toString(i.days));
+        ws2.cell(row, 12).string(toString(i.d3 > 0 ? '/' : ''));
+        ws2.cell(row, 13).string(toString(i.d4 > 0 ? '/' : ''));
+        ws2.cell(row, 14).string(toString(i.d5 > 0 ? '/' : ''));
+        ws2.cell(row, 15).string(toString(i.d7 > 0 ? '/' : ''));
+        ws2.cell(row, 16).string(toString(i.d8 > 0 ? '/' : ''));
+      }
+      row++;
+    }
+    fse.ensureDirSync(process.env.TMP_PATH);
+    let filename = `cio_check` + moment().format('x') + '.xlsx'
+    let filenamePath = path.join(process.env.TMP_PATH, filename);
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.get('/admit-pui-case/export', async (req: Request, res: Response) => {
   const db = req.dbReport;
   const zoneCode = req.decoded.zone_code;
@@ -2501,6 +2668,166 @@ router.get('/admit-pui-case/export', async (req: Request, res: Response) => {
   try {
     var wb = new excel4node.Workbook();
     const rs: any = await model.admitPuiCaseSummary(db);
+    var ws1 = wb.addWorksheet('สรุป');
+    ws1.cell(1, 1).string('เขต');
+    ws1.cell(1, 2).string('รวม');
+    ws1.cell(1, 3).string('aiir');
+    ws1.cell(1, 4).string('modified_aiir');
+    ws1.cell(1, 5).string('isolate');
+    ws1.cell(1, 6).string('cohort');
+    ws1.cell(1, 7).string('cohort_icu');
+    ws1.cell(1, 8).string('Hospitel');
+    ws1.cell(1, 9).string('invasive');
+    ws1.cell(1, 10).string('noninvasive');
+    ws1.cell(1, 11).string('high_flow');
+    ws1.cell(1, 12).string('Darunavir 600 mg.');
+    ws1.cell(1, 13).string('Lopinavir 200 mg./Ritonavir 50 mg.');
+    ws1.cell(1, 14).string('Ritonavir 100 mg.');
+    ws1.cell(1, 15).string('Azithromycin 250 mg.');
+    ws1.cell(1, 16).string('Favipiravi(คน)');
+    let row = 2;
+    for (const l of rs) {
+      ws1.cell(row, 1).number(toNumber(+l.zone_code || 0));
+      ws1.cell(row, 2).number(toNumber(l.pui || 0));
+      ws1.cell(row, 3).number(toNumber(l.aiir || 0));
+      ws1.cell(row, 4).number(toNumber(l.modified_aiir || 0));
+      ws1.cell(row, 5).number(toNumber(l.isolate || 0));
+      ws1.cell(row, 6).number(toNumber(l.cohort || 0));
+      ws1.cell(row, 7).number(toNumber(l.cohort_icu || 0));
+      ws1.cell(row, 8).number(toNumber(l.hospitel || 0));
+      ws1.cell(row, 9).number(toNumber(l.invasive || 0));
+      ws1.cell(row, 10).number(toNumber(l.noninvasive || 0));
+      ws1.cell(row, 11).number(toNumber(l.high_flow || 0));
+      ws1.cell(row, 12).number(toNumber(l.d3 || 0));
+      ws1.cell(row, 13).number(toNumber(l.d4 || 0));
+      ws1.cell(row, 14).number(toNumber(l.d5 || 0));
+      ws1.cell(row, 15).number(toNumber(l.d7 || 0));
+      ws1.cell(row, 16).number(toNumber(l.d8 || 0));
+      row++;
+    }
+    var ws2 = wb.addWorksheet('รายคน');
+    ws2.row(1).filter();
+    if (showPersons) {
+      ws2.cell(1, 1).string('เขต');
+      ws2.cell(1, 2).string('จังหวัด');
+      ws2.cell(1, 3).string('โรงพยาบาล');
+      ws2.cell(1, 4).string('HN');
+      ws2.cell(1, 5).string('AN');
+      ws2.cell(1, 6).string('CID');
+      ws2.cell(1, 7).string('ชื่อ');
+      ws2.cell(1, 8).string('นามสกุล');
+      ws2.cell(1, 9).string('SAT ID');
+      ws2.cell(1, 10).string('เพศ');
+      ws2.cell(1, 11).string('อายุ');
+      ws2.cell(1, 12).string('วันที่ ADMIT');
+      ws2.cell(1, 13).string('ความรุนแรง');
+      ws2.cell(1, 14).string('เตียง');
+      ws2.cell(1, 15).string('เครื่องช่วยหายใจ');
+      ws2.cell(1, 16).string('วันที่บันทึกล่าสุด');
+      ws2.cell(1, 17).string('ไม่ได้บันทึกมา');
+      ws2.cell(1, 18).string('Darunavir 600 mg.');
+      ws2.cell(1, 19).string('Lopinavir 200 mg./Ritonavir 50 mg.');
+      ws2.cell(1, 20).string('Ritonavir 100 mg.');
+      ws2.cell(1, 21).string('Azithromycin 250 mg.');
+      ws2.cell(1, 22).string('Favipiravi');
+    } else {
+      ws2.cell(1, 1).string('เขต');
+      ws2.cell(1, 2).string('จังหวัด');
+      ws2.cell(1, 3).string('โรงพยาบาล');
+      ws2.cell(1, 4).string('HN');
+      ws2.cell(1, 5).string('AN');
+      ws2.cell(1, 6).string('วันที่ ADMIT');
+      ws2.cell(1, 7).string('ความรุนแรง');
+      ws2.cell(1, 8).string('เตียง');
+      ws2.cell(1, 9).string('เครื่องช่วยหายใจ');
+      ws2.cell(1, 10).string('วันที่บันทึกล่าสุด');
+      ws2.cell(1, 11).string('ไม่ได้บันทึกมา');
+      ws2.cell(1, 12).string('Darunavir 600 mg.');
+      ws2.cell(1, 13).string('Lopinavir 200 mg./Ritonavir 50 mg.');
+      ws2.cell(1, 14).string('Ritonavir 100 mg.');
+      ws2.cell(1, 15).string('Azithromycin 250 mg.');
+      ws2.cell(1, 16).string('Favipiravi');
+    }
+
+    row = 2;
+    const rs2: any = await model.admitPuiCase(db, showPersons, 1000000, 0);
+    // const rs2 = [];
+    for (const i of rs2) {
+      if (showPersons) {
+        ws2.cell(row, 1).string(toString(i.zone_code));
+        ws2.cell(row, 2).string(toString(i.province_name));
+        ws2.cell(row, 3).string(toString(i.hospname));
+        ws2.cell(row, 4).string(toString(i.hn));
+        ws2.cell(row, 5).string(toString(i.an));
+        ws2.cell(row, 6).string(toString(i.cid));
+        ws2.cell(row, 7).string(toString(i.first_name));
+        ws2.cell(row, 8).string(toString(i.last_name));
+        ws2.cell(row, 9).string(toString(i.sat_id));
+        ws2.cell(row, 10).string(toString(i.sex));
+        ws2.cell(row, 11).string(toString(i.age));
+        ws2.cell(row, 12).string(toString(moment(i.date_admit).format('DD-MM-YYYY')));
+        ws2.cell(row, 13).string(toString(i.gcs_name));
+        ws2.cell(row, 14).string(toString(i.bed_name));
+        ws2.cell(row, 15).string(toString(i.medical_supplies_name));
+        ws2.cell(row, 16).string(toString(moment(i.updated_entry_last).format('DD-MM-YYYY')));
+        ws2.cell(row, 17).string(toString(i.days));
+        ws2.cell(row, 18).string(toString(i.d3 > 0 ? '/' : ''));
+        ws2.cell(row, 19).string(toString(i.d4 > 0 ? '/' : ''));
+        ws2.cell(row, 20).string(toString(i.d5 > 0 ? '/' : ''));
+        ws2.cell(row, 21).string(toString(i.d7 > 0 ? '/' : ''));
+        ws2.cell(row, 22).string(toString(i.d8 > 0 ? '/' : ''));
+      } else {
+        ws2.cell(row, 1).string(toString(i.zone_code));
+        ws2.cell(row, 2).string(toString(i.province_name));
+        ws2.cell(row, 3).string(toString(i.hospname));
+        ws2.cell(row, 4).string(toString(i.hn));
+        ws2.cell(row, 5).string(toString(i.an));
+        ws2.cell(row, 6).string(toString(moment(i.date_admit).format('DD-MM-YYYY')));
+        ws2.cell(row, 7).string(toString(i.gcs_name));
+        ws2.cell(row, 8).string(toString(i.bed_name));
+        ws2.cell(row, 9).string(toString(i.medical_supplies_name));
+        ws2.cell(row, 10).string(toString(moment(i.updated_entry_last).format('DD-MM-YYYY')));
+        ws2.cell(row, 11).string(toString(i.days));
+        ws2.cell(row, 12).string(toString(i.d3 > 0 ? '/' : ''));
+        ws2.cell(row, 13).string(toString(i.d4 > 0 ? '/' : ''));
+        ws2.cell(row, 14).string(toString(i.d5 > 0 ? '/' : ''));
+        ws2.cell(row, 15).string(toString(i.d7 > 0 ? '/' : ''));
+        ws2.cell(row, 16).string(toString(i.d8 > 0 ? '/' : ''));
+      }
+      row++;
+    }
+    fse.ensureDirSync(process.env.TMP_PATH);
+    let filename = `cio_check` + moment().format('x') + '.xlsx'
+    let filenamePath = path.join(process.env.TMP_PATH, filename);
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/admit-pui-case/export/dms', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const zoneCode = req.decoded.zone_code;
+  const right = req.decoded.rights;
+  const showPersons = _.findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 ? true : false;
+
+  try {
+    var wb = new excel4node.Workbook();
+    const rs: any = await model.admitPuiCaseSummaryDms(db);
     var ws1 = wb.addWorksheet('สรุป');
     ws1.cell(1, 1).string('เขต');
     ws1.cell(1, 2).string('รวม');
@@ -2947,6 +3274,66 @@ router.get('/discharge-daily/excel', async (req: Request, res: Response) => {
   const date = req.query.date || moment().format('YYYY-MM-DD');
   try {
     const rs: any = await model.dischargeCase(db, date);
+    let row = 2
+    var wb = new excel4node.Workbook();
+    var ws = wb.addWorksheet('Sheet 1');
+    ws.cell(1, 1).string('zone_code');
+    ws.cell(1, 2).string('จังหวัด');
+    ws.cell(1, 3).string('รหัสโรงพยาบาล');
+    ws.cell(1, 4).string('โรงพยาบาล');
+    ws.cell(1, 5).string('hn');
+    ws.cell(1, 6).string('an');
+    ws.cell(1, 7).string('status');
+    ws.cell(1, 8).string('date_admit');
+    ws.cell(1, 9).string('date_discharge');
+    ws.cell(1, 10).string('refer_hospcode');
+    ws.cell(1, 11).string('refer_hospname');
+    for (const item of rs) {
+      item.date_admit = moment(item.date_admit).format('DD/MM/YYYY')
+      item.date_discharge = moment(item.date_discharge).format('DD/MM/YYYY')
+      ws.cell(row, 1).string(toString(item.zone_code));
+      ws.cell(row, 2).string(toString(item.province_name));
+      ws.cell(row, 3).string(toString(item.hospcode));
+      ws.cell(row, 4).string(toString(item.hospname));
+      ws.cell(row, 5).string(toString(item.hn));
+      ws.cell(row, 6).string(toString(item.an));
+      ws.cell(row, 7).string(toString(item.status));
+      ws.cell(row, 8).string(toString(item.date_admit));
+      ws.cell(row, 9).string(toString(item.date_discharge));
+      ws.cell(row, 10).string(toString(item.refer_hospcode));
+      ws.cell(row, 11).string(toString(item.refer_hospname));
+      row++;
+    }
+
+
+    fse.ensureDirSync(process.env.TMP_PATH);
+    let filename = `discharge-daily` + moment().format('x') + '.xlsx'
+    let filenamePath = path.join(process.env.TMP_PATH, filename);
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, message: error, code: HttpStatus.OK });
+  }
+});
+
+router.get('/discharge-daily/excel/dms', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const date = req.query.date || moment().format('YYYY-MM-DD');
+  try {
+    const rs: any = await model.dischargeCaseDms(db, date);
     let row = 2
     var wb = new excel4node.Workbook();
     var ws = wb.addWorksheet('Sheet 1');
