@@ -400,6 +400,7 @@ router.post('/covid-case-detail', async (req: Request, res: Response) => {
             }
 
             for (const v of data) {
+                v.medical_supplie_id = v.medical_supplie_id === 'null' ? null : v.medical_supplie_id;
                 v.covid_case_id = +caseId
             }
 
