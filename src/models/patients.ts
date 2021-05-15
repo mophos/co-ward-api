@@ -119,9 +119,11 @@ export class PatientModel {
     }
 
     deleteCaseDetailByCaseId(db: Knex, id) {
-        const sql = db('p_covid_case_details as c')
+        const sql = db('p_covid_case_details')
             .delete()
-            .where('c.covid_case_id', id)
+            .whereIn('id', id)
+            console.log(sql.toString());
+            
         return sql;
     }
 

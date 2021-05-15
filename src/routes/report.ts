@@ -893,15 +893,15 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
     wsAll.cell(1, 8).string('Modified AIIR ทั้งหมด');
     wsAll.cell(1, 9).string('Modified AIIR ใช้ไปแล้ว');
     wsAll.cell(1, 10).string('Modified AIIR คงเหลือ');
-    wsAll.cell(1, 11).string('Isolate ทั้งหมด');
-    wsAll.cell(1, 12).string('Isolate ใช้ไปแล้ว');
-    wsAll.cell(1, 13).string('Isolate คงเหลือ');
-    wsAll.cell(1, 14).string('Cohort ทั้งหมด');
-    wsAll.cell(1, 15).string('Cohort ใช้ไปแล้ว');
-    wsAll.cell(1, 16).string('Cohort คงเหลือ');
-    wsAll.cell(1, 17).string('Cohort ICU ทั้งหมด');
-    wsAll.cell(1, 18).string('Cohort ICU ใช้ไปแล้ว');
-    wsAll.cell(1, 19).string('Cohort ICU คงเหลือ');
+    wsAll.cell(1, 11).string('Cohort ICU ทั้งหมด');
+    wsAll.cell(1, 12).string('Cohort ICU ใช้ไปแล้ว');
+    wsAll.cell(1, 13).string('Cohort ICU คงเหลือ');
+    wsAll.cell(1, 14).string('Isolate ทั้งหมด');
+    wsAll.cell(1, 15).string('Isolate ใช้ไปแล้ว');
+    wsAll.cell(1, 16).string('Isolate คงเหลือ');
+    wsAll.cell(1, 17).string('Cohort ทั้งหมด');
+    wsAll.cell(1, 18).string('Cohort ใช้ไปแล้ว');
+    wsAll.cell(1, 19).string('Cohort คงเหลือ');
     wsAll.cell(1, 20).string('Hospitel ทั้งหมด');
     wsAll.cell(1, 21).string('Hospitel ใช้ไปแล้ว');
     wsAll.cell(1, 22).string('Hospitel คงเหลือ');
@@ -922,15 +922,15 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
         ws.cell(1, 8).string('Modified AIIR ทั้งหมด');
         ws.cell(1, 9).string('Modified AIIR ใช้ไปแล้ว');
         ws.cell(1, 10).string('Modified AIIR คงเหลือ');
-        ws.cell(1, 11).string('Isolate ทั้งหมด');
-        ws.cell(1, 12).string('Isolate ใช้ไปแล้ว');
-        ws.cell(1, 13).string('Isolate คงเหลือ');
-        ws.cell(1, 14).string('Cohort ทั้งหมด');
-        ws.cell(1, 15).string('Cohort ใช้ไปแล้ว');
-        ws.cell(1, 16).string('Cohort คงเหลือ');
-        ws.cell(1, 17).string('Cohort ICU ทั้งหมด');
-        ws.cell(1, 18).string('Cohort ICU ใช้ไปแล้ว');
-        ws.cell(1, 19).string('Cohort ICU คงเหลือ');
+        ws.cell(1, 11).string('Cohort ICU ทั้งหมด');
+        ws.cell(1, 12).string('Cohort ICU ใช้ไปแล้ว');
+        ws.cell(1, 13).string('Cohort ICU คงเหลือ');
+        ws.cell(1, 14).string('Isolate ทั้งหมด');
+        ws.cell(1, 15).string('Isolate ใช้ไปแล้ว');
+        ws.cell(1, 16).string('Isolate คงเหลือ');
+        ws.cell(1, 17).string('Cohort ทั้งหมด');
+        ws.cell(1, 18).string('Cohort ใช้ไปแล้ว');
+        ws.cell(1, 19).string('Cohort คงเหลือ');
         ws.cell(1, 20).string('Hospitel ทั้งหมด');
         ws.cell(1, 21).string('Hospitel ใช้ไปแล้ว');
         ws.cell(1, 22).string('Hospitel คงเหลือ');
@@ -946,15 +946,15 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
         ws.cell(row, 8).number(d['modified_aiir_covid_qty'] || 0);
         ws.cell(row, 9).number(d['modified_aiir_usage_qty'] || 0);
         ws.cell(row, 10).number(+d['modified_aiir_covid_qty'] - +d['modified_aiir_usage_qty'] || 0);
-        ws.cell(row, 11).number(d['isolate_covid_qty'] || 0);
-        ws.cell(row, 12).number(d['isolate_usage_qty'] || 0);
-        ws.cell(row, 13).number(+d['isolate_covid_qty'] - +d['isolate_usage_qty'] || 0);
-        ws.cell(row, 14).number(d['cohort_covid_qty'] || 0);
-        ws.cell(row, 15).number(d['cohort_usage_qty'] || 0);
-        ws.cell(row, 16).number(+d['cohort_covid_qty'] - +d['cohort_usage_qty'] || 0);
-        ws.cell(row, 17).number(d['cohort_icu_covid_qty'] || 0);
-        ws.cell(row, 18).number(d['cohort_icu_usage_qty'] || 0);
-        ws.cell(row, 19).number(+d['cohort_icu_covid_qty'] - +d['cohort_icu_usage_qty'] || 0);
+        ws.cell(row, 11).number(d['cohort_icu_covid_qty'] || 0);
+        ws.cell(row, 12).number(d['cohort_icu_usage_qty'] || 0);
+        ws.cell(row, 13).number(+d['cohort_icu_covid_qty'] - +d['cohort_icu_usage_qty'] || 0);
+        ws.cell(row, 14).number(d['isolate_covid_qty'] || 0);
+        ws.cell(row, 15).number(d['isolate_usage_qty'] || 0);
+        ws.cell(row, 16).number(+d['isolate_covid_qty'] - +d['isolate_usage_qty'] || 0);
+        ws.cell(row, 17).number(d['cohort_covid_qty'] || 0);
+        ws.cell(row, 18).number(d['cohort_usage_qty'] || 0);
+        ws.cell(row, 19).number(+d['cohort_covid_qty'] - +d['cohort_usage_qty'] || 0);
         ws.cell(row, 20).number(d['hospitel_covid_qty'] || 0);
         ws.cell(row, 21).number(d['hospitel_usage_qty'] || 0);
         ws.cell(row, 22).number(+d['hospitel_covid_qty'] - +d['hospitel_usage_qty'] || 0);
@@ -965,25 +965,25 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
         wsAll.cell(rowAll, 2).string(d.hospcode);
         wsAll.cell(rowAll, 3).string(d.hospname);
         wsAll.cell(rowAll, 4).string(d.level);
-        wsAll.cell(rowAll, 5).number(d['aiir_covid_qty'] || 0);
-        wsAll.cell(rowAll, 6).number(d['aiir_usage_qty'] || 0);
+        wsAll.cell(rowAll, 5).number(d['aiir_covid_qty'] === null ? 0 : d['aiir_covid_qty'] || 0);
+        wsAll.cell(rowAll, 6).number(d['aiir_usage_qty'] === null ? 0 : d['aiir_usage_qty'] || 0);
         wsAll.cell(rowAll, 7).number(+d['aiir_covid_qty'] - +d['aiir_usage_qty'] || 0);
         wsAll.cell(rowAll, 8).number(d['modified_aiir_covid_qty'] || 0);
         wsAll.cell(rowAll, 9).number(d['modified_aiir_usage_qty'] || 0);
         wsAll.cell(rowAll, 10).number(+d['modified_aiir_covid_qty'] - +d['modified_aiir_usage_qty'] || 0);
-        wsAll.cell(rowAll, 11).number(d['isolate_covid_qty'] || 0);
-        wsAll.cell(rowAll, 12).number(d['isolate_usage_qty'] || 0);
-        wsAll.cell(rowAll, 13).number(+d['isolate_covid_qty'] - +d['isolate_usage_qty'] || 0);
-        wsAll.cell(rowAll, 14).number(d['cohort_covid_qty'] || 0);
-        wsAll.cell(rowAll, 15).number(d['cohort_usage_qty'] || 0);
-        wsAll.cell(rowAll, 16).number(+d['cohort_covid_qty'] - +d['cohort_usage_qty'] || 0);
-        wsAll.cell(rowAll, 17).number(d['cohort_icu_covid_qty'] || 0);
-        wsAll.cell(rowAll, 18).number(d['cohort_icu_usage_qty'] || 0);
-        wsAll.cell(rowAll, 19).number(+d['cohort_icu_covid_qty'] - +d['cohort_icu_usage_qty'] || 0);
+        wsAll.cell(rowAll, 11).number(d['cohort_icu_covid_qty'] || 0);
+        wsAll.cell(rowAll, 12).number(d['cohort_icu_usage_qty'] || 0);
+        wsAll.cell(rowAll, 13).number(+d['cohort_icu_covid_qty'] - +d['cohort_icu_usage_qty'] || 0);
+        wsAll.cell(rowAll, 14).number(d['isolate_covid_qty'] || 0);
+        wsAll.cell(rowAll, 15).number(d['isolate_usage_qty'] || 0);
+        wsAll.cell(rowAll, 16).number(+d['isolate_covid_qty'] - +d['isolate_usage_qty'] || 0);
+        wsAll.cell(rowAll, 17).number(d['cohort_covid_qty'] || 0);
+        wsAll.cell(rowAll, 18).number(d['cohort_usage_qty'] || 0);
+        wsAll.cell(rowAll, 19).number(+d['cohort_covid_qty'] - +d['cohort_usage_qty'] || 0);
         wsAll.cell(rowAll, 20).number(d['hospitel_covid_qty'] || 0);
         wsAll.cell(rowAll, 21).number(d['hospitel_usage_qty'] || 0);
         wsAll.cell(rowAll, 22).number(+d['hospitel_covid_qty'] - +d['hospitel_usage_qty'] || 0);
-        wsAll.cell(rowAll, 23).string(d.hospital_type || 0);
+        wsAll.cell(rowAll, 23).string(d.hospital_type);
         rowAll++;
       }
     }
@@ -1426,7 +1426,191 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
     let data: any = [];
 
     const rs = await model.getSupplies(db, date, provinceCode, zoneCodes);
+    const province = uniqBy(rs, 'province_name');
+    console.log(province);
+    
+    let province_name = rs[0].province_name
+    let sum_surgical_gown_qty = 0;
+    let sum_surgical_gown_month_usage_qty = 0;
+    let sum_cover_all1_qty = 0;
+    let sum_cover_all1_month_usage_qty = 0;
+    let sum_cover_all2_qty = 0;
+    let sum_cover_all2_month_usage_qty = 0;
+    let sum_n95_qty = 0;
+    let sum_n95_month_usage_qty = 0;
+    let sum_shoe_cover_qty = 0;
+    let sum_shoe_cover_month_usage_qty = 0;
+    let sum_surgical_hood_qty = 0;
+    let sum_surgical_hood_month_usage_qty = 0;
+    let sum_long_glove_qty = 0;
+    let sum_long_glove_month_usage_qty = 0;
+    let sum_face_shield_qty = 0;
+    let sum_face_shield_month_usage_qty = 0;
+    let sum_surgical_mask_qty = 0;
+    let sum_surgical_mask_month_usage_qty = 0
+    let sum_powered_air_qty = 0;
+    let sum_powered_air_month_usage_qty = 0;
+    let sum_alcohol_70_qty = 0;
+    let sum_alcohol_70_month_usage_qty = 0;
+    let sum_alcohol_95_qty = 0;
+    let sum_alcohol_95_month_usage_qty = 0;
+    let sum_alcohol_gel_qty = 0;
+    let sum_alcohol_gel_month_usage_qty = 0;
+    let sum_disposable_glove_qty = 0;
+    let sum_disposable_glove_month_usage_qty = 0;
+    let sum_isolation_gown_qty = 0;
+    let sum_isolation_gown_month_usage_qty = 0;
+    let sum_leg_cover_qty = 0;
+    let sum_leg_cover_month_usage_qty = 0;
+    let sum_disposable_cap_qty = 0;
+    let sum_disposable_cap_month_usage_qty = 0;
+
     for (const i of rs) {
+      if (province_name !== i.province_name) {
+
+        ws.cell(row, 1).string('รวม');
+        ws.cell(row, 2).string(province_name);
+        ws.cell(row, 5).number(toNumber(sum_surgical_gown_qty));
+        ws.cell(row, 6).number(toNumber(sum_surgical_gown_month_usage_qty));
+        ws.cell(row, 7).number(toNumber(sum_surgical_gown_month_usage_qty * 2));
+        ws.cell(row, 8).number(toNumber(sum_surgical_gown_qty - (sum_surgical_gown_month_usage_qty * 2)));
+        ws.cell(row, 9).number(toNumber(sum_cover_all1_qty));
+        ws.cell(row, 10).number(toNumber(sum_cover_all1_month_usage_qty));
+        ws.cell(row, 11).number(toNumber(sum_cover_all1_month_usage_qty * 2));
+        ws.cell(row, 12).number(toNumber(sum_cover_all1_qty - (sum_cover_all1_month_usage_qty * 2)));
+        ws.cell(row, 13).number(toNumber(sum_cover_all2_qty));
+        ws.cell(row, 14).number(toNumber(sum_cover_all2_month_usage_qty));
+        ws.cell(row, 15).number(toNumber(sum_cover_all2_month_usage_qty * 2));
+        ws.cell(row, 16).number(toNumber(sum_cover_all2_qty - (sum_cover_all2_month_usage_qty * 2)));
+        ws.cell(row, 17).number(toNumber(sum_n95_qty));
+        ws.cell(row, 18).number(toNumber(sum_n95_month_usage_qty));
+        ws.cell(row, 19).number(toNumber(sum_n95_month_usage_qty * 2));
+        ws.cell(row, 20).number(toNumber(sum_n95_qty - (sum_n95_month_usage_qty * 2)));
+        ws.cell(row, 21).number(toNumber(sum_shoe_cover_qty));
+        ws.cell(row, 22).number(toNumber(sum_shoe_cover_month_usage_qty));
+        ws.cell(row, 23).number(toNumber(sum_shoe_cover_month_usage_qty * 2));
+        ws.cell(row, 24).number(toNumber(sum_shoe_cover_qty - (sum_shoe_cover_month_usage_qty * 2)));
+        ws.cell(row, 25).number(toNumber(sum_surgical_hood_qty));
+        ws.cell(row, 26).number(toNumber(sum_surgical_hood_month_usage_qty));
+        ws.cell(row, 27).number(toNumber(sum_surgical_hood_month_usage_qty * 2));
+        ws.cell(row, 28).number(toNumber(sum_surgical_hood_qty - (sum_surgical_hood_month_usage_qty * 2)));
+        ws.cell(row, 29).number(toNumber(sum_long_glove_qty));
+        ws.cell(row, 30).number(toNumber(sum_long_glove_month_usage_qty));
+        ws.cell(row, 31).number(toNumber(sum_long_glove_month_usage_qty * 2));
+        ws.cell(row, 32).number(toNumber(sum_long_glove_qty - (sum_long_glove_month_usage_qty * 2)));
+        ws.cell(row, 33).number(toNumber(sum_face_shield_qty));
+        ws.cell(row, 34).number(toNumber(sum_face_shield_month_usage_qty));
+        ws.cell(row, 35).number(toNumber(sum_face_shield_month_usage_qty * 2));
+        ws.cell(row, 36).number(toNumber(sum_face_shield_qty - (sum_face_shield_month_usage_qty * 2)));
+        ws.cell(row, 37).number(toNumber(sum_surgical_mask_qty));
+        ws.cell(row, 38).number(toNumber(sum_surgical_mask_month_usage_qty));
+        ws.cell(row, 39).number(toNumber(sum_surgical_mask_month_usage_qty * 2));
+        ws.cell(row, 40).number(toNumber(sum_surgical_mask_qty - (sum_surgical_mask_month_usage_qty * 2)));
+        ws.cell(row, 41).number(toNumber(sum_powered_air_qty));
+        ws.cell(row, 42).number(toNumber(sum_powered_air_month_usage_qty));
+        ws.cell(row, 43).number(toNumber(sum_powered_air_month_usage_qty * 2));
+        ws.cell(row, 44).number(toNumber(sum_powered_air_qty - (sum_powered_air_month_usage_qty * 2)));
+        ws.cell(row, 45).number(toNumber(sum_alcohol_70_qty));
+        ws.cell(row, 46).number(toNumber(sum_alcohol_70_month_usage_qty));
+        ws.cell(row, 47).number(toNumber(sum_alcohol_70_month_usage_qty * 2));
+        ws.cell(row, 48).number(toNumber(sum_alcohol_70_qty - (sum_alcohol_70_month_usage_qty * 2)));
+        ws.cell(row, 49).number(toNumber(sum_alcohol_95_qty));
+        ws.cell(row, 50).number(toNumber(sum_alcohol_95_month_usage_qty));
+        ws.cell(row, 51).number(toNumber(sum_alcohol_95_month_usage_qty * 2));
+        ws.cell(row, 52).number(toNumber(sum_alcohol_95_qty - (sum_alcohol_95_month_usage_qty * 2)));
+        ws.cell(row, 53).number(toNumber(sum_alcohol_gel_qty));
+        ws.cell(row, 54).number(toNumber(sum_alcohol_gel_month_usage_qty));
+        ws.cell(row, 55).number(toNumber(sum_alcohol_gel_month_usage_qty * 2));
+        ws.cell(row, 56).number(toNumber(sum_alcohol_gel_qty - (sum_alcohol_gel_month_usage_qty * 2)));
+        ws.cell(row, 57).number(toNumber(sum_disposable_glove_qty));
+        ws.cell(row, 58).number(toNumber(sum_disposable_glove_month_usage_qty));
+        ws.cell(row, 59).number(toNumber(sum_disposable_glove_month_usage_qty * 2));
+        ws.cell(row, 60).number(toNumber(sum_disposable_glove_qty - (sum_disposable_glove_month_usage_qty * 2)));
+        ws.cell(row, 61).number(toNumber(sum_isolation_gown_qty));
+        ws.cell(row, 62).number(toNumber(sum_isolation_gown_month_usage_qty));
+        ws.cell(row, 63).number(toNumber(sum_isolation_gown_month_usage_qty * 2));
+        ws.cell(row, 64).number(toNumber(sum_isolation_gown_qty - (sum_isolation_gown_month_usage_qty * 2)));
+        ws.cell(row, 65).number(toNumber(sum_leg_cover_qty));
+        ws.cell(row, 66).number(toNumber(sum_leg_cover_month_usage_qty));
+        ws.cell(row, 67).number(toNumber(sum_leg_cover_month_usage_qty * 2));
+        ws.cell(row, 68).number(toNumber(sum_leg_cover_qty - (sum_leg_cover_month_usage_qty * 2)));
+        ws.cell(row, 69).number(toNumber(sum_disposable_cap_qty));
+        ws.cell(row, 70).number(toNumber(sum_disposable_cap_month_usage_qty));
+        ws.cell(row, 71).number(toNumber(sum_disposable_cap_month_usage_qty * 2));
+        ws.cell(row, 72).number(toNumber(sum_disposable_cap_qty - (sum_disposable_cap_month_usage_qty * 2)));
+        row++;
+
+        sum_surgical_gown_qty = 0;
+        sum_surgical_gown_month_usage_qty = 0;
+        sum_cover_all1_qty = 0;
+        sum_cover_all1_month_usage_qty = 0;
+        sum_cover_all2_qty = 0;
+        sum_cover_all2_month_usage_qty = 0;
+        sum_n95_qty = 0;
+        sum_n95_month_usage_qty = 0;
+        sum_shoe_cover_qty = 0;
+        sum_shoe_cover_month_usage_qty = 0;
+        sum_surgical_hood_qty = 0;
+        sum_surgical_hood_month_usage_qty = 0;
+        sum_long_glove_qty = 0;
+        sum_long_glove_month_usage_qty = 0;
+        sum_face_shield_qty = 0;
+        sum_face_shield_month_usage_qty = 0;
+        sum_surgical_mask_qty = 0;
+        sum_surgical_mask_month_usage_qty = 0
+        sum_powered_air_qty = 0;
+        sum_powered_air_month_usage_qty = 0;
+        sum_alcohol_70_qty = 0;
+        sum_alcohol_70_month_usage_qty = 0;
+        sum_alcohol_95_qty = 0;
+        sum_alcohol_95_month_usage_qty = 0;
+        sum_alcohol_gel_qty = 0;
+        sum_alcohol_gel_month_usage_qty = 0;
+        sum_disposable_glove_qty = 0;
+        sum_disposable_glove_month_usage_qty = 0;
+        sum_isolation_gown_qty = 0;
+        sum_isolation_gown_month_usage_qty = 0;
+        sum_leg_cover_qty = 0;
+        sum_leg_cover_month_usage_qty = 0;
+        sum_disposable_cap_qty = 0;
+        sum_disposable_cap_month_usage_qty = 0;
+      } else {
+        sum_surgical_gown_qty = sum_surgical_gown_qty + i.surgical_gown_qty;
+        sum_surgical_gown_month_usage_qty = sum_surgical_gown_month_usage_qty + i.surgical_gown_month_usage_qty;
+        sum_cover_all1_qty = sum_cover_all1_qty + i.cover_all1_qty;
+        sum_cover_all1_month_usage_qty = sum_cover_all1_month_usage_qty + i.cover_all1_month_usage_qty;
+        sum_cover_all2_qty = sum_cover_all2_qty + i.cover_all2_qty;
+        sum_cover_all2_month_usage_qty = sum_cover_all2_month_usage_qty + i.cover_all2_month_usage_qty;
+        sum_n95_qty = sum_n95_qty + i.n95_qty;
+        sum_n95_month_usage_qty = sum_n95_month_usage_qty + i.n95_month_usage_qty;
+        sum_shoe_cover_qty = sum_shoe_cover_qty + i.shoe_cover_qty;
+        sum_shoe_cover_month_usage_qty = sum_shoe_cover_month_usage_qty + i.shoe_cover_month_usage_qty;
+        sum_surgical_hood_qty = sum_surgical_hood_qty + i.surgical_hood_qty;
+        sum_surgical_hood_month_usage_qty = sum_surgical_hood_month_usage_qty + i.surgical_hood_month_usage_qty;
+        sum_long_glove_qty = sum_long_glove_qty + i.long_glove_qty;
+        sum_long_glove_month_usage_qty = sum_long_glove_month_usage_qty + i.long_glove_month_usage_qty;
+        sum_face_shield_qty = sum_face_shield_qty + i.face_shield_qty;
+        sum_face_shield_month_usage_qty = sum_face_shield_month_usage_qty + i.face_shield_month_usage_qty;
+        sum_surgical_mask_qty = sum_surgical_mask_qty + i.surgical_mask_qty;
+        sum_surgical_mask_month_usage_qty = sum_surgical_mask_month_usage_qty + i.surgical_mask_month_usage_qty;
+        sum_powered_air_qty = sum_powered_air_qty + i.powered_air_qty;
+        sum_powered_air_month_usage_qty = sum_powered_air_month_usage_qty + i.powered_air_month_usage_qty;
+        sum_alcohol_70_qty = sum_alcohol_70_qty + i.alcohol_70_qty;
+        sum_alcohol_70_month_usage_qty = sum_alcohol_70_month_usage_qty + i.alcohol_70_month_usage_qty;
+        sum_alcohol_95_qty = sum_alcohol_95_qty + i.alcohol_95_qty;
+        sum_alcohol_95_month_usage_qty = sum_alcohol_95_month_usage_qty + i.alcohol_95_month_usage_qty;
+        sum_alcohol_gel_qty = sum_alcohol_gel_qty + i.alcohol_gel_qty;
+        sum_alcohol_gel_month_usage_qty = sum_alcohol_gel_month_usage_qty + i.alcohol_gel_month_usage_qty;
+        sum_disposable_glove_qty = sum_disposable_glove_qty + i.disposable_glove_qty;
+        sum_disposable_glove_month_usage_qty = sum_disposable_glove_month_usage_qty + i.disposable_glove_month_usage_qty;
+        sum_isolation_gown_qty = sum_isolation_gown_qty + i.isolation_gown_qty;
+        sum_isolation_gown_month_usage_qty = sum_isolation_gown_month_usage_qty + i.isolation_gown_month_usage_qty;
+        sum_leg_cover_qty = sum_leg_cover_qty + i.leg_cover_qty;
+        sum_leg_cover_month_usage_qty = sum_leg_cover_month_usage_qty + i.leg_cover_month_usage_qty;
+        sum_disposable_cap_qty = sum_disposable_cap_qty + i.disposable_cap_qty;
+        sum_disposable_cap_month_usage_qty = sum_disposable_cap_month_usage_qty + i.disposable_cap_month_usage_qty;
+      }
+
       ws.cell(row, 1).string(i.zone_code);
       ws.cell(row, 2).string(i.province_name);
       ws.cell(row, 3).string(i.hospname);
@@ -1503,8 +1687,81 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
       ws.cell(row, 70).number(toNumber(i.disposable_cap_month_usage_qty));
       ws.cell(row, 71).number(toNumber(i.disposable_cap_month_usage_qty * 2));
       ws.cell(row, 72).number(toNumber(i.disposable_cap_qty - (i.disposable_cap_month_usage_qty * 2)));
+      province_name = i.province_name
       row++;
     }
+
+    ws.cell(row, 1).string('รวม');
+        ws.cell(row, 2).string(province_name);
+        ws.cell(row, 5).number(toNumber(sum_surgical_gown_qty));
+        ws.cell(row, 6).number(toNumber(sum_surgical_gown_month_usage_qty));
+        ws.cell(row, 7).number(toNumber(sum_surgical_gown_month_usage_qty * 2));
+        ws.cell(row, 8).number(toNumber(sum_surgical_gown_qty - (sum_surgical_gown_month_usage_qty * 2)));
+        ws.cell(row, 9).number(toNumber(sum_cover_all1_qty));
+        ws.cell(row, 10).number(toNumber(sum_cover_all1_month_usage_qty));
+        ws.cell(row, 11).number(toNumber(sum_cover_all1_month_usage_qty * 2));
+        ws.cell(row, 12).number(toNumber(sum_cover_all1_qty - (sum_cover_all1_month_usage_qty * 2)));
+        ws.cell(row, 13).number(toNumber(sum_cover_all2_qty));
+        ws.cell(row, 14).number(toNumber(sum_cover_all2_month_usage_qty));
+        ws.cell(row, 15).number(toNumber(sum_cover_all2_month_usage_qty * 2));
+        ws.cell(row, 16).number(toNumber(sum_cover_all2_qty - (sum_cover_all2_month_usage_qty * 2)));
+        ws.cell(row, 17).number(toNumber(sum_n95_qty));
+        ws.cell(row, 18).number(toNumber(sum_n95_month_usage_qty));
+        ws.cell(row, 19).number(toNumber(sum_n95_month_usage_qty * 2));
+        ws.cell(row, 20).number(toNumber(sum_n95_qty - (sum_n95_month_usage_qty * 2)));
+        ws.cell(row, 21).number(toNumber(sum_shoe_cover_qty));
+        ws.cell(row, 22).number(toNumber(sum_shoe_cover_month_usage_qty));
+        ws.cell(row, 23).number(toNumber(sum_shoe_cover_month_usage_qty * 2));
+        ws.cell(row, 24).number(toNumber(sum_shoe_cover_qty - (sum_shoe_cover_month_usage_qty * 2)));
+        ws.cell(row, 25).number(toNumber(sum_surgical_hood_qty));
+        ws.cell(row, 26).number(toNumber(sum_surgical_hood_month_usage_qty));
+        ws.cell(row, 27).number(toNumber(sum_surgical_hood_month_usage_qty * 2));
+        ws.cell(row, 28).number(toNumber(sum_surgical_hood_qty - (sum_surgical_hood_month_usage_qty * 2)));
+        ws.cell(row, 29).number(toNumber(sum_long_glove_qty));
+        ws.cell(row, 30).number(toNumber(sum_long_glove_month_usage_qty));
+        ws.cell(row, 31).number(toNumber(sum_long_glove_month_usage_qty * 2));
+        ws.cell(row, 32).number(toNumber(sum_long_glove_qty - (sum_long_glove_month_usage_qty * 2)));
+        ws.cell(row, 33).number(toNumber(sum_face_shield_qty));
+        ws.cell(row, 34).number(toNumber(sum_face_shield_month_usage_qty));
+        ws.cell(row, 35).number(toNumber(sum_face_shield_month_usage_qty * 2));
+        ws.cell(row, 36).number(toNumber(sum_face_shield_qty - (sum_face_shield_month_usage_qty * 2)));
+        ws.cell(row, 37).number(toNumber(sum_surgical_mask_qty));
+        ws.cell(row, 38).number(toNumber(sum_surgical_mask_month_usage_qty));
+        ws.cell(row, 39).number(toNumber(sum_surgical_mask_month_usage_qty * 2));
+        ws.cell(row, 40).number(toNumber(sum_surgical_mask_qty - (sum_surgical_mask_month_usage_qty * 2)));
+        ws.cell(row, 41).number(toNumber(sum_powered_air_qty));
+        ws.cell(row, 42).number(toNumber(sum_powered_air_month_usage_qty));
+        ws.cell(row, 43).number(toNumber(sum_powered_air_month_usage_qty * 2));
+        ws.cell(row, 44).number(toNumber(sum_powered_air_qty - (sum_powered_air_month_usage_qty * 2)));
+        ws.cell(row, 45).number(toNumber(sum_alcohol_70_qty));
+        ws.cell(row, 46).number(toNumber(sum_alcohol_70_month_usage_qty));
+        ws.cell(row, 47).number(toNumber(sum_alcohol_70_month_usage_qty * 2));
+        ws.cell(row, 48).number(toNumber(sum_alcohol_70_qty - (sum_alcohol_70_month_usage_qty * 2)));
+        ws.cell(row, 49).number(toNumber(sum_alcohol_95_qty));
+        ws.cell(row, 50).number(toNumber(sum_alcohol_95_month_usage_qty));
+        ws.cell(row, 51).number(toNumber(sum_alcohol_95_month_usage_qty * 2));
+        ws.cell(row, 52).number(toNumber(sum_alcohol_95_qty - (sum_alcohol_95_month_usage_qty * 2)));
+        ws.cell(row, 53).number(toNumber(sum_alcohol_gel_qty));
+        ws.cell(row, 54).number(toNumber(sum_alcohol_gel_month_usage_qty));
+        ws.cell(row, 55).number(toNumber(sum_alcohol_gel_month_usage_qty * 2));
+        ws.cell(row, 56).number(toNumber(sum_alcohol_gel_qty - (sum_alcohol_gel_month_usage_qty * 2)));
+        ws.cell(row, 57).number(toNumber(sum_disposable_glove_qty));
+        ws.cell(row, 58).number(toNumber(sum_disposable_glove_month_usage_qty));
+        ws.cell(row, 59).number(toNumber(sum_disposable_glove_month_usage_qty * 2));
+        ws.cell(row, 60).number(toNumber(sum_disposable_glove_qty - (sum_disposable_glove_month_usage_qty * 2)));
+        ws.cell(row, 61).number(toNumber(sum_isolation_gown_qty));
+        ws.cell(row, 62).number(toNumber(sum_isolation_gown_month_usage_qty));
+        ws.cell(row, 63).number(toNumber(sum_isolation_gown_month_usage_qty * 2));
+        ws.cell(row, 64).number(toNumber(sum_isolation_gown_qty - (sum_isolation_gown_month_usage_qty * 2)));
+        ws.cell(row, 65).number(toNumber(sum_leg_cover_qty));
+        ws.cell(row, 66).number(toNumber(sum_leg_cover_month_usage_qty));
+        ws.cell(row, 67).number(toNumber(sum_leg_cover_month_usage_qty * 2));
+        ws.cell(row, 68).number(toNumber(sum_leg_cover_qty - (sum_leg_cover_month_usage_qty * 2)));
+        ws.cell(row, 69).number(toNumber(sum_disposable_cap_qty));
+        ws.cell(row, 70).number(toNumber(sum_disposable_cap_month_usage_qty));
+        ws.cell(row, 71).number(toNumber(sum_disposable_cap_month_usage_qty * 2));
+        ws.cell(row, 72).number(toNumber(sum_disposable_cap_qty - (sum_disposable_cap_month_usage_qty * 2)));
+
     fse.ensureDirSync(process.env.TMP_PATH);
     let filename = `get_gcs` + moment().format('x');
     let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
@@ -2235,6 +2492,173 @@ router.get('/admit-confirm-case/export', async (req: Request, res: Response) => 
   }
 });
 
+router.get('/admit-confirm-case/export/dms', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const zoneCode = req.decoded.zone_code;
+  const right = req.decoded.rights;
+  const showPersons = _.findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 ? true : false;
+
+  try {
+    var wb = new excel4node.Workbook();
+    const rs: any = await model.admitConfirmCaseSummaryDms(db);
+    var ws1 = wb.addWorksheet('สรุป');
+    ws1.cell(1, 1).string('เขต');
+    ws1.cell(1, 2).string('รวม');
+    ws1.cell(1, 3).string('Severe');
+    ws1.cell(1, 4).string('moderate');
+    ws1.cell(1, 5).string('mild');
+    ws1.cell(1, 6).string('asymptomatic');
+    ws1.cell(1, 7).string('aiir');
+    ws1.cell(1, 8).string('modified_aiir');
+    ws1.cell(1, 9).string('isolate');
+    ws1.cell(1, 10).string('cohort');
+    ws1.cell(1, 11).string('cohort_icu');
+    ws1.cell(1, 12).string('Hospitel');
+    ws1.cell(1, 13).string('invasive');
+    ws1.cell(1, 14).string('noninvasive');
+    ws1.cell(1, 15).string('high_flow');
+    ws1.cell(1, 16).string('Darunavir 600 mg.');
+    ws1.cell(1, 17).string('Lopinavir 200 mg./Ritonavir 50 mg.');
+    ws1.cell(1, 18).string('Ritonavir 100 mg.');
+    ws1.cell(1, 19).string('Azithromycin 250 mg.');
+    ws1.cell(1, 20).string('Favipiravi(คน)');
+    let row = 2;
+    for (const l of rs) {
+      ws1.cell(row, 1).number(toNumber(+l.zone_code || 0));
+      ws1.cell(row, 2).number(toNumber(l.confirm || 0));
+      ws1.cell(row, 3).number(toNumber(l.severe || 0));
+      ws1.cell(row, 4).number(toNumber(l.moderate || 0));
+      ws1.cell(row, 5).number(toNumber(l.mild || 0));
+      ws1.cell(row, 6).number(toNumber(l.asymptomatic || 0));
+      ws1.cell(row, 7).number(toNumber(l.aiir || 0));
+      ws1.cell(row, 8).number(toNumber(l.modified_aiir || 0));
+      ws1.cell(row, 9).number(toNumber(l.isolate || 0));
+      ws1.cell(row, 10).number(toNumber(l.cohort || 0));
+      ws1.cell(row, 11).number(toNumber(l.cohort_icu || 0));
+      ws1.cell(row, 12).number(toNumber(l.hospitel || 0));
+      ws1.cell(row, 13).number(toNumber(l.invasive || 0));
+      ws1.cell(row, 14).number(toNumber(l.noninvasive || 0));
+      ws1.cell(row, 15).number(toNumber(l.high_flow || 0));
+      ws1.cell(row, 16).number(toNumber(l.d3 || 0));
+      ws1.cell(row, 17).number(toNumber(l.d4 || 0));
+      ws1.cell(row, 18).number(toNumber(l.d5 || 0));
+      ws1.cell(row, 19).number(toNumber(l.d7 || 0));
+      ws1.cell(row, 20).number(toNumber(l.d8 || 0));
+      row++;
+    }
+    var ws2 = wb.addWorksheet('รายคน');
+    ws2.row(1).filter();
+    if (showPersons) {
+      ws2.cell(1, 1).string('เขต');
+      ws2.cell(1, 2).string('จังหวัด');
+      ws2.cell(1, 3).string('โรงพยาบาล');
+      ws2.cell(1, 4).string('HN');
+      ws2.cell(1, 5).string('AN');
+      ws2.cell(1, 6).string('CID');
+      ws2.cell(1, 7).string('ชื่อ');
+      ws2.cell(1, 8).string('นามสกุล');
+      ws2.cell(1, 9).string('SAT ID');
+      ws2.cell(1, 10).string('เพศ');
+      ws2.cell(1, 11).string('อายุ');
+      ws2.cell(1, 12).string('วันที่ ADMIT');
+      ws2.cell(1, 13).string('ความรุนแรง');
+      ws2.cell(1, 14).string('เตียง');
+      ws2.cell(1, 15).string('เครื่องช่วยหายใจ');
+      ws2.cell(1, 16).string('วันที่บันทึกล่าสุด');
+      ws2.cell(1, 17).string('ไม่ได้บันทึกมา');
+      ws2.cell(1, 18).string('Darunavir 600 mg.');
+      ws2.cell(1, 19).string('Lopinavir 200 mg./Ritonavir 50 mg.');
+      ws2.cell(1, 20).string('Ritonavir 100 mg.');
+      ws2.cell(1, 21).string('Azithromycin 250 mg.');
+      ws2.cell(1, 22).string('Favipiravi');
+    } else {
+      ws2.cell(1, 1).string('เขต');
+      ws2.cell(1, 2).string('จังหวัด');
+      ws2.cell(1, 3).string('โรงพยาบาล');
+      ws2.cell(1, 4).string('HN');
+      ws2.cell(1, 5).string('AN');
+      ws2.cell(1, 6).string('วันที่ ADMIT');
+      ws2.cell(1, 7).string('ความรุนแรง');
+      ws2.cell(1, 8).string('เตียง');
+      ws2.cell(1, 9).string('เครื่องช่วยหายใจ');
+      ws2.cell(1, 10).string('วันที่บันทึกล่าสุด');
+      ws2.cell(1, 11).string('ไม่ได้บันทึกมา');
+      ws2.cell(1, 12).string('Darunavir 600 mg.');
+      ws2.cell(1, 13).string('Lopinavir 200 mg./Ritonavir 50 mg.');
+      ws2.cell(1, 14).string('Ritonavir 100 mg.');
+      ws2.cell(1, 15).string('Azithromycin 250 mg.');
+      ws2.cell(1, 16).string('Favipiravi');
+    }
+    row = 2;
+    const rs2: any = await model.admitConfirmCase(db, showPersons, 1000000, 0);
+    // const rs2 = [];
+    for (const i of rs2) {
+      if (showPersons) {
+        ws2.cell(row, 1).string(toString(i.zone_code));
+        ws2.cell(row, 2).string(toString(i.province_name));
+        ws2.cell(row, 3).string(toString(i.hospname));
+        ws2.cell(row, 4).string(toString(i.hn));
+        ws2.cell(row, 5).string(toString(i.an));
+        ws2.cell(row, 6).string(toString(i.cid));
+        ws2.cell(row, 7).string(toString(i.first_name));
+        ws2.cell(row, 8).string(toString(i.last_name));
+        ws2.cell(row, 9).string(toString(i.sat_id));
+        ws2.cell(row, 10).string(toString(i.sex));
+        ws2.cell(row, 11).string(toString(i.age));
+        ws2.cell(row, 12).string(toString(moment(i.date_admit).format('DD-MM-YYYY')));
+        ws2.cell(row, 13).string(toString(i.gcs_name));
+        ws2.cell(row, 14).string(toString(i.bed_name));
+        ws2.cell(row, 15).string(toString(i.medical_supplies_name));
+        ws2.cell(row, 16).string(toString(moment(i.updated_entry_last).format('DD-MM-YYYY')));
+        ws2.cell(row, 17).string(toString(i.days));
+        ws2.cell(row, 18).string(toString(i.d3 > 0 ? '/' : ''));
+        ws2.cell(row, 19).string(toString(i.d4 > 0 ? '/' : ''));
+        ws2.cell(row, 20).string(toString(i.d5 > 0 ? '/' : ''));
+        ws2.cell(row, 21).string(toString(i.d7 > 0 ? '/' : ''));
+        ws2.cell(row, 22).string(toString(i.d8 > 0 ? '/' : ''));
+      } else {
+        ws2.cell(row, 1).string(toString(i.zone_code));
+        ws2.cell(row, 2).string(toString(i.province_name));
+        ws2.cell(row, 3).string(toString(i.hospname));
+        ws2.cell(row, 4).string(toString(i.hn));
+        ws2.cell(row, 5).string(toString(i.an));
+        ws2.cell(row, 6).string(toString(moment(i.date_admit).format('DD-MM-YYYY')));
+        ws2.cell(row, 7).string(toString(i.gcs_name));
+        ws2.cell(row, 8).string(toString(i.bed_name));
+        ws2.cell(row, 9).string(toString(i.medical_supplies_name));
+        ws2.cell(row, 10).string(toString(moment(i.updated_entry_last).format('DD-MM-YYYY')));
+        ws2.cell(row, 11).string(toString(i.days));
+        ws2.cell(row, 12).string(toString(i.d3 > 0 ? '/' : ''));
+        ws2.cell(row, 13).string(toString(i.d4 > 0 ? '/' : ''));
+        ws2.cell(row, 14).string(toString(i.d5 > 0 ? '/' : ''));
+        ws2.cell(row, 15).string(toString(i.d7 > 0 ? '/' : ''));
+        ws2.cell(row, 16).string(toString(i.d8 > 0 ? '/' : ''));
+      }
+      row++;
+    }
+    fse.ensureDirSync(process.env.TMP_PATH);
+    let filename = `cio_check` + moment().format('x') + '.xlsx'
+    let filenamePath = path.join(process.env.TMP_PATH, filename);
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.get('/admit-pui-case/export', async (req: Request, res: Response) => {
   const db = req.dbReport;
   const zoneCode = req.decoded.zone_code;
@@ -2244,6 +2668,166 @@ router.get('/admit-pui-case/export', async (req: Request, res: Response) => {
   try {
     var wb = new excel4node.Workbook();
     const rs: any = await model.admitPuiCaseSummary(db);
+    var ws1 = wb.addWorksheet('สรุป');
+    ws1.cell(1, 1).string('เขต');
+    ws1.cell(1, 2).string('รวม');
+    ws1.cell(1, 3).string('aiir');
+    ws1.cell(1, 4).string('modified_aiir');
+    ws1.cell(1, 5).string('isolate');
+    ws1.cell(1, 6).string('cohort');
+    ws1.cell(1, 7).string('cohort_icu');
+    ws1.cell(1, 8).string('Hospitel');
+    ws1.cell(1, 9).string('invasive');
+    ws1.cell(1, 10).string('noninvasive');
+    ws1.cell(1, 11).string('high_flow');
+    ws1.cell(1, 12).string('Darunavir 600 mg.');
+    ws1.cell(1, 13).string('Lopinavir 200 mg./Ritonavir 50 mg.');
+    ws1.cell(1, 14).string('Ritonavir 100 mg.');
+    ws1.cell(1, 15).string('Azithromycin 250 mg.');
+    ws1.cell(1, 16).string('Favipiravi(คน)');
+    let row = 2;
+    for (const l of rs) {
+      ws1.cell(row, 1).number(toNumber(+l.zone_code || 0));
+      ws1.cell(row, 2).number(toNumber(l.pui || 0));
+      ws1.cell(row, 3).number(toNumber(l.aiir || 0));
+      ws1.cell(row, 4).number(toNumber(l.modified_aiir || 0));
+      ws1.cell(row, 5).number(toNumber(l.isolate || 0));
+      ws1.cell(row, 6).number(toNumber(l.cohort || 0));
+      ws1.cell(row, 7).number(toNumber(l.cohort_icu || 0));
+      ws1.cell(row, 8).number(toNumber(l.hospitel || 0));
+      ws1.cell(row, 9).number(toNumber(l.invasive || 0));
+      ws1.cell(row, 10).number(toNumber(l.noninvasive || 0));
+      ws1.cell(row, 11).number(toNumber(l.high_flow || 0));
+      ws1.cell(row, 12).number(toNumber(l.d3 || 0));
+      ws1.cell(row, 13).number(toNumber(l.d4 || 0));
+      ws1.cell(row, 14).number(toNumber(l.d5 || 0));
+      ws1.cell(row, 15).number(toNumber(l.d7 || 0));
+      ws1.cell(row, 16).number(toNumber(l.d8 || 0));
+      row++;
+    }
+    var ws2 = wb.addWorksheet('รายคน');
+    ws2.row(1).filter();
+    if (showPersons) {
+      ws2.cell(1, 1).string('เขต');
+      ws2.cell(1, 2).string('จังหวัด');
+      ws2.cell(1, 3).string('โรงพยาบาล');
+      ws2.cell(1, 4).string('HN');
+      ws2.cell(1, 5).string('AN');
+      ws2.cell(1, 6).string('CID');
+      ws2.cell(1, 7).string('ชื่อ');
+      ws2.cell(1, 8).string('นามสกุล');
+      ws2.cell(1, 9).string('SAT ID');
+      ws2.cell(1, 10).string('เพศ');
+      ws2.cell(1, 11).string('อายุ');
+      ws2.cell(1, 12).string('วันที่ ADMIT');
+      ws2.cell(1, 13).string('ความรุนแรง');
+      ws2.cell(1, 14).string('เตียง');
+      ws2.cell(1, 15).string('เครื่องช่วยหายใจ');
+      ws2.cell(1, 16).string('วันที่บันทึกล่าสุด');
+      ws2.cell(1, 17).string('ไม่ได้บันทึกมา');
+      ws2.cell(1, 18).string('Darunavir 600 mg.');
+      ws2.cell(1, 19).string('Lopinavir 200 mg./Ritonavir 50 mg.');
+      ws2.cell(1, 20).string('Ritonavir 100 mg.');
+      ws2.cell(1, 21).string('Azithromycin 250 mg.');
+      ws2.cell(1, 22).string('Favipiravi');
+    } else {
+      ws2.cell(1, 1).string('เขต');
+      ws2.cell(1, 2).string('จังหวัด');
+      ws2.cell(1, 3).string('โรงพยาบาล');
+      ws2.cell(1, 4).string('HN');
+      ws2.cell(1, 5).string('AN');
+      ws2.cell(1, 6).string('วันที่ ADMIT');
+      ws2.cell(1, 7).string('ความรุนแรง');
+      ws2.cell(1, 8).string('เตียง');
+      ws2.cell(1, 9).string('เครื่องช่วยหายใจ');
+      ws2.cell(1, 10).string('วันที่บันทึกล่าสุด');
+      ws2.cell(1, 11).string('ไม่ได้บันทึกมา');
+      ws2.cell(1, 12).string('Darunavir 600 mg.');
+      ws2.cell(1, 13).string('Lopinavir 200 mg./Ritonavir 50 mg.');
+      ws2.cell(1, 14).string('Ritonavir 100 mg.');
+      ws2.cell(1, 15).string('Azithromycin 250 mg.');
+      ws2.cell(1, 16).string('Favipiravi');
+    }
+
+    row = 2;
+    const rs2: any = await model.admitPuiCase(db, showPersons, 1000000, 0);
+    // const rs2 = [];
+    for (const i of rs2) {
+      if (showPersons) {
+        ws2.cell(row, 1).string(toString(i.zone_code));
+        ws2.cell(row, 2).string(toString(i.province_name));
+        ws2.cell(row, 3).string(toString(i.hospname));
+        ws2.cell(row, 4).string(toString(i.hn));
+        ws2.cell(row, 5).string(toString(i.an));
+        ws2.cell(row, 6).string(toString(i.cid));
+        ws2.cell(row, 7).string(toString(i.first_name));
+        ws2.cell(row, 8).string(toString(i.last_name));
+        ws2.cell(row, 9).string(toString(i.sat_id));
+        ws2.cell(row, 10).string(toString(i.sex));
+        ws2.cell(row, 11).string(toString(i.age));
+        ws2.cell(row, 12).string(toString(moment(i.date_admit).format('DD-MM-YYYY')));
+        ws2.cell(row, 13).string(toString(i.gcs_name));
+        ws2.cell(row, 14).string(toString(i.bed_name));
+        ws2.cell(row, 15).string(toString(i.medical_supplies_name));
+        ws2.cell(row, 16).string(toString(moment(i.updated_entry_last).format('DD-MM-YYYY')));
+        ws2.cell(row, 17).string(toString(i.days));
+        ws2.cell(row, 18).string(toString(i.d3 > 0 ? '/' : ''));
+        ws2.cell(row, 19).string(toString(i.d4 > 0 ? '/' : ''));
+        ws2.cell(row, 20).string(toString(i.d5 > 0 ? '/' : ''));
+        ws2.cell(row, 21).string(toString(i.d7 > 0 ? '/' : ''));
+        ws2.cell(row, 22).string(toString(i.d8 > 0 ? '/' : ''));
+      } else {
+        ws2.cell(row, 1).string(toString(i.zone_code));
+        ws2.cell(row, 2).string(toString(i.province_name));
+        ws2.cell(row, 3).string(toString(i.hospname));
+        ws2.cell(row, 4).string(toString(i.hn));
+        ws2.cell(row, 5).string(toString(i.an));
+        ws2.cell(row, 6).string(toString(moment(i.date_admit).format('DD-MM-YYYY')));
+        ws2.cell(row, 7).string(toString(i.gcs_name));
+        ws2.cell(row, 8).string(toString(i.bed_name));
+        ws2.cell(row, 9).string(toString(i.medical_supplies_name));
+        ws2.cell(row, 10).string(toString(moment(i.updated_entry_last).format('DD-MM-YYYY')));
+        ws2.cell(row, 11).string(toString(i.days));
+        ws2.cell(row, 12).string(toString(i.d3 > 0 ? '/' : ''));
+        ws2.cell(row, 13).string(toString(i.d4 > 0 ? '/' : ''));
+        ws2.cell(row, 14).string(toString(i.d5 > 0 ? '/' : ''));
+        ws2.cell(row, 15).string(toString(i.d7 > 0 ? '/' : ''));
+        ws2.cell(row, 16).string(toString(i.d8 > 0 ? '/' : ''));
+      }
+      row++;
+    }
+    fse.ensureDirSync(process.env.TMP_PATH);
+    let filename = `cio_check` + moment().format('x') + '.xlsx'
+    let filenamePath = path.join(process.env.TMP_PATH, filename);
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/admit-pui-case/export/dms', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const zoneCode = req.decoded.zone_code;
+  const right = req.decoded.rights;
+  const showPersons = _.findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 ? true : false;
+
+  try {
+    var wb = new excel4node.Workbook();
+    const rs: any = await model.admitPuiCaseSummaryDms(db);
     var ws1 = wb.addWorksheet('สรุป');
     ws1.cell(1, 1).string('เขต');
     ws1.cell(1, 2).string('รวม');
@@ -2690,6 +3274,66 @@ router.get('/discharge-daily/excel', async (req: Request, res: Response) => {
   const date = req.query.date || moment().format('YYYY-MM-DD');
   try {
     const rs: any = await model.dischargeCase(db, date);
+    let row = 2
+    var wb = new excel4node.Workbook();
+    var ws = wb.addWorksheet('Sheet 1');
+    ws.cell(1, 1).string('zone_code');
+    ws.cell(1, 2).string('จังหวัด');
+    ws.cell(1, 3).string('รหัสโรงพยาบาล');
+    ws.cell(1, 4).string('โรงพยาบาล');
+    ws.cell(1, 5).string('hn');
+    ws.cell(1, 6).string('an');
+    ws.cell(1, 7).string('status');
+    ws.cell(1, 8).string('date_admit');
+    ws.cell(1, 9).string('date_discharge');
+    ws.cell(1, 10).string('refer_hospcode');
+    ws.cell(1, 11).string('refer_hospname');
+    for (const item of rs) {
+      item.date_admit = moment(item.date_admit).format('DD/MM/YYYY')
+      item.date_discharge = moment(item.date_discharge).format('DD/MM/YYYY')
+      ws.cell(row, 1).string(toString(item.zone_code));
+      ws.cell(row, 2).string(toString(item.province_name));
+      ws.cell(row, 3).string(toString(item.hospcode));
+      ws.cell(row, 4).string(toString(item.hospname));
+      ws.cell(row, 5).string(toString(item.hn));
+      ws.cell(row, 6).string(toString(item.an));
+      ws.cell(row, 7).string(toString(item.status));
+      ws.cell(row, 8).string(toString(item.date_admit));
+      ws.cell(row, 9).string(toString(item.date_discharge));
+      ws.cell(row, 10).string(toString(item.refer_hospcode));
+      ws.cell(row, 11).string(toString(item.refer_hospname));
+      row++;
+    }
+
+
+    fse.ensureDirSync(process.env.TMP_PATH);
+    let filename = `discharge-daily` + moment().format('x') + '.xlsx'
+    let filenamePath = path.join(process.env.TMP_PATH, filename);
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, message: error, code: HttpStatus.OK });
+  }
+});
+
+router.get('/discharge-daily/excel/dms', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const date = req.query.date || moment().format('YYYY-MM-DD');
+  try {
+    const rs: any = await model.dischargeCaseDms(db, date);
     let row = 2
     var wb = new excel4node.Workbook();
     var ws = wb.addWorksheet('Sheet 1');

@@ -557,8 +557,17 @@ export class ReportModel {
     let sql = db('temp_report_admit_comfirm_case_summary');
     return sql;
   }
+
+  admitConfirmCaseSummaryDms(db: Knex) {
+    let sql = db('temp_report_admit_comfirm_case_summary_dms');
+    return sql;
+  }
   admitPuiCaseSummary(db: Knex) {
     let sql = db('temp_report_admit_pui_case_summary');
+    return sql;
+  }
+  admitPuiCaseSummaryDms(db: Knex) {
+    let sql = db('temp_report_admit_pui_case_summary_dms');
     return sql;
   }
 
@@ -836,6 +845,21 @@ export class ReportModel {
       .orderBy('h.zone_code').orderBy('h.province_name').orderBy('h.hospname');
   }
 
+  dischargeCaseDms(db: Knex, date) {
+    return db('p_covid_cases as pc')
+      .select('pc.*', 'p.hn', 'p.hospital_id', 'p.person_id', 'h.hospcode', 'h.hospname', 'h.zone_code', 'h.province_code', 'h.province_name', 'rh.hospcode as refer_hospcode', 'rh.hospname as refer_hospname')
+      .join('p_patients as p', 'p.id', ' pc.patient_id')
+      .join('b_hospitals as h', 'h.id', 'p.hospital_id')
+      .join('views_hospital_dms as vhd', 'vhd.id', 'h.id')
+      .join('views_covid_case_last as vl', 'vl.covid_case_id', 'pc.id')
+      .leftJoin('b_hospitals as rh', 'rh.id', 'pc.hospital_id_refer')
+      .where('pc.is_deleted', 'N')
+      .whereIn('pc.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
+      .whereIn('vl.gcs_id', [1, 2, 3, 4])
+      .whereBetween('pc.date_discharge', [`${date} 00:00:00`, `${date} 23:59:00`])
+      .orderBy('h.zone_code').orderBy('h.province_name').orderBy('h.hospname');
+  }
+
   dischargeCaseEntryDate(db: Knex, date) {
     return db('views_covid_case_last AS vc')
       .select('vc.*', 'pc.date_discharge', 'pc.hospital_id_refer', 'bh.zone_code', 'bh.province_code', 'bh.province_name', 'bh.hospcode', 'bh.hospname', 'rh.hospcode as hospcode_refer', 'rh.hospname as hospname_refer', 'pc.an', 'p.hn')
@@ -859,7 +883,7 @@ export class ReportModel {
   getCaseDc(db: Knex, showPersons = false, query = null, zoneCode, provinceCode = null) {
     const _query = `%${query}%`;
     const sql = db('view_covid_case_last as c')
-      .select('c.id as covid_case_id', 'h.hospname','h.province_name', 'c.an', 'c.confirm_date', 'c.status', 'c.date_admit', 'c.date_discharge', 'pt.hn')
+      .select('c.id as covid_case_id', 'h.hospname','h.province_name as hosp_province', 'c.an', 'c.confirm_date', 'c.status', 'c.date_admit', 'c.date_discharge', 'pt.hn')
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
       .join('b_hospitals AS h', 'h.id', 'c.hospital_id')
       .whereIn('c.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
@@ -887,6 +911,8 @@ export class ReportModel {
     }
 
     sql.orderBy('c.date_admit', 'DESC');
+    console.log(sql.toString());
+    
     return sql;
     // .groupBy('pt.id')
   }

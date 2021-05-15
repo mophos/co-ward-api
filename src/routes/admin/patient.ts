@@ -122,7 +122,7 @@ router.put('/edit-info', async (req: Request, res: Response) => {
                     const rs = await patientModel.saveLogsPatient(db, oldHn[0]);
                     console.log(rs, 'patients');
                     paLogs = rs.length > 0 ? true : false;
-                } 
+                }
             }
             if (peLogs || paLogs) {
                 res.send({ ok: true, code: HttpStatus.OK });
@@ -151,6 +151,7 @@ router.get('/details', async (req: Request, res: Response) => {
         let rs: any = await covidCaseModel.getDetails(req.db, covidCaseId);
         for (const v of rs) {
             v.s_entry_date = moment(v.entry_date).format('YYYY-MM-D');
+            v.date_discharge = moment(v.date_discharge).format('YYYY-MM-D');
         }
         res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } catch (error) {
@@ -385,24 +386,27 @@ router.post('/covid-case-detail', async (req: Request, res: Response) => {
     let error = ''
     try {
         let caseDetail: any = await patientModel.getCaseDetailByCaseId(db, caseId);
-        console.log(caseDetail);
-
+        let caseDetailId: any = [];
         if (caseDetail.length > 0) {
             for (const v of caseDetail) {
                 v.updated_by = req.decoded.id;
                 v.update_date = moment().format('YYYY-MM-DD HH:mm:ss');
+                caseDetailId.push(v.id);
+            }
+            const rsLogs = await patientModel.saveLogsCaseDetail(db, caseDetail);
+
+            if (!rsLogs) {
+                error += 'update logs case deteil  error. '
             }
 
             for (const v of data) {
-                v.covid_case_id = caseId
+                v.medical_supplie_id = v.medical_supplie_id === 'null' ? null : v.medical_supplie_id;
+                v.covid_case_id = +caseId
             }
-            const rsd = await patientModel.deleteCaseDetailByCaseId(db, caseId);
+
+            await patientModel.deleteCaseDetailByCaseId(db, caseDetailId);
             const rsi = await patientModel.insertCaseDetail(db, data);
-            if (rsd && rsi) {
-                const rsLogs = await patientModel.saveLogsCaseDetail(db, caseDetail);
-                if (!rsLogs) {
-                    error += 'update logs case deteil  error. '
-                }
+            if (rsi) {
             } else {
                 error += 'insert case detail error. '
             }
