@@ -241,7 +241,7 @@ router.put('/person', async (req: Request, res: Response) => {
     console.log(error);
     if (error.message.search('p_patients.idx') > -1) {
       error.message = 'HN ซ้ำ '
-    } 
+    }
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
@@ -884,16 +884,20 @@ router.post('/check-register', async (req: Request, res: Response) => {
         }
       }
     } else if (type == 'PASSPORT') {
-      const rs: any = await covidCaseModel.checkPassportSameHospital(db, hospitalId, passport);
-      if (rs.length) {
-        res.send({ ok: false, error: 'เคยบันทึก Case นี้ไปแล้ว' });
-      } else {
-        const rs: any = await covidCaseModel.checkPassportAllHospital(db, hospitalId, passport);
+      if (passport && passport != '') {
+        const rs: any = await covidCaseModel.checkPassportSameHospital(db, hospitalId, passport);
         if (rs.length) {
-          res.send({ ok: true, case: 'REFER' })
+          res.send({ ok: false, error: 'เคยบันทึก Case นี้ไปแล้ว' });
         } else {
-          res.send({ ok: true, case: 'NEW' });
+          const rs: any = await covidCaseModel.checkPassportAllHospital(db, hospitalId, passport);
+          if (rs.length) {
+            res.send({ ok: true, case: 'REFER' })
+          } else {
+            res.send({ ok: true, case: 'NEW' });
+          }
         }
+      } else {
+        res.send({ ok: true, case: 'NEW' });
       }
     } else {
       res.send({ ok: false })
