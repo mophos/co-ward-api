@@ -427,20 +427,21 @@ export class ReportModel {
   }
 
   admitConfirmCaseDms(db: Knex, showPersons = false, limit = 1000, offset = 0) {
-    let sql = db('temp_report_admit_comfirm_case')
-      .select('d1', 'd2', 'd3', 'd4', 'd5', 'd7', 'd8', 'hn', 'an', 'hospital_id', 'updated_entry_last', 'days',
-        'hospname', 'hospcode', 'zone_code', 'province_name', 'date_admit', 'gcs_name', 'bed_name', 'medical_supplies_name',
-        'first_name', 'last_name', 'cid', 'sat_id', 'timestamp'
+    let sql = db('temp_report_admit_comfirm_case_dms as c')
+      .select('c.d1', 'c.d2', 'c.d3', 'c.d4', 'c.d5', 'c.d7', 'c.d8', 'c.hn', 'c.an', 'c.hospital_id', 'c.updated_entry_last', 'c.days',
+        'c.hospname', 'c.hospcode', 'c.zone_code', 'c.province_name', 'c.date_admit', 'c.gcs_name', 'c.bed_name', 'c.medical_supplies_name',
+        'first_name', 'c.last_name', 'c.cid', 'c.sat_id', 'c.timestamp'
       );
     if (showPersons) {
-      sql.select('first_name', 'last_name', 'cid', 'sat_id', 'sex', 'age');
+      sql.select('c.first_name', 'c.last_name', 'c.cid', 'c.sat_id', 'c.sex', 'c.age');
     }
-    sql.whereIn('zone_code', ['04', '06', '13'])
+    sql.join('views_hospital_dms as v', 'v.hospcode', 'c.hospcode')
+    sql.whereIn('c.zone_code', ['04', '06', '13'])
     sql.limit(limit);
     sql.offset(offset)
-      .orderBy('zone_code')
-      .orderBy('province_name')
-      .orderBy('hospname');
+      .orderBy('c.zone_code')
+      .orderBy('c.province_name')
+      .orderBy('c.hospname');
       console.log(sql.toString());
       
     return sql;
@@ -470,15 +471,16 @@ export class ReportModel {
 
   admitPuiCaseDms(db: Knex, showPersons = false, limit = 1000, offset = 0) {
     // const last = db('p_covid_case_details')
-    let sql = db('temp_report_admit_pui_case')
-      .select('d1', 'd2', 'd3', 'd4', 'd5', 'd7', 'd8', 'hn', 'an', 'hospital_id', 'updated_entry_last', 'days',
-        'hospname', 'hospcode', 'zone_code', 'province_name', 'date_admit', 'gcs_name', 'bed_name', 'medical_supplies_name',
-        'first_name', 'last_name', 'cid', 'sat_id', 'timestamp'
+    let sql = db('temp_report_admit_pui_case_dms as c')
+      .select('c.d1', 'c.d2', 'c.d3', 'c.d4', 'c.d5', 'c.d7', 'c.d8', 'c.hn', 'c.an', 'c.hospital_id', 'c.updated_entry_last', 'c.days',
+        'c.hospname', 'c.hospcode', 'c.zone_code', 'c.province_name', 'c.date_admit', 'c.gcs_name', 'c.bed_name', 'c.medical_supplies_name',
+        'first_name', 'c.last_name', 'c.cid', 'c.sat_id', 'c.timestamp'
       );
     if (showPersons) {
-      sql.select('first_name', 'last_name', 'cid', 'sat_id');
+      sql.select('c.first_name', 'c.last_name', 'c.cid', 'c.sat_id');
     }
-    sql.whereIn('zone_code', ['04', '06', '13'])
+    sql.join('views_hospital_dms as v', 'v.hospcode', 'c.hospcode')
+    sql.whereIn('c.zone_code', ['04', '06', '13'])
     sql.limit(limit);
     sql.offset(offset);
     // console.log(sql.toString());
