@@ -2590,7 +2590,7 @@ router.get('/admit-confirm-case/export/dms', async (req: Request, res: Response)
       ws2.cell(1, 16).string('Favipiravi');
     }
     row = 2;
-    const rs2: any = await model.admitConfirmCase(db, showPersons, 1000000, 0);
+    const rs2: any = await model.admitConfirmCaseDms(db, showPersons, 1000000, 0);
     // const rs2 = [];
     for (const i of rs2) {
       if (showPersons) {
@@ -2910,7 +2910,7 @@ router.get('/admit-pui-case/export/dms', async (req: Request, res: Response) => 
     }
 
     row = 2;
-    const rs2: any = await model.admitPuiCase(db, showPersons, 1000000, 0);
+    const rs2: any = await model.admitPuiCaseDms(db, showPersons, 1000000, 0);
     // const rs2 = [];
     for (const i of rs2) {
       if (showPersons) {
