@@ -169,7 +169,7 @@ router.get('/report1/excel', async (req: Request, res: Response) => {
     ws.cell(1, 2, 3, 2, true).string('จำนวนโรงพยาบาล ');
     ws.cell(1, 3, 3, 3, true).string('เตียงทั้งหมด');
     ws.cell(1, 4, 1, 8, true).string('ประเภทเตียง').style(center);
-    ws.cell(2, 4, 3, 4, true).string('(1) AIIR-ICU');
+    ws.cell(2, 4, 3, 4, true).string('(1) AIIR');
     ws.cell(2, 5, 2, 6, true).string('Isolate Room').style(center);
     ws.cell(3, 5).string('(2) Modified AIIR');
     ws.cell(3, 6).string('(3) Single room');
