@@ -110,7 +110,8 @@ export class ReportModel {
   getUseBed(db: Knex) {
     let sql = db('temp_report_bed as t')
       .select('t.*', 'h.level', 'h.hospital_type')
-      .join('b_hospitals as h', 'h.id', 't.hospital_id');
+      .join('b_hospitals as h', 'h.id', 't.hospital_id')
+      .where('h.is_deleted','N')
     return sql;
     // return db('views_bed_hospitals AS vbh')
   }
