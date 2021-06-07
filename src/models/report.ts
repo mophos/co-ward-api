@@ -110,7 +110,8 @@ export class ReportModel {
   getUseBed(db: Knex) {
     let sql = db('temp_report_bed as t')
       .select('t.*', 'h.level', 'h.hospital_type')
-      .join('b_hospitals as h', 'h.id', 't.hospital_id');
+      .join('b_hospitals as h', 'h.id', 't.hospital_id')
+      .where('h.is_deleted','N')
     return sql;
     // return db('views_bed_hospitals AS vbh')
   }
@@ -426,6 +427,27 @@ export class ReportModel {
     return sql;
   }
 
+  admitConfirmCaseDms(db: Knex, showPersons = false, limit = 1000, offset = 0) {
+    let sql = db('temp_report_admit_comfirm_case_dms as c')
+      .select('c.d1', 'c.d2', 'c.d3', 'c.d4', 'c.d5', 'c.d7', 'c.d8', 'c.hn', 'c.an', 'c.hospital_id', 'c.updated_entry_last', 'c.days',
+        'c.hospname', 'c.hospcode', 'c.zone_code', 'c.province_name', 'c.date_admit', 'c.gcs_name', 'c.bed_name', 'c.medical_supplies_name',
+        'first_name', 'c.last_name', 'c.cid', 'c.sat_id', 'c.timestamp'
+      );
+    if (showPersons) {
+      sql.select('c.first_name', 'c.last_name', 'c.cid', 'c.sat_id', 'c.sex', 'c.age');
+    }
+    sql.join('views_hospital_dms as v', 'v.hospcode', 'c.hospcode')
+    sql.whereIn('c.zone_code', ['04', '06', '13'])
+    sql.limit(limit);
+    sql.offset(offset)
+      .orderBy('c.zone_code')
+      .orderBy('c.province_name')
+      .orderBy('c.hospname');
+      console.log(sql.toString());
+      
+    return sql;
+  }
+
   admitConfirmCaseTotal(db: Knex) {
     let sql = db('temp_report_admit_comfirm_case')
       .count('* as total');
@@ -442,6 +464,24 @@ export class ReportModel {
     if (showPersons) {
       sql.select('first_name', 'last_name', 'cid', 'sat_id');
     }
+    sql.limit(limit);
+    sql.offset(offset);
+    // console.log(sql.toString());
+    return sql;
+  }
+
+  admitPuiCaseDms(db: Knex, showPersons = false, limit = 1000, offset = 0) {
+    // const last = db('p_covid_case_details')
+    let sql = db('temp_report_admit_pui_case_dms as c')
+      .select('c.d1', 'c.d2', 'c.d3', 'c.d4', 'c.d5', 'c.d7', 'c.d8', 'c.hn', 'c.an', 'c.hospital_id', 'c.updated_entry_last', 'c.days',
+        'c.hospname', 'c.hospcode', 'c.zone_code', 'c.province_name', 'c.date_admit', 'c.gcs_name', 'c.bed_name', 'c.medical_supplies_name',
+        'first_name', 'c.last_name', 'c.cid', 'c.sat_id', 'c.timestamp'
+      );
+    if (showPersons) {
+      sql.select('c.first_name', 'c.last_name', 'c.cid', 'c.sat_id');
+    }
+    sql.join('views_hospital_dms as v', 'v.hospcode', 'c.hospcode')
+    sql.whereIn('c.zone_code', ['04', '06', '13'])
     sql.limit(limit);
     sql.offset(offset);
     // console.log(sql.toString());
@@ -559,7 +599,7 @@ export class ReportModel {
   }
 
   admitConfirmCaseSummaryDms(db: Knex) {
-    let sql = db('temp_report_admit_comfirm_case_summary_dms');
+    let sql = db('temp_report_admit_comfirm_case_summary_dms').whereIn('zone_code', ['04', '06', '13']);
     return sql;
   }
   admitPuiCaseSummary(db: Knex) {
@@ -883,7 +923,7 @@ export class ReportModel {
   getCaseDc(db: Knex, showPersons = false, query = null, zoneCode, provinceCode = null) {
     const _query = `%${query}%`;
     const sql = db('view_covid_case_last as c')
-      .select('c.id as covid_case_id', 'h.hospname','h.province_name as hosp_province', 'c.an', 'c.confirm_date', 'c.status', 'c.date_admit', 'c.date_discharge', 'pt.hn')
+      .select('c.id as covid_case_id', 'h.hospname', 'h.province_name as hosp_province', 'c.an', 'c.confirm_date', 'c.status', 'c.date_admit', 'c.date_discharge', 'pt.hn')
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
       .join('b_hospitals AS h', 'h.id', 'c.hospital_id')
       .whereIn('c.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
@@ -900,9 +940,9 @@ export class ReportModel {
     if (query) {
       sql.where((w) => {
         w.where('pt.hn', 'like', _query)
-        .orWhere('h.hospname', 'like', _query)
-        .orWhere('h.province_name', 'like', _query)
-        .orWhere('c.status', 'like', _query);
+          .orWhere('h.hospname', 'like', _query)
+          .orWhere('h.province_name', 'like', _query)
+          .orWhere('c.status', 'like', _query);
         if (showPersons) {
           w.orWhere('p.first_name', 'like', _query)
             .orWhere('p.last_name', 'like', _query);
@@ -912,7 +952,7 @@ export class ReportModel {
 
     sql.orderBy('c.date_admit', 'DESC');
     console.log(sql.toString());
-    
+
     return sql;
     // .groupBy('pt.id')
   }
