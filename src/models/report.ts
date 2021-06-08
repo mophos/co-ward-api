@@ -135,7 +135,7 @@ export class ReportModel {
   }
 
   getMedicalCross(db: Knex) {
-    return db('views_requisition_hospital_cross');
+    return db('temp_views_requisition_hospital_cross');
   }
 
   getProfessional(db: Knex) {
