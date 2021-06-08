@@ -110,7 +110,8 @@ export class ReportModel {
   getUseBed(db: Knex) {
     let sql = db('temp_report_bed as t')
       .select('t.*', 'h.level', 'h.hospital_type')
-      .join('b_hospitals as h', 'h.id', 't.hospital_id');
+      .join('b_hospitals as h', 'h.id', 't.hospital_id')
+      .where('h.is_deleted','N')
     return sql;
     // return db('views_bed_hospitals AS vbh')
   }
@@ -128,7 +129,7 @@ export class ReportModel {
   }
 
   getMedicals(db: Knex) {
-    return db('views_medical_supplies_hospital_cross AS vrh')
+    return db('temp_views_medical_supplies_hospital_cross AS vrh')
       .join('b_hospitals as vh', 'vh.id', 'vrh.hospital_id')
       .orderBy('vh.province_code');
   }

@@ -218,7 +218,7 @@ vc.updated_entry  as updated_entry`))
     let sql =
       db('views_hospital_dms  as vh')
         .select('vb.*', 'sub.*', 'vh.hospname', 'vh.sub_ministry_name')
-        .leftJoin('views_medical_supplies_hospital_cross as vb', 'vh.id', 'vb.hospital_id')
+        .leftJoin('temp_views_medical_supplies_hospital_cross as vb', 'vh.id', 'vb.hospital_id')
         .leftJoin(sub, 'sub.hospital_id', 'vh.id')
         .where('vh.sector', sector)
         .orderBy('vh.sub_ministry_name')

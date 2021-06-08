@@ -286,7 +286,7 @@ vc.updated_entry  as updated_entry`))
     let sql =
       db('views_hospital_all  as vh')
         .select('vb.*', 'sub.*', 'vh.hospname', 'vh.sub_ministry_name')
-        .leftJoin('views_medical_supplies_hospital_cross as vb', 'vh.id', 'vb.hospital_id')
+        .leftJoin('temp_views_medical_supplies_hospital_cross as vb', 'vh.id', 'vb.hospital_id')
         .leftJoin(sub, 'sub.hospital_id', 'vh.id')
         .orderBy('vh.sub_ministry_name')
     return sql;
@@ -309,7 +309,7 @@ vc.updated_entry  as updated_entry`))
       vh.sub_ministry_name
     FROM
       views_hospital_all AS vh
-      LEFT JOIN views_medical_supplies_hospital_cross AS vb ON vh.id = vb.hospital_id
+      LEFT JOIN temp_views_medical_supplies_hospital_cross AS vb ON vh.id = vb.hospital_id
       LEFT JOIN (
       SELECT
         vh.id AS hospital_id,
@@ -351,7 +351,7 @@ vc.updated_entry  as updated_entry`))
       vh.zone_code
     FROM
       views_hospital_all AS vh
-      LEFT JOIN views_medical_supplies_hospital_cross AS vb ON vh.id = vb.hospital_id
+      LEFT JOIN temp_views_medical_supplies_hospital_cross AS vb ON vh.id = vb.hospital_id
       LEFT JOIN (
       SELECT
         vh.id AS hospital_id,
