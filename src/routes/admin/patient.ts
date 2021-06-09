@@ -69,7 +69,8 @@ router.put('/edit-info', async (req: Request, res: Response) => {
             ampur_name: data.ampur_name,
             province_code: data.province_code,
             province_name: data.province_name,
-            zipcode: data.zipcode
+            zipcode: data.zipcode,
+            country_code: data.country_code
         }
         const patientData: any = {
             hn: data.hn
@@ -95,6 +96,7 @@ router.put('/edit-info', async (req: Request, res: Response) => {
                     v.ampur_name === personData.ampur_name &&
                     v.province_code === personData.province_code &&
                     v.province_name === personData.province_name &&
+                    v.country_code === personData.country_code &&
                     v.zipcode === personData.zipcode
             })
             let peLogs, paLogs: any = false
@@ -139,6 +141,8 @@ router.put('/edit-info', async (req: Request, res: Response) => {
         } else if (error.message.search('p_persons.idxcid') > -1) {
             message = 'CID ซ้ำ '
         } else {
+            console.log(error.message);
+            
             message = error.message
         }
         res.send({ ok: false, error: message, code: HttpStatus.BAD_REQUEST });
