@@ -1428,7 +1428,7 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
     const rs = await model.getSupplies(db, date, provinceCode, zoneCodes);
     const province = uniqBy(rs, 'province_name');
     console.log(province);
-    
+
     let province_name = rs[0].province_name
     let sum_surgical_gown_qty = 0;
     let sum_surgical_gown_month_usage_qty = 0;
@@ -1692,75 +1692,75 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
     }
 
     ws.cell(row, 1).string('รวม');
-        ws.cell(row, 2).string(province_name);
-        ws.cell(row, 5).number(toNumber(sum_surgical_gown_qty));
-        ws.cell(row, 6).number(toNumber(sum_surgical_gown_month_usage_qty));
-        ws.cell(row, 7).number(toNumber(sum_surgical_gown_month_usage_qty * 2));
-        ws.cell(row, 8).number(toNumber(sum_surgical_gown_qty - (sum_surgical_gown_month_usage_qty * 2)));
-        ws.cell(row, 9).number(toNumber(sum_cover_all1_qty));
-        ws.cell(row, 10).number(toNumber(sum_cover_all1_month_usage_qty));
-        ws.cell(row, 11).number(toNumber(sum_cover_all1_month_usage_qty * 2));
-        ws.cell(row, 12).number(toNumber(sum_cover_all1_qty - (sum_cover_all1_month_usage_qty * 2)));
-        ws.cell(row, 13).number(toNumber(sum_cover_all2_qty));
-        ws.cell(row, 14).number(toNumber(sum_cover_all2_month_usage_qty));
-        ws.cell(row, 15).number(toNumber(sum_cover_all2_month_usage_qty * 2));
-        ws.cell(row, 16).number(toNumber(sum_cover_all2_qty - (sum_cover_all2_month_usage_qty * 2)));
-        ws.cell(row, 17).number(toNumber(sum_n95_qty));
-        ws.cell(row, 18).number(toNumber(sum_n95_month_usage_qty));
-        ws.cell(row, 19).number(toNumber(sum_n95_month_usage_qty * 2));
-        ws.cell(row, 20).number(toNumber(sum_n95_qty - (sum_n95_month_usage_qty * 2)));
-        ws.cell(row, 21).number(toNumber(sum_shoe_cover_qty));
-        ws.cell(row, 22).number(toNumber(sum_shoe_cover_month_usage_qty));
-        ws.cell(row, 23).number(toNumber(sum_shoe_cover_month_usage_qty * 2));
-        ws.cell(row, 24).number(toNumber(sum_shoe_cover_qty - (sum_shoe_cover_month_usage_qty * 2)));
-        ws.cell(row, 25).number(toNumber(sum_surgical_hood_qty));
-        ws.cell(row, 26).number(toNumber(sum_surgical_hood_month_usage_qty));
-        ws.cell(row, 27).number(toNumber(sum_surgical_hood_month_usage_qty * 2));
-        ws.cell(row, 28).number(toNumber(sum_surgical_hood_qty - (sum_surgical_hood_month_usage_qty * 2)));
-        ws.cell(row, 29).number(toNumber(sum_long_glove_qty));
-        ws.cell(row, 30).number(toNumber(sum_long_glove_month_usage_qty));
-        ws.cell(row, 31).number(toNumber(sum_long_glove_month_usage_qty * 2));
-        ws.cell(row, 32).number(toNumber(sum_long_glove_qty - (sum_long_glove_month_usage_qty * 2)));
-        ws.cell(row, 33).number(toNumber(sum_face_shield_qty));
-        ws.cell(row, 34).number(toNumber(sum_face_shield_month_usage_qty));
-        ws.cell(row, 35).number(toNumber(sum_face_shield_month_usage_qty * 2));
-        ws.cell(row, 36).number(toNumber(sum_face_shield_qty - (sum_face_shield_month_usage_qty * 2)));
-        ws.cell(row, 37).number(toNumber(sum_surgical_mask_qty));
-        ws.cell(row, 38).number(toNumber(sum_surgical_mask_month_usage_qty));
-        ws.cell(row, 39).number(toNumber(sum_surgical_mask_month_usage_qty * 2));
-        ws.cell(row, 40).number(toNumber(sum_surgical_mask_qty - (sum_surgical_mask_month_usage_qty * 2)));
-        ws.cell(row, 41).number(toNumber(sum_powered_air_qty));
-        ws.cell(row, 42).number(toNumber(sum_powered_air_month_usage_qty));
-        ws.cell(row, 43).number(toNumber(sum_powered_air_month_usage_qty * 2));
-        ws.cell(row, 44).number(toNumber(sum_powered_air_qty - (sum_powered_air_month_usage_qty * 2)));
-        ws.cell(row, 45).number(toNumber(sum_alcohol_70_qty));
-        ws.cell(row, 46).number(toNumber(sum_alcohol_70_month_usage_qty));
-        ws.cell(row, 47).number(toNumber(sum_alcohol_70_month_usage_qty * 2));
-        ws.cell(row, 48).number(toNumber(sum_alcohol_70_qty - (sum_alcohol_70_month_usage_qty * 2)));
-        ws.cell(row, 49).number(toNumber(sum_alcohol_95_qty));
-        ws.cell(row, 50).number(toNumber(sum_alcohol_95_month_usage_qty));
-        ws.cell(row, 51).number(toNumber(sum_alcohol_95_month_usage_qty * 2));
-        ws.cell(row, 52).number(toNumber(sum_alcohol_95_qty - (sum_alcohol_95_month_usage_qty * 2)));
-        ws.cell(row, 53).number(toNumber(sum_alcohol_gel_qty));
-        ws.cell(row, 54).number(toNumber(sum_alcohol_gel_month_usage_qty));
-        ws.cell(row, 55).number(toNumber(sum_alcohol_gel_month_usage_qty * 2));
-        ws.cell(row, 56).number(toNumber(sum_alcohol_gel_qty - (sum_alcohol_gel_month_usage_qty * 2)));
-        ws.cell(row, 57).number(toNumber(sum_disposable_glove_qty));
-        ws.cell(row, 58).number(toNumber(sum_disposable_glove_month_usage_qty));
-        ws.cell(row, 59).number(toNumber(sum_disposable_glove_month_usage_qty * 2));
-        ws.cell(row, 60).number(toNumber(sum_disposable_glove_qty - (sum_disposable_glove_month_usage_qty * 2)));
-        ws.cell(row, 61).number(toNumber(sum_isolation_gown_qty));
-        ws.cell(row, 62).number(toNumber(sum_isolation_gown_month_usage_qty));
-        ws.cell(row, 63).number(toNumber(sum_isolation_gown_month_usage_qty * 2));
-        ws.cell(row, 64).number(toNumber(sum_isolation_gown_qty - (sum_isolation_gown_month_usage_qty * 2)));
-        ws.cell(row, 65).number(toNumber(sum_leg_cover_qty));
-        ws.cell(row, 66).number(toNumber(sum_leg_cover_month_usage_qty));
-        ws.cell(row, 67).number(toNumber(sum_leg_cover_month_usage_qty * 2));
-        ws.cell(row, 68).number(toNumber(sum_leg_cover_qty - (sum_leg_cover_month_usage_qty * 2)));
-        ws.cell(row, 69).number(toNumber(sum_disposable_cap_qty));
-        ws.cell(row, 70).number(toNumber(sum_disposable_cap_month_usage_qty));
-        ws.cell(row, 71).number(toNumber(sum_disposable_cap_month_usage_qty * 2));
-        ws.cell(row, 72).number(toNumber(sum_disposable_cap_qty - (sum_disposable_cap_month_usage_qty * 2)));
+    ws.cell(row, 2).string(province_name);
+    ws.cell(row, 5).number(toNumber(sum_surgical_gown_qty));
+    ws.cell(row, 6).number(toNumber(sum_surgical_gown_month_usage_qty));
+    ws.cell(row, 7).number(toNumber(sum_surgical_gown_month_usage_qty * 2));
+    ws.cell(row, 8).number(toNumber(sum_surgical_gown_qty - (sum_surgical_gown_month_usage_qty * 2)));
+    ws.cell(row, 9).number(toNumber(sum_cover_all1_qty));
+    ws.cell(row, 10).number(toNumber(sum_cover_all1_month_usage_qty));
+    ws.cell(row, 11).number(toNumber(sum_cover_all1_month_usage_qty * 2));
+    ws.cell(row, 12).number(toNumber(sum_cover_all1_qty - (sum_cover_all1_month_usage_qty * 2)));
+    ws.cell(row, 13).number(toNumber(sum_cover_all2_qty));
+    ws.cell(row, 14).number(toNumber(sum_cover_all2_month_usage_qty));
+    ws.cell(row, 15).number(toNumber(sum_cover_all2_month_usage_qty * 2));
+    ws.cell(row, 16).number(toNumber(sum_cover_all2_qty - (sum_cover_all2_month_usage_qty * 2)));
+    ws.cell(row, 17).number(toNumber(sum_n95_qty));
+    ws.cell(row, 18).number(toNumber(sum_n95_month_usage_qty));
+    ws.cell(row, 19).number(toNumber(sum_n95_month_usage_qty * 2));
+    ws.cell(row, 20).number(toNumber(sum_n95_qty - (sum_n95_month_usage_qty * 2)));
+    ws.cell(row, 21).number(toNumber(sum_shoe_cover_qty));
+    ws.cell(row, 22).number(toNumber(sum_shoe_cover_month_usage_qty));
+    ws.cell(row, 23).number(toNumber(sum_shoe_cover_month_usage_qty * 2));
+    ws.cell(row, 24).number(toNumber(sum_shoe_cover_qty - (sum_shoe_cover_month_usage_qty * 2)));
+    ws.cell(row, 25).number(toNumber(sum_surgical_hood_qty));
+    ws.cell(row, 26).number(toNumber(sum_surgical_hood_month_usage_qty));
+    ws.cell(row, 27).number(toNumber(sum_surgical_hood_month_usage_qty * 2));
+    ws.cell(row, 28).number(toNumber(sum_surgical_hood_qty - (sum_surgical_hood_month_usage_qty * 2)));
+    ws.cell(row, 29).number(toNumber(sum_long_glove_qty));
+    ws.cell(row, 30).number(toNumber(sum_long_glove_month_usage_qty));
+    ws.cell(row, 31).number(toNumber(sum_long_glove_month_usage_qty * 2));
+    ws.cell(row, 32).number(toNumber(sum_long_glove_qty - (sum_long_glove_month_usage_qty * 2)));
+    ws.cell(row, 33).number(toNumber(sum_face_shield_qty));
+    ws.cell(row, 34).number(toNumber(sum_face_shield_month_usage_qty));
+    ws.cell(row, 35).number(toNumber(sum_face_shield_month_usage_qty * 2));
+    ws.cell(row, 36).number(toNumber(sum_face_shield_qty - (sum_face_shield_month_usage_qty * 2)));
+    ws.cell(row, 37).number(toNumber(sum_surgical_mask_qty));
+    ws.cell(row, 38).number(toNumber(sum_surgical_mask_month_usage_qty));
+    ws.cell(row, 39).number(toNumber(sum_surgical_mask_month_usage_qty * 2));
+    ws.cell(row, 40).number(toNumber(sum_surgical_mask_qty - (sum_surgical_mask_month_usage_qty * 2)));
+    ws.cell(row, 41).number(toNumber(sum_powered_air_qty));
+    ws.cell(row, 42).number(toNumber(sum_powered_air_month_usage_qty));
+    ws.cell(row, 43).number(toNumber(sum_powered_air_month_usage_qty * 2));
+    ws.cell(row, 44).number(toNumber(sum_powered_air_qty - (sum_powered_air_month_usage_qty * 2)));
+    ws.cell(row, 45).number(toNumber(sum_alcohol_70_qty));
+    ws.cell(row, 46).number(toNumber(sum_alcohol_70_month_usage_qty));
+    ws.cell(row, 47).number(toNumber(sum_alcohol_70_month_usage_qty * 2));
+    ws.cell(row, 48).number(toNumber(sum_alcohol_70_qty - (sum_alcohol_70_month_usage_qty * 2)));
+    ws.cell(row, 49).number(toNumber(sum_alcohol_95_qty));
+    ws.cell(row, 50).number(toNumber(sum_alcohol_95_month_usage_qty));
+    ws.cell(row, 51).number(toNumber(sum_alcohol_95_month_usage_qty * 2));
+    ws.cell(row, 52).number(toNumber(sum_alcohol_95_qty - (sum_alcohol_95_month_usage_qty * 2)));
+    ws.cell(row, 53).number(toNumber(sum_alcohol_gel_qty));
+    ws.cell(row, 54).number(toNumber(sum_alcohol_gel_month_usage_qty));
+    ws.cell(row, 55).number(toNumber(sum_alcohol_gel_month_usage_qty * 2));
+    ws.cell(row, 56).number(toNumber(sum_alcohol_gel_qty - (sum_alcohol_gel_month_usage_qty * 2)));
+    ws.cell(row, 57).number(toNumber(sum_disposable_glove_qty));
+    ws.cell(row, 58).number(toNumber(sum_disposable_glove_month_usage_qty));
+    ws.cell(row, 59).number(toNumber(sum_disposable_glove_month_usage_qty * 2));
+    ws.cell(row, 60).number(toNumber(sum_disposable_glove_qty - (sum_disposable_glove_month_usage_qty * 2)));
+    ws.cell(row, 61).number(toNumber(sum_isolation_gown_qty));
+    ws.cell(row, 62).number(toNumber(sum_isolation_gown_month_usage_qty));
+    ws.cell(row, 63).number(toNumber(sum_isolation_gown_month_usage_qty * 2));
+    ws.cell(row, 64).number(toNumber(sum_isolation_gown_qty - (sum_isolation_gown_month_usage_qty * 2)));
+    ws.cell(row, 65).number(toNumber(sum_leg_cover_qty));
+    ws.cell(row, 66).number(toNumber(sum_leg_cover_month_usage_qty));
+    ws.cell(row, 67).number(toNumber(sum_leg_cover_month_usage_qty * 2));
+    ws.cell(row, 68).number(toNumber(sum_leg_cover_qty - (sum_leg_cover_month_usage_qty * 2)));
+    ws.cell(row, 69).number(toNumber(sum_disposable_cap_qty));
+    ws.cell(row, 70).number(toNumber(sum_disposable_cap_month_usage_qty));
+    ws.cell(row, 71).number(toNumber(sum_disposable_cap_month_usage_qty * 2));
+    ws.cell(row, 72).number(toNumber(sum_disposable_cap_qty - (sum_disposable_cap_month_usage_qty * 2)));
 
     fse.ensureDirSync(process.env.TMP_PATH);
     let filename = `get_gcs` + moment().format('x');
@@ -2999,6 +2999,101 @@ router.get('/admit-confirm-case-summary', async (req: Request, res: Response) =>
     } else {
       res.send({ ok: false, code: HttpStatus.UNAUTHORIZED });
     }
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/admit-confirm-case-summary/excel', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const type = req.decoded.type;
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
+  const provinceCode = req.decoded.provinceCode;
+  const right = req.decoded.rights;
+  let rs: any;
+  try {
+    if (type == 'MANAGER') {
+      rs = await model.admitConfirmCaseSummary(db);
+      // res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    } else if (providerType == 'ZONE') {
+      rs = await model.admitConfirmCaseSummaryProvince(db, zoneCode);
+      // res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    } else if (providerType == 'SSJ') {
+      rs = await model.admitConfirmCaseSummaryProvince(db, zoneCode, provinceCode);
+      // res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    } else {
+      // res.send({ ok: false, code: HttpStatus.UNAUTHORIZED });
+    }
+
+    var wb = new excel4node.Workbook();
+    var ws = wb.addWorksheet('สรุป');
+    const showPersons = _.findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 ? true : false;
+    ws.cell(1, 1).string('จังหวัด');
+    ws.cell(1, 2).string('รวม');
+    ws.cell(1, 3).string('Severe');
+    ws.cell(1, 4).string('moderate');
+    ws.cell(1, 5).string('mild');
+    ws.cell(1, 6).string('asymptomatic');
+    ws.cell(1, 7).string('aiir');
+    ws.cell(1, 8).string('modified_aiir');
+    ws.cell(1, 9).string('isolate');
+    ws.cell(1, 10).string('cohort');
+    ws.cell(1, 11).string('Hospitel');
+    ws.cell(1, 12).string('invasive');
+    ws.cell(1, 13).string('noninvasive');
+    ws.cell(1, 14).string('high_flow');
+    ws.cell(1, 15).string('Hydroxychloroquine 200 mg.');
+    ws.cell(1, 16).string('Chloroquine 250 mg.');
+    ws.cell(1, 17).string('Darunavir 600 mg.');
+    ws.cell(1, 18).string('Lopinavir 200 mg./Ritonavir 50 mg.');
+    ws.cell(1, 19).string('Ritonavir 100 mg.');
+    ws.cell(1, 20).string('Azithromycin 250 mg.');
+    ws.cell(1, 21).string('Favipiravi');
+
+    let row = 2;
+    for (const v of rs) {
+      ws.cell(row, 1).string(v.province_name);
+      ws.cell(row, 2).number(toNumber(v.confirm));
+      ws.cell(row, 3).number(toNumber(v.severe));
+      ws.cell(row, 4).number(toNumber(v.moderate));
+      ws.cell(row, 5).number(toNumber(v.mild));
+      ws.cell(row, 6).number(toNumber(v.asymptomatic));
+      ws.cell(row, 7).number(toNumber(v.aiir));
+      ws.cell(row, 8).number(toNumber(v.modified_aiir));
+      ws.cell(row, 9).number(toNumber(v.isolate));
+      ws.cell(row, 10).number(toNumber(v.cohort));
+      ws.cell(row, 11).number(toNumber(v.hospitel));
+      ws.cell(row, 12).number(toNumber(v.invasive));
+      ws.cell(row, 13).number(toNumber(v.noninvasive));
+      ws.cell(row, 14).number(toNumber(v.high_flow));
+      ws.cell(row, 15).number(toNumber(v.d1));
+      ws.cell(row, 16).number(toNumber(v.d2));
+      ws.cell(row, 17).number(toNumber(v.d3));
+      ws.cell(row, 18).number(toNumber(v.d4));
+      ws.cell(row, 19).number(toNumber(v.d5));
+      ws.cell(row, 20).number(toNumber(v.d7));
+      ws.cell(row++, 21).number(toNumber(v.d8));
+    }
+
+    fse.ensureDirSync(process.env.TMP_PATH);
+    let filename = `cio_check` + moment().format('x') + '.xlsx'
+    let filenamePath = path.join(process.env.TMP_PATH, filename);
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+      }
+    });
+
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
