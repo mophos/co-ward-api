@@ -873,8 +873,9 @@ export class ReportModel {
 
   dischargeCase(db: Knex, date) {
     return db('p_covid_cases as pc')
-      .select('pc.*', 'p.hn', 'p.hospital_id', 'p.person_id', 'h.hospcode', 'h.hospname', 'h.zone_code', 'h.province_code', 'h.province_name', 'rh.hospcode as refer_hospcode', 'rh.hospname as refer_hospname')
+      .select('pc.*', 'pp.cid', 'p.hn', 'p.hospital_id', 'p.person_id', 'h.hospcode', 'h.hospname', 'h.zone_code', 'h.province_code', 'h.province_name', 'rh.hospcode as refer_hospcode', 'rh.hospname as refer_hospname')
       .join('p_patients as p', 'p.id', ' pc.patient_id')
+      .join('p_persons as pp', 'pp.id', 'p.person_id')
       .join('b_hospitals as h', 'h.id', 'p.hospital_id')
       .join('views_covid_case_last as vl', 'vl.covid_case_id', 'pc.id')
       .leftJoin('b_hospitals as rh', 'rh.id', 'pc.hospital_id_refer')
