@@ -3593,39 +3593,77 @@ router.get('/lab-positive', async (req: Request, res: Response) => {
 router.get('/discharge-entrydate/excel', async (req: Request, res: Response) => {
   const db = req.dbReport;
   const date = req.query.date || moment().format('YYYY-MM-DD');
+  const right = req.decoded.rights;
+  const showPersons = _.findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 ? true : false;
+  
   try {
-    const rs: any = await model.dischargeCaseEntryDate(db, date);
+    const rs: any = await model.dischargeCaseEntryDate(db, date,showPersons);
     let row = 2
     var wb = new excel4node.Workbook();
     var ws = wb.addWorksheet('Sheet 1');
-    ws.cell(1, 1).string('zone_code');
-    ws.cell(1, 2).string('จังหวัด');
-    ws.cell(1, 3).string('รหัสโรงพยาบาล');
-    ws.cell(1, 4).string('โรงพยาบาล');
-    ws.cell(1, 5).string('hn');
-    ws.cell(1, 6).string('an');
-    ws.cell(1, 7).string('status');
-    ws.cell(1, 8).string('date_admit');
-    ws.cell(1, 9).string('date_discharge');
-    ws.cell(1, 10).string('refer_hospcode');
-    ws.cell(1, 11).string('refer_hospname');
-    for (const item of rs) {
-      item.date_admit = moment(item.date_admit).format('DD/MM/YYYY')
-      item.date_discharge = moment(item.date_discharge).format('DD/MM/YYYY')
-      ws.cell(row, 1).string(toString(item.zone_code));
-      ws.cell(row, 2).string(toString(item.province_name));
-      ws.cell(row, 3).string(toString(item.hospcode));
-      ws.cell(row, 4).string(toString(item.hospname));
-      ws.cell(row, 5).string(toString(item.hn));
-      ws.cell(row, 6).string(toString(item.an));
-      ws.cell(row, 7).string(toString(item.status));
-      ws.cell(row, 8).string(toString(item.date_admit));
-      ws.cell(row, 9).string(toString(item.date_discharge));
-      ws.cell(row, 10).string(toString(item.hospcode_refer));
-      ws.cell(row, 11).string(toString(item.hospname_refer));
-      row++;
+    if (showPersons) {
+      ws.cell(1, 1).string('zone_code');
+      ws.cell(1, 2).string('จังหวัด');
+      ws.cell(1, 3).string('รหัสโรงพยาบาล');
+      ws.cell(1, 4).string('โรงพยาบาล');
+      ws.cell(1, 5).string('ชื่อ');
+      ws.cell(1, 6).string('นามสกุล');
+      ws.cell(1, 7).string('รหัสประจำตัวประชาชน');
+      ws.cell(1, 8).string('hn');
+      ws.cell(1, 9).string('an');
+      ws.cell(1, 10).string('status');
+      ws.cell(1, 11).string('date_admit');
+      ws.cell(1, 12).string('date_discharge');
+      ws.cell(1, 13).string('refer_hospcode');
+      ws.cell(1, 14).string('refer_hospname');
+      for (const item of rs) {
+        item.date_admit = moment(item.date_admit).format('DD/MM/YYYY')
+        item.date_discharge = moment(item.date_discharge).format('DD/MM/YYYY')
+        ws.cell(row, 1).string(toString(item.zone_code));
+        ws.cell(row, 2).string(toString(item.province_name));
+        ws.cell(row, 3).string(toString(item.hospcode));
+        ws.cell(row, 4).string(toString(item.hospname));
+        ws.cell(row, 5).string(toString(item.first_name));
+        ws.cell(row, 6).string(toString(item.last_name));
+        ws.cell(row, 7).string(toString(item.cid));
+        ws.cell(row, 8).string(toString(item.hn));
+        ws.cell(row, 9).string(toString(item.an));
+        ws.cell(row, 10).string(toString(item.status));
+        ws.cell(row, 11).string(toString(item.date_admit));
+        ws.cell(row, 12).string(toString(item.date_discharge));
+        ws.cell(row, 13).string(toString(item.refer_hospcode));
+        ws.cell(row, 14).string(toString(item.refer_hospname));
+        row++;
+      }
+    } else {
+      ws.cell(1, 1).string('zone_code');
+      ws.cell(1, 2).string('จังหวัด');
+      ws.cell(1, 3).string('รหัสโรงพยาบาล');
+      ws.cell(1, 4).string('โรงพยาบาล');
+      ws.cell(1, 5).string('hn');
+      ws.cell(1, 6).string('an');
+      ws.cell(1, 7).string('status');
+      ws.cell(1, 8).string('date_admit');
+      ws.cell(1, 9).string('date_discharge');
+      ws.cell(1, 10).string('refer_hospcode');
+      ws.cell(1, 11).string('refer_hospname');
+      for (const item of rs) {
+        item.date_admit = moment(item.date_admit).format('DD/MM/YYYY')
+        item.date_discharge = moment(item.date_discharge).format('DD/MM/YYYY')
+        ws.cell(row, 1).string(toString(item.zone_code));
+        ws.cell(row, 2).string(toString(item.province_name));
+        ws.cell(row, 3).string(toString(item.hospcode));
+        ws.cell(row, 4).string(toString(item.hospname));
+        ws.cell(row, 5).string(toString(item.hn));
+        ws.cell(row, 6).string(toString(item.an));
+        ws.cell(row, 7).string(toString(item.status));
+        ws.cell(row, 8).string(toString(item.date_admit));
+        ws.cell(row, 9).string(toString(item.date_discharge));
+        ws.cell(row, 10).string(toString(item.hospcode_refer));
+        ws.cell(row, 11).string(toString(item.hospname_refer));
+        row++;
+      }
     }
-
 
     fse.ensureDirSync(process.env.TMP_PATH);
     let filename = `discharge-daily` + moment().format('x') + '.xlsx'
