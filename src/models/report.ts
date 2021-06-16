@@ -884,9 +884,9 @@ export class ReportModel {
       .whereBetween('pc.date_discharge', [`${date} 00:00:00`, `${date} 23:59:00`])
       .orderBy('h.zone_code').orderBy('h.province_name').orderBy('h.hospname');
     if (showPersons) {
-      sql.select('pt.person_id', 'p.*', 't.name as title_name')
-        .join('p_persons as p', 'pt.person_id', 'p.id')
-        .leftJoin('um_titles as t', 'p.title_id', 't.id');
+      sql.select('p.person_id', 'pp.*', 't.name as title_name')
+        .join('p_persons as pp', 'p.person_id', 'pp.id')
+        .leftJoin('um_titles as t', 'pp.title_id', 't.id');
     }
     return sql
   }
@@ -905,15 +905,15 @@ export class ReportModel {
       .whereBetween('pc.date_discharge', [`${date} 00:00:00`, `${date} 23:59:00`])
       .orderBy('h.zone_code').orderBy('h.province_name').orderBy('h.hospname');
     if (showPersons) {
-      sql.select('pt.person_id', 'p.*', 't.name as title_name')
-        .join('p_persons as p', 'pt.person_id', 'p.id')
-        .leftJoin('um_titles as t', 'p.title_id', 't.id');
+      sql.select('p.person_id', 'pp.*', 't.name as title_name')
+        .join('p_persons as pp', 'p.person_id', 'pp.id')
+        .leftJoin('um_titles as t', 'pp.title_id', 't.id');
     }
     return sql;
   }
 
-  dischargeCaseEntryDate(db: Knex, date) {
-    return db('views_covid_case_last AS vc')
+  dischargeCaseEntryDate(db: Knex, date, showPersons = false) {
+    let sql = db('views_covid_case_last AS vc')
       .select('vc.*', 'pc.date_discharge', 'pc.hospital_id_refer', 'bh.zone_code', 'bh.province_code', 'bh.province_name', 'bh.hospcode', 'bh.hospname', 'rh.hospcode as hospcode_refer', 'rh.hospname as hospname_refer', 'pc.an', 'p.hn')
       .join('p_covid_cases AS pc', 'pc.id', 'vc.covid_case_id')
       .join('p_patients as p', 'p.id', ' pc.patient_id')
@@ -922,6 +922,14 @@ export class ReportModel {
       .whereIn('vc.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
       .whereBetween('vc.entry_date', [`${date} 00:00:00`, `${date} 23:59:00`])
       .orderBy('bh.zone_code').orderBy('bh.province_name').orderBy('bh.hospname');
+    if (showPersons) {
+      sql.select('p.person_id', 'pp.*', 't.name as title_name')
+        .join('p_persons as pp', 'p.person_id', 'pp.id')
+        .leftJoin('um_titles as t', 'pp.title_id', 't.id');
+    }
+    console.log(sql.toString());
+    
+    return sql
   }
 
   labPositive(db: Knex) {
