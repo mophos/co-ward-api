@@ -20,12 +20,9 @@ router.get('/', async (req: Request, res: Response) => {
   const token: any = await model.getToken(db);
   console.log(key, type);
 
-
   try {
     const rs: any = await model.getPerson(db, key);
     const rsd: any = await labCovidAdd(db, key, type);
-    console.log(rsd);
-
     if (rsd.sat_id) {
       obj.sat_id = rsd.sat_id;
       obj.telephone = rsd.telephone;
@@ -36,7 +33,6 @@ router.get('/', async (req: Request, res: Response) => {
       if (rsM.length) {
         console.log('มหาดไทย');
         const rsa: any = await model.infoCidAddress(key, token[0].token);
-
         const sCode = serialModel.paddingNumber(rsa.data.subdistrictCode, 2);
         const dCode = serialModel.paddingNumber(rsa.data.districtCode, 2);
         const pCode = serialModel.paddingNumber(rsa.data.provinceCode, 2);

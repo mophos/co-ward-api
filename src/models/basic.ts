@@ -140,6 +140,10 @@ export class BasicModel {
 			.where('is_deleted', 'N')
 	}
 
+	getCountry(db: Knex) {
+		return db('b_countries')
+	}
+
 	getHPVC(db: Knex) {
 		return db('b_hpvc')
 			.where('is_deleted', 'N')
