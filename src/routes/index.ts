@@ -39,6 +39,16 @@ router.get('/demo', (req: Request, res: Response) => {
   }
 });
 
+router.get('/slave-status', async(req: Request, res: Response) => {
+  try {
+    const db = req.dbReport
+    const rs: any = await basicModel.showSlaveStatus(db);
+    res.send({ ok: true, rows:rs[0] });
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
+
 router.get('/date', (req: Request, res: Response) => {
   res.send({ ok: true, rows: moment().format('YYYY-MM-DD HH:mm:ss'), code: HttpStatus.OK });
 });
