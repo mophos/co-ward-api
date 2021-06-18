@@ -2442,7 +2442,7 @@ router.get('/admit-confirm-case/export', async (req: Request, res: Response) => 
         ws2.cell(row, 13).string(toString(i.gcs_name));
         ws2.cell(row, 14).string(toString(i.bed_name));
         ws2.cell(row, 15).string(toString(i.medical_supplies_name));
-        ws2.cell(row, 16).string(toString(moment(i.updated_entry_last).format('DD-MM-YYYY')));
+        ws2.cell(row, 16).string(toString(i.updated_entry_last ? moment(i.updated_entry_last).format('DD-MM-YYYY'): ''));
         ws2.cell(row, 17).string(toString(i.days));
         ws2.cell(row, 18).string(toString(i.d3 > 0 ? '/' : ''));
         ws2.cell(row, 19).string(toString(i.d4 > 0 ? '/' : ''));
@@ -2459,7 +2459,7 @@ router.get('/admit-confirm-case/export', async (req: Request, res: Response) => 
         ws2.cell(row, 7).string(toString(i.gcs_name));
         ws2.cell(row, 8).string(toString(i.bed_name));
         ws2.cell(row, 9).string(toString(i.medical_supplies_name));
-        ws2.cell(row, 10).string(toString(moment(i.updated_entry_last).format('DD-MM-YYYY')));
+        ws2.cell(row, 10).string(toString(i.updated_entry_last ? moment(i.updated_entry_last).format('DD-MM-YYYY'): ''));
         ws2.cell(row, 11).string(toString(i.days));
         ws2.cell(row, 12).string(toString(i.d3 > 0 ? '/' : ''));
         ws2.cell(row, 13).string(toString(i.d4 > 0 ? '/' : ''));

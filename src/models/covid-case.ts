@@ -100,28 +100,29 @@ export class CovidCaseModel {
 
   getCasePresent(db: Knex, hospitalId, query) {
     const _query = `${query}%`;
-    const last = db('views_covid_case')
-      .max('updated_entry as updated_entry_last')
-      .whereRaw('covid_case_id=cd.covid_case_id')
-      .whereNotNull('updated_entry')
-      .as('updated_entry')
+    // const last = db('views_covid_case')
+    //   .max('updated_entry as updated_entry_last')
+    //   .whereRaw('covid_case_id=cd.covid_case_id')
+    //   .whereNotNull('updated_entry')
+    //   .as('updated_entry')
 
     const sql = db('p_covid_cases as c')
       .select('cd.updated_entry', 'c.id as covid_case_id', 'c.status', 'c.date_admit', 'pt.hn', 'pt.person_id', 'cd.id as covid_case_details_id', 'p.*', 't.name as title_name',
-        'ccd.bed_id', 'ccd.gcs_id', 'cd.medical_supplie_id', db.raw(`ifnull(cd.create_date, null) as create_date`),db.raw(`ifnull(cd.updated_entry, cd.create_date) as updated_date`),
+        'cd.bed_id', 'cd.gcs_id', 'cd.medical_supplie_id', db.raw(`ifnull(cd.create_date, null) as create_date`), db.raw(`ifnull(cd.updated_entry, cd.create_date) as updated_date`),
         db.raw(`ifnull(cd.entry_date, null) as entry_date`),
         //   db.raw(`(select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 1 or generic_id = 2) limit 1) as set1,
         // (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 3 or generic_id = 4) limit 1) as set2,
         // (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 7  limit 1) as set3,
         // (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 8  limit 1) as set4`)
-        'vg.set1', 'vg.set2', 'vg.set3', 'vg.set4'
+        db.raw(`null as set1,null as set2,null as set3`),'cdi.generic_id as set4'
       )
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .leftJoin('um_titles as t', 'p.title_id', 't.id')
-      .leftJoin('view_covid_case_last as ccd', 'ccd.covid_case_id', 'c.id')
-      .leftJoin('p_covid_case_details as cd', 'ccd.id', 'cd.id')
-      .leftJoin('view_generic_case_item as vg', 'vg.covid_case_detail_id', 'cd.id')
+      .leftJoin('p_covid_case_detail_last as ccd', 'ccd.covid_case_id', 'c.id')
+      .leftJoin('p_covid_case_details as cd', 'ccd.covid_case_detail_id', 'cd.id')
+      .joinRaw('  left join p_covid_case_detail_items as cdi on cdi.covid_case_detail_id = cd.id and cdi.generic_id = 8')
+      // .leftJoin('view_generic_case_item as vg', 'vg.covid_case_detail_id', 'cd.id')
       .where('pt.hospital_id', hospitalId)
       .where('c.status', 'ADMIT')
       .where('c.is_deleted', 'N')
@@ -132,6 +133,8 @@ export class CovidCaseModel {
         v.orWhere('p.last_name', 'like', _query)
       });
     }
+    // console.log(sql.toString());
+
     return sql;
   }
 
@@ -661,19 +664,19 @@ export class CovidCaseModel {
   getCasePresentNotUpdate(db: Knex, hospitalId, date) {
     const sql = db('p_covid_cases as c')
       .select('c.id as covid_case_id', 'c.status', 'cd.id as covid_case_details_id',
-        'ccd.bed_id', 'ccd.gcs_id', 'cd.medical_supplie_id', db.raw(`ifnull(cd.create_date, null) as create_date`),
+        'cd.bed_id', 'cd.gcs_id', 'cd.medical_supplie_id', db.raw(`ifnull(cd.create_date, null) as create_date`),
         db.raw(`ifnull(cd.entry_date, null) as entry_date`),
         'vg.set1', 'vg.set2', 'vg.set3', 'vg.set4'
       )
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
-      .leftJoin('view_covid_case_last as ccd', 'ccd.covid_case_id', 'c.id')
-      .leftJoin('p_covid_case_details as cd', 'ccd.id', 'cd.id')
+      .leftJoin('p_covid_case_detail_last as ccd', 'ccd.covid_case_id', 'c.id')
+      .leftJoin('p_covid_case_details as cd', 'ccd.covid_case_detail_id', 'cd.id')
       .leftJoin('view_generic_case_item as vg', 'vg.covid_case_detail_id', 'cd.id')
       .where('pt.hospital_id', hospitalId)
       .where('c.status', 'ADMIT')
       .where('c.is_deleted', 'N')
       .where('cd.entry_date', '<', date)
-    // console.log(sql.toString());
+    console.log(sql.toString());
     return sql;
   }
 

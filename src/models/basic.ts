@@ -402,4 +402,7 @@ export class BasicModel {
 		return db('p_covid_case_detail_items').delete().where('covid_case_detail_id', id);
 	}
 
+	showSlaveStatus(db:Knex){
+		return db.raw('show slave status');
+	}
 }
