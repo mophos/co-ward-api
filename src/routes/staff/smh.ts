@@ -8,7 +8,6 @@ import { SerialModel } from '../../models/serial';
 import moment = require('moment');
 
 const model = new smhModel();
-const serialModel = new SerialModel();
 const router: Router = Router();
 
 router.get('/', async (req: Request, res: Response) => {
