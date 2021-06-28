@@ -15,77 +15,14 @@ const router: Router = Router();
 router.get('/', async (req: Request, res: Response) => {
   const db = req.db;
   const key = req.query.key;
-  const type = req.query.type;
   const obj: any = {};
-  const token: any = await model.getToken(db);
-  console.log(key, type);
 
   try {
-    const rs: any = await model.getPerson(db, key);
-    const rsd: any = await labCovidAdd(db, key, type);
-    if (rsd.sat_id) {
-      obj.sat_id = rsd.sat_id;
-      obj.telephone = rsd.telephone;
-    }
-    if (!rs.length) {
-      const rsM: any = await model.infoCid(key, token[0].token);
-      const smh: any = await model.getSmarthealth(key, token[0].token);
-      if (rsM.length) {
-        console.log('มหาดไทย');
-        const rsa: any = await model.infoCidAddress(key, token[0].token);
-        const sCode = serialModel.paddingNumber(rsa.data.subdistrictCode, 2);
-        const dCode = serialModel.paddingNumber(rsa.data.districtCode, 2);
-        const pCode = serialModel.paddingNumber(rsa.data.provinceCode, 2);
-        const z: any = await model.getZipcode(db, pCode + dCode + sCode);
-
-        obj.title_id = rs.data.titleCode;
-        obj.first_name = rs.data.firstName;
-        obj.last_name = rs.data.lastName;
-        obj.middle_name = rs.data.middleName;
-        obj.gender_id = rs.data.genderCode;
-        // obj.birth_date = await checkDate(rs.data.dateOfBirth.toString());
-        obj.birth_date = await checkDate(null);
-
-        obj.house_no = rsa.data.houseNo;
-        obj.ampur_code = dCode;
-        obj.tambon_code = sCode;
-        obj.province_code = pCode;
-        obj.zipcode = z[0].zip_code;
-        obj.country_code = 20;
-        obj.village = rsa.data.villageNo;
-        obj.country_name = 'ไทย';
-        obj.ampur_name = rsa.data.districtDesc;
-        obj.tambon_name = rsa.data.subdistrictDesc;
-        obj.province_name = rsa.data.provinceDesc;
-      } else if (smh.cid != undefined) {
-        console.log('Smart Health');
-        const smha: any = await model.getSmarthealthAddress(key, token[0].token);
-        const add: any = await model.getAddress(db, smha.tambon, smha.ampur, smha.changwat);
-        obj.title_id = +smh.prename;
-        obj.first_name = smh.name;
-        obj.last_name = smh.lname;
-        obj.gender_id = smh.sex;
-        obj.birth_date = await checkDate(moment(smh.birth).format('YYYYMMDD'));
-
-        obj.house_no = smha.houseno;
-        obj.ampur_code = smha.districtCode;
-        obj.tambon_code = smha.subdistrictCode;
-        obj.province_code = smha.provinceCode;
-        obj.zipcode = add[0].zip_code;
-        obj.country_code = 20;
-        obj.country_name = 'ไทย';
-        obj.ampur_name = add[0].ampur_name;
-        obj.tambon_name = add[0].tambon_name;
-        obj.province_name = add[0].province_name;
-      } else if (Object.values(rsd).length) {
-        console.log('covid-lab');
-        Object.assign(obj, rsd);
-      } else {
-        obj.country_code = 20;
-        obj.country_name = 'ไทย';
-      }
-    } else {
-      console.log('co-ward');
+    const cowardRows = await model.findPersonCoward(db, key);
+    const colabRows = await model.findPersonColab(db, key);
+    if (cowardRows.length > 0) {
+      // console.log('co-ward');
+      const rs: any = await model.getPerson(db, key);
       if (rs[0].tambon_code != null || rs[0].ampur_code != null || rs[0].province_code != null) {
         const add: any = await model.getAddress(db, rs[0].tambon_code, rs[0].ampur_code, rs[0].province_code);
         obj.ampur_name = add[0].ampur_name;
@@ -113,63 +50,52 @@ router.get('/', async (req: Request, res: Response) => {
       obj.village_name = rs[0].village_name;
       obj.road = rs[0].road;
       obj.country_name = 'ไทย';
-    }
 
-    res.send({ ok: true, rows: obj, code: HttpStatus.OK });
+      res.send({ ok: true, rows: obj, code: HttpStatus.OK });
+    } else if (colabRows.length > 0) {
+      // console.log('colab');
+      const rs: any = await model.getPersonColab(db, key);
+      obj.ampur_name = rs[0].ampur_name;
+      obj.tambon_name = rs[0].tambon_name;
+      obj.province_name = rs[0].province_name;
+      obj.first_name = rs[0].first_name;
+      obj.last_name = rs[0].last_name;
+      obj.birth_date = await checkDate(moment(rs[0].birth_date).format('YYYYMMDD'));
+      obj.telephone = rs[0].telephone;
+
+      obj.house_no = rs[0].address;
+      obj.ampur_code = rs[0].subdistrict_code.substr(2, 2);
+      obj.tambon_code = rs[0].subdistrict_code.substr(4, 2);
+      obj.province_code = rs[0].province_code;
+      obj.zipcode = rs[0].zip_code;
+      obj.country_name = 'ไทย';
+      res.send({ ok: true, rows: obj, code: HttpStatus.OK });
+    } else if (key.length === 13) {
+      const rs: any = await model.apiLoginOauth();
+      const apiRs: any = await model.getApiExchangeCid(key, rs.token)
+      const rows = apiRs.rows[0];
+      const bdate = (+moment(rows.birthdate).format('YYYY') - 543) + '-' + moment(rows.birthdate).format('MM') + '-' + moment(rows.birthdate).format('DD')
+      obj.ampur_name = rows.district_name;
+      obj.tambon_name = rows.subdistrict_name;
+      obj.province_name = rows.province_name;
+      obj.first_name = rows.fname;
+      obj.last_name = rows.lname;
+      obj.birth_date = bdate;
+
+      obj.house_no = rows.houseno + ' ' + rows.moo;
+      obj.ampur_code = rows.district_code;
+      obj.tambon_code = rows.subdistrict_code;
+      obj.province_code = rows.province_code;
+      obj.country_name = 'ไทย';
+      res.send({ ok: true, rows: obj, code: HttpStatus.OK });
+    } else {
+      res.send({ ok: true })
+    }
   } catch (error) {
+    console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
-
-
-
-async function labCovidAdd(db, key, type) {
-  try {
-    let set: any = false;
-    const rs: any = await model.apiLogin();
-    if (rs.ok) {
-      let lab: any;
-      if (type === 'THAI') {
-        lab = await model.getLabCovidCid(key, rs.token);
-        set = true;
-      } else if (type === 'FOREIGN') {
-        lab = await model.getLabCovidPassport(key, rs.token);
-        set = true;
-      }
-      if (set) {
-        const obj: any = {};
-        if (lab.ok) {
-          if (lab.res[0].sick_sub_district != null) {
-            obj.tambon_code = lab.res[0].sick_sub_district.substring(4, 6);
-            obj.ampur_code = lab.res[0].sick_sub_district.substring(2, 4);
-            obj.province_code = lab.res[0].sick_sub_district.substring(0, 2);
-            const adds: any = await model.getAddress(db, obj.tambon_code, obj.ampur_code, obj.province_code);
-            if (adds[0] !== undefined) {
-              obj.tambon_name = adds[0].tambon_name;
-              obj.ampur_name = adds[0].ampur_name;
-              obj.province_name = adds[0].province_name;
-            }
-          }
-          obj.country_name = 'ไทย';
-          obj.country_code = 20;
-          obj.gender_id = null;
-          obj.sat_id = lab.res[0].sat_id;
-          obj.first_name = lab.res[0].first_name;
-          obj.last_name = lab.res[0].last_name;
-          obj.telephone = replace(lab.res[0].mobile, /\s/g, '');
-          obj.house_no = lab.res[0].sick_house_no;
-          obj.village = lab.res[0].sick_village;
-          obj.road = lab.res[0].sick_road;
-        }
-        return obj;
-      }
-    } else {
-      return false;
-    }
-  } catch (error) {
-    return error;
-  }
-}
 
 async function checkDate(date) {
   try {

@@ -20,6 +20,38 @@ export class smhModel {
       });
   }
 
+  getPersonColab(db: Knex, keys) {
+    return db('colab_lab as c')
+      .select('d.name_th as ampur_name', 'sd.name_th as tambon_name', 'sd.zip_code', 'p.name_th as province_name', 'c.*')
+      .leftJoin('b_province as p', 'p.code', 'c.province_code')
+      .leftJoin('b_district as d', 'd.ampur_code_full', 'c.district_code')
+      .leftJoin('b_subdistrict as sd', 'sd.id', 'c.subdistrict_code')
+      .where((v) => {
+        v.where('c.cid', 'like', '%' + keys + '%')
+        v.orWhere('c.passport', 'like', '%' + keys + '%')
+        v.orWhere('c.first_name', 'like', '%' + keys + '%')
+        v.orWhere('c.last_name', 'like', '%' + keys + '%')
+      }).limit(1);
+  }
+
+  findPersonCoward(db: Knex, keys) {
+    return db('p_persons as p')
+      .select('p.cid', 'p.passport')
+      .where((v) => {
+        v.where('p.cid', 'like', '%' + keys + '%')
+        v.orWhere('p.passport', 'like', '%' + keys + '%')
+      });
+  }
+
+  findPersonColab(db: Knex, keys) {
+    return db('colab_lab as c')
+      .select('c.cid', 'c.passport')
+      .where((v) => {
+        v.where('c.cid', 'like', '%' + keys + '%')
+        v.orWhere('c.passport', 'like', '%' + keys + '%')
+      }).limit(1);
+  }
+
   getZipcode(db: Knex, id: any) {
     return db('b_subdistrict')
       .where('id', id);
@@ -81,6 +113,30 @@ export class smhModel {
     });
   }
 
+  getApiExchangeCid(cid, token) {
+    return new Promise((resolve: any, reject: any) => {
+      var options = {
+        method: 'GET',
+        url: `https://api-covid19.moph.go.th/exchange/api/v1?cid=${cid}`,
+        agentOptions: {
+          rejectUnauthorized: false
+        },
+        headers: {
+          authorization: `Bearer ${token}`
+        },
+        json: true
+      };
+
+      request(options, function (error, response, body) {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(body);
+        }
+      });
+    });
+  }
+
   apiLogin() {
     return new Promise((resolve: any, reject: any) => {
       var options = {
@@ -96,6 +152,35 @@ export class smhModel {
         body: {
           "username": `${process.env.API_INDEV_USERNAME}`,
           "password": `${process.env.API_INDEV_PASSWORD}`
+        },
+        json: true
+      };
+
+      request(options, function (error, response, body) {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(body);
+        }
+      });
+    });
+  }
+
+  apiLoginOauth() {
+    return new Promise((resolve: any, reject: any) => {
+      var options = {
+        method: 'POST',
+        url: `https://oauth.moph.go.th/v1/login`,
+        agentOptions: {
+          rejectUnauthorized: false
+        },
+        headers:
+        {
+          'content-type': 'application/json',
+        },
+        body: {
+          "username": `${process.env.API_OAUTH_USERNAME}`,
+          "password": `${process.env.API_OAUTH_PASSWORD}`
         },
         json: true
       };
