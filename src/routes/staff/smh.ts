@@ -3,7 +3,6 @@
 import * as HttpStatus from 'http-status-codes';
 
 import { Router, Request, Response } from 'express';
-import { replace } from 'lodash';
 import { smhModel } from '../../models/smh';
 import { SerialModel } from '../../models/serial';
 import moment = require('moment');
