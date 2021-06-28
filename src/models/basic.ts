@@ -174,6 +174,11 @@ export class BasicModel {
 			})
 	}
 
+	getBedAdmin(db: Knex) {
+		return db('b_beds as b')
+			.select('b.id', 'b.name')
+	}
+
 	getMedicalSupplies(db: Knex, hospitalType) {
 		return db('b_medical_supplies as b')
 			.where('b.pay_type', 'COVID')
@@ -402,7 +407,7 @@ export class BasicModel {
 		return db('p_covid_case_detail_items').delete().where('covid_case_detail_id', id);
 	}
 
-	showSlaveStatus(db:Knex){
+	showSlaveStatus(db: Knex) {
 		return db.raw('show slave status');
 	}
 }

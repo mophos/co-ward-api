@@ -64,6 +64,17 @@ router.get('/beds', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/beds-admin', async (req: Request, res: Response) => {
+  const db = req.db;
+
+  try {
+    const rs = await model.getBedAdmin(db);
+    res.send({ ok: true, rows: rs })
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
+
 router.get('/hpvc', async (req: Request, res: Response) => {
   const db = req.db;
 

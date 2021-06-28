@@ -154,98 +154,41 @@ vc.updated_entry  as updated_entry`))
         // })
         .where('vh.sector', sector)
         .orderBy('vh.sub_ministry_name')
+        console.log(sql.toString());
+        
     return sql;
   }
 
   report6(db: Knex, date, sector) {
-    // return db('views_bed_hospital_cross as vc')
-    //   .leftJoin('views_bed_hospital_date_cross AS vb', (v) => {
-    //     v.on('vc.hospital_id ', 'vb.hospital_id')
-    //       .on('vb.entry_date', db.raw(`'${date}'`))
-    //   })
-    //   .join('views_hospital_dms as vh', 'vh.id', 'vc.hospital_id')
-    //   .where('vh.sector', sector)
-    //   .orderBy('vh.sub_ministry_name')
-    const last = db('views_covid_case')
-      .max('updated_entry as updated_entry_last')
-      .whereRaw('hospital_id=vc.hospital_id')
-      .whereNotNull('updated_entry')
-      .as('updated_entry')
-
-    let sub = db('views_hospital_dms as vh')
-      .select('vh.id as hospital_id', 'vh.hospname', 'vh.sub_ministry_name', db.raw(`
-sum( bed_id  =1 ) as aiir_usage_qty,
-sum( bed_id = 2 ) as modified_aiir_usage_qty,
-sum( bed_id = 3 ) as isolate_usage_qty,
-sum( bed_id = 4 ) as cohort_usage_qty,
-sum( bed_id = 5 ) AS hospitel_usage_qty,
-sum( bed_id = 7 ) AS cohort_icu_usage_qty`), last)
-      .leftJoin('views_covid_case_last as vc', (v) => {
-        v.on('vh.id', 'vc.hospital_id')
-        v.on('vc.status', db.raw(`'ADMIT'`))
-      })
+    let sql = db('temp_report_dms_6  as vh')
       .where('vh.sector', sector)
-      .groupBy('vh.id')
-      .as('sub')
-
-    let sql =
-      db('views_hospital_dms  as vh')
-        .select('vb.*', 'sub.*', 'vh.hospname', 'vh.sub_ministry_name', 'h.level', 'h.hospital_type')
-        .leftJoin('views_bed_hospital_cross as vb', 'vh.id', 'vb.hospital_id')
-        .leftJoin(sub, 'sub.hospital_id', 'vh.id')
-        .join('b_hospitals as h', 'h.id', 'vh.id')
-        .where('vh.sector', sector)
-        .orderBy('vh.sub_ministry_name')
+      .orderBy('vh.sub_ministry_name')
     return sql;
   }
 
   report7(db: Knex, date, sector) {
-    let sub = db('views_hospital_dms as vh')
-      .select('vh.id as hospital_id', 'vh.hospname', 'vh.sub_ministry_name', db.raw(`
-      sum( medical_supplie_id = 1 ) AS invasive_ventilator,
-      sum( medical_supplie_id = 2 ) AS non_invasive_ventilator,
-      sum( medical_supplie_id = 3 ) AS high_flow,
-      sum( medical_supplie_id = 5 ) AS papr,
-vc.updated_entry  as updated_entry`))
-      .leftJoin('views_covid_case_last as vc', (v) => {
-        v.on('vh.id', 'vc.hospital_id')
-        v.on('vc.status', db.raw(`'ADMIT'`))
-      })
-      .where('vh.sector', sector)
-      .groupBy('vh.id')
-      .as('sub')
-
     let sql =
-      db('views_hospital_dms  as vh')
-        .select('vb.*', 'sub.*', 'vh.hospname', 'vh.sub_ministry_name')
-        .leftJoin('temp_views_medical_supplies_hospital_cross as vb', 'vh.id', 'vb.hospital_id')
-        .leftJoin(sub, 'sub.hospital_id', 'vh.id')
+      db('temp_report_dms_7  as vh')
         .where('vh.sector', sector)
         .orderBy('vh.sub_ministry_name')
     return sql;
   }
 
   report8(db: Knex, date, sector) {
-    const sql = db('views_supplies_hospital_cross as v')
-      .select('v.*', 'vh.hospname', 'vh.sub_ministry_name')
-      .join('views_hospital_dms as vh', 'vh.id', 'v.hospital_id')
-      .where('vh.sector', sector)
+    const sql = db('temp_report_dms_8 as v')
+      .where('v.sector', sector)
     return sql;
   }
 
   report9(db: Knex, date, sector) {
-    const sql = db('views_professional_hospital_cross as v')
-      .select('v.*', 'vh.hospname', 'vh.sub_ministry_name')
-      .join('views_hospital_dms as vh', 'vh.id', 'v.hospital_id')
-      .where('vh.sector', sector)
+    const sql = db('temp_report_dms_9_10 as v')
+      .where('v.sector', sector)
     return sql;
   }
 
   report10(db: Knex, date, sector) {
-    const sql = db('views_professional_hospital_cross as v')
-      .select('v.*', 'vh.hospname', 'vh.sub_ministry_name')
-      .join('views_hospital_dms as vh', 'vh.id', 'v.hospital_id')
-      .where('vh.sector', sector)
+    const sql = db('temp_report_dms_9_10 as v')
+      .where('v.sector', sector)
     return sql;
   }
 
