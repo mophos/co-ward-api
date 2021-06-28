@@ -818,7 +818,11 @@ router.put('/present', async (req: Request, res: Response) => {
       }
       items.push(item);
     }
-    await covidCaseModel.saveCovidCaseDetailItem(db, items);
+    try {
+      await covidCaseModel.saveCovidCaseDetailItem(db, items);
+    } catch (error) {
+    console.log(error);
+    }
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
