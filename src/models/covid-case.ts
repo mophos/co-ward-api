@@ -114,7 +114,7 @@ export class CovidCaseModel {
         // (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 3 or generic_id = 4) limit 1) as set2,
         // (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 7  limit 1) as set3,
         // (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 8  limit 1) as set4`)
-        db.raw(`null as set1,null as set2,null as set3`),'cdi.generic_id as set4'
+        db.raw(`null as set1,null as set2,null as set3`), 'cdi.generic_id as set4'
       )
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
       .join('p_persons as p', 'pt.person_id', 'p.id')
@@ -298,6 +298,8 @@ export class CovidCaseModel {
   }
 
   saveCovidCaseDetail(db: Knex, data) {
+    console.log(data);
+    
     let sql = `
     INSERT INTO p_covid_case_details
     (covid_case_id, gcs_id, bed_id, medical_supplie_id, entry_date,status,created_by,updated_entry)
@@ -693,5 +695,11 @@ export class CovidCaseModel {
       .where('pt.hn', hn)
       .where('c..is_deleted', 'N')
       .where('c.an', an)
+  }
+  getMaxCovidCaseDetail(db: Knex, covidCaseId) {
+    return db('p_covid_case_details')
+      .where('covid_case_id', covidCaseId)
+      .orderBy('id', 'desc')
+      .limit(1);
   }
 }
