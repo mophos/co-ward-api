@@ -66,7 +66,7 @@ router.post('/', async (req: Request, res: Response) => {
       // } else {
       //   objD.entry_date = moment().format('YYYY-MM-DD');
       // }
-      let rs: any = await covidCaseModel.updateDischarge(req.db, i.id, { status, date_discharge: dateDC });
+      let rs: any = await covidCaseModel.updateDischarge(req.db, i.id, { status, date_discharge: dateDC, updated_by: userId });
       await covidCaseModel.saveCovidCaseDetail(req.db, objD);
 
     }
