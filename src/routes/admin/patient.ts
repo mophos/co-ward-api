@@ -393,8 +393,7 @@ router.post('/covid-case-detail', async (req: Request, res: Response) => {
         let caseDetailId: any = [];
         if (caseDetail.length > 0) {
             for (const v of caseDetail) {
-                v.updated_by = req.decoded.id;
-                v.update_date = moment().format('YYYY-MM-DD HH:mm:ss');
+                v.create_by = req.decoded.id;
                 caseDetailId.push(v.id);
             }
             const rsLogs = await patientModel.saveLogsCaseDetail(db, caseDetail);
