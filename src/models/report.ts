@@ -916,7 +916,7 @@ export class ReportModel {
 
   dischargeCaseEntryDate(db: Knex, date, showPersons = false) {
     let sql = db('views_covid_case_last AS vc')
-      .select('vc.*', 'pc.date_discharge', 'pc.hospital_id_refer', 'bh.zone_code', 'bh.province_code', 'bh.province_name', 'bh.hospcode', 'bh.hospname', 'rh.hospcode as hospcode_refer', 'rh.hospname as hospname_refer', 'pc.an', 'p.hn')
+      .select('vc.*', 'pc.date_discharge', 'pc.hospital_id_refer', 'bh.zone_code', 'bh.province_code', 'bh.province_name as p_name', 'bh.hospcode', 'bh.hospname', 'rh.hospcode as hospcode_refer', 'rh.hospname as hospname_refer', 'pc.an', 'p.hn')
       .join('p_covid_cases AS pc', 'pc.id', 'vc.covid_case_id')
       .join('p_patients as p', 'p.id', ' pc.patient_id')
       .join('b_hospitals AS bh', 'bh.id', 'vc.hospital_id')
