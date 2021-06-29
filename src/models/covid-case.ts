@@ -108,7 +108,7 @@ export class CovidCaseModel {
 
     const sql = db('p_covid_cases as c')
       .select('cd.updated_entry', 'c.id as covid_case_id', 'c.status', 'c.date_admit', 'pt.hn', 'pt.person_id', 'cd.id as covid_case_details_id', 'p.*', 't.name as title_name',
-        'cd.bed_id', 'cd.gcs_id', 'cd.medical_supplie_id', db.raw(`ifnull(cd.create_date, null) as create_date`), db.raw(`ifnull(cd.updated_entry, cd.create_date) as updated_date`),
+        'cd.bed_id', 'cd.gcs_id', 'cd.medical_supplie_id', db.raw(`ifnull(cd.create_date, null) as create_date`), db.raw(`ifnull(cccd.updated_entry, cd.create_date) as updated_date`),
         db.raw(`ifnull(cd.entry_date, null) as entry_date`),
         //   db.raw(`(select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 1 or generic_id = 2) limit 1) as set1,
         // (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 3 or generic_id = 4) limit 1) as set2,
@@ -122,6 +122,8 @@ export class CovidCaseModel {
       .leftJoin('p_covid_case_detail_last as ccd', 'ccd.covid_case_id', 'c.id')
       .leftJoin('p_covid_case_details as cd', 'ccd.covid_case_detail_id', 'cd.id')
       .joinRaw('  left join p_covid_case_detail_items as cdi on cdi.covid_case_detail_id = cd.id and cdi.generic_id = 8')
+      .leftJoin('p_covid_case_detail_last_from_user as cccu','cccu.covid_case_id','c.id')
+      .leftJoin('p_covid_case_details as cccd','cccu.covid_case_detail_id','cccd.id')
       // .leftJoin('view_generic_case_item as vg', 'vg.covid_case_detail_id', 'cd.id')
       .where('pt.hospital_id', hospitalId)
       .where('c.status', 'ADMIT')
