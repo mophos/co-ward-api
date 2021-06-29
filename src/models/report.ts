@@ -873,7 +873,7 @@ export class ReportModel {
 
   dischargeCase(db: Knex, date, showPersons = false) {
     let sql = db('p_covid_cases as pc')
-      .select('pc.*', 'p.hn', 'p.hospital_id', 'p.person_id', 'h.hospcode', 'h.hospname', 'h.zone_code', 'h.province_code', 'h.province_name', 'rh.hospcode as refer_hospcode', 'rh.hospname as refer_hospname')
+      .select('pc.*', 'p.hn', 'p.hospital_id', 'p.person_id', 'h.hospcode', 'h.hospname', 'h.zone_code', 'h.province_code', 'h.province_name as p_name', 'rh.hospcode as refer_hospcode', 'rh.hospname as refer_hospname')
       .join('p_patients as p', 'p.id', ' pc.patient_id')
       .join('b_hospitals as h', 'h.id', 'p.hospital_id')
       .join('views_covid_case_last as vl', 'vl.covid_case_id', 'pc.id')
@@ -888,12 +888,14 @@ export class ReportModel {
         .join('p_persons as pp', 'p.person_id', 'pp.id')
         .leftJoin('um_titles as t', 'pp.title_id', 't.id');
     }
+    console.log(sql.toString());
+    
     return sql
   }
 
   dischargeCaseDms(db: Knex, date, showPersons = false) {
     let sql = db('p_covid_cases as pc')
-      .select('pc.*', 'p.hn', 'p.hospital_id', 'p.person_id', 'h.hospcode', 'h.hospname', 'h.zone_code', 'h.province_code', 'h.province_name', 'rh.hospcode as refer_hospcode', 'rh.hospname as refer_hospname')
+      .select('pc.*', 'p.hn', 'p.hospital_id', 'p.person_id', 'h.hospcode', 'h.hospname', 'h.zone_code', 'h.province_code', 'h.province_name as p_name', 'rh.hospcode as refer_hospcode', 'rh.hospname as refer_hospname')
       .join('p_patients as p', 'p.id', ' pc.patient_id')
       .join('b_hospitals as h', 'h.id', 'p.hospital_id')
       .join('views_hospital_dms as vhd', 'vhd.id', 'h.id')
@@ -914,7 +916,7 @@ export class ReportModel {
 
   dischargeCaseEntryDate(db: Knex, date, showPersons = false) {
     let sql = db('views_covid_case_last AS vc')
-      .select('vc.*', 'pc.date_discharge', 'pc.hospital_id_refer', 'bh.zone_code', 'bh.province_code', 'bh.province_name', 'bh.hospcode', 'bh.hospname', 'rh.hospcode as hospcode_refer', 'rh.hospname as hospname_refer', 'pc.an', 'p.hn')
+      .select('vc.*', 'pc.date_discharge', 'pc.hospital_id_refer', 'bh.zone_code', 'bh.province_code', 'bh.province_name as p_name', 'bh.hospcode', 'bh.hospname', 'rh.hospcode as hospcode_refer', 'rh.hospname as hospname_refer', 'pc.an', 'p.hn')
       .join('p_covid_cases AS pc', 'pc.id', 'vc.covid_case_id')
       .join('p_patients as p', 'p.id', ' pc.patient_id')
       .join('b_hospitals AS bh', 'bh.id', 'vc.hospital_id')
