@@ -889,7 +889,7 @@ export class ReportModel {
         .leftJoin('um_titles as t', 'pp.title_id', 't.id');
     }
     console.log(sql.toString());
-    
+
     return sql
   }
 
@@ -930,7 +930,7 @@ export class ReportModel {
         .leftJoin('um_titles as t', 'pp.title_id', 't.id');
     }
     console.log(sql.toString());
-    
+
     return sql
   }
 
@@ -977,5 +977,34 @@ export class ReportModel {
 
     return sql;
     // .groupBy('pt.id')
+  }
+
+  reportBedZone(db: Knex) {
+    return db('temp_report_all_6_1');
+  }
+  
+  reportBedProvince(db: Knex) {
+    return db.raw(`SELECT
+    t.zone_code,
+    t.province_code,
+    p.name_th as province_name,
+    sum(t.aiir_covid_qty) as aiir_covid_qty,
+    sum(t.aiir_usage_qty) as aiir_usage_qty,
+    sum(t.modified_aiir_covid_qty) as modified_aiir_covid_qty,
+    sum(t.modified_aiir_usage_qty) as modified_aiir_usage_qty,
+    sum(t.cohort_covid_qty) as cohort_covid_qty,
+    sum(t.cohort_usage_qty) as cohort_usage_qty,
+    sum(t.isolate_covid_qty) as isolate_covid_qty,
+    sum(t.isolate_usage_qty) as  isolate_usage_qty,
+    sum(t.cohort_icu_covid_qty) as cohort_icu_covid_qty,
+    sum(t.cohort_icu_usage_qty) as cohort_icu_usage_qty,
+    sum(t.hospitel_usage_qty) as hospitel_usage_qty,
+    sum(t.hospitel_covid_qty) as hospitel_covid_qty
+  FROM
+    temp_report_all_6 as t 
+    join b_province as p on p.code = t.province_code
+  GROUP BY
+    t.province_code
+    order by t.zone_code,p.name_th`)
   }
 }
