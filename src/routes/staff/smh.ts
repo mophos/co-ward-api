@@ -19,7 +19,7 @@ router.get('/', async (req: Request, res: Response) => {
     const cowardRows = await model.findPersonCoward(db, key);
     const colabRows = await model.findPersonColab(db, key);
     if (cowardRows.length > 0) {
-      // console.log('co-ward');
+      console.log('co-ward');
       const rs: any = await model.getPerson(db, key);
       if (rs[0].tambon_code != null || rs[0].ampur_code != null || rs[0].province_code != null) {
         const add: any = await model.getAddress(db, rs[0].tambon_code, rs[0].ampur_code, rs[0].province_code);
@@ -52,7 +52,7 @@ router.get('/', async (req: Request, res: Response) => {
 
       res.send({ ok: true, rows: obj, code: HttpStatus.OK });
     } else if (colabRows.length > 0) {
-      // console.log('colab');
+      console.log('colab');
       const rs: any = await model.getPersonColab(db, key);
       obj.ampur_name = rs[0].ampur_name;
       obj.tambon_name = rs[0].tambon_name;
@@ -71,9 +71,13 @@ router.get('/', async (req: Request, res: Response) => {
       obj.country_code = 20;
       res.send({ ok: true, rows: obj, code: HttpStatus.OK });
     } else if (key.length === 13) {
+      console.log('api');
       const rs: any = await model.apiLoginOauth();
       const apiRs: any = await model.getApiExchangeCid(key, rs.token)
       const rows = apiRs.rows[0];
+      if (rows.birthdate.substr(5, 2) || rows.birthdate.substr(8, 2)) {
+        rows.birthdate = rows.birthdate.substr(0, 4) + '-01-01';
+      }
       const bdate = (+moment(rows.birthdate).format('YYYY') - 543) + '-' + moment(rows.birthdate).format('MM') + '-' + moment(rows.birthdate).format('DD')
       obj.ampur_name = rows.district_name;
       obj.tambon_name = rows.subdistrict_name;

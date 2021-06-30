@@ -3688,4 +3688,25 @@ router.get('/discharge-entrydate/excel', async (req: Request, res: Response) => 
   }
 });
 
+router.get('/bed-zone', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  try {
+    const rs: any = await model.reportBedZone(db);
+    res.send({ ok: true, rows: rs});
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/bed-province', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  try {
+    const rs: any = await model.reportBedProvince(db);
+    res.send({ ok: true, rows: rs[0]});
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
 export default router;
