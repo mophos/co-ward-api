@@ -7,8 +7,11 @@ import { findIndex, sumBy } from 'lodash';
 const path = require('path')
 const fse = require('fs-extra');
 const model = new ReportModel();
+
 const router: Router = Router();
 import moment = require('moment');
+import { BasicModel } from '../../models/basic';
+const basicModel = new BasicModel();
 
 
 router.get('/zone', async (req: Request, res: Response) => {
@@ -270,7 +273,7 @@ router.get('/discharge-case/excel', async (req: Request, res: Response) => {
         res.send({ ok: false, error: err })
       } else {
         res.setHeader('Content-Type', 'application/vnd.openxmlformats');
-        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
         res.sendfile(filenamePath, (v) => {
           // fse.removeSync(filenamePath);
         })
@@ -279,6 +282,73 @@ router.get('/discharge-case/excel', async (req: Request, res: Response) => {
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error });
+  }
+});
+
+
+router.get('/present-case-status/excel', async (req: Request, res: Response) => {
+  const hospitalId = req.decoded.hospitalId;
+  const hospitalType = req.decoded.hospitalType;
+  try {
+    const wb = new excel4node.Workbook();
+    const ws = wb.addWorksheet('Sheet 1');
+
+    ws.cell(1, 1).string('HN');
+    ws.cell(1, 2).string('ชื่อ');
+    ws.cell(1, 3).string('อัพเดทล่าสุด');
+    ws.cell(1, 4).string('ความรุนแรง');
+    ws.cell(1, 5).string('เตียง');
+    ws.cell(1, 6).string('เครื่องช่วยหายใจ');
+    ws.cell(1, 7).string('Favipiravir');
+
+    const rs: any = await model.getCasePresent(req.db, hospitalId);
+
+    const gcs = await basicModel.getGCS(req.db);
+    const ba = await basicModel.getBedAdmin(req.db);
+    const ms = await basicModel.getMedicalSupplies(req.db, hospitalType);
+    ms.push({ id: 'not use', name: 'ไม่ใช้งาน' });
+    const findObj = (find, arr) => {
+      const index = arr.findIndex(v => v.id === find);
+      if (index > -1) {
+        return arr[index].name;
+      } else {
+        return 'ไม่พบข้อมูล';
+      }
+    };
+
+    let row = 2;
+    for (const items of rs) {
+      items.updated_date = moment(items.updated_date).isValid() ?  moment(items.updated_date).format('DD/MM/YYYY HH:mm:ss') : '-';
+      items.set4 = items.set4 === 8 ? 'ใช้' : 'ไม่ใช้';
+      ws.cell(row, 1).string(items['hn']);
+      ws.cell(row, 2).string((items['title_name']) + ' ' + (items['first_name']) + ' ' + (items['last_name']));
+      ws.cell(row, 3).string(items['updated_date']);
+      ws.cell(row, 4).string(await findObj(items['gcs_id'], gcs));
+      ws.cell(row, 5).string(await findObj(items['bed_id'], ba));
+      ws.cell(row, 6).string(await findObj(items['medical_supplie_id'], ms));
+      ws.cell(row++, 7).string(items['set4']);
+    }
+
+    fse.ensureDirSync(process.env.TMP_PATH);
+    const filename = `report1` + moment().format('x');
+    const filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
+        res.sendfile(filenamePath, (v) => {
+          // fse.removeSync(filenamePath);
+        });
+      }
+    });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
 

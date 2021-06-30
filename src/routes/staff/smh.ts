@@ -48,6 +48,7 @@ router.get('/', async (req: Request, res: Response) => {
       obj.village_name = rs[0].village_name;
       obj.road = rs[0].road;
       obj.country_name = 'ไทย';
+      obj.country_code = 20;
 
       res.send({ ok: true, rows: obj, code: HttpStatus.OK });
     } else if (colabRows.length > 0) {
@@ -67,6 +68,7 @@ router.get('/', async (req: Request, res: Response) => {
       obj.province_code = rs[0].province_code;
       obj.zipcode = rs[0].zip_code;
       obj.country_name = 'ไทย';
+      obj.country_code = 20;
       res.send({ ok: true, rows: obj, code: HttpStatus.OK });
     } else if (key.length === 13) {
       const rs: any = await model.apiLoginOauth();
@@ -85,6 +87,7 @@ router.get('/', async (req: Request, res: Response) => {
       obj.tambon_code = rows.subdistrict_code;
       obj.province_code = rows.province_code;
       obj.country_name = 'ไทย';
+      obj.country_code = 20;
       res.send({ ok: true, rows: obj, code: HttpStatus.OK });
     } else {
       res.send({ ok: true })
