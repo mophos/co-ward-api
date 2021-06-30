@@ -982,7 +982,7 @@ export class ReportModel {
   reportBedZone(db: Knex) {
     return db('temp_report_all_6_1');
   }
-  
+
   reportBedProvince(db: Knex) {
     return db.raw(`SELECT
     t.zone_code,
@@ -1006,5 +1006,25 @@ export class ReportModel {
   GROUP BY
     t.province_code
     order by t.zone_code,p.name_th`)
+  }
+  
+  getCasePresent(db: Knex, hospitalId) {
+    const sql = db('p_covid_cases as c')
+      .select('pt.hn', 't.name as title_name', 'p.*', 'p.first_name', 'p.last_name',
+        db.raw(`ifnull(cd.updated_entry, cd.create_date) as updated_date`), 'cd.gcs_id',
+        db.raw(`ifnull(cd.medical_supplie_id, 'not use') as medical_supplie_id`),
+        'cd.bed_id', 'cdi.generic_id as set4'
+      )
+      .join('p_patients as pt', 'c.patient_id', 'pt.id')
+      .join('p_persons as p', 'pt.person_id', 'p.id')
+      .leftJoin('um_titles as t', 'p.title_id', 't.id')
+      .leftJoin('p_covid_case_detail_last as ccd', 'ccd.covid_case_id', 'c.id')
+      .leftJoin('p_covid_case_details as cd', 'ccd.covid_case_detail_id', 'cd.id')
+      .joinRaw('  left join p_covid_case_detail_items as cdi on cdi.covid_case_detail_id = cd.id and cdi.generic_id = 8')
+      .where('pt.hospital_id', hospitalId)
+      .where('c.status', 'ADMIT')
+      .where('c.is_deleted', 'N');
+    // console.log(sql.toString());
+    return sql;
   }
 }
