@@ -381,7 +381,11 @@ async function saveCovidCase(db, req, data) {
         if (rsPatient.length) {
           console.log('rs1');
           // มี patient
-          const rs = await covidCaseModel.updatePerson(db, rsPatient[0].person_id, person);
+          try {
+            await covidCaseModel.updatePerson(db, rsPatient[0].person_id, person);
+          } catch (error) {
+            return ({ ok: false, error: 'มีข้อมูลผิดพลาดหรือซ้ำกัน กรุณาติดต่อ Admin' ,message:error});
+          }
           personId = rsPatient[0].person_id;
           // if (rs[0].insertId == 0) {
           //   console.log('rs11');
@@ -821,7 +825,7 @@ router.put('/present', async (req: Request, res: Response) => {
     try {
       await covidCaseModel.saveCovidCaseDetailItem(db, items);
     } catch (error) {
-    console.log(error);
+      console.log(error);
     }
     res.send({ ok: true, code: HttpStatus.OK });
   } catch (error) {
