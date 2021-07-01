@@ -1007,7 +1007,7 @@ export class ReportModel {
     t.province_code
     order by t.zone_code,p.name_th`)
   }
-  
+
   getCasePresent(db: Knex, hospitalId) {
     const sql = db('p_covid_cases as c')
       .select('pt.hn', 't.name as title_name', 'p.*', 'p.first_name', 'p.last_name',
@@ -1027,4 +1027,77 @@ export class ReportModel {
     // console.log(sql.toString());
     return sql;
   }
+
+  getCaseAllHosp(db: Knex, zoneCode, provinceCode = null, hospitalId = null) {
+    const sql = db('view_covid_case_last as c')
+      .select(
+        'p.cid',
+        'p.passport',
+        't.name as title_name',
+        'p.first_name',
+        'p.middle_name',
+        'p.last_name',
+        'g.name as sex',
+        'p.birth_date',
+        'p.telephone',
+        'p.house_no',
+        'p.room_no',
+        'p.village_name',
+        'p.road',
+        'p.tambon_name',
+        'p.ampur_name',
+        'p.province_name',
+        'p.zipcode',
+        'pet.name as people_types',
+        'c.status',
+        'c.confirm_date',
+        'c.date_admit',
+        'c.date_discharge',
+        'pt.hn',
+        'c.an',
+        'h.hospname',
+        db.raw(`ifnull(c.updated_entry, c.create_date) as updated_date`),
+        'p.data_source',
+      )
+      .leftJoin('p_patients as pt', 'c.patient_id', 'pt.id')
+      .leftJoin('p_persons as p', 'pt.person_id', 'p.id')
+      .leftJoin('b_hospitals AS h', 'h.id', 'c.hospital_id')
+      .leftJoin('b_genders as g', 'p.gender_id', 'g.id')
+      .leftJoin('b_people_types as pet', 'p.people_type', 'pet.id')
+      .leftJoin('um_titles as t', 'p.title_id', 't.id')
+      .where('pt.hospital_id', hospitalId)
+      .where('h.zone_code', zoneCode);
+    if (provinceCode) {
+      sql.where('h.province_code', provinceCode);
+    }
+    if (hospitalId) {
+      sql.where('pt.hospital_id', hospitalId)
+    }
+    sql.orderBy('c.date_admit', 'DESC');
+    // console.log(sql.toString());
+
+    return sql;
+    // .groupBy('pt.id')
+  }
+
 }
+
+// return db('p_covid_cases as c')
+// .select('c.id as covid_case_id', 'c.an', 'c.status', 'c.date_admit', 'c.confirm_date', 'pt.person_id', 'pt.id as patient_id', 'pt.hn', 'p.*', 't.name as title_name',
+//   'pv.name_th as province_name', 'd.name_th as ampur_name', 'sd.name_th as tambon_name', 'bc.name as country_name')
+// .join('p_patients as pt', 'c.patient_id', 'pt.id')
+// .join('p_persons as p', 'pt.person_id', 'p.id')
+// .leftJoin('um_titles as t', 'p.title_id', 't.id')
+// .leftJoin('b_countries as bc', 'bc.id', 'p.country_code')
+// .leftJoin('b_province as pv', 'pv.code', 'p.province_code')
+// .leftJoin('b_district as d', (v) => {
+//   v.on('d.province_code', 'p.province_code')
+//   v.on('d.code', 'p.ampur_code')
+// })
+// .leftJoin('b_subdistrict as sd', (v) => {
+//   v.on('sd.province_code', 'p.province_code')
+//   v.on('sd.ampur_code', 'p.ampur_code')
+//   v.on('sd.code', 'p.tambon_code')
+// })
+// .where('c.id', covidCaseId)
+// .where('pt.hospital_id', hospitalId)

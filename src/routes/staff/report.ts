@@ -318,7 +318,7 @@ router.get('/present-case-status/excel', async (req: Request, res: Response) => 
 
     let row = 2;
     for (const items of rs) {
-      items.updated_date = moment(items.updated_date).isValid() ?  moment(items.updated_date).format('DD/MM/YYYY HH:mm:ss') : '-';
+      items.updated_date = moment(items.updated_date).isValid() ? moment(items.updated_date).format('DD/MM/YYYY HH:mm:ss') : '-';
       items.set4 = items.set4 === 8 ? 'ใช้' : 'ไม่ใช้';
       ws.cell(row, 1).string(items['hn']);
       ws.cell(row, 2).string((items['title_name']) + ' ' + (items['first_name']) + ' ' + (items['last_name']));
@@ -352,5 +352,105 @@ router.get('/present-case-status/excel', async (req: Request, res: Response) => 
   }
 });
 
+router.get('/all-case-hosp/excel', async (req: Request, res: Response) => {
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
+  const provinceCode = req.decoded.provinceCode;
+  const query = req.query.query || null;
+  const rights = req.decoded.rights;
+  const hospitalId = req.decoded.hospitalId;
+
+  const wb = new excel4node.Workbook();
+  const ws = wb.addWorksheet('Sheet 1');
+
+  try {
+    let rs: any;
+    if (providerType === 'ZONE') {
+      rs = await model.getCaseAllHosp(req.db, zoneCode, null, null);
+    } else if (providerType === 'SSJ') {
+      rs = await model.getCaseAllHosp(req.db, zoneCode, provinceCode, null);
+    } else {
+      rs = await model.getCaseAllHosp(req.db, zoneCode, provinceCode, hospitalId);
+    }
+
+    ws.cell(1, 1).string('CID');
+    ws.cell(1, 2).string('PASSPORT');
+    ws.cell(1, 3).string('นำหน้าชื่อ');
+    ws.cell(1, 4).string('ชื่อ');
+    ws.cell(1, 5).string('ชื่อกลาง');
+    ws.cell(1, 6).string('นามสกุล');
+    ws.cell(1, 7).string('เพศ');
+    ws.cell(1, 8).string('วันเกิด');
+    ws.cell(1, 9).string('เบอร์');
+    ws.cell(1, 10).string('ที่อยู่');
+    ws.cell(1, 11).string('ตำบล');
+    ws.cell(1, 12).string('อำเภอ');
+    ws.cell(1, 13).string('จังหวัด');
+    ws.cell(1, 14).string('รหัสไปรษณี');
+    ws.cell(1, 15).string('ประเภทบุคคล');
+    ws.cell(1, 16).string('สถานะ');
+    ws.cell(1, 17).string('confirm_date');
+    ws.cell(1, 18).string('date_admit');
+    ws.cell(1, 19).string('date_discharge');
+    ws.cell(1, 20).string('HN');
+    ws.cell(1, 21).string('AN');
+    ws.cell(1, 22).string('โรงพยาบาล');
+    ws.cell(1, 23).string('updated_date');
+    ws.cell(1, 24).string('data_source');
+
+    let row = 2;
+    for (const item of rs) {
+      item.date_admit = moment(item.date_admit).isValid() ? moment(item.date_admit).format('DD/MM/YYYY') : '';
+      item.date_discharge = moment(item.date_discharge).isValid() ? moment(item.date_discharge).format('DD/MM/YYYY') : '';
+      item.birth_date = moment(item.birth_date).isValid() ? moment(item.birth_date).format('DD/MM/YYYY') : '';
+      item.updated_date = moment(item.updated_date).isValid() ? moment(item.updated_date).format('DD/MM/YYYY HH:mm:ss') : '';
+      ws.cell(row, 1).string(item.cid);
+      ws.cell(row, 2).string(item.passport);
+      ws.cell(row, 3).string(item.title_name);
+      ws.cell(row, 4).string(item.first_name);
+      ws.cell(row, 5).string(item.middle_name);
+      ws.cell(row, 6).string(item.last_name);
+      ws.cell(row, 7).string(item.sex);
+      ws.cell(row, 8).string(item.birth_date);
+      ws.cell(row, 9).string(item.telephone);
+      ws.cell(row, 10).string((item.house_no || '') + ' ' + (item.room_no || '') + ' ' + (item.village_name || '') + ' ' + (item.road || ''));
+      ws.cell(row, 11).string(item.tambon_name);
+      ws.cell(row, 12).string(item.ampur_name);
+      ws.cell(row, 13).string(item.province_name);
+      ws.cell(row, 14).string(item.zipcode);
+      ws.cell(row, 15).string(item.people_types);
+      ws.cell(row, 16).string(item.status);
+      ws.cell(row, 17).string(item.confirm_date);
+      ws.cell(row, 18).string(item.date_admit);
+      ws.cell(row, 19).string(item.date_discharge);
+      ws.cell(row, 20).string(item.hn);
+      ws.cell(row, 21).string(item.an);
+      ws.cell(row, 22).string(item.hospname);
+      ws.cell(row, 23).string(item.updated_date);
+      ws.cell(row++, 24).string(item.data_source);
+    }
+
+    fse.ensureDirSync(process.env.TMP_PATH);
+
+    const filename = `report1` + moment().format('x');
+    const filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
+        res.sendfile(filenamePath, (v) => {
+          // fse.removeSync(filenamePath);
+        });
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error });
+  }
+});
 
 export default router;
