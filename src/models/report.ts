@@ -1081,23 +1081,3 @@ export class ReportModel {
   }
 
 }
-
-// return db('p_covid_cases as c')
-// .select('c.id as covid_case_id', 'c.an', 'c.status', 'c.date_admit', 'c.confirm_date', 'pt.person_id', 'pt.id as patient_id', 'pt.hn', 'p.*', 't.name as title_name',
-//   'pv.name_th as province_name', 'd.name_th as ampur_name', 'sd.name_th as tambon_name', 'bc.name as country_name')
-// .join('p_patients as pt', 'c.patient_id', 'pt.id')
-// .join('p_persons as p', 'pt.person_id', 'p.id')
-// .leftJoin('um_titles as t', 'p.title_id', 't.id')
-// .leftJoin('b_countries as bc', 'bc.id', 'p.country_code')
-// .leftJoin('b_province as pv', 'pv.code', 'p.province_code')
-// .leftJoin('b_district as d', (v) => {
-//   v.on('d.province_code', 'p.province_code')
-//   v.on('d.code', 'p.ampur_code')
-// })
-// .leftJoin('b_subdistrict as sd', (v) => {
-//   v.on('sd.province_code', 'p.province_code')
-//   v.on('sd.ampur_code', 'p.ampur_code')
-//   v.on('sd.code', 'p.tambon_code')
-// })
-// .where('c.id', covidCaseId)
-// .where('pt.hospital_id', hospitalId)
