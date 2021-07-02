@@ -113,7 +113,7 @@ export class smhModel {
     });
   }
 
-  getApiExchangeCid(cid, token) {
+  getApiExchangeCid(cid) {
     return new Promise((resolve: any, reject: any) => {
       var options = {
         method: 'GET',
@@ -122,7 +122,7 @@ export class smhModel {
           rejectUnauthorized: false
         },
         headers: {
-          authorization: `Bearer ${token}`
+          authorization: `Bearer ${process.env.API_OAUTH_TOKEN}`
         },
         json: true
       };
