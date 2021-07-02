@@ -72,8 +72,7 @@ router.get('/', async (req: Request, res: Response) => {
       res.send({ ok: true, rows: obj, code: HttpStatus.OK });
     } else if (key.length === 13) {
       console.log('api');
-      const rs: any = await model.apiLoginOauth();
-      const apiRs: any = await model.getApiExchangeCid(key, rs.token)
+      const apiRs: any = await model.getApiExchangeCid(key)
       const rows = apiRs.rows[0];
       if (rows.birthdate.substr(5, 2) || rows.birthdate.substr(8, 2)) {
         rows.birthdate = rows.birthdate.substr(0, 4) + '-01-01';
