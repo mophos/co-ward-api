@@ -349,7 +349,7 @@ export class BasicModel {
 		return new Promise((resolve, reject) => {
 			var options = {
 				method: 'POST',
-				url: 'http://otp.dev.moph.go.th/sms',
+				url: 'http://otp.dev.moph.go.th/api/sms',
 				headers: { 'content-type': 'application/json' },
 				body: { tel: tel, message: text, appId: process.env.OTP_APP_ID },
 				json: true
