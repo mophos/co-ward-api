@@ -45,7 +45,7 @@ export class Register {
         return new Promise((resolve, reject) => {
             var options = {
                 method: 'POST',
-                url: 'http://otp.dev.moph.go.th/otp',
+                url: 'http://otp.dev.moph.go.th/api/otp',
                 headers: { 'content-type': 'application/json' },
                 body: { tel: tel, appId: appId },
                 json: true
@@ -65,7 +65,7 @@ export class Register {
         return new Promise((resolve, reject) => {
             var options = {
                 method: 'POST',
-                url: 'http://otp.dev.moph.go.th/otp/verify',
+                url: 'http://otp.dev.moph.go.th/api/otp/verify',
                 headers: { 'content-type': 'application/json' },
                 body: {
                     transactionId: transactionId,
