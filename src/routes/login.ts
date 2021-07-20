@@ -158,7 +158,7 @@ router.post('/requis-otp', async (req: Request, res: Response) => {
       var request = require("request");
       var options = {
         method: 'POST',
-        url: 'http://otp.dev.moph.go.th/otp',
+        url: 'http://otp.dev.moph.go.th/api/otp',
         headers: { 'content-type': 'application/json' },
         body: { tel: tel, appId: process.env.OTP_APP_ID },
         json: true
@@ -193,7 +193,7 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
 
     var options = {
       method: 'POST',
-      url: 'http://otp.dev.moph.go.th/otp/verify',
+      url: 'http://otp.dev.moph.go.th/api/otp/verify',
       headers: { 'content-type': 'application/json' },
       body: {
         tel: tel,

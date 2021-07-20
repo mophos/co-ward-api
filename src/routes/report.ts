@@ -2152,6 +2152,7 @@ router.get('/admit-confirm-case', async (req: Request, res: Response) => {
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else if (providerType == 'SSJ') {
       const rs: any = await model.admitConfirmCaseProvice(db, zoneCode, provinceCode, showPersons);
+      console.log(rs);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else {
       res.send({ ok: false, code: HttpStatus.UNAUTHORIZED, error: HttpStatus.UNAUTHORIZED });
@@ -2442,7 +2443,7 @@ router.get('/admit-confirm-case/export', async (req: Request, res: Response) => 
         ws2.cell(row, 13).string(toString(i.gcs_name));
         ws2.cell(row, 14).string(toString(i.bed_name));
         ws2.cell(row, 15).string(toString(i.medical_supplies_name));
-        ws2.cell(row, 16).string(toString(i.updated_entry_last ? moment(i.updated_entry_last).format('DD-MM-YYYY'): ''));
+        ws2.cell(row, 16).string(toString(i.updated_entry_last ? moment(i.updated_entry_last).format('DD-MM-YYYY') : ''));
         ws2.cell(row, 17).string(toString(i.days));
         ws2.cell(row, 18).string(toString(i.d3 > 0 ? '/' : ''));
         ws2.cell(row, 19).string(toString(i.d4 > 0 ? '/' : ''));
@@ -2459,7 +2460,7 @@ router.get('/admit-confirm-case/export', async (req: Request, res: Response) => 
         ws2.cell(row, 7).string(toString(i.gcs_name));
         ws2.cell(row, 8).string(toString(i.bed_name));
         ws2.cell(row, 9).string(toString(i.medical_supplies_name));
-        ws2.cell(row, 10).string(toString(i.updated_entry_last ? moment(i.updated_entry_last).format('DD-MM-YYYY'): ''));
+        ws2.cell(row, 10).string(toString(i.updated_entry_last ? moment(i.updated_entry_last).format('DD-MM-YYYY') : ''));
         ws2.cell(row, 11).string(toString(i.days));
         ws2.cell(row, 12).string(toString(i.d3 > 0 ? '/' : ''));
         ws2.cell(row, 13).string(toString(i.d4 > 0 ? '/' : ''));
@@ -2986,6 +2987,7 @@ router.get('/admit-confirm-case-summary', async (req: Request, res: Response) =>
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
   const provinceCode = req.decoded.provinceCode;
+
   try {
     if (type == 'MANAGER') {
       const rs: any = await model.admitConfirmCaseSummary(db);
@@ -3012,16 +3014,21 @@ router.get('/admit-confirm-case-summary/excel', async (req: Request, res: Respon
   const zoneCode = req.decoded.zone_code;
   const provinceCode = req.decoded.provinceCode;
   const right = req.decoded.rights;
+  const showPersons: boolean = _.findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 || _.findIndex(right, { name: 'STAFF_VIEW_PATIENT_INFO' }) > -1 ? true : false;
+
   let rs: any;
+  let rsList: any;
   try {
     if (type == 'MANAGER') {
       rs = await model.admitConfirmCaseSummary(db);
       // res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else if (providerType == 'ZONE') {
       rs = await model.admitConfirmCaseSummaryProvince(db, zoneCode);
+      rsList = await model.admitConfirmCaseProvice(db, zoneCode, null, showPersons);
       // res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else if (providerType == 'SSJ') {
       rs = await model.admitConfirmCaseSummaryProvince(db, zoneCode, provinceCode);
+      rsList = await model.admitConfirmCaseProvice(db, zoneCode, provinceCode, showPersons);
       // res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else {
       // res.send({ ok: false, code: HttpStatus.UNAUTHORIZED });
@@ -3029,7 +3036,7 @@ router.get('/admit-confirm-case-summary/excel', async (req: Request, res: Respon
 
     var wb = new excel4node.Workbook();
     var ws = wb.addWorksheet('สรุป');
-    const showPersons = _.findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 ? true : false;
+    var ws2 = wb.addWorksheet('รายคน');
     ws.cell(1, 1).string('จังหวัด');
     ws.cell(1, 2).string('รวม');
     ws.cell(1, 3).string('Severe');
@@ -3075,6 +3082,34 @@ router.get('/admit-confirm-case-summary/excel', async (req: Request, res: Respon
       ws.cell(row, 19).number(toNumber(v.d5));
       ws.cell(row, 20).number(toNumber(v.d7));
       ws.cell(row++, 21).number(toNumber(v.d8));
+    }
+
+    ws2.cell(1, 1).string('จังหวัด');
+    ws2.cell(1, 2).string('โรงพยาบาล');
+    ws2.cell(1, 3).string('HN/AN');
+    ws2.cell(1, 4).string('เพศ');
+    ws2.cell(1, 5).string('อายุ');
+    ws2.cell(1, 6).string('วันที่ ADMIT');
+    ws2.cell(1, 7).string('ความรุนแรง');
+    ws2.cell(1, 8).string('เตียง');
+    ws2.cell(1, 9).string('เครื่องช่วยหายใจ');
+    ws2.cell(1, 10).string('วันที่บันทึกล่าสุด');
+    ws2.cell(1, 11).string('ไม่ได้บันทึกมา');
+    
+    let rows = 2;
+    for (const v of rsList) {
+      ws2.cell(rows, 1).string(v.province_name);
+      ws2.cell(rows, 2).string(v.hospname);
+      ws2.cell(rows, 3).string(v.hn + '/' + v.an);
+      ws2.cell(rows, 4).string(v.sex);
+      ws2.cell(rows, 5).number(v.age);
+      ws2.cell(rows, 6).string(moment(v.date_admit).format('DD-MM-YYYY'));
+      ws2.cell(rows, 7).string(v.gcs_name);
+      ws2.cell(rows, 8).string(v.bed_name);
+      ws2.cell(rows, 9).string(v.medical_supplies_name);
+      ws2.cell(rows, 10).string(moment(v.updated_entry_last).format('DD-MM-YYYY'));
+      ws2.cell(rows, 11).string(v.days + ' วัน');
+      rows++;
     }
 
     fse.ensureDirSync(process.env.TMP_PATH);
@@ -3595,9 +3630,9 @@ router.get('/discharge-entrydate/excel', async (req: Request, res: Response) => 
   const date = req.query.date || moment().format('YYYY-MM-DD');
   const right = req.decoded.rights;
   const showPersons = _.findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 ? true : false;
-  
+
   try {
-    const rs: any = await model.dischargeCaseEntryDate(db, date,showPersons);
+    const rs: any = await model.dischargeCaseEntryDate(db, date, showPersons);
     let row = 2
     var wb = new excel4node.Workbook();
     var ws = wb.addWorksheet('Sheet 1');
@@ -3692,7 +3727,7 @@ router.get('/bed-zone', async (req: Request, res: Response) => {
   const db = req.dbReport;
   try {
     const rs: any = await model.reportBedZone(db);
-    res.send({ ok: true, rows: rs});
+    res.send({ ok: true, rows: rs });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -3703,7 +3738,7 @@ router.get('/bed-province', async (req: Request, res: Response) => {
   const db = req.dbReport;
   try {
     const rs: any = await model.reportBedProvince(db);
-    res.send({ ok: true, rows: rs[0]});
+    res.send({ ok: true, rows: rs[0] });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
