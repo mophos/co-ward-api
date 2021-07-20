@@ -343,7 +343,7 @@ router.put('/covid-case-detail', async (req: Request, res: Response) => {
             const dataCaseDetail: any = {
                 status: data.status,
                 gcs_id: data.gcs_id,
-                medical_supplie_id: data.medical_supplie_id,
+                medical_supplie_id: data.medical_supplie_id === 'null' ? null : data.medical_supplie_id,
                 bed_id: data.bed_id
             }
             const findEdit = findIndex(oldCaseDetail, (v: any) => {
