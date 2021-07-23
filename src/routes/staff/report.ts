@@ -185,6 +185,116 @@ router.get('/admit-pui-case-summary', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/admit-pui-case/export', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
+  const provinceCode = req.decoded.provinceCode;
+  try {
+    const province = [];
+    if (providerType === 'ZONE') {
+      const rsp: any = await model.getProvince(db, zoneCode, null);
+      for (const v of rsp) {
+        province.push(v.code);
+      }
+    } else if (providerType === 'SSJ') {
+      const rsp: any = await model.getProvince(db, null, provinceCode);
+      province.push(rsp[0].code);
+    }
+
+    let rsSum: any = await model.sumAdmitPuiCaseByProvince(db, province);
+    let rsList = await model.admitPuiCaseByProvince(db, province);
+    rsSum = rsSum[0];
+
+    var wb = new excel4node.Workbook();
+    var sum = wb.addWorksheet('Sheet 1');
+    var list = wb.addWorksheet('รายคน');
+    sum.cell(1, 1).string('เขต');
+    sum.cell(1, 2).string('รวม');
+    sum.cell(1, 3).string('aiir');
+    sum.cell(1, 4).string('modified aiir');
+    sum.cell(1, 5).string('isolate');
+    sum.cell(1, 6).string('cohort');
+    sum.cell(1, 7).string('Hospitel');
+    sum.cell(1, 8).string('invasive');
+    sum.cell(1, 9).string('noninvasive');
+    sum.cell(1, 10).string('high flow');
+    sum.cell(1, 11).string('Darunavir 600 mg.');
+    sum.cell(1, 12).string('Lopinavir 200 mg./Ritonavir 50 mg.');
+    sum.cell(1, 13).string('Ritonavir 100 mg.');
+    sum.cell(1, 14).string('Azithromycin 250 mg.');
+    sum.cell(1, 15).string('Favipiravi');
+    let rowSum = 2;
+    for (const h of rsSum) {
+      sum.cell(rowSum, 1).number(Number(+h.zone_code || 0));
+      sum.cell(rowSum, 2).number(Number(h.pui || 0));
+      sum.cell(rowSum, 3).number(Number(h.aiir || 0));
+      sum.cell(rowSum, 4).number(Number(h.modified_aiir || 0));
+      sum.cell(rowSum, 5).number(Number(h.isolate || 0));
+      sum.cell(rowSum, 6).number(Number(h.cohort || 0));
+      sum.cell(rowSum, 7).number(Number(h.hospitel || 0));
+      sum.cell(rowSum, 8).number(Number(h.invasive || 0));
+      sum.cell(rowSum, 9).number(Number(h.noninvasive || 0));
+      sum.cell(rowSum, 10).number(Number(h.high_flow || 0));
+      sum.cell(rowSum, 11).number(Number(h.d3 || 0));
+      sum.cell(rowSum, 12).number(Number(h.d4 || 0));
+      sum.cell(rowSum, 13).number(Number(h.d5 || 0));
+      sum.cell(rowSum, 14).number(Number(h.d7 || 0));
+      sum.cell(rowSum, 15).number(Number(h.d8 || 0));
+      rowSum++;
+    }
+
+    list.cell(1, 1).string('เขต');
+    list.cell(1, 2).string('จังหวัด');
+    list.cell(1, 3).string('โรงพยาบาล');
+    list.cell(1, 4).string('HN/AN');
+    list.cell(1, 5).string('SAT ID');
+    list.cell(1, 6).string('วันที่ ADMIT');
+    list.cell(1, 7).string('ความรุนแรง');
+    list.cell(1, 8).string('เตียง');
+    list.cell(1, 9).string('เครื่องช่วยหายใจ');
+    list.cell(1, 10).string('วันที่บันทึกล่าสุด');
+    list.cell(1, 11).string('ไม่ได้บันทึกมา');
+    let rowList = 2;
+    for (const h of rsList) {
+      list.cell(rowList, 1).string(h['zone_code']);
+      list.cell(rowList, 2).string(h['province_name']);
+      list.cell(rowList, 3).string(h['hospname']);
+      list.cell(rowList, 4).string(h['hn'] + '/' + h['an']);
+      list.cell(rowList, 5).string(h['sat_id']);
+      list.cell(rowList, 6).string(moment(h['date_admit']).format('DD-MM-YYYY'));
+      list.cell(rowList, 7).string(h['gcs_name']);
+      list.cell(rowList, 8).string(h['bed_name']);
+      list.cell(rowList, 9).string(h['medical_supplies_name']);
+      list.cell(rowList, 10).string(moment(h['updated_entry_last']).format('DD-MM-YYYY'));
+      list.cell(rowList, 11).string(h['days'] + ' วัน');
+      rowList++;
+    }
+
+    fse.ensureDirSync(process.env.TMP_PATH);
+    let filename = `cio_check` + moment().format('x') + '.xlsx'
+    let filenamePath = path.join(process.env.TMP_PATH, filename);
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+
+      }
+    });
+
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.get('/discharge-case', async (req: Request, res: Response) => {
 
   const providerType = req.decoded.providerType;
