@@ -905,7 +905,13 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
     wsAll.cell(1, 20).string('Hospitel ทั้งหมด');
     wsAll.cell(1, 21).string('Hospitel ใช้ไปแล้ว');
     wsAll.cell(1, 22).string('Hospitel คงเหลือ');
-    wsAll.cell(1, 23).string('Hospital Type');
+    wsAll.cell(1, 23).string('Home Isolation ทั้งหมด');
+    wsAll.cell(1, 24).string('Home Isolation ใช้ไปแล้ว');
+    wsAll.cell(1, 25).string('Home Isolation คงเหลือ');
+    wsAll.cell(1, 26).string('Comunity Isolation ทั้งหมด');
+    wsAll.cell(1, 27).string('Comunity Isolation ใช้ไปแล้ว');
+    wsAll.cell(1, 28).string('Comunity Isolation คงเหลือ');
+    wsAll.cell(1, 29).string('Hospital Type');
     let rowAll = 2;
     for (const v of zoneCodes) {
       let row = 2;
@@ -934,7 +940,19 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
         ws.cell(1, 20).string('Hospitel ทั้งหมด');
         ws.cell(1, 21).string('Hospitel ใช้ไปแล้ว');
         ws.cell(1, 22).string('Hospitel คงเหลือ');
-        ws.cell(1, 23).string('Hospital Type');
+        ws.cell(1, 20).string('Hospitel ทั้งหมด');
+        ws.cell(1, 21).string('Hospitel ใช้ไปแล้ว');
+        ws.cell(1, 22).string('Hospitel คงเหลือ');
+        ws.cell(1, 20).string('Hospitel ทั้งหมด');
+        ws.cell(1, 21).string('Hospitel ใช้ไปแล้ว');
+        ws.cell(1, 22).string('Hospitel คงเหลือ');
+        ws.cell(1, 23).string('Home Isolation ทั้งหมด');
+        ws.cell(1, 24).string('Home Isolation ใช้ไปแล้ว');
+        ws.cell(1, 25).string('Home Isolation คงเหลือ');
+        ws.cell(1, 26).string('Comunity Isolation ทั้งหมด');
+        ws.cell(1, 27).string('Comunity Isolation ใช้ไปแล้ว');
+        ws.cell(1, 28).string('Comunity Isolation คงเหลือ');
+        ws.cell(1, 29).string('Hospital Type');
 
         ws.cell(row, 1).string(d.province_name);
         ws.cell(row, 2).string(d.hospcode);
@@ -958,7 +976,13 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
         ws.cell(row, 20).number(d['hospitel_covid_qty'] || 0);
         ws.cell(row, 21).number(d['hospitel_usage_qty'] || 0);
         ws.cell(row, 22).number(+d['hospitel_covid_qty'] - +d['hospitel_usage_qty'] || 0);
-        ws.cell(row, 23).string(d.hospital_type);
+        ws.cell(row, 23).number(d['home_isolation_covid_qty'] || 0);
+        ws.cell(row, 24).number(d['home_isolation_usage_qty'] || 0);
+        ws.cell(row, 25).number(+d['home_isolation_covid_qty'] - +d['home_isolation_usage_qty'] || 0);
+        ws.cell(row, 26).number(d['comunity_isolation_covid_qty'] || 0);
+        ws.cell(row, 27).number(d['comunity_isolation_usage_qty'] || 0);
+        ws.cell(row, 28).number(+d['comunity_isolation_covid_qty'] - +d['comunity_isolation_usage_qty'] || 0);
+        ws.cell(row, 29).string(d.hospital_type);
         row++
 
         wsAll.cell(rowAll, 1).string(d.province_name);
@@ -983,7 +1007,13 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
         wsAll.cell(rowAll, 20).number(d['hospitel_covid_qty'] || 0);
         wsAll.cell(rowAll, 21).number(d['hospitel_usage_qty'] || 0);
         wsAll.cell(rowAll, 22).number(+d['hospitel_covid_qty'] - +d['hospitel_usage_qty'] || 0);
-        wsAll.cell(rowAll, 23).string(d.hospital_type);
+        wsAll.cell(rowAll, 23).number(d['home_isolation_covid_qty'] || 0);
+        wsAll.cell(rowAll, 24).number(d['home_isolation_usage_qty'] || 0);
+        wsAll.cell(rowAll, 25).number(+d['home_isolation_covid_qty'] - +d['home_isolation_usage_qty'] || 0);
+        wsAll.cell(rowAll, 26).number(d['comunity_isolation_covid_qty'] || 0);
+        wsAll.cell(rowAll, 27).number(d['comunity_isolation_usage_qty'] || 0);
+        wsAll.cell(rowAll, 28).number(+d['comunity_isolation_covid_qty'] - +d['comunity_isolation_usage_qty'] || 0);
+        wsAll.cell(rowAll, 29).string(d.hospital_type);
         rowAll++;
       }
     }
@@ -3095,7 +3125,7 @@ router.get('/admit-confirm-case-summary/excel', async (req: Request, res: Respon
     ws2.cell(1, 9).string('เครื่องช่วยหายใจ');
     ws2.cell(1, 10).string('วันที่บันทึกล่าสุด');
     ws2.cell(1, 11).string('ไม่ได้บันทึกมา');
-    
+
     let rows = 2;
     for (const v of rsList) {
       ws2.cell(rows, 1).string(v.province_name);
