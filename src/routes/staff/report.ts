@@ -306,11 +306,11 @@ router.get('/discharge-case', async (req: Request, res: Response) => {
   try {
 
     if (providerType === 'ZONE') {
-      const rs: any = await model.getCaseDc(req.db, showPersons, query, zoneCode, null);
+      const rs: any = await model.getCaseDc(req.dbReport, showPersons, query, zoneCode, null);
 
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else if (providerType === 'SSJ') {
-      const rs: any = await model.getCaseDc(req.db, showPersons, query, zoneCode, provinceCode);
+      const rs: any = await model.getCaseDc(req.dbReport, showPersons, query, zoneCode, provinceCode);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     }
   } catch (error) {
@@ -345,10 +345,10 @@ router.get('/discharge-case/excel', async (req: Request, res: Response) => {
   try {
     let rs: any
     if (providerType === 'ZONE') {
-      rs = await model.getCaseDc(req.db, showPersons, query, zoneCode, null);
+      rs = await model.getCaseDc(req.dbReport, showPersons, query, zoneCode, null);
 
     } else if (providerType === 'SSJ') {
-      rs = await model.getCaseDc(req.db, showPersons, query, zoneCode, provinceCode);
+      rs = await model.getCaseDc(req.dbReport, showPersons, query, zoneCode, provinceCode);
     }
 
     ws.cell(1, 1, 1, 1, true).string('จังหวัด');
@@ -411,11 +411,11 @@ router.get('/present-case-status/excel', async (req: Request, res: Response) => 
     ws.cell(1, 6).string('เครื่องช่วยหายใจ');
     ws.cell(1, 7).string('Favipiravir');
 
-    const rs: any = await model.getCasePresent(req.db, hospitalId);
+    const rs: any = await model.getCasePresent(req.dbReport, hospitalId);
 
     const gcs = await basicModel.getGCS(req.db);
     const ba = await basicModel.getBedAdmin(req.db);
-    const ms = await basicModel.getMedicalSupplies(req.db, hospitalType);
+    const ms = await basicModel.getMedicalSupplies(req.dbReport, hospitalType);
     ms.push({ id: 'not use', name: 'ไม่ใช้งาน' });
     const findObj = (find, arr) => {
       const index = arr.findIndex(v => v.id === find);
@@ -476,11 +476,11 @@ router.get('/all-case-hosp/excel', async (req: Request, res: Response) => {
   try {
     let rs: any;
     if (providerType === 'ZONE') {
-      rs = await model.getCaseAllHosp(req.db, zoneCode, null, null);
+      rs = await model.getCaseAllHosp(req.dbReport, zoneCode, null, null);
     } else if (providerType === 'SSJ') {
-      rs = await model.getCaseAllHosp(req.db, zoneCode, provinceCode, null);
+      rs = await model.getCaseAllHosp(req.dbReport, zoneCode, provinceCode, null);
     } else {
-      rs = await model.getCaseAllHosp(req.db, zoneCode, provinceCode, hospitalId);
+      rs = await model.getCaseAllHosp(req.dbReport, zoneCode, provinceCode, hospitalId);
     }
 
     ws.cell(1, 1).string('CID');
