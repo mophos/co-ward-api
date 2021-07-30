@@ -384,7 +384,7 @@ async function saveCovidCase(db, req, data) {
           try {
             await covidCaseModel.updatePerson(db, rsPatient[0].person_id, person);
           } catch (error) {
-            return ({ ok: false, error: 'มีข้อมูลผิดพลาดหรือซ้ำกัน กรุณาติดต่อ Admin' ,message:error});
+            return ({ ok: false, error: 'มีข้อมูลผิดพลาดหรือซ้ำกัน กรุณาติดต่อ Admin', message: error });
           }
           personId = rsPatient[0].person_id;
           // if (rs[0].insertId == 0) {
@@ -769,8 +769,12 @@ async function saveDrug(db, hospitalId, hospcode, drugs, gcsId, hospitalType, co
 router.get('/present', async (req: Request, res: Response) => {
   const hospitalId = req.decoded.hospitalId;
   const query = req.query.query;
+  let gcsSearchId = req.query.gcsSearchId;
+  let bedSearchId = req.query.bedSearchId;
+  gcsSearchId = gcsSearchId === 'null' ? null : gcsSearchId;
+  bedSearchId = bedSearchId === 'null' ? null : bedSearchId;
   try {
-    let rs: any = await covidCaseModel.getCasePresent(req.db, hospitalId, query);
+    const rs: any = await covidCaseModel.getCasePresent(req.db, hospitalId, query, gcsSearchId, bedSearchId);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -1179,7 +1183,11 @@ router.get('/update/all-case', async (req: Request, res: Response) => {
   // const data = req.body.data;
   const hospitalId = req.decoded.hospitalId;
   const userId = req.decoded.id;
-  let date
+  let gcsSearchId = req.query.gcsSearchId;
+  let bedSearchId = req.query.bedSearchId;
+  gcsSearchId = gcsSearchId === 'null' ? null : gcsSearchId;
+  bedSearchId = bedSearchId === 'null' ? null : bedSearchId;
+  let date;
   try {
 
     const timeCut = await basicModel.timeCut();
@@ -1188,7 +1196,7 @@ router.get('/update/all-case', async (req: Request, res: Response) => {
     } else {
       date = moment().format('YYYY-MM-DD')
     }
-    let rs: any = await covidCaseModel.getCasePresentNotUpdate(req.db, hospitalId, date);
+    const rs: any = await covidCaseModel.getCasePresentNotUpdate(req.db, hospitalId, date, gcsSearchId, bedSearchId);
 
     const generic = await basicModel.getGenerics(db);
 
@@ -1200,7 +1208,7 @@ router.get('/update/all-case', async (req: Request, res: Response) => {
         medical_supplie_id: data.medical_supplie_id || null,
         create_by: userId,
         status: data.status
-      }
+      };
 
       // if (detail.gcs_id === '1' || detail.gcs_id === '2' || detail.gcs_id === '3' || detail.gcs_id === '4') {
       //   await covidCaseModel.updateCaseStatus(db, detail.covid_case_id)
@@ -1220,7 +1228,7 @@ router.get('/update/all-case', async (req: Request, res: Response) => {
         const item: any = {
           covid_case_detail_id: covidCaseDetailId[0].insertId == 0 ? data.id : covidCaseDetailId[0].insertId,
           generic_id: i.genericId,
-        }
+        };
 
         const idx = _.findIndex(generic, { 'id': +i.genericId });
 
