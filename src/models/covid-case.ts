@@ -98,7 +98,7 @@ export class CovidCaseModel {
       .where('r.requisition_id', id)
   }
 
-  getCasePresent(db: Knex, hospitalId, query) {
+  getCasePresent(db: Knex, hospitalId, query, gcsSearchId, bedSearchId) {
     const _query = `${query}%`;
     // const last = db('views_covid_case')
     //   .max('updated_entry as updated_entry_last')
@@ -122,12 +122,18 @@ export class CovidCaseModel {
       .leftJoin('p_covid_case_detail_last as ccd', 'ccd.covid_case_id', 'c.id')
       .leftJoin('p_covid_case_details as cd', 'ccd.covid_case_detail_id', 'cd.id')
       .joinRaw('  left join p_covid_case_detail_items as cdi on cdi.covid_case_detail_id = cd.id and cdi.generic_id = 8')
-      .leftJoin('p_covid_case_detail_last_from_user as cccu','cccu.covid_case_id','c.id')
-      .leftJoin('p_covid_case_details as cccd','cccu.covid_case_detail_id','cccd.id')
+      .leftJoin('p_covid_case_detail_last_from_user as cccu', 'cccu.covid_case_id', 'c.id')
+      .leftJoin('p_covid_case_details as cccd', 'cccu.covid_case_detail_id', 'cccd.id')
       // .leftJoin('view_generic_case_item as vg', 'vg.covid_case_detail_id', 'cd.id')
       .where('pt.hospital_id', hospitalId)
       .where('c.status', 'ADMIT')
-      .where('c.is_deleted', 'N')
+      .where('c.is_deleted', 'N');
+    if (gcsSearchId) {
+      sql.where('cd.gcs_id', gcsSearchId);
+    }
+    if (bedSearchId) {
+      sql.where('cd.bed_id', bedSearchId);
+    }
     if (query) {
       sql.where((v) => {
         v.where('pt.hn', 'like', _query)
@@ -301,7 +307,7 @@ export class CovidCaseModel {
 
   saveCovidCaseDetail(db: Knex, data) {
     console.log(data);
-    
+
     let sql = `
     INSERT INTO p_covid_case_details
     (covid_case_id, gcs_id, bed_id, medical_supplie_id, entry_date,status,created_by,updated_entry)
@@ -665,7 +671,7 @@ export class CovidCaseModel {
     return db('p_covid_case_details as cd').where('covid_case_id', covidCaseId);
   }
 
-  getCasePresentNotUpdate(db: Knex, hospitalId, date) {
+  getCasePresentNotUpdate(db: Knex, hospitalId, date,gcsSearchId, bedSearchId) {
     const sql = db('p_covid_cases as c')
       .select('c.id as covid_case_id', 'c.status', 'cd.id as covid_case_details_id',
         'cd.bed_id', 'cd.gcs_id', 'cd.medical_supplie_id', db.raw(`ifnull(cd.create_date, null) as create_date`),
@@ -680,6 +686,12 @@ export class CovidCaseModel {
       .where('c.status', 'ADMIT')
       .where('c.is_deleted', 'N')
       .where('cd.entry_date', '<', date)
+      if (gcsSearchId) {
+        sql.where('cd.gcs_id', gcsSearchId);
+      }
+      if (bedSearchId) {
+        sql.where('cd.bed_id', bedSearchId);
+      }
     console.log(sql.toString());
     return sql;
   }

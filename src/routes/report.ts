@@ -905,7 +905,13 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
     wsAll.cell(1, 20).string('Hospitel ทั้งหมด');
     wsAll.cell(1, 21).string('Hospitel ใช้ไปแล้ว');
     wsAll.cell(1, 22).string('Hospitel คงเหลือ');
-    wsAll.cell(1, 23).string('Hospital Type');
+    wsAll.cell(1, 23).string('Home Isolation ทั้งหมด');
+    wsAll.cell(1, 24).string('Home Isolation ใช้ไปแล้ว');
+    wsAll.cell(1, 25).string('Home Isolation คงเหลือ');
+    wsAll.cell(1, 26).string('Comunity Isolation ทั้งหมด');
+    wsAll.cell(1, 27).string('Comunity Isolation ใช้ไปแล้ว');
+    wsAll.cell(1, 28).string('Comunity Isolation คงเหลือ');
+    wsAll.cell(1, 29).string('Hospital Type');
     let rowAll = 2;
     for (const v of zoneCodes) {
       let row = 2;
@@ -934,7 +940,19 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
         ws.cell(1, 20).string('Hospitel ทั้งหมด');
         ws.cell(1, 21).string('Hospitel ใช้ไปแล้ว');
         ws.cell(1, 22).string('Hospitel คงเหลือ');
-        ws.cell(1, 23).string('Hospital Type');
+        ws.cell(1, 20).string('Hospitel ทั้งหมด');
+        ws.cell(1, 21).string('Hospitel ใช้ไปแล้ว');
+        ws.cell(1, 22).string('Hospitel คงเหลือ');
+        ws.cell(1, 20).string('Hospitel ทั้งหมด');
+        ws.cell(1, 21).string('Hospitel ใช้ไปแล้ว');
+        ws.cell(1, 22).string('Hospitel คงเหลือ');
+        ws.cell(1, 23).string('Home Isolation ทั้งหมด');
+        ws.cell(1, 24).string('Home Isolation ใช้ไปแล้ว');
+        ws.cell(1, 25).string('Home Isolation คงเหลือ');
+        ws.cell(1, 26).string('Comunity Isolation ทั้งหมด');
+        ws.cell(1, 27).string('Comunity Isolation ใช้ไปแล้ว');
+        ws.cell(1, 28).string('Comunity Isolation คงเหลือ');
+        ws.cell(1, 29).string('Hospital Type');
 
         ws.cell(row, 1).string(d.province_name);
         ws.cell(row, 2).string(d.hospcode);
@@ -958,7 +976,13 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
         ws.cell(row, 20).number(d['hospitel_covid_qty'] || 0);
         ws.cell(row, 21).number(d['hospitel_usage_qty'] || 0);
         ws.cell(row, 22).number(+d['hospitel_covid_qty'] - +d['hospitel_usage_qty'] || 0);
-        ws.cell(row, 23).string(d.hospital_type);
+        ws.cell(row, 23).number(d['home_isolation_covid_qty'] || 0);
+        ws.cell(row, 24).number(d['home_isolation_usage_qty'] || 0);
+        ws.cell(row, 25).number(+d['home_isolation_covid_qty'] - +d['home_isolation_usage_qty'] || 0);
+        ws.cell(row, 26).number(d['comunity_isolation_covid_qty'] || 0);
+        ws.cell(row, 27).number(d['comunity_isolation_usage_qty'] || 0);
+        ws.cell(row, 28).number(+d['comunity_isolation_covid_qty'] - +d['comunity_isolation_usage_qty'] || 0);
+        ws.cell(row, 29).string(d.hospital_type);
         row++
 
         wsAll.cell(rowAll, 1).string(d.province_name);
@@ -983,7 +1007,13 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
         wsAll.cell(rowAll, 20).number(d['hospitel_covid_qty'] || 0);
         wsAll.cell(rowAll, 21).number(d['hospitel_usage_qty'] || 0);
         wsAll.cell(rowAll, 22).number(+d['hospitel_covid_qty'] - +d['hospitel_usage_qty'] || 0);
-        wsAll.cell(rowAll, 23).string(d.hospital_type);
+        wsAll.cell(rowAll, 23).number(d['home_isolation_covid_qty'] || 0);
+        wsAll.cell(rowAll, 24).number(d['home_isolation_usage_qty'] || 0);
+        wsAll.cell(rowAll, 25).number(+d['home_isolation_covid_qty'] - +d['home_isolation_usage_qty'] || 0);
+        wsAll.cell(rowAll, 26).number(d['comunity_isolation_covid_qty'] || 0);
+        wsAll.cell(rowAll, 27).number(d['comunity_isolation_usage_qty'] || 0);
+        wsAll.cell(rowAll, 28).number(+d['comunity_isolation_covid_qty'] - +d['comunity_isolation_usage_qty'] || 0);
+        wsAll.cell(rowAll, 29).string(d.hospital_type);
         rowAll++;
       }
     }
@@ -2152,6 +2182,7 @@ router.get('/admit-confirm-case', async (req: Request, res: Response) => {
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else if (providerType == 'SSJ') {
       const rs: any = await model.admitConfirmCaseProvice(db, zoneCode, provinceCode, showPersons);
+      console.log(rs);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else {
       res.send({ ok: false, code: HttpStatus.UNAUTHORIZED, error: HttpStatus.UNAUTHORIZED });
@@ -2442,7 +2473,7 @@ router.get('/admit-confirm-case/export', async (req: Request, res: Response) => 
         ws2.cell(row, 13).string(toString(rs2[i].gcs_name));
         ws2.cell(row, 14).string(toString(rs2[i].bed_name));
         ws2.cell(row, 15).string(toString(rs2[i].medical_supplies_name));
-        ws2.cell(row, 16).string(toString(rs2[i].updated_entry_last ? moment(rs2[i].updated_entry_last).format('DD-MM-YYYY'): ''));
+        ws2.cell(row, 16).string(toString(rs2[i].updated_entry_last ? moment(rs2[i].updated_entry_last).format('DD-MM-YYYY') : ''));
         ws2.cell(row, 17).string(toString(rs2[i].days));
         ws2.cell(row, 18).string(toString(rs2[i].d3 > 0 ? '/' : ''));
         ws2.cell(row, 19).string(toString(rs2[i].d4 > 0 ? '/' : ''));
@@ -2459,7 +2490,7 @@ router.get('/admit-confirm-case/export', async (req: Request, res: Response) => 
         ws2.cell(row, 7).string(toString(rs2[i].gcs_name));
         ws2.cell(row, 8).string(toString(rs2[i].bed_name));
         ws2.cell(row, 9).string(toString(rs2[i].medical_supplies_name));
-        ws2.cell(row, 10).string(toString(rs2[i].updated_entry_last ? moment(rs2[i].updated_entry_last).format('DD-MM-YYYY'): ''));
+        ws2.cell(row, 10).string(toString(rs2[i].updated_entry_last ? moment(rs2[i].updated_entry_last).format('DD-MM-YYYY') : ''));
         ws2.cell(row, 11).string(toString(rs2[i].days));
         ws2.cell(row, 12).string(toString(rs2[i].d3 > 0 ? '/' : ''));
         ws2.cell(row, 13).string(toString(rs2[i].d4 > 0 ? '/' : ''));
@@ -2469,7 +2500,6 @@ router.get('/admit-confirm-case/export', async (req: Request, res: Response) => 
       }
       row++;
     }
-    console.log(`--- end loop`);
     fse.ensureDirSync(process.env.TMP_PATH);
     let filename = `cio_check` + moment().format('x') + '.xlsx'
     let filenamePath = path.join(process.env.TMP_PATH, filename);
@@ -2987,6 +3017,7 @@ router.get('/admit-confirm-case-summary', async (req: Request, res: Response) =>
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
   const provinceCode = req.decoded.provinceCode;
+
   try {
     if (type == 'MANAGER') {
       const rs: any = await model.admitConfirmCaseSummary(db);
@@ -3013,16 +3044,21 @@ router.get('/admit-confirm-case-summary/excel', async (req: Request, res: Respon
   const zoneCode = req.decoded.zone_code;
   const provinceCode = req.decoded.provinceCode;
   const right = req.decoded.rights;
+  const showPersons: boolean = _.findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 || _.findIndex(right, { name: 'STAFF_VIEW_PATIENT_INFO' }) > -1 ? true : false;
+
   let rs: any;
+  let rsList: any;
   try {
     if (type == 'MANAGER') {
       rs = await model.admitConfirmCaseSummary(db);
       // res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else if (providerType == 'ZONE') {
       rs = await model.admitConfirmCaseSummaryProvince(db, zoneCode);
+      rsList = await model.admitConfirmCaseProvice(db, zoneCode, null, showPersons);
       // res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else if (providerType == 'SSJ') {
       rs = await model.admitConfirmCaseSummaryProvince(db, zoneCode, provinceCode);
+      rsList = await model.admitConfirmCaseProvice(db, zoneCode, provinceCode, showPersons);
       // res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else {
       // res.send({ ok: false, code: HttpStatus.UNAUTHORIZED });
@@ -3030,7 +3066,7 @@ router.get('/admit-confirm-case-summary/excel', async (req: Request, res: Respon
 
     var wb = new excel4node.Workbook();
     var ws = wb.addWorksheet('สรุป');
-    const showPersons = _.findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 ? true : false;
+    var ws2 = wb.addWorksheet('รายคน');
     ws.cell(1, 1).string('จังหวัด');
     ws.cell(1, 2).string('รวม');
     ws.cell(1, 3).string('Severe');
@@ -3076,6 +3112,34 @@ router.get('/admit-confirm-case-summary/excel', async (req: Request, res: Respon
       ws.cell(row, 19).number(toNumber(v.d5));
       ws.cell(row, 20).number(toNumber(v.d7));
       ws.cell(row++, 21).number(toNumber(v.d8));
+    }
+
+    ws2.cell(1, 1).string('จังหวัด');
+    ws2.cell(1, 2).string('โรงพยาบาล');
+    ws2.cell(1, 3).string('HN/AN');
+    ws2.cell(1, 4).string('เพศ');
+    ws2.cell(1, 5).string('อายุ');
+    ws2.cell(1, 6).string('วันที่ ADMIT');
+    ws2.cell(1, 7).string('ความรุนแรง');
+    ws2.cell(1, 8).string('เตียง');
+    ws2.cell(1, 9).string('เครื่องช่วยหายใจ');
+    ws2.cell(1, 10).string('วันที่บันทึกล่าสุด');
+    ws2.cell(1, 11).string('ไม่ได้บันทึกมา');
+
+    let rows = 2;
+    for (const v of rsList) {
+      ws2.cell(rows, 1).string(v.province_name);
+      ws2.cell(rows, 2).string(v.hospname);
+      ws2.cell(rows, 3).string(v.hn + '/' + v.an);
+      ws2.cell(rows, 4).string(v.sex);
+      ws2.cell(rows, 5).number(v.age);
+      ws2.cell(rows, 6).string(moment(v.date_admit).format('DD-MM-YYYY'));
+      ws2.cell(rows, 7).string(v.gcs_name);
+      ws2.cell(rows, 8).string(v.bed_name);
+      ws2.cell(rows, 9).string(v.medical_supplies_name);
+      ws2.cell(rows, 10).string(moment(v.updated_entry_last).format('DD-MM-YYYY'));
+      ws2.cell(rows, 11).string(v.days + ' วัน');
+      rows++;
     }
 
     fse.ensureDirSync(process.env.TMP_PATH);
