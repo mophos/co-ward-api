@@ -515,10 +515,18 @@ export class CovidCaseModel {
         v.on('bmh.medical_supplie_id', 'bms.id')
         v.on('bmh.hospital_id', db.raw(`${hospitalId}`));
       })
-      .leftJoin('view_medical_supplie_sum_hospitals as vms', (v) => {
-        v.on('vms.medical_supplie_id', 'bms.id')
-        v.on('vms.hospital_id', db.raw(`${hospitalId}`));
-      })
+      .joinRaw(`LEFT JOIN (
+        SELECT
+          count(*) as qty,
+          cd.medical_supplie_id
+        FROM
+          p_covid_case_detail_last AS cl
+          JOIN p_covid_case_details AS cd ON cd.id = cl.covid_case_detail_id
+          JOIN p_covid_cases AS c ON c.id = cl.covid_case_id
+          JOIN p_patients AS pt ON pt.id = c.patient_id 
+          where pt.hospital_id = ${hospitalId} and c.status = 'ADMIT' and c.is_deleted = 'N' and cd.medical_supplie_id is not null
+          group by cd.medical_supplie_id
+        ) AS vms ON vms.medical_supplie_id = bms.id`)
       .where('bms.pay_type', 'COVID')
       .where('bms.is_deleted', 'N')
   }
