@@ -1,4 +1,16 @@
-
+require("appdynamics").profile({ 
+  controllerHostName: "thaimoph-pov.saas.appdynamics.com", 
+  controllerPort: "443", 
+  controllerSslEnabled: true, 
+  accountName: "thaimoph-pov", 
+  accountAccessKey: "hzmha2ormysb", 
+  applicationName: 'Co-Ward',
+  tierName: "Co-Ward-API", 
+  nodeName: "Col-Ward-API-node-156",
+  libagent: true,
+  maxProcessSnapshotsPerPeriod: 1,
+  processSnapshotCountResetPeriodSeconds: 180
+  });
 import app from '../app';
 import * as http from 'http';
 

@@ -8,6 +8,7 @@
     "build": "npx tsc"
   },
   "dependencies": {
+    "appdynamics": "^21.6.0",
     "body-parser": "^1.18.3",
     "cookie-parser": "^1.4.4",
     "cors": "^2.8.5",
