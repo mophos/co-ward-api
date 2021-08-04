@@ -453,7 +453,7 @@ export class CovidCaseModel {
 
   getBeds(db: Knex, hospitalId, hospitalType) {
     return db('b_beds AS bb')
-      .select('bb.id', 'bb.name', 'bh.hospital_id', 'bh.qty', 'bh.covid_qty', 'vbs.usage_qty')
+      .select('bb.id', 'bb.name', 'bh.hospital_id', 'bh.qty', 'bh.covid_qty', 'vms.qty as usage_qty')
       .leftJoin('b_bed_hospitals as bh', (v) => {
         v.on('bb.id', 'bh.bed_id')
         v.on('bh.hospital_id', db.raw(`${hospitalId}`));
