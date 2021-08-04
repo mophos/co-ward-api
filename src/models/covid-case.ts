@@ -458,10 +458,18 @@ export class CovidCaseModel {
         v.on('bb.id', 'bh.bed_id')
         v.on('bh.hospital_id', db.raw(`${hospitalId}`));
       })
-      .leftJoin('view_bed_sum_hospitals as vbs', (v) => {
-        v.on('vbs.bed_id', 'bb.id')
-        v.on('vbs.hospital_id', db.raw(`${hospitalId}`));
-      })
+       .joinRaw(`LEFT JOIN (
+        SELECT
+          count(*) as qty,
+          cd.bed_id
+        FROM
+          p_covid_case_detail_last AS cl
+          JOIN p_covid_case_details AS cd ON cd.id = cl.covid_case_detail_id
+          JOIN p_covid_cases AS c ON c.id = cl.covid_case_id
+          JOIN p_patients AS pt ON pt.id = c.patient_id 
+          where pt.hospital_id = ${hospitalId} and c.status = 'ADMIT' and c.is_deleted = 'N' 
+          group by cd.bed_id
+        ) AS vms ON vms.bed_id = bb.id`)
       .where((v) => {
         v.where('bb.is_hospital', hospitalType == 'HOSPITAL' ? 'Y' : 'N')
         v.orWhere('bb.is_hospitel', hospitalType == 'HOSPITEL' ? 'Y' : 'N')
