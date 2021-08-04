@@ -2455,48 +2455,48 @@ router.get('/admit-confirm-case/export', async (req: Request, res: Response) => 
     }
     row = 2;
     const rs2: any = await model.admitConfirmCase(db, showPersons, 1000000, 0);
-    // const rs2 = [];
-    for (const i of rs2) {
+    for (let i = 0; i < rs2.length; i++){
+      // console.log(row);
       if (showPersons) {
-        ws2.cell(row, 1).string(toString(i.zone_code));
-        ws2.cell(row, 2).string(toString(i.province_name));
-        ws2.cell(row, 3).string(toString(i.hospname));
-        ws2.cell(row, 4).string(toString(i.hn));
-        ws2.cell(row, 5).string(toString(i.an));
-        ws2.cell(row, 6).string(toString(i.cid));
-        ws2.cell(row, 7).string(toString(i.first_name));
-        ws2.cell(row, 8).string(toString(i.last_name));
-        ws2.cell(row, 9).string(toString(i.sat_id));
-        ws2.cell(row, 10).string(toString(i.sex));
-        ws2.cell(row, 11).string(toString(i.age));
-        ws2.cell(row, 12).string(toString(moment(i.date_admit).format('DD-MM-YYYY')));
-        ws2.cell(row, 13).string(toString(i.gcs_name));
-        ws2.cell(row, 14).string(toString(i.bed_name));
-        ws2.cell(row, 15).string(toString(i.medical_supplies_name));
-        ws2.cell(row, 16).string(toString(i.updated_entry_last ? moment(i.updated_entry_last).format('DD-MM-YYYY') : ''));
-        ws2.cell(row, 17).string(toString(i.days));
-        ws2.cell(row, 18).string(toString(i.d3 > 0 ? '/' : ''));
-        ws2.cell(row, 19).string(toString(i.d4 > 0 ? '/' : ''));
-        ws2.cell(row, 20).string(toString(i.d5 > 0 ? '/' : ''));
-        ws2.cell(row, 21).string(toString(i.d7 > 0 ? '/' : ''));
-        ws2.cell(row, 22).string(toString(i.d8 > 0 ? '/' : ''));
+        ws2.cell(row, 1).string(toString(rs2[i].zone_code));
+        ws2.cell(row, 2).string(toString(rs2[i].province_name));
+        ws2.cell(row, 3).string(toString(rs2[i].hospname));
+        ws2.cell(row, 4).string(toString(rs2[i].hn));
+        ws2.cell(row, 5).string(toString(rs2[i].an));
+        ws2.cell(row, 6).string(toString(rs2[i].cid));
+        ws2.cell(row, 7).string(toString(rs2[i].first_name));
+        ws2.cell(row, 8).string(toString(rs2[i].last_name));
+        ws2.cell(row, 9).string(toString(rs2[i].sat_id));
+        ws2.cell(row, 10).string(toString(rs2[i].sex));
+        ws2.cell(row, 11).string(toString(rs2[i].age));
+        ws2.cell(row, 12).string(toString(moment(rs2[i].date_admit).format('DD-MM-YYYY')));
+        ws2.cell(row, 13).string(toString(rs2[i].gcs_name));
+        ws2.cell(row, 14).string(toString(rs2[i].bed_name));
+        ws2.cell(row, 15).string(toString(rs2[i].medical_supplies_name));
+        ws2.cell(row, 16).string(toString(rs2[i].updated_entry_last ? moment(rs2[i].updated_entry_last).format('DD-MM-YYYY') : ''));
+        ws2.cell(row, 17).string(toString(rs2[i].days));
+        ws2.cell(row, 18).string(toString(rs2[i].d3 > 0 ? '/' : ''));
+        ws2.cell(row, 19).string(toString(rs2[i].d4 > 0 ? '/' : ''));
+        ws2.cell(row, 20).string(toString(rs2[i].d5 > 0 ? '/' : ''));
+        ws2.cell(row, 21).string(toString(rs2[i].d7 > 0 ? '/' : ''));
+        ws2.cell(row, 22).string(toString(rs2[i].d8 > 0 ? '/' : ''));
       } else {
-        ws2.cell(row, 1).string(toString(i.zone_code));
-        ws2.cell(row, 2).string(toString(i.province_name));
-        ws2.cell(row, 3).string(toString(i.hospname));
-        ws2.cell(row, 4).string(toString(i.hn));
-        ws2.cell(row, 5).string(toString(i.an));
-        ws2.cell(row, 6).string(toString(moment(i.date_admit).format('DD-MM-YYYY')));
-        ws2.cell(row, 7).string(toString(i.gcs_name));
-        ws2.cell(row, 8).string(toString(i.bed_name));
-        ws2.cell(row, 9).string(toString(i.medical_supplies_name));
-        ws2.cell(row, 10).string(toString(i.updated_entry_last ? moment(i.updated_entry_last).format('DD-MM-YYYY') : ''));
-        ws2.cell(row, 11).string(toString(i.days));
-        ws2.cell(row, 12).string(toString(i.d3 > 0 ? '/' : ''));
-        ws2.cell(row, 13).string(toString(i.d4 > 0 ? '/' : ''));
-        ws2.cell(row, 14).string(toString(i.d5 > 0 ? '/' : ''));
-        ws2.cell(row, 15).string(toString(i.d7 > 0 ? '/' : ''));
-        ws2.cell(row, 16).string(toString(i.d8 > 0 ? '/' : ''));
+        ws2.cell(row, 1).string(toString(rs2[i].zone_code));
+        ws2.cell(row, 2).string(toString(rs2[i].province_name));
+        ws2.cell(row, 3).string(toString(rs2[i].hospname));
+        ws2.cell(row, 4).string(toString(rs2[i].hn));
+        ws2.cell(row, 5).string(toString(rs2[i].an));
+        ws2.cell(row, 6).string(toString(moment(rs2[i].date_admit).format('DD-MM-YYYY')));
+        ws2.cell(row, 7).string(toString(rs2[i].gcs_name));
+        ws2.cell(row, 8).string(toString(rs2[i].bed_name));
+        ws2.cell(row, 9).string(toString(rs2[i].medical_supplies_name));
+        ws2.cell(row, 10).string(toString(rs2[i].updated_entry_last ? moment(rs2[i].updated_entry_last).format('DD-MM-YYYY') : ''));
+        ws2.cell(row, 11).string(toString(rs2[i].days));
+        ws2.cell(row, 12).string(toString(rs2[i].d3 > 0 ? '/' : ''));
+        ws2.cell(row, 13).string(toString(rs2[i].d4 > 0 ? '/' : ''));
+        ws2.cell(row, 14).string(toString(rs2[i].d5 > 0 ? '/' : ''));
+        ws2.cell(row, 15).string(toString(rs2[i].d7 > 0 ? '/' : ''));
+        ws2.cell(row, 16).string(toString(rs2[i].d8 > 0 ? '/' : ''));
       }
       row++;
     }
