@@ -63,8 +63,8 @@ router.get('/', async (req: Request, res: Response) => {
       obj.telephone = rs[0].telephone;
 
       obj.house_no = rs[0].address;
-      obj.ampur_code = rs[0].subdistrict_code.substr(2, 2);
-      obj.tambon_code = rs[0].subdistrict_code.substr(4, 2);
+      obj.ampur_code = rs[0].subdistrict_code ? rs[0].subdistrict_code.substr(2, 2) : null;
+      obj.tambon_code = rs[0].subdistrict_code ? rs[0].subdistrict_code.substr(4, 2) : null;
       obj.province_code = rs[0].province_code;
       obj.zipcode = rs[0].zip_code;
       obj.country_name = 'ไทย';
