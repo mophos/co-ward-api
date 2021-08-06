@@ -41,6 +41,7 @@
     "@types/morgan": "^1.7.35",
     "@types/node": "^9.6.4",
     "@types/serve-favicon": "^2.2.30",
+    "json2excel": "^1.2.0",
     "nodemon": "^1.18.10",
     "ts-node": "^8.0.3",
     "typescript": "^3.4.1"
