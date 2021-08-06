@@ -427,6 +427,37 @@ export class ReportModel {
     return sql;
   }
 
+  admitConfirmCaseSummaryExport(db: Knex) {
+    const sql = db('temp_report_admit_comfirm_case')
+      .select(db.raw(`zone_code as 'เขต',
+      province_name as 'จังหวัด',
+      hospname as 'โรงพยาบาล',
+      hn as 'HN',
+      an as 'AN',
+      cid as 'CID',
+      first_name as 'ชื่อ',
+      last_name as 'นามสกุล',
+      sat_id as 'SAT ID',
+      sex as 'เพศ',
+      age as 'อายุ',
+      DATE_FORMAT(date_admit , '%Y-%m-%d') as 'วันที่ ADMIT',
+      gcs_name as 'ความรุนแรง',
+      bed_name as 'เตียง',
+      medical_supplies_name as 'เครื่องช่วยหายใจ',
+      IFNULL(DATE_FORMAT(updated_entry_last , '%Y-%m-%d') ,'') as 'วันที่บันทึกล่าสุด',
+      days as 'ไม่ได้บันทึกมา',
+      CASE WHEN d3 > 0 THEN '/' ELSE '' END as 'Darunavir 600 mg.',
+      CASE WHEN d4 > 0 THEN '/' ELSE '' END as 'Lopinavir 200 mg./Ritonavir 50 mg.',
+      CASE WHEN d5 > 0 THEN '/' ELSE '' END as 'Ritonavir 100 mg.',
+      CASE WHEN d7 > 0 THEN '/' ELSE '' END as 'Azithromycin 250 mg.',
+      CASE WHEN d8 > 0 THEN '/' ELSE '' END as 'Favipiravi'`)
+      )
+      .orderBy('zone_code')
+      .orderBy('province_name')
+      .orderBy('hospname');
+    return sql;
+  }
+
   admitConfirmCaseDms(db: Knex, showPersons = false, limit = 1000, offset = 0) {
     let sql = db('temp_report_admit_comfirm_case_dms as c')
       .select('c.d1', 'c.d2', 'c.d3', 'c.d4', 'c.d5', 'c.d7', 'c.d8', 'c.hn', 'c.an', 'c.hospital_id', 'c.updated_entry_last', 'c.days',
@@ -597,6 +628,13 @@ export class ReportModel {
     let sql = db('temp_report_admit_comfirm_case_summary');
     return sql;
   }
+
+  admitConfirmCaseSummaryExcel(db: Knex) {
+    const sql = db('temp_report_admit_comfirm_case_summary')
+    .select(db.raw(`IFNULL(zone_code, 0) as 'เขต',IFNULL(confirm, 0) as 'รวม',IFNULL(severe, 0) as 'Severe',IFNULL(moderate, 0) as 'moderate',IFNULL(mild, 0) as 'mild',IFNULL(asymptomatic, 0) as 'asymptomatic',IFNULL(aiir, 0) as 'aiir',IFNULL(modified_aiir, 0) as 'modified_aiir',IFNULL(isolate, 0) as 'isolate',IFNULL(cohort, 0) as 'cohort',IFNULL(cohort_icu, 0) as 'cohort_icu',IFNULL(hospitel, 0) as 'Hospitel',IFNULL(invasive, 0) as 'invasive',IFNULL(noninvasive, 0) as 'noninvasive',IFNULL(high_flow, 0) as 'high_flow',IFNULL(d3, 0) as 'Darunavir 600 mg.',IFNULL(d4, 0) as 'Lopinavir 200 mg./Ritonavir 50 mg.',IFNULL(d5, 0) as 'Ritonavir 100 mg.',IFNULL(d7, 0) as 'Azithromycin 250 mg.',IFNULL(d8, 0) as 'Favipiravi(คน)'`))
+    return sql;
+  }
+
 
   admitConfirmCaseSummaryDms(db: Knex) {
     let sql = db('temp_report_admit_comfirm_case_summary_dms').whereIn('zone_code', ['04', '06', '13']);
