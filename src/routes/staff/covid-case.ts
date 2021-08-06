@@ -141,7 +141,7 @@ router.put('/', async (req: Request, res: Response) => {
       const person = {
         cid: data.cid,
         passport: data.passport || null,
-        title_id: data.titleId,
+        title_id: +data.titleId > 0 ? data.titleId : null,
         first_name: data.fname,
         last_name: data.lname,
         gender_id: data.genderId,
@@ -198,7 +198,7 @@ router.put('/person', async (req: Request, res: Response) => {
     const person = {
       cid: data.cid,
       passport: data.passport || null,
-      title_id: data.titleId,
+      title_id: +data.titleId > 0 ? data.titleId : null,
       first_name: data.fname,
       last_name: data.lname,
       gender_id: data.genderId,
@@ -314,7 +314,7 @@ async function saveCovidCase(db, req, data) {
       const person = {
         cid: data.cid || null,
         passport: data.passport || null,
-        title_id: data.titleId || null,
+        title_id: +data.titleId > 0 ? data.titleId : null,
         first_name: data.fname,
         middle_name: data.mname || null,
         last_name: data.lname,
@@ -574,7 +574,7 @@ router.post('/old', async (req: Request, res: Response) => {
     const person = {
       cid: data.cid || null,
       passport: data.passport || null,
-      title_id: data.titleId,
+      title_id: +data.titleId > 0 ? data.titleId : null,
       first_name: data.fname,
       middle_name: data.mname || null,
       last_name: data.lname,

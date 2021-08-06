@@ -453,15 +453,23 @@ export class CovidCaseModel {
 
   getBeds(db: Knex, hospitalId, hospitalType) {
     return db('b_beds AS bb')
-      .select('bb.id', 'bb.name', 'bh.hospital_id', 'bh.qty', 'bh.covid_qty', 'vbs.usage_qty')
+      .select('bb.id', 'bb.name', 'bh.hospital_id', 'bh.qty', 'bh.covid_qty', 'vms.qty as usage_qty')
       .leftJoin('b_bed_hospitals as bh', (v) => {
         v.on('bb.id', 'bh.bed_id')
         v.on('bh.hospital_id', db.raw(`${hospitalId}`));
       })
-      .leftJoin('view_bed_sum_hospitals as vbs', (v) => {
-        v.on('vbs.bed_id', 'bb.id')
-        v.on('vbs.hospital_id', db.raw(`${hospitalId}`));
-      })
+       .joinRaw(`LEFT JOIN (
+        SELECT
+          count(*) as qty,
+          cd.bed_id
+        FROM
+          p_covid_case_detail_last AS cl
+          JOIN p_covid_case_details AS cd ON cd.id = cl.covid_case_detail_id
+          JOIN p_covid_cases AS c ON c.id = cl.covid_case_id
+          JOIN p_patients AS pt ON pt.id = c.patient_id 
+          where pt.hospital_id = ${hospitalId} and c.status = 'ADMIT' and c.is_deleted = 'N' 
+          group by cd.bed_id
+        ) AS vms ON vms.bed_id = bb.id`)
       .where((v) => {
         v.where('bb.is_hospital', hospitalType == 'HOSPITAL' ? 'Y' : 'N')
         v.orWhere('bb.is_hospitel', hospitalType == 'HOSPITEL' ? 'Y' : 'N')
@@ -515,10 +523,18 @@ export class CovidCaseModel {
         v.on('bmh.medical_supplie_id', 'bms.id')
         v.on('bmh.hospital_id', db.raw(`${hospitalId}`));
       })
-      .leftJoin('view_medical_supplie_sum_hospitals as vms', (v) => {
-        v.on('vms.medical_supplie_id', 'bms.id')
-        v.on('vms.hospital_id', db.raw(`${hospitalId}`));
-      })
+      .joinRaw(`LEFT JOIN (
+        SELECT
+          count(*) as qty,
+          cd.medical_supplie_id
+        FROM
+          p_covid_case_detail_last AS cl
+          JOIN p_covid_case_details AS cd ON cd.id = cl.covid_case_detail_id
+          JOIN p_covid_cases AS c ON c.id = cl.covid_case_id
+          JOIN p_patients AS pt ON pt.id = c.patient_id 
+          where pt.hospital_id = ${hospitalId} and c.status = 'ADMIT' and c.is_deleted = 'N' and cd.medical_supplie_id is not null
+          group by cd.medical_supplie_id
+        ) AS vms ON vms.medical_supplie_id = bms.id`)
       .where('bms.pay_type', 'COVID')
       .where('bms.is_deleted', 'N')
   }

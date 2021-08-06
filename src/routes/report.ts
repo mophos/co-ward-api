@@ -2365,9 +2365,8 @@ router.get('/admit-confirm-case/export', async (req: Request, res: Response) => 
 
   try {
     const rs: any = await model.admitConfirmCaseSummaryExcel(db);
-
     const rs2: any = await model.admitConfirmCaseSummaryExport(db);
-    // fse.ensureDirSync(process.env.TMP_PATH);
+    fse.ensureDirSync(process.env.TMP_PATH);
     const filename = `cio_check` + moment().format('x') + '.xlsx';
     const filenamePath = path.join(process.env.TMP_PATH, filename);
 
