@@ -650,7 +650,7 @@ router.get('/get-bed/excel', async (req: Request, res: Response) => {
         res.send({ ok: false, error: err })
       } else {
         res.setHeader('Content-Type', 'application/vnd.openxmlformats');
-        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
         res.sendfile(filenamePath, (v) => {
           fse.removeSync(filenamePath);
         })
@@ -777,7 +777,7 @@ router.get('/get-gcs-admit/excel', async (req: Request, res: Response) => {
         res.send({ ok: false, error: err })
       } else {
         res.setHeader('Content-Type', 'application/vnd.openxmlformats');
-        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
         res.sendfile(filenamePath, (v) => {
           fse.removeSync(filenamePath);
         })
@@ -1028,7 +1028,7 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
         res.send({ ok: false, error: err })
       } else {
         res.setHeader('Content-Type', 'application/vnd.openxmlformats');
-        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
         res.sendfile(filenamePath, (v) => {
           fse.removeSync(filenamePath);
         })
@@ -1311,7 +1311,7 @@ router.get('/get-gcs/export', async (req: Request, res: Response) => {
         res.send({ ok: false, error: err })
       } else {
         res.setHeader('Content-Type', 'application/vnd.openxmlformats');
-        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
         res.sendfile(filenamePath, (v) => {
           fse.removeSync(filenamePath);
         })
@@ -1802,7 +1802,7 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
         res.send({ ok: false, error: err })
       } else {
         res.setHeader('Content-Type', 'application/vnd.openxmlformats');
-        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
         res.sendfile(filenamePath, (v) => {
           fse.removeSync(filenamePath);
         })
@@ -1987,7 +1987,7 @@ router.get('/fulfill-drugs-1', async (req: Request, res: Response) => {
         res.send({ ok: false, error: err })
       } else {
         res.setHeader('Content-Type', 'application/vnd.openxmlformats');
-        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
         res.sendfile(filenamePath, (v) => {
           fse.removeSync(filenamePath);
         })
@@ -2052,7 +2052,7 @@ router.get('/fulfill-drugs-2', async (req: Request, res: Response) => {
         res.send({ ok: false, error: err })
       } else {
         res.setHeader('Content-Type', 'application/vnd.openxmlformats');
-        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
         res.sendfile(filenamePath, (v) => {
           fse.removeSync(filenamePath);
         })
@@ -2100,7 +2100,7 @@ router.get('/fulfill-supplies', async (req: Request, res: Response) => {
         res.send({ ok: false, error: err })
       } else {
         res.setHeader('Content-Type', 'application/vnd.openxmlformats');
-        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
         res.sendfile(filenamePath, (v) => {
           fse.removeSync(filenamePath);
         })
@@ -2343,7 +2343,7 @@ router.get('/check-admit-confirm-case/export', async (req: Request, res: Respons
         res.send({ ok: false, error: err })
       } else {
         res.setHeader('Content-Type', 'application/vnd.openxmlformats');
-        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
         res.sendfile(filenamePath, (v) => {
           fse.removeSync(filenamePath);
         })
@@ -2356,167 +2356,116 @@ router.get('/check-admit-confirm-case/export', async (req: Request, res: Respons
   }
 });
 
+const jexcel = require('json2excel');
 router.get('/admit-confirm-case/export', async (req: Request, res: Response) => {
   const db = req.dbReport;
-  const zoneCode = req.decoded.zone_code;
+  // const zoneCode = req.decoded.zone_code;
   const right = req.decoded.rights;
   const showPersons = _.findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 ? true : false;
 
   try {
-    var wb = new excel4node.Workbook();
-    const rs: any = await model.admitConfirmCaseSummary(db);
-    var ws1 = wb.addWorksheet('สรุป');
-    ws1.cell(1, 1).string('เขต');
-    ws1.cell(1, 2).string('รวม');
-    ws1.cell(1, 3).string('Severe');
-    ws1.cell(1, 4).string('moderate');
-    ws1.cell(1, 5).string('mild');
-    ws1.cell(1, 6).string('asymptomatic');
-    ws1.cell(1, 7).string('aiir');
-    ws1.cell(1, 8).string('modified_aiir');
-    ws1.cell(1, 9).string('isolate');
-    ws1.cell(1, 10).string('cohort');
-    ws1.cell(1, 11).string('cohort_icu');
-    ws1.cell(1, 12).string('Hospitel');
-    ws1.cell(1, 13).string('invasive');
-    ws1.cell(1, 14).string('noninvasive');
-    ws1.cell(1, 15).string('high_flow');
-    ws1.cell(1, 16).string('Darunavir 600 mg.');
-    ws1.cell(1, 17).string('Lopinavir 200 mg./Ritonavir 50 mg.');
-    ws1.cell(1, 18).string('Ritonavir 100 mg.');
-    ws1.cell(1, 19).string('Azithromycin 250 mg.');
-    ws1.cell(1, 20).string('Favipiravi(คน)');
-    let row = 2;
-    for (const l of rs) {
-      ws1.cell(row, 1).number(toNumber(+l.zone_code || 0));
-      ws1.cell(row, 2).number(toNumber(l.confirm || 0));
-      ws1.cell(row, 3).number(toNumber(l.severe || 0));
-      ws1.cell(row, 4).number(toNumber(l.moderate || 0));
-      ws1.cell(row, 5).number(toNumber(l.mild || 0));
-      ws1.cell(row, 6).number(toNumber(l.asymptomatic || 0));
-      ws1.cell(row, 7).number(toNumber(l.aiir || 0));
-      ws1.cell(row, 8).number(toNumber(l.modified_aiir || 0));
-      ws1.cell(row, 9).number(toNumber(l.isolate || 0));
-      ws1.cell(row, 10).number(toNumber(l.cohort || 0));
-      ws1.cell(row, 11).number(toNumber(l.cohort_icu || 0));
-      ws1.cell(row, 12).number(toNumber(l.hospitel || 0));
-      ws1.cell(row, 13).number(toNumber(l.invasive || 0));
-      ws1.cell(row, 14).number(toNumber(l.noninvasive || 0));
-      ws1.cell(row, 15).number(toNumber(l.high_flow || 0));
-      ws1.cell(row, 16).number(toNumber(l.d3 || 0));
-      ws1.cell(row, 17).number(toNumber(l.d4 || 0));
-      ws1.cell(row, 18).number(toNumber(l.d5 || 0));
-      ws1.cell(row, 19).number(toNumber(l.d7 || 0));
-      ws1.cell(row, 20).number(toNumber(l.d8 || 0));
-      row++;
-    }
-    var ws2 = wb.addWorksheet('รายคน');
-    ws2.row(1).filter();
-    if (showPersons) {
-      ws2.cell(1, 1).string('เขต');
-      ws2.cell(1, 2).string('จังหวัด');
-      ws2.cell(1, 3).string('โรงพยาบาล');
-      ws2.cell(1, 4).string('HN');
-      ws2.cell(1, 5).string('AN');
-      ws2.cell(1, 6).string('CID');
-      ws2.cell(1, 7).string('ชื่อ');
-      ws2.cell(1, 8).string('นามสกุล');
-      ws2.cell(1, 9).string('SAT ID');
-      ws2.cell(1, 10).string('เพศ');
-      ws2.cell(1, 11).string('อายุ');
-      ws2.cell(1, 12).string('วันที่ ADMIT');
-      ws2.cell(1, 13).string('ความรุนแรง');
-      ws2.cell(1, 14).string('เตียง');
-      ws2.cell(1, 15).string('เครื่องช่วยหายใจ');
-      ws2.cell(1, 16).string('วันที่บันทึกล่าสุด');
-      ws2.cell(1, 17).string('ไม่ได้บันทึกมา');
-      ws2.cell(1, 18).string('Darunavir 600 mg.');
-      ws2.cell(1, 19).string('Lopinavir 200 mg./Ritonavir 50 mg.');
-      ws2.cell(1, 20).string('Ritonavir 100 mg.');
-      ws2.cell(1, 21).string('Azithromycin 250 mg.');
-      ws2.cell(1, 22).string('Favipiravi');
-    } else {
-      ws2.cell(1, 1).string('เขต');
-      ws2.cell(1, 2).string('จังหวัด');
-      ws2.cell(1, 3).string('โรงพยาบาล');
-      ws2.cell(1, 4).string('HN');
-      ws2.cell(1, 5).string('AN');
-      ws2.cell(1, 6).string('วันที่ ADMIT');
-      ws2.cell(1, 7).string('ความรุนแรง');
-      ws2.cell(1, 8).string('เตียง');
-      ws2.cell(1, 9).string('เครื่องช่วยหายใจ');
-      ws2.cell(1, 10).string('วันที่บันทึกล่าสุด');
-      ws2.cell(1, 11).string('ไม่ได้บันทึกมา');
-      ws2.cell(1, 12).string('Darunavir 600 mg.');
-      ws2.cell(1, 13).string('Lopinavir 200 mg./Ritonavir 50 mg.');
-      ws2.cell(1, 14).string('Ritonavir 100 mg.');
-      ws2.cell(1, 15).string('Azithromycin 250 mg.');
-      ws2.cell(1, 16).string('Favipiravi');
-    }
-    row = 2;
-    const rs2: any = await model.admitConfirmCase(db, showPersons, 1000000, 0);
-    for (let i = 0; i < rs2.length; i++){
-      // console.log(row);
-      if (showPersons) {
-        ws2.cell(row, 1).string(toString(rs2[i].zone_code));
-        ws2.cell(row, 2).string(toString(rs2[i].province_name));
-        ws2.cell(row, 3).string(toString(rs2[i].hospname));
-        ws2.cell(row, 4).string(toString(rs2[i].hn));
-        ws2.cell(row, 5).string(toString(rs2[i].an));
-        ws2.cell(row, 6).string(toString(rs2[i].cid));
-        ws2.cell(row, 7).string(toString(rs2[i].first_name));
-        ws2.cell(row, 8).string(toString(rs2[i].last_name));
-        ws2.cell(row, 9).string(toString(rs2[i].sat_id));
-        ws2.cell(row, 10).string(toString(rs2[i].sex));
-        ws2.cell(row, 11).string(toString(rs2[i].age));
-        ws2.cell(row, 12).string(toString(moment(rs2[i].date_admit).format('DD-MM-YYYY')));
-        ws2.cell(row, 13).string(toString(rs2[i].gcs_name));
-        ws2.cell(row, 14).string(toString(rs2[i].bed_name));
-        ws2.cell(row, 15).string(toString(rs2[i].medical_supplies_name));
-        ws2.cell(row, 16).string(toString(rs2[i].updated_entry_last ? moment(rs2[i].updated_entry_last).format('DD-MM-YYYY') : ''));
-        ws2.cell(row, 17).string(toString(rs2[i].days));
-        ws2.cell(row, 18).string(toString(rs2[i].d3 > 0 ? '/' : ''));
-        ws2.cell(row, 19).string(toString(rs2[i].d4 > 0 ? '/' : ''));
-        ws2.cell(row, 20).string(toString(rs2[i].d5 > 0 ? '/' : ''));
-        ws2.cell(row, 21).string(toString(rs2[i].d7 > 0 ? '/' : ''));
-        ws2.cell(row, 22).string(toString(rs2[i].d8 > 0 ? '/' : ''));
-      } else {
-        ws2.cell(row, 1).string(toString(rs2[i].zone_code));
-        ws2.cell(row, 2).string(toString(rs2[i].province_name));
-        ws2.cell(row, 3).string(toString(rs2[i].hospname));
-        ws2.cell(row, 4).string(toString(rs2[i].hn));
-        ws2.cell(row, 5).string(toString(rs2[i].an));
-        ws2.cell(row, 6).string(toString(moment(rs2[i].date_admit).format('DD-MM-YYYY')));
-        ws2.cell(row, 7).string(toString(rs2[i].gcs_name));
-        ws2.cell(row, 8).string(toString(rs2[i].bed_name));
-        ws2.cell(row, 9).string(toString(rs2[i].medical_supplies_name));
-        ws2.cell(row, 10).string(toString(rs2[i].updated_entry_last ? moment(rs2[i].updated_entry_last).format('DD-MM-YYYY') : ''));
-        ws2.cell(row, 11).string(toString(rs2[i].days));
-        ws2.cell(row, 12).string(toString(rs2[i].d3 > 0 ? '/' : ''));
-        ws2.cell(row, 13).string(toString(rs2[i].d4 > 0 ? '/' : ''));
-        ws2.cell(row, 14).string(toString(rs2[i].d5 > 0 ? '/' : ''));
-        ws2.cell(row, 15).string(toString(rs2[i].d7 > 0 ? '/' : ''));
-        ws2.cell(row, 16).string(toString(rs2[i].d8 > 0 ? '/' : ''));
-      }
-      row++;
-    }
+    const rs: any = await model.admitConfirmCaseSummaryExcel(db);
+    const rs2: any = await model.admitConfirmCaseSummaryExport(db);
     fse.ensureDirSync(process.env.TMP_PATH);
-    let filename = `cio_check` + moment().format('x') + '.xlsx'
-    let filenamePath = path.join(process.env.TMP_PATH, filename);
-    wb.write(filenamePath, function (err, stats) {
+    const filename = `cio_check` + moment().format('x') + '.xlsx';
+    const filenamePath = path.join(process.env.TMP_PATH, filename);
+
+    const sheet1 = {
+      header: {
+        'เขต': 'เขต',
+        'รวม': 'รวม',
+        'Severe': 'Severe',
+        'moderate': 'moderate',
+        'mild': 'mild',
+        'asymptomatic': 'asymptomatic',
+        'aiir': 'aiir',
+        'modified_aiir': 'modified_aiir',
+        'isolate': 'isolate',
+        'cohort': 'cohort',
+        'cohort_icu': 'cohort_icu',
+        'Hospitel': 'Hospitel',
+        'invasive': 'invasive',
+        'noninvasive': 'noninvasive',
+        'high_flow': 'high_flow',
+        'Darunavir 600 mg.': 'Darunavir 600 mg.',
+        'Lopinavir 200 mg./Ritonavir 50 mg.': 'Lopinavir 200 mg./Ritonavir 50 mg.',
+        'Ritonavir 100 mg.': 'Ritonavir 100 mg.',
+        'Azithromycin 250 mg.': 'Azithromycin 250 mg.',
+        'Favipiravi(คน)': 'Favipiravi(คน)'
+      },
+      items: rs,
+      sheetName: 'สรุป'
+    };
+    let header: any = {
+      'เขต': 'เขต',
+      'จังหวัด': 'จังหวัด',
+      'โรงพยาบาล': 'โรงพยาบาล',
+      'HN': 'HN',
+      'AN': 'AN',
+      'CID': 'CID',
+      'ชื่อ': 'ชื่อ',
+      'นามสกุล': 'นามสกุล',
+      'SAT ID': 'SAT ID',
+      'เพศ': 'เพศ',
+      'อายุ': 'อายุ',
+      'วันที่ ADMIT': 'วันที่ ADMIT',
+      'ความรุนแรง': 'ความรุนแรง',
+      'เตียง': 'เตียง',
+      'เครื่องช่วยหายใจ': 'เครื่องช่วยหายใจ',
+      'วันที่บันทึกล่าสุด': 'วันที่บันทึกล่าสุด',
+      'ไม่ได้บันทึกมา': 'ไม่ได้บันทึกมา',
+      'Darunavir 600 mg.': 'Darunavir 600 mg.',
+      'Lopinavir 200 mg./Ritonavir 50 mg.': 'Lopinavir 200 mg./Ritonavir 50 mg.',
+      'Ritonavir 100 mg.': 'Ritonavir 100 mg.',
+      'Azithromycin 250 mg.': 'Azithromycin 250 mg.',
+      'Favipiravi': 'Favipiravi'
+    };
+    if (!showPersons) {
+      header = {
+        'เขต': 'เขต',
+        'จังหวัด': 'จังหวัด',
+        'โรงพยาบาล': 'โรงพยาบาล',
+        'HN': 'HN',
+        'AN': 'AN',
+        'วันที่ ADMIT': 'วันที่ ADMIT',
+        'ความรุนแรง': 'ความรุนแรง',
+        'เตียง': 'เตียง',
+        'เครื่องช่วยหายใจ': 'เครื่องช่วยหายใจ',
+        'วันที่บันทึกล่าสุด': 'วันที่บันทึกล่าสุด',
+        'ไม่ได้บันทึกมา': 'ไม่ได้บันทึกมา',
+        'Darunavir 600 mg.': 'Darunavir 600 mg.',
+        'Lopinavir 200 mg./Ritonavir 50 mg.': 'Lopinavir 200 mg./Ritonavir 50 mg.',
+        'Ritonavir 100 mg.': 'Ritonavir 100 mg.',
+        'Azithromycin 250 mg.': 'Azithromycin 250 mg.',
+        'Favipiravi': 'Favipiravi'
+      };
+    }
+
+    const sheet2 = {
+      header: header,
+      items: rs2,
+      sheetName: 'รายคน'
+    };
+    const data = {
+      sheets: [sheet1, sheet2],
+      filepath: filenamePath
+    };
+
+    jexcel.j2e(data, function (err) {
+      // console.log('finish');
       if (err) {
         console.error(err);
         fse.removeSync(filenamePath);
-        res.send({ ok: false, error: err })
+        res.send({ ok: false, error: err });
       } else {
         res.setHeader('Content-Type', 'application/vnd.openxmlformats');
-        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
         res.sendfile(filenamePath, (v) => {
           fse.removeSync(filenamePath);
-        })
-
+        });
       }
     });
+    // res.send([rs, rs2])
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -2677,7 +2626,7 @@ router.get('/admit-confirm-case/export/dms', async (req: Request, res: Response)
         res.send({ ok: false, error: err })
       } else {
         res.setHeader('Content-Type', 'application/vnd.openxmlformats');
-        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
         res.sendfile(filenamePath, (v) => {
           fse.removeSync(filenamePath);
         })
@@ -2837,7 +2786,7 @@ router.get('/admit-pui-case/export', async (req: Request, res: Response) => {
         res.send({ ok: false, error: err })
       } else {
         res.setHeader('Content-Type', 'application/vnd.openxmlformats');
-        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
         res.sendfile(filenamePath, (v) => {
           fse.removeSync(filenamePath);
         })
@@ -2997,7 +2946,7 @@ router.get('/admit-pui-case/export/dms', async (req: Request, res: Response) => 
         res.send({ ok: false, error: err })
       } else {
         res.setHeader('Content-Type', 'application/vnd.openxmlformats');
-        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
         res.sendfile(filenamePath, (v) => {
           fse.removeSync(filenamePath);
         })
@@ -3152,7 +3101,7 @@ router.get('/admit-confirm-case-summary/excel', async (req: Request, res: Respon
         res.send({ ok: false, error: err })
       } else {
         res.setHeader('Content-Type', 'application/vnd.openxmlformats');
-        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
         res.sendfile(filenamePath, (v) => {
           fse.removeSync(filenamePath);
         })
@@ -3387,24 +3336,24 @@ async function setDataDischargeDaily(rs) {
   const data = await orderBy(map(groupBy(rs, vgz => { return vgz.zone_code }), (vmz: any, kmz) => {
     return {
       zone_code: kmz,
-      DISCHARGE: countBy(vmz, { "status": "DISCHARGE" }).true || 0,
-      NEGATIVE: countBy(vmz, { "status": "NEGATIVE" }).true || 0,
-      REFER: countBy(vmz, { "status": "REFER" }).true || 0,
-      DEATH: countBy(vmz, { "status": "DEATH" }).true || 0,
+      DISCHARGE: countBy(vmz, { 'status': 'DISCHARGE' }).true || 0,
+      NEGATIVE: countBy(vmz, { 'status': 'NEGATIVE' }).true || 0,
+      REFER: countBy(vmz, { 'status': 'REFER' }).true || 0,
+      DEATH: countBy(vmz, { 'status': 'DEATH' }).true || 0,
       value: orderBy(map(groupBy(vmz, vgp => { return vgp.province_name }), (vmp: any, kmp) => {
         return {
           province_name: kmp,
-          DISCHARGE: countBy(vmp, { "status": "DISCHARGE" }).true || 0,
-          NEGATIVE: countBy(vmp, { "status": "NEGATIVE" }).true || 0,
-          REFER: countBy(vmp, { "status": "REFER" }).true || 0,
-          DEATH: countBy(vmp, { "status": "DEATH" }).true || 0,
+          DISCHARGE: countBy(vmp, { 'status': 'DISCHARGE' }).true || 0,
+          NEGATIVE: countBy(vmp, { 'status': 'NEGATIVE' }).true || 0,
+          REFER: countBy(vmp, { 'status': 'REFER' }).true || 0,
+          DEATH: countBy(vmp, { 'status': 'DEATH' }).true || 0,
           value: orderBy(map(groupBy(vmp, vgh => { return vgh.hospname }), (vmh: any, kmh) => {
             return {
               hospname: kmh,
-              DISCHARGE: countBy(vmh, { "status": "DISCHARGE" }).true || 0,
-              NEGATIVE: countBy(vmh, { "status": "NEGATIVE" }).true || 0,
-              REFER: countBy(vmh, { "status": "REFER" }).true || 0,
-              DEATH: countBy(vmh, { "status": "DEATH" }).true || 0,
+              DISCHARGE: countBy(vmh, { 'status': 'DISCHARGE' }).true || 0,
+              NEGATIVE: countBy(vmh, { 'status': 'NEGATIVE' }).true || 0,
+              REFER: countBy(vmh, { 'status': 'REFER' }).true || 0,
+              DEATH: countBy(vmh, { 'status': 'DEATH' }).true || 0,
               value: vmh
             }
           }), 'hospname', 'asc')
@@ -3517,7 +3466,7 @@ router.get('/discharge-daily/excel', async (req: Request, res: Response) => {
         res.send({ ok: false, error: err })
       } else {
         res.setHeader('Content-Type', 'application/vnd.openxmlformats');
-        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
         res.sendfile(filenamePath, (v) => {
           fse.removeSync(filenamePath);
         })
@@ -3617,7 +3566,7 @@ router.get('/discharge-daily/excel/dms', async (req: Request, res: Response) => 
         res.send({ ok: false, error: err })
       } else {
         res.setHeader('Content-Type', 'application/vnd.openxmlformats');
-        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
         res.sendfile(filenamePath, (v) => {
           fse.removeSync(filenamePath);
         })
@@ -3740,7 +3689,7 @@ router.get('/discharge-entrydate/excel', async (req: Request, res: Response) => 
         res.send({ ok: false, error: err })
       } else {
         res.setHeader('Content-Type', 'application/vnd.openxmlformats');
-        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
         res.sendfile(filenamePath, (v) => {
           fse.removeSync(filenamePath);
         })
