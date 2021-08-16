@@ -3074,9 +3074,11 @@ router.get('/admit-confirm-case-summary/excel', async (req: Request, res: Respon
     ws2.cell(1, 9).string('เครื่องช่วยหายใจ');
     ws2.cell(1, 10).string('วันที่บันทึกล่าสุด');
     ws2.cell(1, 11).string('ไม่ได้บันทึกมา');
+    ws2.cell(1, 12).string('Favipiravi');
 
     let rows = 2;
     for (const v of rsList) {
+      console.log(v.d8);
       ws2.cell(rows, 1).string(v.province_name);
       ws2.cell(rows, 2).string(v.hospname);
       ws2.cell(rows, 3).string(v.hn + '/' + v.an);
@@ -3088,6 +3090,7 @@ router.get('/admit-confirm-case-summary/excel', async (req: Request, res: Respon
       ws2.cell(rows, 9).string(v.medical_supplies_name);
       ws2.cell(rows, 10).string(moment(v.updated_entry_last).format('DD-MM-YYYY'));
       ws2.cell(rows, 11).string(v.days + ' วัน');
+      ws2.cell(rows, 12).string(toString(v['d8']));
       rows++;
     }
 
