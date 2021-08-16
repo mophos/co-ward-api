@@ -416,9 +416,11 @@ router.get('/present-case-status/excel', async (req: Request, res: Response) => 
     const gcs = await basicModel.getGCS(req.db);
     const ba = await basicModel.getBedAdmin(req.db);
     const ms = await basicModel.getMedicalSupplies(req.dbReport, hospitalType);
+    console.log(JSON.stringify(ms));
+    console.log(JSON.stringify(rs[11]));
     ms.push({ id: 'not use', name: 'ไม่ใช้งาน' });
     const findObj = (find, arr) => {
-      const index = arr.findIndex(v => v.id === find);
+      const index = arr.findIndex(v => v.id == find);
       if (index > -1) {
         return arr[index].name;
       } else {
