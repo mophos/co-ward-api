@@ -59,6 +59,7 @@ router.put('/edit-info', async (req: Request, res: Response) => {
             telephone: data.telephone,
             birth_date: data.birth_date,
             cid: data.cid,
+            passport: data.passport,
             house_no: data.house_no,
             room_no: data.room_no,
             village_name: data.village_name,
