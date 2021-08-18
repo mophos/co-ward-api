@@ -513,6 +513,7 @@ router.get('/all-case-hosp/excel', async (req: Request, res: Response) => {
     let row = 2;
     for (const item of rs) {
       item.date_admit = moment(item.date_admit).isValid() ? moment(item.date_admit).format('DD/MM/YYYY') : '';
+      item.confirm_date = moment(item.confirm_date).isValid() ? moment(item.confirm_date).format('DD/MM/YYYY') : '';
       item.date_discharge = moment(item.date_discharge).isValid() ? moment(item.date_discharge).format('DD/MM/YYYY') : '';
       item.birth_date = moment(item.birth_date).isValid() ? moment(item.birth_date).format('DD/MM/YYYY') : '';
       item.updated_date = moment(item.updated_date).isValid() ? moment(item.updated_date).format('DD/MM/YYYY HH:mm:ss') : '';
