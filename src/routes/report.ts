@@ -2194,6 +2194,147 @@ router.get('/admit-confirm-case', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/admit-confirm-case/excel', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const type = req.decoded.type;
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
+  const provinceCode = req.decoded.provinceCode;
+  const limit = +req.query.limit || 1000;
+  const offset = +req.query.offset || 0;
+  // const showPersons = true;
+  const right = req.decoded.rights;
+  // console.log(right);
+
+  const showPersons = _.findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 || _.findIndex(right, { name: 'STAFF_VIEW_PATIENT_INFO' }) > -1 ? true : false;
+
+  try {
+    let rs: any;
+    if (type == 'MANAGER') {
+      rs = await model.admitConfirmCase(db, showPersons, limit, offset);
+    } else if (providerType == 'ZONE') {
+      rs = await model.admitConfirmCaseProvice(db, zoneCode, null, showPersons);
+    } else if (providerType == 'SSJ') {
+      rs = await model.admitConfirmCaseProvice(db, zoneCode, provinceCode, showPersons);
+    }
+
+    let row = 2
+    var wb = new excel4node.Workbook();
+    var ws = wb.addWorksheet('Sheet 1');
+    if (showPersons) {
+      ws.cell(1, 1).string('จังหวัด');
+      ws.cell(1, 2).string('โรงพยาบาล');
+      ws.cell(1, 3).string('HN/AN');
+      ws.cell(1, 4).string('เพศ');
+      ws.cell(1, 5).string('อายุ');
+      ws.cell(1, 6).string('CID');
+      ws.cell(1, 7).string('ชื่อ');
+      ws.cell(1, 8).string('วันที่ ADMIT');
+      ws.cell(1, 9).string('ความรุนแรง');
+      ws.cell(1, 10).string('เตียง');
+      ws.cell(1, 11).string('เครื่องช่วยหายใจ');
+      ws.cell(1, 12).string('วันที่บันทึกล่าสุด');
+      ws.cell(1, 13).string('ไม่ได้บันทึกมา');
+      ws.cell(1, 14).string('Hydroxychloroquine 200 mg.');
+      ws.cell(1, 15).string('Chloroquine 250 mg.');
+      ws.cell(1, 16).string('Darunavir 600 mg.');
+      ws.cell(1, 17).string('Lopinavir 200 mg. Ritonavir 50 mg.');
+      ws.cell(1, 18).string('Ritonavir 100 mg.');
+      ws.cell(1, 19).string('Azithromycin 250 mg.');
+      ws.cell(1, 20).string('Favipiravi');
+
+      for (const item of rs) {
+        ws.cell(row, 1).string(toString(item.province_name));
+        ws.cell(row, 2).string(toString(item.hospname));
+        ws.cell(row, 3).string(toString(item.hn + '/' + item.an));
+        ws.cell(row, 4).string(toString(item.sex));
+        ws.cell(row, 5).string(toString(item.age));
+        ws.cell(row, 6).string(toString(item.cid));
+        ws.cell(row, 7).string(toString(item.first_name + item.last_name));
+        ws.cell(row, 8).string(toString(moment(item.date_admit).format('YYYY-MM-DD')));
+        ws.cell(row, 9).string(toString(item.gcs_name));
+        ws.cell(row, 10).string(toString(item.bed_name));
+        ws.cell(row, 11).string(toString(item.medical_supplies_name));
+        ws.cell(row, 12).string(toString(moment(item.updated_entry_last).format('YYYY-MM-DD')));
+        ws.cell(row, 13).string(toString(item.days));
+        ws.cell(row, 14).string(toString(item.d1));
+        ws.cell(row, 15).string(toString(item.d2));
+        ws.cell(row, 16).string(toString(item.d3));
+        ws.cell(row, 17).string(toString(item.d4));
+        ws.cell(row, 18).string(toString(item.d5));
+        ws.cell(row, 19).string(toString(item.d7));
+        ws.cell(row, 20).string(toString(item.d8));
+        row++;
+      }
+    } else {
+      ws.cell(1, 1).string('จังหวัด');
+      ws.cell(1, 2).string('โรงพยาบาล');
+      ws.cell(1, 3).string('HN/AN');
+      ws.cell(1, 4).string('เพศ');
+      ws.cell(1, 5).string('อายุ');
+      ws.cell(1, 6).string('วันที่ ADMIT');
+      ws.cell(1, 7).string('ความรุนแรง');
+      ws.cell(1, 8).string('เตียง');
+      ws.cell(1, 9).string('เครื่องช่วยหายใจ');
+      ws.cell(1, 10).string('วันที่บันทึกล่าสุด');
+      ws.cell(1, 11).string('ไม่ได้บันทึกมา');
+      ws.cell(1, 12).string('Hydroxychloroquine 200 mg.');
+      ws.cell(1, 13).string('Chloroquine 250 mg.');
+      ws.cell(1, 14).string('Darunavir 600 mg.');
+      ws.cell(1, 15).string('Lopinavir 200 mg. Ritonavir 50 mg.');
+      ws.cell(1, 16).string('Ritonavir 100 mg.');
+      ws.cell(1, 17).string('Azithromycin 250 mg.');
+      ws.cell(1, 18).string('Favipiravi');
+
+      for (const item of rs) {
+        item.date_admit = moment(item.date_admit).format('DD/MM/YYYY')
+        item.date_discharge = moment(item.date_discharge).format('DD/MM/YYYY')
+        ws.cell(row, 1).string(toString(item.province_name));
+        ws.cell(row, 2).string(toString(item.hospname));
+        ws.cell(row, 3).string(toString(item.hn + '/' + item.an));
+        ws.cell(row, 4).string(toString(item.sex));
+        ws.cell(row, 5).string(toString(item.age));
+        ws.cell(row, 6).string(toString(moment(item.date_admit).format('YYYY-MM-DD')));
+        ws.cell(row, 7).string(toString(item.gcs_name));
+        ws.cell(row, 8).string(toString(item.bed_name));
+        ws.cell(row, 9).string(toString(item.medical_supplies_name));
+        ws.cell(row, 10).string(toString(moment(item.updated_entry_last).format('YYYY-MM-DD')));
+        ws.cell(row, 11).string(toString(item.days));
+        ws.cell(row, 12).string(toString(item.d1));
+        ws.cell(row, 13).string(toString(item.d2));
+        ws.cell(row, 14).string(toString(item.d3));
+        ws.cell(row, 15).string(toString(item.d4));
+        ws.cell(row, 16).string(toString(item.d5));
+        ws.cell(row, 17).string(toString(item.d7));
+        ws.cell(row, 18).string(toString(item.d8));
+        row++;
+      }
+    }
+
+
+    fse.ensureDirSync(process.env.TMP_PATH);
+    let filename = `report-admit-confirm-case-all` + moment().format('x') + '.xlsx'
+    let filenamePath = path.join(process.env.TMP_PATH, filename);
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.get('/admit-confirm-case/total', async (req: Request, res: Response) => {
   const db = req.dbReport;
   const type = req.decoded.type;
