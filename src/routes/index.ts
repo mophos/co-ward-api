@@ -11,7 +11,9 @@ import { Requisition } from '../models/requisition';
 import { CovidCaseModel } from '../models/covid-case';
 import { SerialModel } from '../models/serial';
 import { BedModel } from '../models/setting';
-import { cloneDeep, uniqBy, filter } from 'lodash';
+import { cloneDeep, uniqBy, filter, chunk } from 'lodash';
+
+const axios = require('axios').default;
 const jwt = new Jwt();
 const basicModel = new BasicModel();
 const covidCaseModel = new CovidCaseModel();
@@ -39,11 +41,11 @@ router.get('/demo', (req: Request, res: Response) => {
   }
 });
 
-router.get('/slave-status', async(req: Request, res: Response) => {
+router.get('/slave-status', async (req: Request, res: Response) => {
   try {
     const db = req.dbReport
     const rs: any = await basicModel.showSlaveStatus(db);
-    res.send({ ok: true, rows:rs[0] });
+    res.send({ ok: true, rows: rs[0] });
   } catch (error) {
     res.send({ ok: false, error: error });
   }
@@ -320,7 +322,7 @@ router.get('/lab-positive', async (req: Request, res: Response) => {
       const lab: any = await smHModel.getLabPositive(rs.token);
       if (rs.ok) {
         await smHModel.removeLabPositiveTmp(db);
-        await smHModel.saveLabPositiveTmp(db,lab.res);
+        await smHModel.saveLabPositiveTmp(db, lab.res);
         await smHModel.triggerLabPositive(db);
         res.send({ ok: true, rows: rs.res, code: HttpStatus.OK });
       } else {
@@ -394,5 +396,62 @@ async function systemUpdate(db) {
     return { ok: false, error: error.message }
   }
 }
+
+async function fcSendPhr(options) {
+  return new Promise((resolve, reject) => {
+    axios.request(options).then(function (response) {
+      resolve(true);
+    });
+  });
+}
+
+async function sendPhr(db, data: any) {
+  console.log(data.length);
+  const datas: any = chunk(data, 20000);
+  for await (const item of datas) {
+    const options = {
+      method: 'POST',
+      url: 'http://203.157.104.195/v1/coward',
+      headers: { 'Content-Type': 'application/json' },
+      data: item,
+      'maxContentLength': Infinity,
+      'maxBodyLength': Infinity
+    };
+    await fcSendPhr(options).then(async (rs) => {
+      const caseId: any = [];
+      for (const it of item) {
+        caseId.push(it.covid_case_id);
+      }
+      if (caseId.length) {
+        await covidCaseModel.updateIsSendPhr(db, caseId);
+      }
+    });
+  }
+}
+
+
+
+router.get('/send-phr', async (req: Request, res: Response) => {
+  const db = req.db;
+  const timeKey = req.query.timeKey;
+  try {
+
+    // if (process.env.TIME_KEY === timeKey) {
+    const rs: any = await covidCaseModel.getSendPhr(db);
+
+    if (rs) {
+      sendPhr(db, rs);
+      res.send({ ok: true, code: HttpStatus.OK });
+    } else {
+      res.send({ ok: false, code: HttpStatus.OK });
+    }
+    // } else {
+    //   res.send({ ok: false, error: 'token ไม่ถูกต้อง' });
+    // }
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 
 export default router;

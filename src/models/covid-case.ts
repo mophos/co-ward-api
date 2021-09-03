@@ -458,7 +458,7 @@ export class CovidCaseModel {
         v.on('bb.id', 'bh.bed_id')
         v.on('bh.hospital_id', db.raw(`${hospitalId}`));
       })
-       .joinRaw(`LEFT JOIN (
+      .joinRaw(`LEFT JOIN (
         SELECT
           count(*) as qty,
           cd.bed_id
@@ -687,7 +687,7 @@ export class CovidCaseModel {
     return db('p_covid_case_details as cd').where('covid_case_id', covidCaseId);
   }
 
-  getCasePresentNotUpdate(db: Knex, hospitalId, date,gcsSearchId, bedSearchId) {
+  getCasePresentNotUpdate(db: Knex, hospitalId, date, gcsSearchId, bedSearchId) {
     const sql = db('p_covid_cases as c')
       .select('c.id as covid_case_id', 'c.status', 'cd.id as covid_case_details_id',
         'cd.bed_id', 'cd.gcs_id', 'cd.medical_supplie_id', db.raw(`ifnull(cd.create_date, null) as create_date`),
@@ -702,12 +702,12 @@ export class CovidCaseModel {
       .where('c.status', 'ADMIT')
       .where('c.is_deleted', 'N')
       .where('cd.entry_date', '<', date)
-      if (gcsSearchId) {
-        sql.where('cd.gcs_id', gcsSearchId);
-      }
-      if (bedSearchId) {
-        sql.where('cd.bed_id', bedSearchId);
-      }
+    if (gcsSearchId) {
+      sql.where('cd.gcs_id', gcsSearchId);
+    }
+    if (bedSearchId) {
+      sql.where('cd.bed_id', bedSearchId);
+    }
     console.log(sql.toString());
     return sql;
   }
@@ -731,5 +731,15 @@ export class CovidCaseModel {
       .where('covid_case_id', covidCaseId)
       .orderBy('id', 'desc')
       .limit(1);
+  }
+
+  getSendPhr(db: Knex) {
+    return db('view_wait_send_phr');
+  }
+
+  updateIsSendPhr(db: Knex, caseId) {
+    return db('p_covid_cases')
+    .update('is_send_phr', 'Y')
+    .whereIn('id', caseId);
   }
 }
