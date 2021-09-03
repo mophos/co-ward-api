@@ -2244,6 +2244,8 @@ router.get('/admit-confirm-case/excel', async (req: Request, res: Response) => {
       ws.cell(1, 20).string('Favipiravi');
 
       for (const item of rs) {
+        item.date_admit = moment(item.date_admit).format('DD/MM/YYYY')
+        item.date_discharge = moment(item.date_discharge).format('DD/MM/YYYY')
         ws.cell(row, 1).string(toString(item.province_name));
         ws.cell(row, 2).string(toString(item.hospname));
         ws.cell(row, 3).string(toString(item.hn + '/' + item.an));
@@ -2251,11 +2253,11 @@ router.get('/admit-confirm-case/excel', async (req: Request, res: Response) => {
         ws.cell(row, 5).string(toString(item.age));
         ws.cell(row, 6).string(toString(item.cid));
         ws.cell(row, 7).string(toString(item.first_name + item.last_name));
-        ws.cell(row, 8).string(toString(moment(item.date_admit).format('YYYY-MM-DD')));
+        ws.cell(row, 8).string(toString(item.date_admit));
         ws.cell(row, 9).string(toString(item.gcs_name));
         ws.cell(row, 10).string(toString(item.bed_name));
         ws.cell(row, 11).string(toString(item.medical_supplies_name));
-        ws.cell(row, 12).string(toString(moment(item.updated_entry_last).format('YYYY-MM-DD')));
+        ws.cell(row, 12).string(toString(item.date_discharge));
         ws.cell(row, 13).string(toString(item.days));
         ws.cell(row, 14).string(toString(item.d1));
         ws.cell(row, 15).string(toString(item.d2));
@@ -2294,11 +2296,11 @@ router.get('/admit-confirm-case/excel', async (req: Request, res: Response) => {
         ws.cell(row, 3).string(toString(item.hn + '/' + item.an));
         ws.cell(row, 4).string(toString(item.sex));
         ws.cell(row, 5).string(toString(item.age));
-        ws.cell(row, 6).string(toString(moment(item.date_admit).format('YYYY-MM-DD')));
+        ws.cell(row, 6).string(toString(item.date_admit));
         ws.cell(row, 7).string(toString(item.gcs_name));
         ws.cell(row, 8).string(toString(item.bed_name));
         ws.cell(row, 9).string(toString(item.medical_supplies_name));
-        ws.cell(row, 10).string(toString(moment(item.updated_entry_last).format('YYYY-MM-DD')));
+        ws.cell(row, 10).string(toString(item.date_discharge));
         ws.cell(row, 11).string(toString(item.days));
         ws.cell(row, 12).string(toString(item.d1));
         ws.cell(row, 13).string(toString(item.d2));
@@ -3219,7 +3221,7 @@ router.get('/admit-confirm-case-summary/excel', async (req: Request, res: Respon
 
     let rows = 2;
     for (const v of rsList) {
-      console.log(v.d8);
+      console.log(v.date_admit, 'xxxxxxxxxxxxxxxxxxxxxx');
       ws2.cell(rows, 1).string(v.province_name);
       ws2.cell(rows, 2).string(v.hospname);
       ws2.cell(rows, 3).string(v.hn + '/' + v.an);
