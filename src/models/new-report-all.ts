@@ -32,6 +32,7 @@ export class ReportAllModel {
       .sum('hospitel_covid_qty as hospitel_qty')
       .leftJoin('views_bed_hospital_cross as vc', 'vh.id', 'vc.hospital_id')
       .groupBy('vh.zone_code')
+      .orderBy('vh.zone_code', 'ASC')
     return sql;
   }
 
@@ -46,6 +47,7 @@ export class ReportAllModel {
       .sum('hospitel_covid_qty as hospitel_qty')
       .leftJoin('views_bed_hospital_cross as vc', 'vh.id', 'vc.hospital_id')
       .groupBy('vh.province_code')
+      .orderBy('vh.zone_code', 'ASC')
     return sql;
   }
 
@@ -60,6 +62,7 @@ export class ReportAllModel {
       .sum('hospitel_covid_qty as hospitel_qty')
       .leftJoin('views_bed_hospital_cross as vc', 'vh.id', 'vc.hospital_id')
       .groupBy('vc.hospital_id')
+      .orderBy('vh.zone_code', 'ASC')
     return sql;
   }
 
@@ -168,6 +171,7 @@ export class ReportAllModel {
       .where('cl.entry_date', '<=', date)
       .where('cl.entry_date', '>=', '2020-12-15')
       .groupBy('vh.zone_code')
+      .orderBy('vh.zone_code', 'ASC')
     return sql;
   }
 
@@ -197,6 +201,7 @@ export class ReportAllModel {
       .where('cl.entry_date', '<=', date)
       .where('cl.entry_date', '>=', '2020-12-15')
       .groupBy('vh.province_code')
+      .orderBy('vh.zone_code', 'ASC')
     return sql;
   }
 
@@ -226,6 +231,7 @@ export class ReportAllModel {
       .where('cl.entry_date', '<=', date)
       .where('cl.entry_date', '>=', '2020-12-15')
       .groupBy('cl.hospital_id')
+      .orderBy('vh.zone_code', 'ASC')
     return sql;
   }
 
