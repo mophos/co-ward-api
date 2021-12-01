@@ -66,6 +66,7 @@ import newReportDmsRoute from './routes/new-manager/report-dms';
 import newReportAllRoute from './routes/new-manager/report-all';
 import newServicesRoute from './routes/new-manager/services';
 import newPatientInfoRoute from './routes/new-manager/patient-info';
+import newReportExportExcelRoute from './routes/new-manager/excel-new-report';
 
 // Assign router to the express.Router() instance
 const app: express.Application = express();
@@ -312,6 +313,7 @@ manager.use('/report-dms', newReportDmsRoute);
 manager.use('/report-all', newReportAllRoute);
 manager.use('/services', newServicesRoute);
 manager.use('/eoc', eocRoute);
+manager.use('/export', newReportExportExcelRoute)
 
 // staff
 api.use('/staff', checkAuth, staffAuth, staff);
