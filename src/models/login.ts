@@ -9,6 +9,7 @@ export class Login {
       .leftJoin('um_positions as up', 'up.id', 'u.position_id')
       .where('u.username', username)
       .where('u.password', password)
+      .where('h.is_deleted', 'N')
       .where('u.is_deleted', 'N')
       .limit(1);
     return sql;

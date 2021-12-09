@@ -27,10 +27,10 @@ router.get('/report1', async (req: Request, res: Response) => {
 
 router.get('/bed-report-by-zone', async (req: Request, res: Response) => {
   const db = req.dbReport;
-  const sector = req.query.sector;
-  const date = req.query.date;
+  const { zones, date, sector } = req.query;
+
   try {
-    const rs: any = await model.bedReportByZone(db, date, sector);
+    const rs: any = await model.bedReportByZone(db, date, sector, zones);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -42,8 +42,9 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
   const db = req.dbReport;
   const sector = req.query.sector;
   const date = req.query.date;
+  const provinces = req.query.provinces;
   try {
-    const rs: any = await model.bedReportByProvince(db, date, sector);
+    const rs: any = await model.bedReportByProvince(db, date, sector, provinces);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -53,10 +54,10 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
 
 router.get('/bed-report-by-hospital', async (req: Request, res: Response) => {
   const db = req.dbReport;
-  const sector = req.query.sector;
-  const date = req.query.date;
+  const { hospital_ids, date, sector } = req.query;
+
   try {
-    const rs: any = await model.bedReportByHospital(db, date, sector);
+    const rs: any = await model.bedReportByHospital(db, date, sector, hospital_ids);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -118,11 +119,10 @@ router.get('/report4', async (req: Request, res: Response) => {
 
 router.get('/patient-report-by-zone', async (req: Request, res: Response) => {
   const db = req.dbReport;
-  const date = req.query.date;
-  const sector = req.query.sector;
+  const { zones, date, sector } = req.query;
 
   try {
-    const rs: any = await model.patientReportByZone(db, date, sector);
+    const rs: any = await model.patientReportByZone(db, date, sector, zones);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -133,11 +133,10 @@ router.get('/patient-report-by-zone', async (req: Request, res: Response) => {
 
 router.get('/patient-report-by-province', async (req: Request, res: Response) => {
   const db = req.dbReport;
-  const date = req.query.date;
-  const sector = req.query.sector;
+  const { provinces, date, sector } = req.query;
 
   try {
-    const rs: any = await model.patientReportByProvince(db, date, sector);
+    const rs: any = await model.patientReportByProvince(db, date, sector, provinces);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -148,11 +147,10 @@ router.get('/patient-report-by-province', async (req: Request, res: Response) =>
 
 router.get('/patient-report-by-hospital', async (req: Request, res: Response) => {
   const db = req.dbReport;
-  const date = req.query.date;
-  const sector = req.query.sector;
+  const { hospital_ids, date, sector } = req.query;
 
   try {
-    const rs: any = await model.patientReportByHospital(db, date, sector);
+    const rs: any = await model.patientReportByHospital(db, date, sector, hospital_ids);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);

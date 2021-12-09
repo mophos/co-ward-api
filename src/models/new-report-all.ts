@@ -21,7 +21,7 @@ export class ReportAllModel {
 
   }
 
-  bedReportByZone(db: Knex, date: any, sector: any) {
+  bedReportByZone(db: Knex, date: any, sector: any, zones = []) {
     const sql = db('views_hospital_all as vh')
       .select('vc.*', 'vh.*')
       .count('* as hospital_qty')
@@ -33,10 +33,15 @@ export class ReportAllModel {
       .leftJoin('views_bed_hospital_cross as vc', 'vh.id', 'vc.hospital_id')
       .groupBy('vh.zone_code')
       .orderBy('vh.zone_code', 'ASC')
+
+    if (zones.length > 0) {
+      sql.whereIn('vh.zone_code', zones)
+    }
+
     return sql;
   }
 
-  bedReportByProvince(db: Knex, date: any, sector: any) {
+  bedReportByProvince(db: Knex, date: any, sector: any, provinces = []) {
     const sql = db('views_hospital_all as vh')
       .select('vc.*', 'vh.*')
       .count('* as hospital_qty')
@@ -48,10 +53,15 @@ export class ReportAllModel {
       .leftJoin('views_bed_hospital_cross as vc', 'vh.id', 'vc.hospital_id')
       .groupBy('vh.province_code')
       .orderBy('vh.zone_code', 'ASC')
+
+    if (provinces.length > 0) {
+      sql.whereIn('vh.province_code', provinces)
+    }
+
     return sql;
   }
 
-  bedReportByHospital(db: Knex, date: any, sector: any) {
+  bedReportByHospital(db: Knex, date: any, sector: any, hospitalIds = []) {
     const sql = db('views_hospital_all as vh')
       .select('vc.*', 'vh.*')
       .count('* as hospital_qty')
@@ -63,6 +73,11 @@ export class ReportAllModel {
       .leftJoin('views_bed_hospital_cross as vc', 'vh.id', 'vc.hospital_id')
       .groupBy('vc.hospital_id')
       .orderBy('vh.zone_code', 'ASC')
+
+    if (hospitalIds.length > 0) {
+      sql.whereIn('vc.hospital_id', hospitalIds)
+    }
+
     return sql;
   }
 
@@ -145,7 +160,7 @@ export class ReportAllModel {
     return sql;
   }
 
-  patientReportByZone(db: Knex, date, sector) {
+  patientReportByZone(db: Knex, date, sector, zones = []) {
     const sql = db('views_covid_case_last as cl')
       .select('vh.id as hospital_id',
         'vh.hospname',
@@ -172,10 +187,15 @@ export class ReportAllModel {
       .where('cl.entry_date', '>=', '2020-12-15')
       .groupBy('vh.zone_code')
       .orderBy('vh.zone_code', 'ASC')
+
+    if (zones.length > 0) {
+      sql.whereIn('vh.zone_code', zones)
+    }
+
     return sql;
   }
 
-  patientReportByProvince(db: Knex, date, sector) {
+  patientReportByProvince(db: Knex, date, sector, provinces = []) {
     const sql = db('views_covid_case_last as cl')
       .select('vh.id as hospital_id',
         'vh.hospname',
@@ -202,10 +222,15 @@ export class ReportAllModel {
       .where('cl.entry_date', '>=', '2020-12-15')
       .groupBy('vh.province_code')
       .orderBy('vh.zone_code', 'ASC')
+    
+    if (provinces.length > 0) {
+      sql.whereIn('vh.province_code', provinces)
+    }
+
     return sql;
   }
 
-  patientReportByHospital(db: Knex, date, sector) {
+  patientReportByHospital(db: Knex, date, sector, hospitalIds = []) {
     const sql = db('views_covid_case_last as cl')
       .select('vh.id as hospital_id',
         'vh.hospname',
@@ -232,6 +257,11 @@ export class ReportAllModel {
       .where('cl.entry_date', '>=', '2020-12-15')
       .groupBy('cl.hospital_id')
       .orderBy('vh.zone_code', 'ASC')
+
+    if (hospitalIds.length > 0) {
+      sql.whereIn('cl.hospital_id', hospitalIds)
+    }
+    
     return sql;
   }
 
