@@ -948,7 +948,7 @@ export class ReportModel {
     FROM
       p_covid_cases AS c
       LEFT JOIN p_covid_case_details AS cd ON c.id = cd.covid_case_id 
-      AND cd.entry_date = ${date.start}
+      AND cd.admit_date = ${date.start}
       LEFT JOIN p_patients AS pt ON pt.id = c.patient_id
       LEFT JOIN p_persons AS p ON p.id = pt.person_id
       LEFT JOIN b_hospitals AS h ON pt.hospital_id = h.id

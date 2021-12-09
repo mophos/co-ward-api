@@ -23,14 +23,21 @@ export class ReportAllModel {
 
   bedReportByZone(db: Knex, date: any, sector: any, zones = []) {
     const sql = db('views_hospital_all as vh')
-      .select('vc.*', 'vh.*')
+      .select('vc.*', 'vh.*', 'vm.*')
       .count('* as hospital_qty')
       .sum('aiir_covid_qty as aiir_qty')
       .sum('modified_aiir_covid_qty as modified_aiir_qty')
       .sum('isolate_covid_qty as isolate_qty')
       .sum('cohort_covid_qty as cohort_qty')
       .sum('hospitel_covid_qty as hospitel_qty')
+      .sum('home_isolation_covid_qty as home_isolation_qty')
+      .sum('community_isolation_covid_qty as community_isolation_qty')
+      .sum('invasive_covid_qty as invasive_qty')
+      .sum('non_invasive_covid_qty as non_invasive_qty')
+      .sum('high_flow_covid_qty as high_flow_qty')
+      .sum('papr_covid_qty as papr_qty')
       .leftJoin('views_bed_hospital_cross as vc', 'vh.id', 'vc.hospital_id')
+      .leftJoin('views_medical_supplies_hospital_cross as vm', 'vh.id', 'vm.hospital_id')
       .groupBy('vh.zone_code')
       .orderBy('vh.zone_code', 'ASC')
 
@@ -50,7 +57,14 @@ export class ReportAllModel {
       .sum('isolate_covid_qty as isolate_qty')
       .sum('cohort_covid_qty as cohort_qty')
       .sum('hospitel_covid_qty as hospitel_qty')
+      .sum('home_isolation_covid_qty as home_isolation_qty')
+      .sum('community_isolation_covid_qty as community_isolation_qty')
+      .sum('invasive_covid_qty as invasive_qty')
+      .sum('non_invasive_covid_qty as non_invasive_qty')
+      .sum('high_flow_covid_qty as high_flow_qty')
+      .sum('papr_covid_qty as papr_qty')
       .leftJoin('views_bed_hospital_cross as vc', 'vh.id', 'vc.hospital_id')
+      .leftJoin('views_medical_supplies_hospital_cross as vm', 'vh.id', 'vm.hospital_id')
       .groupBy('vh.province_code')
       .orderBy('vh.zone_code', 'ASC')
 
@@ -70,7 +84,14 @@ export class ReportAllModel {
       .sum('isolate_covid_qty as isolate_qty')
       .sum('cohort_covid_qty as cohort_qty')
       .sum('hospitel_covid_qty as hospitel_qty')
+      .sum('home_isolation_covid_qty as home_isolation_qty')
+      .sum('community_isolation_covid_qty as community_isolation_qty')
+      .sum('invasive_covid_qty as invasive_qty')
+      .sum('non_invasive_covid_qty as non_invasive_qty')
+      .sum('high_flow_covid_qty as high_flow_qty')
+      .sum('papr_covid_qty as papr_qty')
       .leftJoin('views_bed_hospital_cross as vc', 'vh.id', 'vc.hospital_id')
+      .leftJoin('views_medical_supplies_hospital_cross as vm', 'vh.id', 'vm.hospital_id')
       .groupBy('vc.hospital_id')
       .orderBy('vh.zone_code', 'ASC')
 
@@ -261,7 +282,7 @@ export class ReportAllModel {
     if (hospitalIds.length > 0) {
       sql.whereIn('cl.hospital_id', hospitalIds)
     }
-    
+
     return sql;
   }
 
