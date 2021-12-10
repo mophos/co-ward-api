@@ -66,7 +66,7 @@ router.put('/:id', async (req: Request, res: Response) => {
       tmpUser.updated_by = decoded.id;
       tmpUser.updated_at = moment().format('YYYY-MM-DD HH:mm:ss')
       // data.password = crypto.createHash('md5').update(data.password).digest('hex');
-       await userModel.insertLogsUser(req.db, tmpUser);
+      await userModel.insertLogsUser(req.db, tmpUser);
       let rs: any = await userModel.updateUser(req.db, id, data);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else {

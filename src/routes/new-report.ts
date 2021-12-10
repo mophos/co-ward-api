@@ -3598,8 +3598,8 @@ router.get('/admit-case-by-date', async (req: Request, res: Response) => { // TO
 
   try {
     const rs: any = await model.admitCase(db, {start, end}, true);
-    const data = await mapDataAdmitByDate(rs);
-    res.send({ ok: true, rows: data, code: HttpStatus.OK });
+    // const data = await mapDataAdmitByDate(rs);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });

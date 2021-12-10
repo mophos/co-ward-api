@@ -39,8 +39,8 @@ router.post('/', async (req: Request, res: Response) => {
   try {
     let encPassword = crypto.createHash('md5').update(password).digest('hex');
     let rs: any = await loginModel.login(db, username, encPassword);
-
-    if (rs.length) {
+    console.log({rs})
+    if (rs.length && (rs[0]?.hospital_available === 'N' || rs[0].type === 'MANAGER')) {
       let right: any = await loginModel.rights(db, rs[0].id);
       let payload: any = {
         fullname: `${rs[0].fname || ''} ${rs[0].lname || ''}`,
