@@ -25,6 +25,7 @@ export class ReportAllModel {
     const sql = db('views_hospital_all as vh')
       .select('vh.*', 'vm.*')
       .leftJoin('views_medical_supplies_hospital_cross as vm', 'vh.id', 'vm.hospital_id')
+      .groupBy('vh.id')
       .orderBy('vh.zone_code', 'ASC')
 
       if (hospitalIds.length > 0) {
@@ -60,6 +61,7 @@ export class ReportAllModel {
 
     return sql;
   }
+  
 
   bedReportByProvince(db: Knex, date: any, sector: any, provinces = []) {
     const sql = db('views_hospital_all as vh')
