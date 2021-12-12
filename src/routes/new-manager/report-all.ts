@@ -115,6 +115,55 @@ router.get('/report3', async (req: Request, res: Response) => {
   }
 });
 
+const mapPatientsResult = (total: any[], today: any[]) => {
+  const result = total.map((each) => {
+    const found = today.find(item => each.hospital_id === item.hospital_id)
+    if (found) {
+      return { ...each, 
+        today_admit: found.admit,
+        today_discharge: found.discharge,
+        today_discharge_hospitel: found.discharge_hospitel,
+        today_discharge_death: found.discharge_death,
+        today_pui_admit: found.pui_admit,
+        today_pui_discharge: found.pui_discharge,
+        today_pui_discharge_hospitel: found.pui_discharge_hospitel,
+        today_pui_discharge_death: found.pui_discharge_death,
+      }
+    }
+
+    return {  
+      ...each,
+      today_admit: 0,
+      today_discharge: 0,
+      today_discharge_hospitel: 0,
+      today_discharge_death: 0,
+      today_pui_admit: 0,
+      today_pui_discharge: 0,
+      today_pui_discharge_hospitel: 0,
+      today_pui_discharge_death: 0,
+    }
+  })
+
+  return result
+}
+
+router.get('/patients-report', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const date = req.query.date;
+  const sector = req.query.sector;
+
+  try {
+    const totalResult: any = await model.getPatientsReport(db, date, sector);
+    const todayResult: any = await model.getPatientsReportByDate(db, date, sector);
+
+    res.send({ ok: true, rows: mapPatientsResult(totalResult, todayResult), code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error });
+  }
+});
+
 router.get('/report4', async (req: Request, res: Response) => {
   const db = req.dbReport;
   const date = req.query.date;
