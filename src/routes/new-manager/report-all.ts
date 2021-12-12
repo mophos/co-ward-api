@@ -25,6 +25,19 @@ router.get('/report1', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/medicals-supplies-report-by-hospital', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const { hospital_ids, date, sector } = req.query;
+
+  try {
+    const rs: any = await model.medicalsSupplyReportByHospital(db, date, sector, hospital_ids);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error });
+  }
+});
+
 router.get('/bed-report-by-zone', async (req: Request, res: Response) => {
   const db = req.dbReport;
   const { zones, date, sector } = req.query;

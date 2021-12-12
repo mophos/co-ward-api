@@ -21,6 +21,19 @@ export class ReportAllModel {
 
   }
 
+  medicalsSupplyReportByHospital(db: Knex, date: any, sector: any, hospitalIds = []) {
+    const sql = db('views_hospital_all as vh')
+      .select('vh.*', 'vm.*')
+      .leftJoin('views_medical_supplies_hospital_cross as vm', 'vh.id', 'vm.hospital_id')
+      .orderBy('vh.zone_code', 'ASC')
+
+      if (hospitalIds.length > 0) {
+        sql.whereIn('vm.hospital_id', hospitalIds)
+      }
+
+    return sql
+  }
+
   bedReportByZone(db: Knex, date: any, sector: any, zones = []) {
     const sql = db('views_hospital_all as vh')
       .select('vc.*', 'vh.*', 'vm.*')

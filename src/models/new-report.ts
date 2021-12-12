@@ -930,35 +930,6 @@ export class ReportModel {
   // }
 
   admitCase(db: Knex, date, showPersons = false) {
-    // return db.raw(`SELECT
-    // h.zone_code,
-    // h.province_name,
-    // h.hospname,
-    // pt.hn,
-    // c.an,
-    // p.cid,
-    // p.first_name,
-    // p.last_name,
-    // p.gender_id,
-    // c.date_admit,
-    // g.NAME AS gcs_name,
-    // b.NAME AS bed_name,
-    // m.name as medical_name
-    
-    // FROM
-    //   p_covid_cases AS c
-    //   LEFT JOIN p_covid_case_details AS cd ON c.id = cd.covid_case_id 
-    //   AND cd.create_date = ${date.start}
-    //   LEFT JOIN p_patients AS pt ON pt.id = c.patient_id
-    //   LEFT JOIN p_persons AS p ON p.id = pt.person_id
-    //   LEFT JOIN b_hospitals AS h ON pt.hospital_id = h.id
-    //   LEFT JOIN b_gcs AS g ON cd.gcs_id = g.id
-    //   LEFT JOIN b_beds AS b ON b.id = cd.bed_id 
-    //   left join b_medical_supplies as m on m.id = cd.medical_supplie_id
-    // WHERE
-    //   c.is_deleted = 'N'  and c.date_admit = ${date.start}`)
-
-
     let sql = db('p_covid_cases AS c')
       .select(
         'h.zone_code',
