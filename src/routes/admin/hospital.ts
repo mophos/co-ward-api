@@ -73,7 +73,7 @@ const generateHospCode = async (db: Knex, hospType: string, hosptypeCode: any, z
   const allHospitals = await hospitalModel.getNextInsertId(db)
   const currentId = allHospitals[0]?.id || 0
 
-  if (hospType === 'HOSPITAL') {
+  if (hospType === 'FIELD') {
     typeCode = 'F'
   }
 
@@ -95,9 +95,11 @@ router.post('/', async (req: Request, res: Response) => {
     if (typeof data === 'object' && data) {
       const zone = await hospitalModel.getZone(req.db, data.province_code);
       data.zone_code = zone[0].zone_code;
-      const hospcode = await generateHospCode(req.db, data.hospital_type, data.hosptype_code, data.zone_code)
-      data.hospcode_new = hospcode
-      const dupCode: any = await hospitalModel.checkHospCode(req.db, hospcode)
+      data.hospcode = data.hospital_type !== 'HOSPITAL'
+      ? await generateHospCode(req.db, data.hospital_type, data.hosptype_code, data.zone_code)
+      : data.hospcode
+
+      const dupCode: any = await hospitalModel.checkHospCode(req.db, data.hospcode)
       data.created_by = decoded.id || 0;
       data.update_date = moment().format('YYYY-MM-DD HH:mm:ss')
 

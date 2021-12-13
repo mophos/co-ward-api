@@ -3591,30 +3591,96 @@ router.get('/discharge-daily', async (req: Request, res: Response) => { // TODO:
   }
 });
 
-router.get('/admit-case-by-date', async (req: Request, res: Response) => { // TODO: [6]
+const mapPersonsGenerics = (genericsPersons: any[], cases: any[]) => {
+  let results = genericsPersons
+  results = cases.map((eachCase) => {
+    const found = results.filter((result) => result.covid_case_detail_id === eachCase.detail_id)
+
+    const obj = {}
+    found.forEach((each) => {
+      obj[each.name] = each.qty
+    })
+
+    return { ...eachCase, ...obj }
+  })
+
+  return results
+}
+
+router.get('/admit-case', async (req: Request, res: Response) => { // TODO: [6]
   const db = req.dbReport;
-  const start = req.query.start || moment().format('YYYY-MM-DD');
-  const end = req.query.end || moment().format('YYYY-MM-DD');
+  const date = req.query.date || moment().format('YYYY-MM-DD');
 
   try {
-    const rs: any = await model.admitCase(db, {start, end}, true);
+    const [ cases, genericsPersons, headers ] = await Promise.all([
+      model.admitCase(db, date),
+      model.getPersonsGenerics(db, date),
+      model.getGenericNames(db)
+    ])
     // const data = await mapDataAdmitByDate(rs);
-    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+    const results = mapPersonsGenerics(genericsPersons, cases)
+    res.send({ ok: true, rows: { headers, results }, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
 
-router.get('/discharge-case-by-date', async (req: Request, res: Response) => { // TODO: [6]
+router.get('/admit-case-summary', async (req: Request, res: Response) => {
   const db = req.dbReport;
   const start = req.query.start || moment().format('YYYY-MM-DD');
   const end = req.query.end || moment().format('YYYY-MM-DD');
 
   try {
-    const rs: any = await model.dischargeCase(db, {start, end}, true);
-    const data = await mapDataDischargeByDate(rs);
-    res.send({ ok: true, rows: data, code: HttpStatus.OK });
+    const results = await model.admitCaseSummary(db, { start, end })
+    res.send({ ok: true, rows: results, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+})
+
+const mapDischargeSummary = (raws: any[]) => {
+  const results = []
+
+  raws.forEach((raw) => {
+    const foundIndex = results.findIndex((result) => result.zone_code === raw.zone_code)
+    let obj = { zone_code: raw.zone_code }
+    obj[raw.status] = raw.count
+
+    if (foundIndex === -1) {
+      results.push(obj)
+    } else {
+      results[foundIndex][raw.status] = raw.count
+    }
+  })
+
+  return results
+}
+
+router.get('/discharge-case-summary', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const start = req.query.start || moment().format('YYYY-MM-DD');
+  const end = req.query.end || moment().format('YYYY-MM-DD');
+
+  try {
+    const results = await model.dischargeSummary(db, { start, end })
+    const mapped = mapDischargeSummary(results)
+    res.send({ ok: true, rows: mapped, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+})
+
+router.get('/discharge-case', async (req: Request, res: Response) => { // TODO: [6]
+  const db = req.dbReport;
+  const date = req.query.date || moment().format('YYYY-MM-DD');
+
+  try {
+    const rs: any = await model.dischargeCase(db, date, true);
+    // const data = await mapDataDischargeByDate(rs);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
