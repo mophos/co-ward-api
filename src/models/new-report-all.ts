@@ -1,3 +1,4 @@
+import { groupBy } from 'lodash';
 import Knex = require('knex');
 
 export class ReportAllModel {
@@ -21,22 +22,87 @@ export class ReportAllModel {
 
   }
 
-  bedReportByZone(db: Knex, date: any, sector: any) {
+  medicalsSupplyReportByHospital(db: Knex, date: any, sector: any, hospitalIds = []) {
     const sql = db('views_hospital_all as vh')
-      .select('vc.*', 'vh.*')
+      .select('vh.*', 'vm.*')
+      .leftJoin('views_medical_supplies_hospital_cross as vm', 'vh.id', 'vm.hospital_id')
+      .groupBy('vh.id')
+      .orderBy('vh.zone_code', 'ASC')
+
+      if (hospitalIds.length > 0) {
+        sql.whereIn('vm.hospital_id', hospitalIds)
+      }
+
+    return sql
+  }
+
+  getBedReportByZone(db: Knex, date: string, options: { case: string, status: string, groupBy: string, zones: string[], provinces: string[]}) {
+    const sql = db('p_covid_case_details AS cd')
+      .select('h.zone_code', 'cd.bed_id', 'b.name as bed_name', 'bh.covid_qty as total')
+      .count('* as used')
+      .leftJoin('p_covid_cases as c', 'cd.covid_case_id', 'c.id')
+      .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
+      .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')
+      .leftJoin('b_beds as b', 'b.id', 'cd.bed_id')
+      .joinRaw('LEFT JOIN b_bed_hospitals AS bh ON bh.bed_id = cd.bed_id AND bh.hospital_id = h.id')
+      .where('cd.entry_date', date)
+      .where('c.case_status', options.case)
+      .where('cd.status', options.status)
+      .where('c.is_deleted', 'N')
+      .groupBy(options.groupBy, 'cd.bed_id')
+      .orderBy('h.zone_code')
+
+    if (options.groupBy === 'h.zone_code') {
+      sql.select('h.zone_code', 'cd.bed_id', 'b.name as bed_name')
+    }
+
+    if (options.groupBy === 'h.province_code') {
+      sql.select('h.zone_code', 'cd.bed_id', 'b.name as bed_name', 'h.province_code', 'h.province_name')
+    }
+
+    if (options.groupBy === 'h.id') {
+      sql.select('h.zone_code', 'cd.bed_id', 'b.name as bed_name', 'h.province_code', 'h.province_name', 'h.hospname', 'h.id', 'h.hospcode')
+    }
+
+    if (options.zones?.length > 0) {
+      sql.whereIn('h.zone_code', options.zones)
+    }
+
+    if (options.provinces?.length > 0) {
+      sql.whereIn('h.province_code', options.provinces)
+    }
+
+    return sql
+  }
+
+  bedReportByZone(db: Knex, date: any, sector: any, zones = []) {
+    const sql = db('views_hospital_all as vh')
+      .select('vc.*', 'vh.*', 'vm.*')
       .count('* as hospital_qty')
       .sum('aiir_covid_qty as aiir_qty')
       .sum('modified_aiir_covid_qty as modified_aiir_qty')
       .sum('isolate_covid_qty as isolate_qty')
       .sum('cohort_covid_qty as cohort_qty')
       .sum('hospitel_covid_qty as hospitel_qty')
+      .sum('home_isolation_covid_qty as home_isolation_qty')
+      .sum('community_isolation_covid_qty as community_isolation_qty')
+      .sum('invasive_covid_qty as invasive_qty')
+      .sum('non_invasive_covid_qty as non_invasive_qty')
+      .sum('high_flow_covid_qty as high_flow_qty')
+      .sum('papr_covid_qty as papr_qty')
       .leftJoin('views_bed_hospital_cross as vc', 'vh.id', 'vc.hospital_id')
+      .leftJoin('views_medical_supplies_hospital_cross as vm', 'vh.id', 'vm.hospital_id')
       .groupBy('vh.zone_code')
       .orderBy('vh.zone_code', 'ASC')
+
+    if (zones.length > 0) {
+      sql.whereIn('vh.zone_code', zones)
+    }
+
     return sql;
   }
 
-  bedReportByProvince(db: Knex, date: any, sector: any) {
+  bedReportByProvince(db: Knex, date: any, sector: any, provinces = []) {
     const sql = db('views_hospital_all as vh')
       .select('vc.*', 'vh.*')
       .count('* as hospital_qty')
@@ -45,13 +111,25 @@ export class ReportAllModel {
       .sum('isolate_covid_qty as isolate_qty')
       .sum('cohort_covid_qty as cohort_qty')
       .sum('hospitel_covid_qty as hospitel_qty')
+      .sum('home_isolation_covid_qty as home_isolation_qty')
+      .sum('community_isolation_covid_qty as community_isolation_qty')
+      .sum('invasive_covid_qty as invasive_qty')
+      .sum('non_invasive_covid_qty as non_invasive_qty')
+      .sum('high_flow_covid_qty as high_flow_qty')
+      .sum('papr_covid_qty as papr_qty')
       .leftJoin('views_bed_hospital_cross as vc', 'vh.id', 'vc.hospital_id')
+      .leftJoin('views_medical_supplies_hospital_cross as vm', 'vh.id', 'vm.hospital_id')
       .groupBy('vh.province_code')
       .orderBy('vh.zone_code', 'ASC')
+
+    if (provinces.length > 0) {
+      sql.whereIn('vh.province_code', provinces)
+    }
+
     return sql;
   }
 
-  bedReportByHospital(db: Knex, date: any, sector: any) {
+  bedReportByHospital(db: Knex, date: any, sector: any, hospitalIds = []) {
     const sql = db('views_hospital_all as vh')
       .select('vc.*', 'vh.*')
       .count('* as hospital_qty')
@@ -60,9 +138,21 @@ export class ReportAllModel {
       .sum('isolate_covid_qty as isolate_qty')
       .sum('cohort_covid_qty as cohort_qty')
       .sum('hospitel_covid_qty as hospitel_qty')
+      .sum('home_isolation_covid_qty as home_isolation_qty')
+      .sum('community_isolation_covid_qty as community_isolation_qty')
+      .sum('invasive_covid_qty as invasive_qty')
+      .sum('non_invasive_covid_qty as non_invasive_qty')
+      .sum('high_flow_covid_qty as high_flow_qty')
+      .sum('papr_covid_qty as papr_qty')
       .leftJoin('views_bed_hospital_cross as vc', 'vh.id', 'vc.hospital_id')
+      .leftJoin('views_medical_supplies_hospital_cross as vm', 'vh.id', 'vm.hospital_id')
       .groupBy('vc.hospital_id')
       .orderBy('vh.zone_code', 'ASC')
+
+    if (hospitalIds.length > 0) {
+      sql.whereIn('vc.hospital_id', hospitalIds)
+    }
+
     return sql;
   }
 
@@ -116,6 +206,67 @@ export class ReportAllModel {
 
   }
 
+  getPatientsReport(db: Knex, date, sector) {
+    const sql = db('views_covid_case_last as cl')
+      .select('vh.id as hospital_id',
+        'vh.hospname',
+        'vh.sub_ministry_name',
+        'vh.zone_code',
+        'vh.hospcode',
+        'vh.province_code',
+        'vh.province_name',
+        db.raw(`sum((cl.gcs_id in (1,2,3,4) or cl.gcs_id is null) ) as admit,
+          sum(c.status!='ADMIT' and (cl.gcs_id in (1,2,3,4) or cl.gcs_id is null) ) as discharge,
+          sum(c.status='REFER' and hr.hospital_type='HOSPITEL'  and (cl.gcs_id in (1,2,3,4) or cl.gcs_id is null)  ) as discharge_hospitel,
+          sum(c.status='DEATH'  and (cl.gcs_id in (1,2,3,4) or cl.gcs_id is null)  ) as discharge_death,
+          
+          sum(cl.gcs_id = 5 ) as pui_admit,
+          sum(c.status!='ADMIT' and cl.gcs_id = 5 ) as pui_discharge,
+          sum(c.status='REFER' and hr.hospital_type='HOSPITEL'  and cl.gcs_id = 5 ) as pui_discharge_hospitel,
+          sum(c.status='DEATH'  and cl.gcs_id = 5 ) as pui_discharge_death,
+          sum(cl.gcs_id = 6) as observe`
+        ))
+
+      .join('p_covid_cases AS c', 'c.id', 'cl.covid_case_id')
+      .leftJoin('b_hospitals AS hr', 'c.hospital_id_refer', 'hr.id')
+      .join('views_hospital_all as vh', 'vh.id', 'cl.hospital_id')
+      .where('cl.entry_date', '<=', date)
+      .where('cl.entry_date', '>=', '2020-12-15')
+      .groupBy('cl.hospital_id')
+      .orderBy('vh.zone_code', 'ASC')
+    return sql;
+  }
+
+  getPatientsReportByDate(db: Knex, date, sector) {
+    const sql = db('views_covid_case_last as cl')
+      .select('vh.id as hospital_id',
+        'vh.hospname',
+        'vh.sub_ministry_name',
+        'vh.zone_code',
+        'vh.hospcode',
+        'vh.province_code',
+        'vh.province_name',
+        db.raw(`sum((cl.gcs_id in (1,2,3,4) or cl.gcs_id is null) ) as admit,
+          sum(c.status!='ADMIT' and (cl.gcs_id in (1,2,3,4) or cl.gcs_id is null) ) as discharge,
+          sum(c.status='REFER' and hr.hospital_type='HOSPITEL'  and (cl.gcs_id in (1,2,3,4) or cl.gcs_id is null)  ) as discharge_hospitel,
+          sum(c.status='DEATH'  and (cl.gcs_id in (1,2,3,4) or cl.gcs_id is null)  ) as discharge_death,
+          
+          sum(cl.gcs_id = 5 ) as pui_admit,
+          sum(c.status!='ADMIT' and cl.gcs_id = 5 ) as pui_discharge,
+          sum(c.status='REFER' and hr.hospital_type='HOSPITEL'  and cl.gcs_id = 5 ) as pui_discharge_hospitel,
+          sum(c.status='DEATH'  and cl.gcs_id = 5 ) as pui_discharge_death,
+          sum(cl.gcs_id = 6) as observe`
+        ))
+
+      .join('p_covid_cases AS c', 'c.id', 'cl.covid_case_id')
+      .leftJoin('b_hospitals AS hr', 'c.hospital_id_refer', 'hr.id')
+      .join('views_hospital_all as vh', 'vh.id', 'cl.hospital_id')
+      .where('cl.entry_date', date)
+      .groupBy('cl.hospital_id')
+      .orderBy('vh.zone_code', 'ASC')
+    return sql;
+  }
+
   report4(db: Knex, date, sector) {
     const sql = db('views_covid_case_last as cl')
       .select('vh.id as hospital_id',
@@ -145,7 +296,86 @@ export class ReportAllModel {
     return sql;
   }
 
-  patientReportByZone(db: Knex, date, sector) {
+  getPatientsReportHeaders(db: Knex) {
+    const sql = db('b_gcs').select('*').where('is_deleted', 'N')
+    return sql
+  }
+
+  // getPatientsCases(db: Knex, date: string) {
+  //   const sql = db('p_covid_case_details AS cd')
+  //     .select('h.zone_code', 'cd.gcs_id', 'g.name as gcs_name')
+  //     .count('* as count')
+  //     .leftJoin('p_covid_cases as c', 'cd.covid_case_id', 'c.id')
+  //     .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
+  //     .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')
+  //     .leftJoin('b_gcs as g', 'g.id', 'cd.gcs_id')
+  //     .where('cd.entry_date', date)
+  //     .where('c.case_status', 'COVID')
+  //     .where('cd.status', 'ADMIT')
+  //     .where('c.is_deleted', 'N')
+  //     .groupBy('h.zone_code', 'cd.gcs_id')
+  //     .orderBy('h.zone_code')
+
+  //   return sql
+  // }
+
+  // getDeathPatientsCases(db: Knex, date: string) {
+  //   const sql = db('p_covid_case_details AS cd')
+  //     .select('h.zone_code', 'cd.gcs_id', 'g.name as gcs_name')
+  //     .count('* as count')
+  //     .leftJoin('p_covid_cases as c', 'cd.covid_case_id', 'c.id')
+  //     .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
+  //     .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')
+  //     .leftJoin('b_gcs as g', 'g.id', 'cd.gcs_id')
+  //     .where('cd.entry_date', date)
+  //     .where('c.case_status', 'COVID')
+  //     .where('cd.status', 'DEATH')
+  //     .where('c.is_deleted', 'N')
+  //     .groupBy('h.zone_code', 'cd.gcs_id')
+  //     .orderBy('h.zone_code')
+
+  //   return sql
+  // }
+
+  getPatientsCases(db: Knex, date: string, options: { case: string, status: string, groupBy: string, zones: string[], provinces: string[]}) {
+    const sql = db('p_covid_case_details AS cd')
+      
+      .count('* as count')
+      .leftJoin('p_covid_cases as c', 'cd.covid_case_id', 'c.id')
+      .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
+      .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')
+      .leftJoin('b_gcs as g', 'g.id', 'cd.gcs_id')
+      .where('cd.entry_date', date)
+      .where('c.case_status', options.case)
+      .where('cd.status', options.status)
+      .where('c.is_deleted', 'N')
+      .groupBy(options.groupBy, 'cd.gcs_id')
+      .orderBy('h.zone_code')
+
+    if (options.groupBy === 'h.zone_code') {
+      sql.select('h.zone_code', 'cd.gcs_id', 'g.name as gcs_name')
+    }
+
+    if (options.groupBy === 'h.province_code') {
+      sql.select('h.zone_code', 'cd.gcs_id', 'g.name as gcs_name', 'h.province_code', 'h.province_name')
+    }
+
+    if (options.groupBy === 'h.id') {
+      sql.select('h.zone_code', 'cd.gcs_id', 'g.name as gcs_name', 'h.province_code', 'h.province_name', 'h.hospname', 'h.id', 'h.hospcode')
+    }
+
+    if (options.zones?.length > 0) {
+      sql.whereIn('h.zone_code', options.zones)
+    }
+
+    if (options.provinces?.length > 0) {
+      sql.whereIn('h.province_code', options.provinces)
+    }
+
+    return sql
+  }
+
+  patientReportByZone(db: Knex, date, sector, zones = []) {
     const sql = db('views_covid_case_last as cl')
       .select('vh.id as hospital_id',
         'vh.hospname',
@@ -157,7 +387,10 @@ export class ReportAllModel {
         sum(c.status!='ADMIT' and (cl.gcs_id in (1,2,3,4) or cl.gcs_id is null) ) as discharge,
         sum(c.status='REFER' and hr.hospital_type='HOSPITEL'  and (cl.gcs_id in (1,2,3,4) or cl.gcs_id is null)  ) as discharge_hospitel,
         sum(c.status='DEATH'  and (cl.gcs_id in (1,2,3,4) or cl.gcs_id is null)  ) as discharge_death,
-        
+        sum(cl.gcs_id = 1 ) as severe,
+        sum(cl.gcs_id = 2 ) as moderater,
+        sum(cl.gcs_id = 3 ) as mild,
+        sum(cl.gcs_id = 4 ) as asymtomatic,
         sum(cl.gcs_id = 5 ) as pui_admit,
         sum(c.status!='ADMIT' and cl.gcs_id = 5 ) as pui_discharge,
         sum(c.status='REFER' and hr.hospital_type='HOSPITEL'  and cl.gcs_id = 5 ) as pui_discharge_hospitel,
@@ -172,10 +405,15 @@ export class ReportAllModel {
       .where('cl.entry_date', '>=', '2020-12-15')
       .groupBy('vh.zone_code')
       .orderBy('vh.zone_code', 'ASC')
+
+    if (zones.length > 0) {
+      sql.whereIn('vh.zone_code', zones)
+    }
+
     return sql;
   }
 
-  patientReportByProvince(db: Knex, date, sector) {
+  patientReportByProvince(db: Knex, date, sector, provinces = []) {
     const sql = db('views_covid_case_last as cl')
       .select('vh.id as hospital_id',
         'vh.hospname',
@@ -187,7 +425,10 @@ export class ReportAllModel {
         sum(c.status!='ADMIT' and (cl.gcs_id in (1,2,3,4) or cl.gcs_id is null) ) as discharge,
         sum(c.status='REFER' and hr.hospital_type='HOSPITEL'  and (cl.gcs_id in (1,2,3,4) or cl.gcs_id is null)  ) as discharge_hospitel,
         sum(c.status='DEATH'  and (cl.gcs_id in (1,2,3,4) or cl.gcs_id is null)  ) as discharge_death,
-        
+        sum(cl.gcs_id = 1 ) as severe,
+        sum(cl.gcs_id = 2 ) as moderater,
+        sum(cl.gcs_id = 3 ) as mild,
+        sum(cl.gcs_id = 4 ) as asymtomatic,
         sum(cl.gcs_id = 5 ) as pui_admit,
         sum(c.status!='ADMIT' and cl.gcs_id = 5 ) as pui_discharge,
         sum(c.status='REFER' and hr.hospital_type='HOSPITEL'  and cl.gcs_id = 5 ) as pui_discharge_hospitel,
@@ -202,10 +443,15 @@ export class ReportAllModel {
       .where('cl.entry_date', '>=', '2020-12-15')
       .groupBy('vh.province_code')
       .orderBy('vh.zone_code', 'ASC')
+    
+    if (provinces.length > 0) {
+      sql.whereIn('vh.province_code', provinces)
+    }
+
     return sql;
   }
 
-  patientReportByHospital(db: Knex, date, sector) {
+  patientReportByHospital(db: Knex, date, sector, hospitalIds = []) {
     const sql = db('views_covid_case_last as cl')
       .select('vh.id as hospital_id',
         'vh.hospname',
@@ -217,7 +463,10 @@ export class ReportAllModel {
         sum(c.status!='ADMIT' and (cl.gcs_id in (1,2,3,4) or cl.gcs_id is null) ) as discharge,
         sum(c.status='REFER' and hr.hospital_type='HOSPITEL'  and (cl.gcs_id in (1,2,3,4) or cl.gcs_id is null)  ) as discharge_hospitel,
         sum(c.status='DEATH'  and (cl.gcs_id in (1,2,3,4) or cl.gcs_id is null)  ) as discharge_death,
-        
+        sum(cl.gcs_id = 1 ) as severe,
+        sum(cl.gcs_id = 2 ) as moderater,
+        sum(cl.gcs_id = 3 ) as mild,
+        sum(cl.gcs_id = 4 ) as asymtomatic,
         sum(cl.gcs_id = 5 ) as pui_admit,
         sum(c.status!='ADMIT' and cl.gcs_id = 5 ) as pui_discharge,
         sum(c.status='REFER' and hr.hospital_type='HOSPITEL'  and cl.gcs_id = 5 ) as pui_discharge_hospitel,
@@ -232,6 +481,11 @@ export class ReportAllModel {
       .where('cl.entry_date', '>=', '2020-12-15')
       .groupBy('cl.hospital_id')
       .orderBy('vh.zone_code', 'ASC')
+
+    if (hospitalIds.length > 0) {
+      sql.whereIn('cl.hospital_id', hospitalIds)
+    }
+
     return sql;
   }
 

@@ -264,7 +264,7 @@ router.put('/confirm-date', async (req: Request, res: Response) => {
 });
 
 //#######START CODE NEW ########################################
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', async (req: Request, res: Response) => { // TODO: check amount of bed
   const hospitalId = req.decoded.hospitalId;
   const db = req.db;
   const data = req.body.data;
@@ -292,6 +292,7 @@ router.post('/', async (req: Request, res: Response) => {
     res.send({ ok: false, error: error });
   }
 });
+
 router.post('/sd', async (req: Request, res: Response) => {
   const db = req.db;
   const data = req.body.data;

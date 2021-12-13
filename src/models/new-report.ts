@@ -1,3 +1,4 @@
+import { groupBy } from 'lodash';
 import Knex = require('knex');
 import * as moment from 'moment';
 import { join } from 'bluebird';
@@ -928,35 +929,131 @@ export class ReportModel {
 
   //   return sql
   // }
+  getGenericNames(db: Knex) {
+    let sql = db('b_generics').select('name', 'id').where('is_actived', 'Y')
 
-  admitCase(db: Knex, date, showPersons = false) {
-    return db.raw(`SELECT
-    h.zone_code,
-    h.province_name,
-    h.hospname,
-    pt.hn,
-    c.an,
-    p.cid,
-    p.first_name,
-    p.last_name,
-    p.gender_id,
-    c.date_admit,
-    g.NAME AS gcs_name,
-    b.NAME AS bed_name,
-    m.name as medical_name
-    
-    FROM
-      p_covid_cases AS c
-      LEFT JOIN p_covid_case_details AS cd ON c.id = cd.covid_case_id 
-      AND cd.entry_date = ${date.start}
-      LEFT JOIN p_patients AS pt ON pt.id = c.patient_id
-      LEFT JOIN p_persons AS p ON p.id = pt.person_id
-      LEFT JOIN b_hospitals AS h ON pt.hospital_id = h.id
-      LEFT JOIN b_gcs AS g ON cd.gcs_id = g.id
-      LEFT JOIN b_beds AS b ON b.id = cd.bed_id 
-      left join b_medical_supplies as m on m.id = cd.medical_supplie_id
-    WHERE
-      c.is_deleted = 'N'  and c.date_admit = ${date.start}`)
+    return sql
+  }
+
+  admitCase(db: Knex, date: string) {
+    let sql = db('p_covid_cases AS c')
+      .select(
+        'h.zone_code',
+        'h.province_name',
+        'h.hospname',
+        'pt.hn',
+        'cd.covid_case_id',
+        'p.first_name',
+        'p.last_name',
+        'gd.name as gender',
+        'c.date_admit',
+        'c.create_date',
+        'g.name as gcs_name',
+        'b.name as bed_name',
+        'm.name as supplies_name',
+        'c.update_date',
+        'c.an',
+        'c.id as cid',
+        'cd.id as detail_id',
+        'h.head_hospcode'
+      )
+      .leftJoin('p_covid_case_details as cd', 'cd.covid_case_id', 'c.id')
+      .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
+      .leftJoin('p_persons as p', 'p.id', 'pt.person_id')
+      .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')
+      .leftJoin('b_gcs as g', 'cd.gcs_id', 'g.id')
+      .leftJoin('b_beds as b', 'b.id', 'cd.bed_id')
+      .leftJoin('b_medical_supplies as m', 'm.id', 'cd.medical_supplie_id')
+      .leftJoin('b_genders as gd', 'gd.id', 'p.gender_id')
+      .leftJoin('b_generics as bg', 'bg.id', 'g.id')
+      .where('c.is_deleted ', 'N')
+      .where('c.date_admit', date)
+      .where('c.status', 'ADMIT')
+      .orderBy('h.zone_code')
+
+    return sql
+  }
+
+  admitCaseSummary(db: Knex, date: { start: string, end: string }) {
+    let sql = db('p_covid_cases AS c')
+      .select('h.zone_code')
+      .count('* as admit')
+      .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
+      .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')
+      .where('c.is_deleted ', 'N')
+      .where('c.status', 'ADMIT')
+      .whereBetween('c.date_admit', [date.start, date.end])
+      .groupBy('h.zone_code')
+      .orderBy('h.zone_code')
+
+    return sql
+  }
+
+  dischargeSummary(db: Knex, date: { start: string, end: string }) {
+    let sql = db('p_covid_cases AS c')
+      .select('h.zone_code', 'c.status')
+      .count('* as count')
+      .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
+      .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')
+      .where('c.is_deleted ', 'N')
+      .whereIn('c.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
+      .whereBetween('c.date_admit', [date.start, date.end])
+      .groupBy('h.zone_code', 'c.status')
+      .orderBy('h.zone_code')
+
+    return sql
+  }
+
+  dischargeCaseByDate(db: Knex, date: string) {
+    let sql = db('p_covid_cases AS c')
+      .select(
+        'h.zone_code',
+        'h.province_name',
+        'h.hospname',
+        'pt.hn',
+        'cd.covid_case_id',
+        'p.first_name',
+        'p.last_name',
+        'gd.name as gender',
+        'c.date_admit',
+        'c.create_date',
+        'g.name as gcs_name',
+        'b.name as bed_name',
+        'm.name as supplies_name',
+        'c.update_date',
+        'c.an',
+        'c.id as cid',
+        'cd.id as detail_id',
+        'h.head_hospcode'
+      )
+      .leftJoin('p_covid_case_details as cd', 'cd.covid_case_id', 'c.id')
+      .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
+      .leftJoin('p_persons as p', 'p.id', 'pt.person_id')
+      .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')
+      .leftJoin('b_gcs as g', 'cd.gcs_id', 'g.id')
+      .leftJoin('b_beds as b', 'b.id', 'cd.bed_id')
+      .leftJoin('b_genders as gd', 'gd.id', 'p.gender_id')
+      .leftJoin('b_generics as bg', 'bg.id', 'g.id')
+      .where('c.is_deleted ', 'N')
+      .where('c.date_discharge', date)
+      .where('c.status', 'DISCHARGE')
+      .groupBy('p.id')
+      .orderBy('h.zone_code')
+
+    return sql
+  }
+
+  getPersonsGenerics(db: Knex, date) {
+    let sql = db('p_covid_cases as c')
+      .select('ci.*', 'g.*')
+      .leftJoin('p_covid_case_details as cd', 'cd.covid_case_id', 'c.id')
+      .leftJoin('p_covid_case_detail_items as ci', 'ci.covid_case_detail_id', 'cd.id')
+      .leftJoin('b_generics as g', 'g.id', 'ci.generic_id')
+      .groupBy('cd.id')
+      .where('c.is_deleted ', 'N')
+      .where('c.date_admit', date)
+
+    return sql
   }
 
   dischargeCase(db: Knex, date, showPersons = false) {
@@ -969,7 +1066,7 @@ export class ReportModel {
       .where('pc.is_deleted', 'N')
       .whereIn('pc.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
       .whereIn('vl.gcs_id', [1, 2, 3, 4])
-      .whereBetween('pc.date_discharge', [`${date.start} 00:00:00`, `${date.end} 23:59:00`])
+      .whereBetween('pc.date_discharge', [`${date} 00:00:00`, `${date} 23:59:00`])
       .orderBy('h.zone_code').orderBy('h.province_name').orderBy('h.hospname');
     if (showPersons) {
       sql.select('p.person_id', 'pp.*', 't.name as title_name')

@@ -77,6 +77,10 @@ export class HospitalModel {
   checkHospCode(db: Knex, code: any) {
     return db('b_hospitals').where('hospcode', code);
   }
+
+  getNextInsertId(db: Knex) {
+    return db('b_hospitals as b').select('b.id as id').orderBy('b.id', 'DESC').limit(1);
+  }
   
   getZone(db: Knex, provinceCode) {
     return db('b_province').where('code', provinceCode);
