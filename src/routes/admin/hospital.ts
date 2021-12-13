@@ -73,6 +73,8 @@ router.post('/', async (req: Request, res: Response) => {
   const decoded = req.decoded;
   try {
     if (typeof data === 'object' && data) {
+      const hospTypeCharCode = 'F'
+      const hospitalGenCode = `${data.ministry_code}${hospTypeCharCode}${data.zone_code}${}`
       const dupCode: any = await hospitalModel.checkHospCode(req.db, data.hospcode)
       data.created_by = decoded.id || 0;
       if (dupCode.length == 0 && data.hospcode.length === 5) {
