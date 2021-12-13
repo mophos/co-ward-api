@@ -3601,7 +3601,11 @@ const mapPersonsGenerics = (genericsPersons: any[], cases: any[]) => {
       obj[each.name] = each.qty
     })
 
-    return { ...eachCase, ...obj }
+    const today = moment()
+    const birthDate = moment(eachCase.birth_date)
+    const age = today.diff(birthDate, 'year')
+
+    return { ...eachCase, ...obj, age }
   })
 
   return results

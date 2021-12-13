@@ -208,16 +208,22 @@ const mapPatientReportByZone = (normalCases: any[], deathCases: any[], puiCases:
 }
 
 const removeDupProvinceHeaders = (normalCases: any[], deathCases: any[], puiCases: any[]) => {
-  const results = normalCases.map((each) => ({ province_code: each.province_code, province_name: each.province_name, zone_code: each.zone_code }))
+  const results = []
+
+  normalCases.forEach((each) => {
+    if (!results.some((result) => result.province_code === each.province_code)) {
+      results.push({ province_code: each.province_code, province_name: each.province_name, zone_code: each.zone_code })
+    }
+  })
   
   deathCases.forEach((each) => {
-    if (results.some((result) => result.province_code !== each.province_code)) {
+    if (!results.some((result) => result.province_code === each.province_code)) {
       results.push({ province_code: each.province_code, province_name: each.province_name, zone_code: each.zone_code })
     }
   })
 
   puiCases.forEach((each) => {
-    if (results.some((result) => result.province_code !== each.province_code)) {
+    if (!results.some((result) => result.province_code === each.province_code)) {
       results.push({ province_code: each.province_code, province_name: each.province_name, zone_code: each.zone_code })
     }
   })
