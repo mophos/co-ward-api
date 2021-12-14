@@ -245,14 +245,20 @@ const removeDupProvinceHeaders = (normalCases: any[], deathCases: any[], puiCase
 }
 
 const removeDupHospitalHeaders = (normalCases: any[], deathCases: any[], puiCases: any[]) => {
-  const results = normalCases.map((each) => ({ 
-    id: each.id,
-    province_name: each.province_name,
-    zone_code: each.zone_code,
-    hospname: each.hospname,
-    hospcode: each.hospcode,
-    sub_ministry_name: each.sub_ministry_name
-  }))
+  const results = []
+
+  normalCases.forEach((each) => { 
+    if (!results.some((result) => result.id === each.id)) {
+      results.push({ 
+        id: each.id,
+        province_name: each.province_name,
+        zone_code: each.zone_code,
+        hospname: each.hospname,
+        hospcode: each.hospcode,
+        sub_ministry_name: each.sub_ministry_name
+      })
+    }
+  })
   
   deathCases.forEach((each) => {
     if (!results.some((result) => result.id === each.id)) {

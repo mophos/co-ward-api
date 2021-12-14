@@ -69,6 +69,7 @@ export class ReportAllModel {
     }
 
     if (options.provinces?.length > 0) {
+      sql.whereIn('h.zone_code', options.zones)
       sql.whereIn('h.province_code', options.provinces)
     }
 
@@ -370,6 +371,7 @@ export class ReportAllModel {
     }
 
     if (options.provinces?.length > 0) {
+      sql.whereIn('h.zone_code', options.zones)
       sql.whereIn('h.province_code', options.provinces)
     }
 
