@@ -61,7 +61,7 @@ export class ReportAllModel {
     }
 
     if (options.groupBy === 'h.id') {
-      sql.select('h.zone_code', 'cd.bed_id', 'b.name as bed_name', 'h.province_code', 'h.province_name', 'h.hospname', 'h.id', 'h.hospcode')
+      sql.select('h.zone_code', 'cd.bed_id', 'b.name as bed_name', 'h.province_code', 'h.province_name', 'h.hospname', 'h.id', 'h.hospcode', 'h.level')
     }
 
     if (options.zones?.length > 0) {
@@ -344,6 +344,7 @@ export class ReportAllModel {
       .leftJoin('p_covid_cases as c', 'cd.covid_case_id', 'c.id')
       .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
       .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')
+      .leftJoin('b_hospital_subministry as hs', 'hs.code', 'h.sub_ministry_code')
       .leftJoin('b_gcs as g', 'g.id', 'cd.gcs_id')
       .where('cd.entry_date', date)
       .where('c.case_status', options.case)
@@ -361,7 +362,7 @@ export class ReportAllModel {
     }
 
     if (options.groupBy === 'h.id') {
-      sql.select('h.zone_code', 'cd.gcs_id', 'g.name as gcs_name', 'h.province_code', 'h.province_name', 'h.hospname', 'h.id', 'h.hospcode')
+      sql.select('h.zone_code', 'cd.gcs_id', 'g.name as gcs_name', 'h.province_code', 'h.province_name', 'h.hospname', 'h.id', 'h.hospcode', 'hs.name as sub_ministry_name')
     }
 
     if (options.zones?.length > 0) {

@@ -271,23 +271,26 @@ router.post('/', async (req: Request, res: Response) => { // TODO: check amount 
   try {
 
     // check patient 
-    const rsPatient = await covidCaseModel.getPatientByHN(db, hospitalId, data.hn);
-    if (rsPatient.length && data.confirm != 'Y') {
-      if (data.type == 'CID' || (data.type == 'PASSPORT' && data.passport)) {
-        // มี patient
-        res.send(await saveCovidCase(db, req, data));
-      } else {
-        const rsPerson = await covidCaseModel.getPerson(db, rsPatient[0].person_id);
-        if (rsPerson.length) {
-          res.send({ ok: false, code: 3301, rows: rsPerson[0] });
-        } else {
-          res.send({ ok: false, error: 'มีบัครุนแรงติดต่อคุณแอมป์ด่วนค่ะ !!' });
-        }
-      }
-    } else {
-      // ไม่มี patient
-      res.send(await saveCovidCase(db, req, data));
-    }
+    // const rsPatient = await covidCaseModel.getPatientByHN(db, hospitalId, data.hn);
+    const bedAmount = await covidCaseModel.getAmountOfBedByHospitalId(db, 61)
+    console.log({bedAmount})
+    res.json({bedAmount})
+  //   if (rsPatient.length && data.confirm != 'Y') {
+  //     if (data.type == 'CID' || (data.type == 'PASSPORT' && data.passport)) {
+  //       // มี patient
+  //       res.send(await saveCovidCase(db, req, data));
+  //     } else {
+  //       const rsPerson = await covidCaseModel.getPerson(db, rsPatient[0].person_id);
+  //       if (rsPerson.length) {
+  //         res.send({ ok: false, code: 3301, rows: rsPerson[0] });
+  //       } else {
+  //         res.send({ ok: false, error: 'มีบัครุนแรงติดต่อคุณแอมป์ด่วนค่ะ !!' });
+  //       }
+  //     }
+  //   } else {
+  //     // ไม่มี patient
+  //     res.send(await saveCovidCase(db, req, data));
+  //   }
   } catch (error) {
     res.send({ ok: false, error: error });
   }

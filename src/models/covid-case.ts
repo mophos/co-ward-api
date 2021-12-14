@@ -43,7 +43,6 @@ export class CovidCaseModel {
     // .groupBy('pt.id')
   }
 
-
   getListHosp(db: Knex, hospitalId) {
     return db('wm_requisitions as r')
       .select('r.*', 'h1.hospname')
@@ -166,6 +165,14 @@ export class CovidCaseModel {
       })
       .where('c.id', covidCaseId)
       .where('pt.hospital_id', hospitalId)
+  }
+
+  getAmountOfBedByHospitalId(db: Knex, hospitalId: any) {
+    let sql = db('b.generics')
+      .sum('covid_qty')
+      .where('hospital_id', hospitalId)
+
+    return sql
   }
 
 
