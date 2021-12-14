@@ -83,7 +83,7 @@ router.get('/bed-report-by-hospital', async (req: Request, res: Response) => {
   const { zones, provinces, date, } = req.query;
 
   try {
-    const rs: any = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.province_code', zones, provinces });
+    const rs: any = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.id', zones, provinces });
     res.send({ ok: true, rows: mapBedReports(rs), code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
