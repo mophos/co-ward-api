@@ -39,15 +39,21 @@ router.get('/medicals-supplies-report-by-hospital', async (req: Request, res: Re
 });
 
 const mapBedReports = (raws: any[]) => {
-  const results = {}
+  const results = []
 
-  raws.forEach((raw) => {
-    if (results[raw.zone_code]) {
-      results[raw.zone_code].push(raw)
-    } else {
-      results[raw.zone_code] = [raw]
-    }
-  })
+  // raws.forEach((raw) => {
+  //   if (results[raw.zone_code]) {
+  //     results[raw.zone_code].push(raw)
+  //   } else {
+  //     results[raw.zone_code] = [raw]
+  //   }
+  // })
+
+  for (let index = 1; index <= 13; index++) {
+    const indexString = index.toString().padStart(2, '0')
+    const grouped = raws.filter((raw) => raw.zone_code === indexString)
+    results.push(grouped)
+  }
 
   return results
 }
@@ -252,6 +258,7 @@ const removeDupHospitalHeaders = (normalCases: any[], deathCases: any[], puiCase
       results.push({ 
         id: each.id,
         province_name: each.province_name,
+        province_code: each.province_code,
         zone_code: each.zone_code,
         hospname: each.hospname,
         hospcode: each.hospcode,
@@ -265,6 +272,7 @@ const removeDupHospitalHeaders = (normalCases: any[], deathCases: any[], puiCase
       results.push({ 
         id: each.id,
         province_name: each.province_name,
+        province_code: each.province_code,
         zone_code: each.zone_code,
         hospname: each.hospname,
         hospcode: each.hospcode,
@@ -278,6 +286,7 @@ const removeDupHospitalHeaders = (normalCases: any[], deathCases: any[], puiCase
       results.push({ 
         id: each.id,
         province_name: each.province_name,
+        province_code: each.province_code,
         zone_code: each.zone_code,
         hospname: each.hospname,
         hospcode: each.hospcode,
@@ -326,8 +335,8 @@ const mapPatientReportByHospital = (normalCases: any[], deathCases: any[], puiCa
 
   const provinces = removeDupHospitalHeaders(normalCases, deathCases, puiCases)
   provinces.forEach((province) => {
-    const { id, hospcode, hospname, province_name, zone_code, sub_ministry_name, level } = province
-    const obj = { id, hospcode, hospname, province_name, zone_code, sub_ministry_name, level }
+    const { id, hospcode, hospname, province_name, province_code, zone_code, sub_ministry_name, level } = province
+    const obj = { id, hospcode, hospname, province_name, zone_code, sub_ministry_name, level, province_code }
 
     const normalCaseFounds = normalCases.filter((each) => each.id === id)
     const puiCaseFounds = puiCases.filter((each) => each.id === id)
