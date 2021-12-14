@@ -363,7 +363,7 @@ export class ReportAllModel {
     }
 
     if (options.groupBy === 'h.id') {
-      sql.select('h.zone_code', 'cd.gcs_id', 'g.name as gcs_name', 'h.province_code', 'h.province_name', 'h.hospname', 'h.id', 'h.hospcode', 'hs.name as sub_ministry_name')
+      sql.select('h.zone_code', 'cd.gcs_id', 'g.name as gcs_name', 'h.province_code', 'h.province_name', 'h.hospname', 'h.id', 'h.hospcode', 'hs.name as sub_ministry_name', 'h.level')
     }
 
     if (options.zones?.length > 0) {

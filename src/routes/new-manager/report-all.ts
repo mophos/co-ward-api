@@ -326,8 +326,8 @@ const mapPatientReportByHospital = (normalCases: any[], deathCases: any[], puiCa
 
   const provinces = removeDupHospitalHeaders(normalCases, deathCases, puiCases)
   provinces.forEach((province) => {
-    const { id, hospcode, hospname, province_name, zone_code, sub_ministry_name } = province
-    const obj = { id, hospcode, hospname, province_name, zone_code, sub_ministry_name }
+    const { id, hospcode, hospname, province_name, zone_code, sub_ministry_name, level } = province
+    const obj = { id, hospcode, hospname, province_name, zone_code, sub_ministry_name, level }
 
     const normalCaseFounds = normalCases.filter((each) => each.id === id)
     const puiCaseFounds = puiCases.filter((each) => each.id === id)
