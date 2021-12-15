@@ -1,19 +1,333 @@
 import * as HttpStatus from 'http-status-codes';
 import { Router, Request, Response } from 'express';
-import { sumBy, filter } from 'lodash';
+import { sumBy } from 'lodash';
 import { ReportAllModel } from '../../models/new-report-all';
+import { ReportModel } from '../../models/new-report';
 const excel4node = require('excel4node');
 const path = require('path')
 const fse = require('fs-extra');
 import moment = require('moment');
+import console = require('console');
 
 const model = new ReportAllModel();
+const reportModel = new ReportModel();
 const router: Router = Router();
 
+function getAge (value) {
+  const now =  moment()
+  const dateBirth = moment(value)
+  return now.diff(dateBirth, 'years')
+}
+
+function formatDate (value) {
+  return moment(value).format('DD-MM-YYYY')
+}
+
+function countExistingZone (items) {
+  let count = 0
+  items.forEach((item) => {
+    if (item.length) {
+      count++
+    }
+  })
+  return count
+}
+
+function sumField (value) {
+  let sum = 0
+  const keys = Object.keys(value)
+  keys.forEach(key => {
+    if (key !== 'zone_code') {
+      if (value[key] !== null && value[key] !== undefined) {
+        sum += value[key]
+      }
+    }
+  })
+  return sum
+}
+
+function sumZone (items, value) {
+  return sumBy(items, value)
+}
+
+function sum12Zone (items, value) {
+  return sumBy(items, value) - items[12][value]
+}
+
+function sumAllZone (items, value) {
+  return sumBy(items, value)
+}
+
+function sum12ZoneByProvince (items, value) {
+  let sum = 0
+  items.forEach(item => {
+    sum += sumBy(item, value) || 0
+  })
+  return sum - (items[12].length ? items[12][0][value] : 0)
+}
+
+function sumAllZoneByProvince (items, value) {
+  let sum = 0
+  items.forEach(item => {
+    sum += sumBy(item, value) || 0
+  })
+  return sum
+}
+
+const mapPatientReportByZone = (normalCases: any[], deathCases: any[], puiCases: any[]) => {
+  const results = []
+  for (let index = 1; index <= 13; index++) {
+    const zoneCodeString = (index+'').padStart(2, '0')
+    const obj = {zoneCode: zoneCodeString}
+    const normalCaseFounds = normalCases.filter((each) => each.zone_code === zoneCodeString)
+    const puiCaseFounds = puiCases.filter((each) => each.zone_code === zoneCodeString)
+    const deathCasesFounds = deathCases.filter((each) => each.zone_code === zoneCodeString)
+
+    let normalCaseAmount = 0
+
+    normalCaseFounds.forEach((each) => {
+      const field = each.gcs_name.toLowerCase().split(' ').join('_')
+      obj[field] = each.count
+      normalCaseAmount += each.count
+    })
+
+    const deathCaseAmount = deathCasesFounds.reduce((total, acc) => total + acc.count, 0)
+    const puiCaseAmount = puiCaseFounds.reduce((total, acc) => total + acc.count, 0)
+    obj['death'] = deathCaseAmount
+    obj['pui'] = puiCaseAmount
+    obj['total'] = normalCaseAmount + deathCaseAmount + puiCaseAmount
+
+    results.push(obj)
+  }
+
+  return results
+}
+
+const removeDupProvinceHeaders = (normalCases: any[], deathCases: any[], puiCases: any[]) => {
+  const results = []
+  normalCases.forEach((each) => {
+    if (!results.some((result) => result.province_code === each.province_code)) {
+      results.push({ province_code: each.province_code, province_name: each.province_name, zone_code: each.zone_code })
+    }
+  })
+
+  deathCases.forEach((each) => {
+    if (!results.some((result) => result.province_code === each.province_code)) {
+      results.push({ province_code: each.province_code, province_name: each.province_name, zone_code: each.zone_code })
+    }
+  })
+
+  puiCases.forEach((each) => {
+    if (!results.some((result) => result.province_code === each.province_code)) {
+      results.push({ province_code: each.province_code, province_name: each.province_name, zone_code: each.zone_code })
+    }
+  })
+
+  return results
+}
+
+const mapPatientReportByProvince = (normalCases: any[], deathCases: any[], puiCases: any[]) => {
+  const results = []
+
+  const provinces = removeDupProvinceHeaders(normalCases, deathCases, puiCases)
+  provinces.forEach((province) => {
+    const { province_code, province_name, zone_code } = province
+    const obj = {province_code, province_name, zone_code }
+
+    const normalCaseFounds = normalCases.filter((each) => each.province_code === province_code)
+    const puiCaseFounds = puiCases.filter((each) => each.province_code === province_code)
+    const deathCasesFounds = deathCases.filter((each) => each.province_code === province_code)
+
+    let normalCaseAmount = 0
+
+    normalCaseFounds.forEach((each) => {
+      const field = each.gcs_name.toLowerCase().split(' ').join('_')
+      obj[field] = each.count
+      normalCaseAmount += each.count
+    })
+
+    const deathCaseAmount = deathCasesFounds.reduce((total, acc) => total + acc.count, 0)
+    const puiCaseAmount = puiCaseFounds.reduce((total, acc) => total + acc.count, 0)
+    obj['death'] = deathCaseAmount
+    obj['pui'] = puiCaseAmount
+    obj['total'] = normalCaseAmount + deathCaseAmount + puiCaseAmount
+
+    results.push(obj)
+  })
+
+  return results
+}
+
+const removeDupHospitalHeaders = (normalCases: any[], deathCases: any[], puiCases: any[]) => {
+  const results = []
+
+  normalCases.forEach((each) => {
+    if (!results.some((result) => result.id === each.id)) {
+      results.push({
+        id: each.id,
+        province_name: each.province_name,
+        province_code: each.province_code,
+        zone_code: each.zone_code,
+        hospname: each.hospname,
+        hospcode: each.hospcode,
+        sub_ministry_name: each.sub_ministry_name,
+        level: each.level
+      })
+    }
+  })
+
+  deathCases.forEach((each) => {
+    if (!results.some((result) => result.id === each.id)) {
+      results.push({
+        id: each.id,
+        province_name: each.province_name,
+        province_code: each.province_code,
+        zone_code: each.zone_code,
+        hospname: each.hospname,
+        hospcode: each.hospcode,
+        sub_ministry_name: each.sub_ministry_name,
+        level: each.level
+      })
+    }
+  })
+
+  puiCases.forEach((each) => {
+    if (!results.some((result) => result.id === each.id)) {
+      results.push({
+        id: each.id,
+        province_name: each.province_name,
+        province_code: each.province_code,
+        zone_code: each.zone_code,
+        hospname: each.hospname,
+        hospcode: each.hospcode,
+        sub_ministry_name: each.sub_ministry_name,
+        level: each.level
+      })
+    }
+  })
+
+  return results
+}
+
+const mapPatientReportByHospital = (normalCases: any[], deathCases: any[], puiCases: any[]) => {
+  const results = []
+
+  const provinces = removeDupHospitalHeaders(normalCases, deathCases, puiCases)
+  provinces.forEach((province) => {
+    const { id, hospcode, hospname, province_name, province_code, zone_code, sub_ministry_name, level } = province
+    const obj = { id, hospcode, hospname, province_name, zone_code, sub_ministry_name, level, province_code }
+
+    const normalCaseFounds = normalCases.filter((each) => each.id === id)
+    const puiCaseFounds = puiCases.filter((each) => each.id === id)
+    const deathCasesFounds = deathCases.filter((each) => each.id === id)
+
+    let normalCaseAmount = 0
+
+    normalCaseFounds.forEach((each) => {
+      const field = each.gcs_name.toLowerCase().split(' ').join('_')
+      obj[field] = each.count
+      normalCaseAmount += each.count
+    })
+
+    const deathCaseAmount = deathCasesFounds.reduce((total, acc) => total + acc.count, 0)
+    const puiCaseAmount = puiCaseFounds.reduce((total, acc) => total + acc.count, 0)
+    obj['death'] = deathCaseAmount
+    obj['pui'] = puiCaseAmount
+    obj['total'] = normalCaseAmount + deathCaseAmount + puiCaseAmount
+
+    results.push(obj)
+  })
+
+  return results
+}
+
+const mapPatientsResult = (total: any[], today: any[]) => {
+  const result = total.map((each) => {
+    const found = today.find(item => each.hospital_id === item.hospital_id)
+    if (found) {
+      return { ...each,
+        today_admit: found.admit,
+        today_discharge: found.discharge,
+        today_discharge_hospitel: found.discharge_hospitel,
+        today_discharge_death: found.discharge_death,
+        today_pui_admit: found.pui_admit,
+        today_pui_discharge: found.pui_discharge,
+        today_pui_discharge_hospitel: found.pui_discharge_hospitel,
+        today_pui_discharge_death: found.pui_discharge_death,
+      }
+    }
+
+    return {
+      ...each,
+      today_admit: 0,
+      today_discharge: 0,
+      today_discharge_hospitel: 0,
+      today_discharge_death: 0,
+      today_pui_admit: 0,
+      today_pui_discharge: 0,
+      today_pui_discharge_hospitel: 0,
+      today_pui_discharge_death: 0,
+    }
+  })
+
+  return result
+}
+
+const mapBedReports = (raws: any[]) => {
+  const results = []
+
+  for (let index = 1; index <= 13; index++) {
+    const indexString = index.toString().padStart(2, '0')
+    const grouped = raws.filter((raw) => raw.zone_code === indexString)
+    results.push(grouped)
+  }
+
+  return results
+}
+
+const mapPersonsGenerics = (genericsPersons: any[], cases: any[]) => {
+  let results = genericsPersons
+  results = cases.map((eachCase) => {
+    const found = results.filter((result) => result.covid_case_detail_id === eachCase.detail_id)
+
+    const obj = {}
+    found.forEach((each) => {
+      obj[each.name] = each.qty
+    })
+
+    const today = moment()
+    const birthDate = moment(eachCase.birth_date)
+    const age = today.diff(birthDate, 'year')
+
+    const notUpdated = today.diff(moment(eachCase.update_date), 'day')
+
+    return { ...eachCase, ...obj, age, notUpdated }
+  })
+
+  return results
+}
+
+const mapDischargeSummary = (raws: any[]) => {
+  const results = []
+
+  raws.forEach((raw) => {
+    const foundIndex = results.findIndex((result) => result.zone_code === raw.zone_code)
+    let obj = { zone_code: raw.zone_code }
+    obj[raw.status] = raw.count
+
+    if (foundIndex === -1) {
+      results.push(obj)
+    } else {
+      results[foundIndex][raw.status] = raw.count
+    }
+  })
+
+  return results
+}
+
 router.get('/patient-report-by-zone', async (req: Request, res: Response) => {
-  const db = req.dbReport
-  const date = req.query.date
-  const sector = req.query.sector
+  const db = req.dbReport;
+  const date = req.query.date || moment().format('YYYY-MM-DD');
 
   var wb = new excel4node.Workbook()
   var ws = wb.addWorksheet('Sheet 1')
@@ -32,7 +346,14 @@ router.get('/patient-report-by-zone', async (req: Request, res: Response) => {
   })
 
   try {
-    const rs: any = await model.patientReportByZone(db, date, sector);
+    const [ headers, cases, deathCases, puiCases ] = await Promise.all([
+      model.getPatientsReportHeaders(db),
+      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] }),
+      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'DEATH', groupBy: 'h.zone_code', zones: [], provinces: [] }),
+      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'PUI', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] })
+    ])
+
+    const result = mapPatientReportByZone(cases, deathCases, puiCases)
 
     ws.cell(1,1).string('เขตสุขภาพ').style(center)
     ws.cell(1,2).string('ผู้ป่วยทั้งหมด').style(center)
@@ -46,44 +367,47 @@ router.get('/patient-report-by-zone', async (req: Request, res: Response) => {
     ws.cell(1,10).string('Dead').style(center)
     ws.cell(1,11).string('PUI').style(center)
 
-    for (let i = 0; i < rs.length; i++) {
-      ws.cell(2 + i, 1).string('รวมเขต ' + rs[i].zone_code)
-      ws.cell(2 + i, 2).number(0)
-      ws.cell(2 + i, 3).number(0)
-      ws.cell(2 + i, 4).number(0)
-      ws.cell(2 + i, 5).number(0)
-      ws.cell(2 + i, 6).number(0)
-      ws.cell(2 + i, 7).number(0)
-      ws.cell(2 + i, 8).number(0)
-      ws.cell(2 + i, 9).number(0)
-      ws.cell(2 + i, 10).number(0)
-      ws.cell(2 + i, 11).number(0)
-    }
+    result.forEach((row, i) => {
+      if (row.zoneCode !== '13') {
+        ws.cell(2 + i, 1).string('รวมเขต ' + row.zoneCode)
+      } else {
+        ws.cell(2 + i, 1).string('กรุงเทพมหานคร')
+      }
+      ws.cell(2 + i, 2).number(row.total || 0)
+      ws.cell(2 + i, 3).number(row.severe || 0)
+      ws.cell(2 + i, 4).number(row.invasive || 0)
+      ws.cell(2 + i, 5).number(row.nonInvasive || 0)
+      ws.cell(2 + i, 6).number(row.highFlow || 0)
+      ws.cell(2 + i, 7).number(row.moderate || 0)
+      ws.cell(2 + i, 8).number(row.mild || 0)
+      ws.cell(2 + i, 9).number(row.asymptomatic || 0)
+      ws.cell(2 + i, 10).number(row.death || 0)
+      ws.cell(2 + i, 11).number(row.pui || 0)
+    })
 
     ws.cell(15, 1).string('รวม 12 เขต')
-    ws.cell(15, 2).number(0)
-    ws.cell(15, 3).number(0)
-    ws.cell(15, 4).number(0)
-    ws.cell(15, 5).number(0)
-    ws.cell(15, 6).number(0)
-    ws.cell(15, 7).number(0)
-    ws.cell(15, 8).number(0)
-    ws.cell(15, 9).number(0)
-    ws.cell(15, 10).number(0)
-    ws.cell(15, 11).number(0)
+    ws.cell(15, 2).number(sum12Zone(result, 'total') || 0)
+    ws.cell(15, 3).number(sum12Zone(result, 'severe') || 0)
+    ws.cell(15, 4).number(sum12Zone(result, 'invasive') || 0)
+    ws.cell(15, 5).number(sum12Zone(result, 'nonInvasive') || 0)
+    ws.cell(15, 6).number(sum12Zone(result, 'highFlow') || 0)
+    ws.cell(15, 7).number(sum12Zone(result, 'moderate') || 0)
+    ws.cell(15, 8).number(sum12Zone(result, 'mild') || 0)
+    ws.cell(15, 9).number(sum12Zone(result, 'asymptomatic') || 0)
+    ws.cell(15, 10).number(sum12Zone(result, 'death') || 0)
+    ws.cell(15, 11).number(sum12Zone(result, 'pui') || 0)
 
     ws.cell(16, 1).string('ทั่วประเทศ')
-    ws.cell(16, 2).number(0)
-    ws.cell(16, 3).number(0)
-    ws.cell(16, 4).number(0)
-    ws.cell(16, 5).number(0)
-    ws.cell(16, 6).number(0)
-    ws.cell(16, 7).number(0)
-    ws.cell(16, 8).number(0)
-    ws.cell(16, 9).number(0)
-    ws.cell(16, 10).number(0)
-    ws.cell(16, 11).number(0)
-
+    ws.cell(16, 2).number(sumAllZone(result, 'total') || 0)
+    ws.cell(16, 3).number(sumAllZone(result, 'severe') || 0)
+    ws.cell(16, 4).number(sumAllZone(result, 'invasive') || 0)
+    ws.cell(16, 5).number(sumAllZone(result, 'nonInvasive') || 0)
+    ws.cell(16, 6).number(sumAllZone(result, 'highFlow') || 0)
+    ws.cell(16, 7).number(sumAllZone(result, 'moderate') || 0)
+    ws.cell(16, 8).number(sumAllZone(result, 'mild') || 0)
+    ws.cell(16, 9).number(sumAllZone(result, 'asymptomatic') || 0)
+    ws.cell(16, 10).number(sumAllZone(result, 'death') || 0)
+    ws.cell(16, 11).number(sumAllZone(result, 'pui') || 0)
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
@@ -108,9 +432,8 @@ router.get('/patient-report-by-zone', async (req: Request, res: Response) => {
 })
 
 router.get('/patient-report-by-province', async (req: Request, res: Response) => {
-  const db = req.dbReport
-  const date = req.query.date
-  const sector = req.query.sector
+  const db = req.dbReport;
+  const { zones, date } = req.query;
 
   var wb = new excel4node.Workbook()
   var ws = wb.addWorksheet('Sheet 1')
@@ -129,31 +452,49 @@ router.get('/patient-report-by-province', async (req: Request, res: Response) =>
   })
 
   try {
-    const rs: any = await model.patientReportByProvince(db, date, sector);
-    let row1 = 0
-    let rowEnd1 = 0
-    let row2 = 0
-    let rowEnd2 = 0
-    let row3 = 0
-    let rowEnd3 = 0
-    let row4 = 0
-    let rowEnd4 = 0
-    let row5 = 0
-    let rowEnd5 = 0
-    let row6 = 0
-    let rowEnd6 = 0
-    let row7 = 0
-    let rowEnd7 = 0
-    let row8 = 0
-    let rowEnd8 = 0
-    let row9 = 0
-    let rowEnd9 = 0
-    let row10 = 0
-    let rowEnd10 = 0
-    let row11 = 0
-    let rowEnd11 = 0
-    let row12 = 0
-    let rowEnd12 = 0
+    const [ headers, cases, deathCases, puiCases ] = await Promise.all([
+      model.getPatientsReportHeaders(db),
+      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] }),
+      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'DEATH', groupBy: 'h.province_code', zones, provinces: [] }),
+      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'PUI', status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] })
+    ])
+    const result = mapPatientReportByProvince(cases, deathCases, puiCases)
+    const items = [
+      [], [], [], [], [],
+      [], [], [], [], [],
+      [], [], []
+    ]
+    let rowNumber = 2
+
+    result.forEach(item => {
+      if (item.zone_code === '01') {
+        items[0].push(item)
+      } else if (item.zone_code === '02') {
+        items[1].push(item)
+      } else if (item.zone_code === '03') {
+        items[2].push(item)
+      } else if (item.zone_code === '04') {
+        items[3].push(item)
+      } else if (item.zone_code === '05') {
+        items[4].push(item)
+      } else if (item.zone_code === '06') {
+        items[5].push(item)
+      } else if (item.zone_code === '07') {
+        items[6].push(item)
+      } else if (item.zone_code === '08') {
+        items[7].push(item)
+      } else if (item.zone_code === '09') {
+        items[8].push(item)
+      } else if (item.zone_code === '10') {
+        items[9].push(item)
+      } else if (item.zone_code === '11') {
+        items[10].push(item)
+      } else if (item.zone_code === '12') {
+        items[11].push(item)
+      } else {
+        items[12].push(item)
+      }
+    })
 
     ws.cell(1,1).string('เขตสุขภาพ').style(center)
     ws.cell(1,2).string('จังหวัด').style(center)
@@ -168,394 +509,81 @@ router.get('/patient-report-by-province', async (req: Request, res: Response) =>
     ws.cell(1,11).string('Dead').style(center)
     ws.cell(1,12).string('PUI').style(center)
 
+    items.forEach((item, i) => {
+      item.forEach((x, j) => {
+        if (x.zone_code !== '13') {
+          ws.cell(rowNumber, 1).string(x.zone_code).style(center)
+          ws.cell(rowNumber, 2).string(x.province_name)
+          ws.cell(rowNumber, 3).number(x.total || 0)
+          ws.cell(rowNumber, 4).number(x.severe || 0)
+          ws.cell(rowNumber, 5).number(x.invasive || 0)
+          ws.cell(rowNumber, 6).number(x.non_invasive || 0)
+          ws.cell(rowNumber, 7).number(x.high_flow || 0)
+          ws.cell(rowNumber, 8).number(x.moderate || 0)
+          ws.cell(rowNumber, 9).number(x.mild || 0)
+          ws.cell(rowNumber, 10).number(x.asymptomatic || 0)
+          ws.cell(rowNumber, 11).number(x.death || 0)
+          ws.cell(rowNumber, 12).number(x.pui || 0)
+        } else {
+          ws.cell(rowNumber, 1, rowNumber, 2, true).string(x.province_name).style(center)
+          ws.cell(rowNumber, 3).number(x.total || 0)
+          ws.cell(rowNumber, 4).number(x.severe || 0)
+          ws.cell(rowNumber, 5).number(x.invasive || 0)
+          ws.cell(rowNumber, 6).number(x.non_invasive || 0)
+          ws.cell(rowNumber, 7).number(x.high_flow || 0)
+          ws.cell(rowNumber, 8).number(x.moderate || 0)
+          ws.cell(rowNumber, 9).number(x.mild || 0)
+          ws.cell(rowNumber, 10).number(x.asymptomatic || 0)
+          ws.cell(rowNumber, 11).number(x.death || 0)
+          ws.cell(rowNumber, 12).number(x.pui || 0)
+        }
+        rowNumber++
+      })
 
-    const rsZone1 = rs.filter(item => item.zone_code === '01')
-    for (let i = 0; i < rsZone1.length; i++) {
-      ws.cell(2 + i, 1).string(rsZone1[i].zone_code).style(center)
-      ws.cell(2 + i, 2).string(rsZone1[i].province_name)
-      ws.cell(2 + i, 3).number(0)
-      ws.cell(2 + i, 4).number(0)
-      ws.cell(2 + i, 5).number(0)
-      ws.cell(2 + i, 6).number(0)
-      ws.cell(2 + i, 7).number(0)
-      ws.cell(2 + i, 8).number(0)
-      ws.cell(2 + i, 9).number(0)
-      ws.cell(2 + i, 10).number(0)
-      ws.cell(2 + i, 11).number(0)
-      ws.cell(2 + i, 12).number(0)
+      if (items[i].length && items[i][0].zone_code !== '13') {
+        ws.cell(rowNumber, 1, rowNumber, 2, true).string(`รวมเขต ${items[i][0].zone_code}`).style(center)
+        ws.cell(rowNumber, 3).number(sumZone(item, 'total') || 0)
+        ws.cell(rowNumber, 4).number(sumZone(item, 'severe') || 0)
+        ws.cell(rowNumber, 5).number(sumZone(item, 'invasive') || 0)
+        ws.cell(rowNumber, 6).number(sumZone(item, 'non_invasive') || 0)
+        ws.cell(rowNumber, 7).number(sumZone(item, 'high_flow') || 0)
+        ws.cell(rowNumber, 8).number(sumZone(item, 'moderate') || 0)
+        ws.cell(rowNumber, 9).number(sumZone(item, 'mild') || 0)
+        ws.cell(rowNumber, 10).number(sumZone(item, 'asymptomatic') || 0)
+        ws.cell(rowNumber, 11).number(sumZone(item, 'death') || 0)
+        ws.cell(rowNumber, 12).number(sumZone(item, 'pui') || 0)
+        rowNumber++
+      }
+    })
+
+    if (countExistingZone(items) >= 12)  {
+      ws.cell(rowNumber, 1, rowNumber, 2, true).string('รวม 12 เขต').style(center)
+      ws.cell(rowNumber, 3).number(sum12ZoneByProvince(items, 'total') || 0)
+      ws.cell(rowNumber, 4).number(sum12ZoneByProvince(items, 'severe') || 0)
+      ws.cell(rowNumber, 5).number(sum12ZoneByProvince(items, 'invasive') || 0)
+      ws.cell(rowNumber, 6).number(sum12ZoneByProvince(items, 'non_invasive') || 0)
+      ws.cell(rowNumber, 7).number(sum12ZoneByProvince(items, 'high_flow') || 0)
+      ws.cell(rowNumber, 8).number(sum12ZoneByProvince(items, 'moderate') || 0)
+      ws.cell(rowNumber, 9).number(sum12ZoneByProvince(items, 'mild') || 0)
+      ws.cell(rowNumber, 10).number(sum12ZoneByProvince(items, 'asymptomatic') || 0)
+      ws.cell(rowNumber, 11).number(sum12ZoneByProvince(items, 'death') || 0)
+      ws.cell(rowNumber, 12).number(sum12ZoneByProvince(items, 'pui') || 0)
+      rowNumber++
     }
-    rowEnd1 = 2 + rsZone1.length
-    ws.cell(rowEnd1, 1, rowEnd1, 2, true).string('รวมเขต 1')
-    ws.cell(rowEnd1, 3).number(0)
-    ws.cell(rowEnd1, 4).number(0)
-    ws.cell(rowEnd1, 5).number(0)
-    ws.cell(rowEnd1, 6).number(0)
-    ws.cell(rowEnd1, 7).number(0)
-    ws.cell(rowEnd1, 8).number(0)
-    ws.cell(rowEnd1, 9).number(0)
-    ws.cell(rowEnd1, 10).number(0)
-    ws.cell(rowEnd1, 11).number(0)
-    ws.cell(rowEnd1, 12).number(0)
 
-    const rsZone2 = rs.filter(item => item.zone_code === '02')
-    row2 = rowEnd1 + 1
-    for (let i = 0; i < rsZone2.length; i++) {
-      ws.cell(row2 + i, 1).string(rsZone2[i].zone_code).style(center)
-      ws.cell(row2 + i, 2).string(rsZone2[i].province_name)
-      ws.cell(row2 + i, 3).number(0)
-      ws.cell(row2 + i, 4).number(0)
-      ws.cell(row2 + i, 5).number(0)
-      ws.cell(row2 + i, 6).number(0)
-      ws.cell(row2 + i, 7).number(0)
-      ws.cell(row2 + i, 8).number(0)
-      ws.cell(row2 + i, 9).number(0)
-      ws.cell(row2 + i, 10).number(0)
-      ws.cell(row2 + i, 11).number(0)
-      ws.cell(row2 + i, 12).number(0)
+    if (countExistingZone(items) > 12)  {
+      ws.cell(rowNumber, 1, rowNumber, 2, true).string('ทั่วประเทศ').style(center)
+      ws.cell(rowNumber, 3).number(sumAllZoneByProvince(items, 'total') || 0)
+      ws.cell(rowNumber, 4).number(sumAllZoneByProvince(items, 'severe') || 0)
+      ws.cell(rowNumber, 5).number(sumAllZoneByProvince(items, 'invasive') || 0)
+      ws.cell(rowNumber, 6).number(sumAllZoneByProvince(items, 'non_invasive') || 0)
+      ws.cell(rowNumber, 7).number(sumAllZoneByProvince(items, 'high_flow') || 0)
+      ws.cell(rowNumber, 8).number(sumAllZoneByProvince(items, 'moderate') || 0)
+      ws.cell(rowNumber, 9).number(sumAllZoneByProvince(items, 'mild') || 0)
+      ws.cell(rowNumber, 10).number(sumAllZoneByProvince(items, 'asymptomatic') || 0)
+      ws.cell(rowNumber, 11).number(sumAllZoneByProvince(items, 'death') || 0)
+      ws.cell(rowNumber, 12).number(sumAllZoneByProvince(items, 'pui') || 0)
     }
-    rowEnd2 = row2 + rsZone2.length
-    ws.cell(rowEnd2, 1, rowEnd2, 2, true).string('รวมเขต 2')
-    ws.cell(rowEnd2, 3).number(0)
-    ws.cell(rowEnd2, 4).number(0)
-    ws.cell(rowEnd2, 5).number(0)
-    ws.cell(rowEnd2, 6).number(0)
-    ws.cell(rowEnd2, 7).number(0)
-    ws.cell(rowEnd2, 8).number(0)
-    ws.cell(rowEnd2, 9).number(0)
-    ws.cell(rowEnd2, 10).number(0)
-    ws.cell(rowEnd2, 11).number(0)
-    ws.cell(rowEnd2, 12).number(0)
-
-    const rsZone3 = rs.filter(item => item.zone_code === '03')
-    row3 = rowEnd2 + 1
-    for (let i = 0; i < rsZone3.length; i++) {
-      ws.cell(row3 + i, 1).string(rsZone3[i].zone_code).style(center)
-      ws.cell(row3 + i, 2).string(rsZone3[i].province_name)
-      ws.cell(row3 + i, 3).number(0)
-      ws.cell(row3 + i, 4).number(0)
-      ws.cell(row3 + i, 5).number(0)
-      ws.cell(row3 + i, 6).number(0)
-      ws.cell(row3 + i, 7).number(0)
-      ws.cell(row3 + i, 8).number(0)
-      ws.cell(row3 + i, 9).number(0)
-      ws.cell(row3 + i, 10).number(0)
-      ws.cell(row3 + i, 11).number(0)
-      ws.cell(row3 + i, 12).number(0)
-    }
-    rowEnd3 = row3 + rsZone3.length
-    ws.cell(rowEnd3, 1, rowEnd3, 2, true).string('รวมเขต 3')
-    ws.cell(rowEnd3, 3).number(0)
-    ws.cell(rowEnd3, 4).number(0)
-    ws.cell(rowEnd3, 5).number(0)
-    ws.cell(rowEnd3, 6).number(0)
-    ws.cell(rowEnd3, 7).number(0)
-    ws.cell(rowEnd3, 8).number(0)
-    ws.cell(rowEnd3, 9).number(0)
-    ws.cell(rowEnd3, 10).number(0)
-    ws.cell(rowEnd3, 11).number(0)
-    ws.cell(rowEnd3, 12).number(0)
-
-    const rsZone4 = rs.filter(item => item.zone_code === '04')
-    row4 = rowEnd3 + 1
-    for (let i = 0; i < rsZone4.length; i++) {
-      ws.cell(row4 + i, 1).string(rsZone4[i].zone_code).style(center)
-      ws.cell(row4 + i, 2).string(rsZone4[i].province_name)
-      ws.cell(row4 + i, 3).number(0)
-      ws.cell(row4 + i, 4).number(0)
-      ws.cell(row4 + i, 5).number(0)
-      ws.cell(row4 + i, 6).number(0)
-      ws.cell(row4 + i, 7).number(0)
-      ws.cell(row4 + i, 8).number(0)
-      ws.cell(row4 + i, 9).number(0)
-      ws.cell(row4 + i, 10).number(0)
-      ws.cell(row4 + i, 11).number(0)
-      ws.cell(row4 + i, 12).number(0)
-    }
-    rowEnd4 = row4 + rsZone4.length
-    ws.cell(rowEnd4, 1, rowEnd4, 2, true).string('รวมเขต 4')
-    ws.cell(rowEnd4, 3).number(0)
-    ws.cell(rowEnd4, 4).number(0)
-    ws.cell(rowEnd4, 5).number(0)
-    ws.cell(rowEnd4, 6).number(0)
-    ws.cell(rowEnd4, 7).number(0)
-    ws.cell(rowEnd4, 8).number(0)
-    ws.cell(rowEnd4, 9).number(0)
-    ws.cell(rowEnd4, 10).number(0)
-    ws.cell(rowEnd4, 11).number(0)
-    ws.cell(rowEnd4, 12).number(0)
-
-    const rsZone5 = rs.filter(item => item.zone_code === '05')
-    row5 = rowEnd4 + 1
-    for (let i = 0; i < rsZone5.length; i++) {
-      ws.cell(row5 + i, 1).string(rsZone5[i].zone_code).style(center)
-      ws.cell(row5 + i, 2).string(rsZone5[i].province_name)
-      ws.cell(row5 + i, 3).number(0)
-      ws.cell(row5 + i, 4).number(0)
-      ws.cell(row5 + i, 5).number(0)
-      ws.cell(row5 + i, 6).number(0)
-      ws.cell(row5 + i, 7).number(0)
-      ws.cell(row5 + i, 8).number(0)
-      ws.cell(row5 + i, 9).number(0)
-      ws.cell(row5 + i, 10).number(0)
-      ws.cell(row5 + i, 11).number(0)
-      ws.cell(row5 + i, 12).number(0)
-    }
-    rowEnd5 = row5 + rsZone5.length
-    ws.cell(rowEnd5, 1, rowEnd5, 2, true).string('รวมเขต 5')
-    ws.cell(rowEnd5, 3).number(0)
-    ws.cell(rowEnd5, 4).number(0)
-    ws.cell(rowEnd5, 5).number(0)
-    ws.cell(rowEnd5, 6).number(0)
-    ws.cell(rowEnd5, 7).number(0)
-    ws.cell(rowEnd5, 8).number(0)
-    ws.cell(rowEnd5, 9).number(0)
-    ws.cell(rowEnd5, 10).number(0)
-    ws.cell(rowEnd5, 11).number(0)
-    ws.cell(rowEnd5, 12).number(0)
-
-    const rsZone6 = rs.filter(item => item.zone_code === '06')
-    row6 = rowEnd5 + 1
-    for (let i = 0; i < rsZone6.length; i++) {
-      ws.cell(row6 + i, 1).string(rsZone6[i].zone_code).style(center)
-      ws.cell(row6 + i, 2).string(rsZone6[i].province_name)
-      ws.cell(row6 + i, 3).number(0)
-      ws.cell(row6 + i, 4).number(0)
-      ws.cell(row6 + i, 5).number(0)
-      ws.cell(row6 + i, 6).number(0)
-      ws.cell(row6 + i, 7).number(0)
-      ws.cell(row6 + i, 8).number(0)
-      ws.cell(row6 + i, 9).number(0)
-      ws.cell(row6 + i, 10).number(0)
-      ws.cell(row6 + i, 11).number(0)
-      ws.cell(row6 + i, 12).number(0)
-    }
-    rowEnd6 = row6 + rsZone6.length
-    ws.cell(rowEnd6, 1, rowEnd6, 2, true).string('รวมเขต 6')
-    ws.cell(rowEnd6, 3).number(0)
-    ws.cell(rowEnd6, 4).number(0)
-    ws.cell(rowEnd6, 5).number(0)
-    ws.cell(rowEnd6, 6).number(0)
-    ws.cell(rowEnd6, 7).number(0)
-    ws.cell(rowEnd6, 8).number(0)
-    ws.cell(rowEnd6, 9).number(0)
-    ws.cell(rowEnd6, 10).number(0)
-    ws.cell(rowEnd6, 11).number(0)
-    ws.cell(rowEnd6, 12).number(0)
-
-    const rsZone7 = rs.filter(item => item.zone_code === '07')
-    row7 = rowEnd6 + 1
-    for (let i = 0; i < rsZone7.length; i++) {
-      ws.cell(row7 + i, 1).string(rsZone7[i].zone_code).style(center)
-      ws.cell(row7 + i, 2).string(rsZone7[i].province_name)
-      ws.cell(row7 + i, 3).number(0)
-      ws.cell(row7 + i, 4).number(0)
-      ws.cell(row7 + i, 5).number(0)
-      ws.cell(row7 + i, 6).number(0)
-      ws.cell(row7 + i, 7).number(0)
-      ws.cell(row7 + i, 8).number(0)
-      ws.cell(row7 + i, 9).number(0)
-      ws.cell(row7 + i, 10).number(0)
-      ws.cell(row7 + i, 11).number(0)
-      ws.cell(row7 + i, 12).number(0)
-    }
-    rowEnd7 = row7 + rsZone7.length
-    ws.cell(rowEnd7, 1, rowEnd7, 2, true).string('รวมเขต 7')
-    ws.cell(rowEnd7, 3).number(0)
-    ws.cell(rowEnd7, 4).number(0)
-    ws.cell(rowEnd7, 5).number(0)
-    ws.cell(rowEnd7, 6).number(0)
-    ws.cell(rowEnd7, 7).number(0)
-    ws.cell(rowEnd7, 8).number(0)
-    ws.cell(rowEnd7, 9).number(0)
-    ws.cell(rowEnd7, 10).number(0)
-    ws.cell(rowEnd7, 11).number(0)
-    ws.cell(rowEnd7, 12).number(0)
-
-    const rsZone8 = rs.filter(item => item.zone_code === '08')
-    row8 = rowEnd7 + 1
-    for (let i = 0; i < rsZone8.length; i++) {
-      ws.cell(row8 + i, 1).string(rsZone8[i].zone_code).style(center)
-      ws.cell(row8 + i, 2).string(rsZone8[i].province_name)
-      ws.cell(row8 + i, 3).number(0)
-      ws.cell(row8 + i, 4).number(0)
-      ws.cell(row8 + i, 5).number(0)
-      ws.cell(row8 + i, 6).number(0)
-      ws.cell(row8 + i, 7).number(0)
-      ws.cell(row8 + i, 8).number(0)
-      ws.cell(row8 + i, 9).number(0)
-      ws.cell(row8 + i, 10).number(0)
-      ws.cell(row8 + i, 11).number(0)
-      ws.cell(row8 + i, 12).number(0)
-    }
-    rowEnd8 = row8 + rsZone8.length
-    ws.cell(rowEnd8, 1, rowEnd8, 2, true).string('รวมเขต 8')
-    ws.cell(rowEnd8, 3).number(0)
-    ws.cell(rowEnd8, 4).number(0)
-    ws.cell(rowEnd8, 5).number(0)
-    ws.cell(rowEnd8, 6).number(0)
-    ws.cell(rowEnd8, 7).number(0)
-    ws.cell(rowEnd8, 8).number(0)
-    ws.cell(rowEnd8, 9).number(0)
-    ws.cell(rowEnd8, 10).number(0)
-    ws.cell(rowEnd8, 11).number(0)
-    ws.cell(rowEnd8, 12).number(0)
-
-    const rsZone9 = rs.filter(item => item.zone_code === '09')
-    row9 = rowEnd8 + 1
-    for (let i = 0; i < rsZone9.length; i++) {
-      ws.cell(row9 + i, 1).string(rsZone9[i].zone_code).style(center)
-      ws.cell(row9 + i, 2).string(rsZone9[i].province_name)
-      ws.cell(row9 + i, 3).number(0)
-      ws.cell(row9 + i, 4).number(0)
-      ws.cell(row9 + i, 5).number(0)
-      ws.cell(row9 + i, 6).number(0)
-      ws.cell(row9 + i, 7).number(0)
-      ws.cell(row9 + i, 8).number(0)
-      ws.cell(row9 + i, 9).number(0)
-      ws.cell(row9 + i, 10).number(0)
-      ws.cell(row9 + i, 11).number(0)
-      ws.cell(row9 + i, 12).number(0)
-    }
-    rowEnd9 = row9 + rsZone9.length
-    ws.cell(rowEnd9, 1, rowEnd9, 2, true).string('รวมเขต 9')
-    ws.cell(rowEnd9, 3).number(0)
-    ws.cell(rowEnd9, 4).number(0)
-    ws.cell(rowEnd9, 5).number(0)
-    ws.cell(rowEnd9, 6).number(0)
-    ws.cell(rowEnd9, 7).number(0)
-    ws.cell(rowEnd9, 8).number(0)
-    ws.cell(rowEnd9, 9).number(0)
-    ws.cell(rowEnd9, 10).number(0)
-    ws.cell(rowEnd9, 11).number(0)
-    ws.cell(rowEnd9, 12).number(0)
-
-    const rsZone10 = rs.filter(item => item.zone_code === '10')
-    row10 = rowEnd9 + 1
-    for (let i = 0; i < rsZone10.length; i++) {
-      ws.cell(row10 + i, 1).string(rsZone10[i].zone_code).style(center)
-      ws.cell(row10 + i, 2).string(rsZone10[i].province_name)
-      ws.cell(row10 + i, 3).number(0)
-      ws.cell(row10 + i, 4).number(0)
-      ws.cell(row10 + i, 5).number(0)
-      ws.cell(row10 + i, 6).number(0)
-      ws.cell(row10 + i, 7).number(0)
-      ws.cell(row10 + i, 8).number(0)
-      ws.cell(row10 + i, 9).number(0)
-      ws.cell(row10 + i, 10).number(0)
-      ws.cell(row10 + i, 11).number(0)
-      ws.cell(row10 + i, 12).number(0)
-    }
-    rowEnd10 = row10 + rsZone10.length
-    ws.cell(rowEnd10, 1, rowEnd10, 2, true).string('รวมเขต 10')
-    ws.cell(rowEnd10, 3).number(0)
-    ws.cell(rowEnd10, 4).number(0)
-    ws.cell(rowEnd10, 5).number(0)
-    ws.cell(rowEnd10, 6).number(0)
-    ws.cell(rowEnd10, 7).number(0)
-    ws.cell(rowEnd10, 8).number(0)
-    ws.cell(rowEnd10, 9).number(0)
-    ws.cell(rowEnd10, 10).number(0)
-    ws.cell(rowEnd10, 11).number(0)
-    ws.cell(rowEnd10, 12).number(0)
-
-    const rsZone11 = rs.filter(item => item.zone_code === '11')
-    row11 = rowEnd10 + 1
-    for (let i = 0; i < rsZone11.length; i++) {
-      ws.cell(row11 + i, 1).string(rsZone11[i].zone_code).style(center)
-      ws.cell(row11 + i, 2).string(rsZone11[i].province_name)
-      ws.cell(row11 + i, 3).number(0)
-      ws.cell(row11 + i, 4).number(0)
-      ws.cell(row11 + i, 5).number(0)
-      ws.cell(row11 + i, 6).number(0)
-      ws.cell(row11 + i, 7).number(0)
-      ws.cell(row11 + i, 8).number(0)
-      ws.cell(row11 + i, 9).number(0)
-      ws.cell(row11 + i, 10).number(0)
-      ws.cell(row11 + i, 11).number(0)
-      ws.cell(row11 + i, 12).number(0)
-    }
-    rowEnd11 = row11 + rsZone11.length
-    ws.cell(rowEnd11, 1, rowEnd11, 2, true).string('รวมเขต 11')
-    ws.cell(rowEnd11, 3).number(0)
-    ws.cell(rowEnd11, 4).number(0)
-    ws.cell(rowEnd11, 5).number(0)
-    ws.cell(rowEnd11, 6).number(0)
-    ws.cell(rowEnd11, 7).number(0)
-    ws.cell(rowEnd11, 8).number(0)
-    ws.cell(rowEnd11, 9).number(0)
-    ws.cell(rowEnd11, 10).number(0)
-    ws.cell(rowEnd11, 11).number(0)
-    ws.cell(rowEnd11, 12).number(0)
-
-    const rsZone12 = rs.filter(item => item.zone_code === '12')
-    row12 = rowEnd11 + 1
-    for (let i = 0; i < rsZone12.length; i++) {
-      ws.cell(row12 + i, 1).string(rsZone12[i].zone_code).style(center)
-      ws.cell(row12 + i, 2).string(rsZone12[i].province_name)
-      ws.cell(row12 + i, 3).number(0)
-      ws.cell(row12 + i, 4).number(0)
-      ws.cell(row12 + i, 5).number(0)
-      ws.cell(row12 + i, 6).number(0)
-      ws.cell(row12 + i, 7).number(0)
-      ws.cell(row12 + i, 8).number(0)
-      ws.cell(row12 + i, 9).number(0)
-      ws.cell(row12 + i, 10).number(0)
-      ws.cell(row12 + i, 11).number(0)
-      ws.cell(row12 + i, 12).number(0)
-    }
-    rowEnd12 = row12 + rsZone12.length
-    ws.cell(rowEnd12, 1, rowEnd12, 2, true).string('รวมเขต 12')
-    ws.cell(rowEnd12, 3).number(0)
-    ws.cell(rowEnd12, 4).number(0)
-    ws.cell(rowEnd12, 5).number(0)
-    ws.cell(rowEnd12, 6).number(0)
-    ws.cell(rowEnd12, 7).number(0)
-    ws.cell(rowEnd12, 8).number(0)
-    ws.cell(rowEnd12, 9).number(0)
-    ws.cell(rowEnd12, 10).number(0)
-    ws.cell(rowEnd12, 11).number(0)
-    ws.cell(rowEnd12, 12).number(0)
-
-    const rsZone13 = rs.filter(item => item.zone_code === '13')
-    const row13 = rowEnd12 + rsZone13.length
-    ws.cell(row13, 1, row13, 2, true).string('กรุงเทพมหานคร')
-    ws.cell(row13, 3).number(0)
-    ws.cell(row13, 4).number(0)
-    ws.cell(row13, 5).number(0)
-    ws.cell(row13, 6).number(0)
-    ws.cell(row13, 7).number(0)
-    ws.cell(row13, 8).number(0)
-    ws.cell(row13, 9).number(0)
-    ws.cell(row13, 10).number(0)
-    ws.cell(row13, 11).number(0)
-    ws.cell(row13, 12).number(0)
-
-    const row14 = row13 + 1
-    ws.cell(row14, 1, row14, 2, true).string('รวม 12 เขต')
-    ws.cell(row14, 3).number(0)
-    ws.cell(row14, 4).number(0)
-    ws.cell(row14, 5).number(0)
-    ws.cell(row14, 6).number(0)
-    ws.cell(row14, 7).number(0)
-    ws.cell(row14, 8).number(0)
-    ws.cell(row14, 9).number(0)
-    ws.cell(row14, 10).number(0)
-    ws.cell(row14, 11).number(0)
-    ws.cell(row14, 12).number(0)
-
-    const row15 = row14 + 1
-    ws.cell(row15, 1, row15, 2, true).string('ทั่วประเทศ')
-    ws.cell(row15, 3).number(0)
-    ws.cell(row15, 4).number(0)
-    ws.cell(row15, 5).number(0)
-    ws.cell(row15, 6).number(0)
-    ws.cell(row15, 7).number(0)
-    ws.cell(row15, 8).number(0)
-    ws.cell(row15, 9).number(0)
-    ws.cell(row15, 10).number(0)
-    ws.cell(row15, 11).number(0)
-    ws.cell(row15, 12).number(0)
-
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
@@ -580,9 +608,8 @@ router.get('/patient-report-by-province', async (req: Request, res: Response) =>
 })
 
 router.get('/bed-report-by-zone', async (req: Request, res: Response) => {
-  const db = req.dbReport
-  const date = req.query.date
-  const sector = req.query.sector
+  const db = req.dbReport;
+  const { date } = req.query;
 
   var wb = new excel4node.Workbook()
   var ws = wb.addWorksheet('Sheet 1')
@@ -601,7 +628,48 @@ router.get('/bed-report-by-zone', async (req: Request, res: Response) => {
   })
 
   try {
-    const rs: any = await model.bedReportByZone(db, date, sector);
+    const rs: any = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] });
+    const results = mapBedReports(rs)
+    const items = []
+
+    results.forEach((result, i) => {
+      result.forEach((x, j) => {
+        if (!items.some(item => item.zone_code === x.zone_code)) {
+          items.push({
+            zone_code: x.zone_code
+          })
+        }
+
+        const index = items.findIndex(item => item.zone_code === x.zone_code)
+        if (index > -1) {
+          if (x.bed_name === 'ระดับ3 ใส่ท่อและเครื่องช่วยหายใจ') {
+            items[index].level3_total = x.total
+            items[index].level3_used = x.used
+          } else if (x.bed_name === 'ระดับ 2.2 Oxygen high flow') {
+            items[index].level2_2_total = x.total
+            items[index].level2_2_used = x.used
+          } else if (x.bed_name === 'ระดับ 2.2 Oxygen high flow') {
+            items[index].level2_2_total = x.total
+            items[index].level2_2_used = x.used
+          } else if (x.bed_name === 'ระดับ 2.1 Oxygen high low') {
+            items[index].level2_1_total = x.total
+            items[index].level2_1_used = x.used
+          } else if (x.bed_name === 'ระดับ 1 ไม่ใช่ Oxygen') {
+            items[index].level1_total = x.total
+            items[index].level1_used = x.used
+          } else if (x.bed_name === 'ระดับ 0 Home Isolation (stepdown)') {
+            items[index].level0_total = x.total
+            items[index].level0_used = x.used
+          } else if (x.bed_name === 'Home Isolation') {
+            items[index].home_isolation_total = x.total
+            items[index].home_isolation_used = x.used
+          } else if (x.bed_name === 'Community Isolation') {
+            items[index].community_isolation_total = x.total
+            items[index].community_isolation_used = x.used
+          }
+        }
+      })
+    })
 
     ws.cell(1, 1, 2, 1, true).string('เขตสุขภาพ').style(center)
     ws.cell(1, 2, 1, 4, true).string('ระดับ 3 ใส่ท่อและเครื่องช่วยหายใจได้').style(center)
@@ -626,99 +694,81 @@ router.get('/bed-report-by-zone', async (req: Request, res: Response) => {
       left += 3
     }
 
-    for (let i = 0; i < rs.length - 1; i++) {
-      ws.cell(3 + i, 1).string('รวมเขต ' + rs[i].zone_code)
-      ws.cell(3 + i, 2).number(0)
-      ws.cell(3 + i, 3).number(0)
-      ws.cell(3 + i, 4).number(0)
-      ws.cell(3 + i, 5).number(0)
-      ws.cell(3 + i, 6).number(0)
-      ws.cell(3 + i, 7).number(0)
-      ws.cell(3 + i, 8).number(0)
-      ws.cell(3 + i, 9).number(0)
-      ws.cell(3 + i, 10).number(0)
-      ws.cell(3 + i, 11).number(0)
-      ws.cell(3 + i, 12).number(0)
-      ws.cell(3 + i, 13).number(0)
-      ws.cell(3 + i, 14).number(0)
-      ws.cell(3 + i, 15).number(0)
-      ws.cell(3 + i, 16).number(0)
-      ws.cell(3 + i, 17).number(0)
-      ws.cell(3 + i, 18).number(0)
-      ws.cell(3 + i, 19).number(0)
-      ws.cell(3 + i, 20).number(0)
-      ws.cell(3 + i, 21).number(0)
-      ws.cell(3 + i, 22).number(0)
-    }
-
-    ws.cell(15, 1).string('กรุงเทพมหานคร')
-    ws.cell(15, 2).number(0)
-    ws.cell(15, 3).number(0)
-    ws.cell(15, 4).number(0)
-    ws.cell(15, 5).number(0)
-    ws.cell(15, 6).number(0)
-    ws.cell(15, 7).number(0)
-    ws.cell(15, 8).number(0)
-    ws.cell(15, 9).number(0)
-    ws.cell(15, 10).number(0)
-    ws.cell(15, 11).number(0)
-    ws.cell(15, 12).number(0)
-    ws.cell(15, 13).number(0)
-    ws.cell(15, 14).number(0)
-    ws.cell(15, 15).number(0)
-    ws.cell(15, 16).number(0)
-    ws.cell(15, 17).number(0)
-    ws.cell(15, 18).number(0)
-    ws.cell(15, 19).number(0)
-    ws.cell(15, 20).number(0)
-    ws.cell(15, 21).number(0)
-    ws.cell(15, 22).number(0)
+    items.forEach((item, i) => {
+      if (item.zone_code !== '13') {
+        ws.cell(3 + i, 1).string('รวมเขต ' + item.zone_code)
+      } else {
+        ws.cell(3 + i, 1).string('กรุงเทพมหานคร')
+      }
+      ws.cell(3 + i, 2).number(item.level3_total || 0)
+      ws.cell(3 + i, 3).number(item.level3_used || 0)
+      ws.cell(3 + i, 4).number((item.level3_total || 0) - (item.level3_used || 0))
+      ws.cell(3 + i, 5).number(item.level2_2_total || 0)
+      ws.cell(3 + i, 6).number(item.level2_2_used || 0)
+      ws.cell(3 + i, 7).number((item.level2_2_total || 0) - (item.level2_2_used || 0))
+      ws.cell(3 + i, 8).number(item.level2_1_total || 0)
+      ws.cell(3 + i, 9).number(item.level2_1_used || 0)
+      ws.cell(3 + i, 10).number((item.level2_1_total || 0) - (item.level2_1_used || 0))
+      ws.cell(3 + i, 11).number(item.level1_total || 0)
+      ws.cell(3 + i, 12).number(item.level1_used || 0)
+      ws.cell(3 + i, 13).number((item.level1_total || 0) - (item.level1_used || 0))
+      ws.cell(3 + i, 14).number(item.level0_total || 0)
+      ws.cell(3 + i, 15).number(item.level0_used || 0)
+      ws.cell(3 + i, 16).number((item.level0_total || 0) - (item.level0_used || 0))
+      ws.cell(3 + i, 17).number(item.home_isolation_total || 0)
+      ws.cell(3 + i, 18).number(item.home_isolation_used || 0)
+      ws.cell(3 + i, 19).number((item.home_isolation_total || 0) - (item.home_isolation_used || 0))
+      ws.cell(3 + i, 20).number(item.community_isolation_total || 0)
+      ws.cell(3 + i, 21).number(item.community_isolation_used || 0)
+      ws.cell(3 + i, 22).number((item.community_isolation_total || 0) - (item.community_isolation_used || 0))
+    })
 
     ws.cell(16, 1).string('รวม 12 เขต')
-    ws.cell(16, 2).number(0)
-    ws.cell(16, 3).number(0)
-    ws.cell(16, 4).number(0)
-    ws.cell(16, 5).number(0)
-    ws.cell(16, 6).number(0)
-    ws.cell(16, 7).number(0)
-    ws.cell(16, 8).number(0)
-    ws.cell(16, 9).number(0)
-    ws.cell(16, 10).number(0)
-    ws.cell(16, 11).number(0)
-    ws.cell(16, 12).number(0)
-    ws.cell(16, 13).number(0)
-    ws.cell(16, 14).number(0)
-    ws.cell(16, 15).number(0)
-    ws.cell(16, 16).number(0)
-    ws.cell(16, 17).number(0)
-    ws.cell(16, 18).number(0)
-    ws.cell(16, 19).number(0)
-    ws.cell(16, 20).number(0)
-    ws.cell(16, 21).number(0)
-    ws.cell(16, 22).number(0)
+    ws.cell(16, 2).number(sum12Zone(items, 'level3_total') || 0)
+    ws.cell(16, 3).number(sum12Zone(items, 'level3_used') || 0)
+    ws.cell(16, 4).number((sum12Zone(items, 'level3_total') || 0) - (sum12Zone(items, 'level3_used') || 0))
+    ws.cell(16, 5).number(sum12Zone(items, 'level2_2_total') || 0)
+    ws.cell(16, 6).number(sum12Zone(items, 'level2_2_used') || 0)
+    ws.cell(16, 7).number((sum12Zone(items, 'level2_2_total') || 0) - (sum12Zone(items, 'level2_2_used') || 0))
+    ws.cell(16, 8).number(sum12Zone(items, 'level2_1_total') || 0)
+    ws.cell(16, 9).number(sum12Zone(items, 'level2_1_used') || 0)
+    ws.cell(16, 10).number((sum12Zone(items, 'level2_1_total') || 0) - (sum12Zone(items, 'level2_1_used') || 0))
+    ws.cell(16, 11).number(sum12Zone(items, 'level1_total') || 0)
+    ws.cell(16, 12).number(sum12Zone(items, 'level1_used') || 0)
+    ws.cell(16, 13).number((sum12Zone(items, 'level1_total') || 0) - (sum12Zone(items, 'level1_used') || 0))
+    ws.cell(16, 14).number(sum12Zone(items, 'level0_total') || 0)
+    ws.cell(16, 15).number(sum12Zone(items, 'level0_used') || 0)
+    ws.cell(16, 16).number((sum12Zone(items, 'level0_total') || 0) - (sum12Zone(items, 'level0_used') || 0))
+    ws.cell(16, 17).number(sum12Zone(items, 'home_isolation_total') || 0)
+    ws.cell(16, 18).number(sum12Zone(items, 'home_isolation_used') || 0)
+    ws.cell(16, 19).number((sum12Zone(items, 'home_isolation_total') || 0) - (sum12Zone(items, 'home_isolation_used') || 0))
+    ws.cell(16, 20).number(sum12Zone(items, 'community_isolation_total') || 0)
+    ws.cell(16, 21).number(sum12Zone(items, 'community_isolation_used') || 0)
+    ws.cell(16, 22).number((sum12Zone(items, 'community_isolation_total') || 0) - (sum12Zone(items, 'community_isolation_used') || 0))
 
     ws.cell(17, 1).string('ทั่วประเทศ')
-    ws.cell(17, 2).number(0)
-    ws.cell(17, 3).number(0)
-    ws.cell(17, 4).number(0)
-    ws.cell(17, 5).number(0)
-    ws.cell(17, 6).number(0)
-    ws.cell(17, 7).number(0)
-    ws.cell(17, 8).number(0)
-    ws.cell(17, 9).number(0)
-    ws.cell(17, 10).number(0)
-    ws.cell(17, 11).number(0)
-    ws.cell(17, 12).number(0)
-    ws.cell(17, 13).number(0)
-    ws.cell(17, 14).number(0)
-    ws.cell(17, 15).number(0)
-    ws.cell(17, 16).number(0)
-    ws.cell(17, 17).number(0)
-    ws.cell(17, 18).number(0)
-    ws.cell(17, 19).number(0)
-    ws.cell(17, 20).number(0)
-    ws.cell(17, 21).number(0)
-    ws.cell(17, 22).number(0)
+    ws.cell(17, 2).number(sumAllZone(items, 'level3_total') || 0)
+    ws.cell(17, 3).number(sumAllZone(items, 'level3_used') || 0)
+    ws.cell(17, 4).number((sumAllZone(items, 'level3_total') || 0) - (sumAllZone(items, 'level3_used') || 0))
+    ws.cell(17, 5).number(sumAllZone(items, 'level2_2_total') || 0)
+    ws.cell(17, 6).number(sumAllZone(items, 'level2_2_used') || 0)
+    ws.cell(17, 7).number((sumAllZone(items, 'level2_2_total') || 0) - (sumAllZone(items, 'level2_2_used') || 0))
+    ws.cell(17, 8).number(sumAllZone(items, 'level2_1_total') || 0)
+    ws.cell(17, 9).number(sumAllZone(items, 'level2_1_used') || 0)
+    ws.cell(17, 10).number((sumAllZone(items, 'level2_1_total') || 0) - (sumAllZone(items, 'level2_1_used') || 0))
+    ws.cell(17, 11).number(sumAllZone(items, 'level1_total') || 0)
+    ws.cell(17, 12).number(sumAllZone(items, 'level1_used') || 0)
+    ws.cell(17, 13).number((sumAllZone(items, 'level1_total') || 0) - (sumAllZone(items, 'level1_used') || 0))
+    ws.cell(17, 14).number(sumAllZone(items, 'level0_total') || 0)
+    ws.cell(17, 15).number(sumAllZone(items, 'level0_used') || 0)
+    ws.cell(17, 16).number((sumAllZone(items, 'level0_total') || 0) - (sumAllZone(items, 'level0_used') || 0))
+    ws.cell(17, 17).number(sumAllZone(items, 'home_isolation_total') || 0)
+    ws.cell(17, 18).number(sumAllZone(items, 'home_isolation_used') || 0)
+    ws.cell(17, 19).number((sumAllZone(items, 'home_isolation_total') || 0) - (sumAllZone(items, 'home_isolation_used') || 0))
+    ws.cell(17, 20).number(sumAllZone(items, 'community_isolation_total') || 0)
+    ws.cell(17, 21).number(sumAllZone(items, 'community_isolation_used') || 0)
+    ws.cell(17, 22).number((sumAllZone(items, 'community_isolation_total') || 0) - (sumAllZone(items, 'community_isolation_used') || 0))
+
 
 
     fse.ensureDirSync(process.env.TMP_PATH);
@@ -744,9 +794,8 @@ router.get('/bed-report-by-zone', async (req: Request, res: Response) => {
 })
 
 router.get('/bed-report-by-province', async (req: Request, res: Response) => {
-  const db = req.dbReport
-  const date = req.query.date
-  const sector = req.query.sector
+  const db = req.dbReport;
+  const { zones, date, } = req.query;
 
   var wb = new excel4node.Workbook()
   var ws = wb.addWorksheet('Sheet 1')
@@ -765,31 +814,86 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
   })
 
   try {
-    const rs: any = await model.bedReportByProvince(db, date, sector);
-    let row1 = 0
-    let rowEnd1 = 0
-    let row2 = 0
-    let rowEnd2 = 0
-    let row3 = 0
-    let rowEnd3 = 0
-    let row4 = 0
-    let rowEnd4 = 0
-    let row5 = 0
-    let rowEnd5 = 0
-    let row6 = 0
-    let rowEnd6 = 0
-    let row7 = 0
-    let rowEnd7 = 0
-    let row8 = 0
-    let rowEnd8 = 0
-    let row9 = 0
-    let rowEnd9 = 0
-    let row10 = 0
-    let rowEnd10 = 0
-    let row11 = 0
-    let rowEnd11 = 0
-    let row12 = 0
-    let rowEnd12 = 0
+    const rs: any = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] });
+    const results = mapBedReports(rs)
+    const rows = []
+    const items = [
+      [], [], [], [], [],
+      [], [], [], [], [],
+      [], [], []
+    ]
+    let rowNumber = 3
+
+    results.forEach((result, i) => {
+      result.forEach((x, j) => {
+        if (!rows.some(item => item.province_code === x.province_code)) {
+          rows.push({
+            zone_code: x.zone_code,
+            province_code: x.province_code,
+            province_name: x.province_name,
+          })
+        }
+
+        const index = rows.findIndex(item => item.province_code === x.province_code)
+        if (index > -1) {
+          if (x.bed_name === 'ระดับ3 ใส่ท่อและเครื่องช่วยหายใจ') {
+            rows[index].level3_total = x.total
+            rows[index].level3_used = x.used
+          } else if (x.bed_name === 'ระดับ 2.2 Oxygen high flow') {
+            rows[index].level2_2_total = x.total
+            rows[index].level2_2_used = x.used
+          } else if (x.bed_name === 'ระดับ 2.2 Oxygen high flow') {
+            rows[index].level2_2_total = x.total
+            rows[index].level2_2_used = x.used
+          } else if (x.bed_name === 'ระดับ 2.1 Oxygen high low') {
+            rows[index].level2_1_total = x.total
+            rows[index].level2_1_used = x.used
+          } else if (x.bed_name === 'ระดับ 1 ไม่ใช่ Oxygen') {
+            rows[index].level1_total = x.total
+            rows[index].level1_used = x.used
+          } else if (x.bed_name === 'ระดับ 0 Home Isolation (stepdown)') {
+            rows[index].level0_total = x.total
+            rows[index].level0_used = x.used
+          } else if (x.bed_name === 'Home Isolation') {
+            rows[index].home_isolation_total = x.total
+            rows[index].home_isolation_used = x.used
+          } else if (x.bed_name === 'Community Isolation') {
+            rows[index].community_isolation_total = x.total
+            rows[index].community_isolation_used = x.used
+          }
+        }
+      })
+    })
+
+    rows.forEach(item => {
+      if (item.zone_code === '01') {
+        items[0].push(item)
+      } else if (item.zone_code === '02') {
+        items[1].push(item)
+      } else if (item.zone_code === '03') {
+        items[2].push(item)
+      } else if (item.zone_code === '04') {
+        items[3].push(item)
+      } else if (item.zone_code === '05') {
+        items[4].push(item)
+      } else if (item.zone_code === '06') {
+        items[5].push(item)
+      } else if (item.zone_code === '07') {
+        items[6].push(item)
+      } else if (item.zone_code === '08') {
+        items[7].push(item)
+      } else if (item.zone_code === '09') {
+        items[8].push(item)
+      } else if (item.zone_code === '10') {
+        items[9].push(item)
+      } else if (item.zone_code === '11') {
+        items[10].push(item)
+      } else if (item.zone_code === '12') {
+        items[11].push(item)
+      } else {
+        items[12].push(item)
+      }
+    })
 
     ws.cell(1, 1, 2, 1, true).string('เขตสุขภาพ').style(center)
     ws.cell(1, 2, 2, 2, true).string('จังหวัด').style(center)
@@ -816,691 +920,136 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
       left += 3
     }
 
+    items.forEach((item, i) => {
+      item.forEach((x, j) => {
+        if (x.zone_code !== '13') {
+          ws.cell(rowNumber, 1).string(x.zone_code).style(center)
+          ws.cell(rowNumber, 2).string(x.province_name)
+          ws.cell(rowNumber, 3).number(x.level3_total || 0)
+          ws.cell(rowNumber, 4).number(x.level3_used || 0)
+          ws.cell(rowNumber, 5).number((x.level3_total || 0) - (x.level3_used || 0))
+          ws.cell(rowNumber, 6).number(x.level2_2_total || 0)
+          ws.cell(rowNumber, 7).number(x.level2_2_used || 0)
+          ws.cell(rowNumber, 8).number((x.level2_2_total || 0) - (x.level2_2_used || 0))
+          ws.cell(rowNumber, 9).number(x.level2_1_total || 0)
+          ws.cell(rowNumber, 10).number(x.level2_1_used || 0)
+          ws.cell(rowNumber, 11).number((x.level2_1_total || 0) - (x.level2_1_used || 0))
+          ws.cell(rowNumber, 12).number(x.level1_total || 0)
+          ws.cell(rowNumber, 13).number(x.level1_used || 0)
+          ws.cell(rowNumber, 14).number((x.level1_total || 0) - (x.level1_used || 0))
+          ws.cell(rowNumber, 15).number(x.level0_total || 0)
+          ws.cell(rowNumber, 16).number(x.level0_used || 0)
+          ws.cell(rowNumber, 17).number((x.level0_total || 0) - (x.level0_used || 0))
+          ws.cell(rowNumber, 18).number(x.home_isolation_total || 0)
+          ws.cell(rowNumber, 19).number(x.home_isolation_used || 0)
+          ws.cell(rowNumber, 20).number((x.home_isolation_total || 0) - (x.home_isolation_used || 0))
+          ws.cell(rowNumber, 21).number(x.community_isolation_total || 0)
+          ws.cell(rowNumber, 22).number(x.community_isolation_used || 0)
+          ws.cell(rowNumber, 23).number((x.community_isolation_total || 0) - (x.community_isolation_used || 0))
+        } else {
+          ws.cell(rowNumber, 1, rowNumber, 2, true).string(x.province_name).style(center)
+          ws.cell(rowNumber, 3).number(x.level3_total || 0)
+          ws.cell(rowNumber, 4).number(x.level3_used || 0)
+          ws.cell(rowNumber, 5).number((x.level3_total || 0) - (x.level3_used || 0))
+          ws.cell(rowNumber, 6).number(x.level2_2_total || 0)
+          ws.cell(rowNumber, 7).number(x.level2_2_used || 0)
+          ws.cell(rowNumber, 8).number((x.level2_2_total || 0) - (x.level2_2_used || 0))
+          ws.cell(rowNumber, 9).number(x.level2_1_total || 0)
+          ws.cell(rowNumber, 10).number(x.level2_1_used || 0)
+          ws.cell(rowNumber, 11).number((x.level2_1_total || 0) - (x.level2_1_used || 0))
+          ws.cell(rowNumber, 12).number(x.level1_total || 0)
+          ws.cell(rowNumber, 13).number(x.level1_used || 0)
+          ws.cell(rowNumber, 14).number((x.level1_total || 0) - (x.level1_used || 0))
+          ws.cell(rowNumber, 15).number(x.level0_total || 0)
+          ws.cell(rowNumber, 16).number(x.level0_used || 0)
+          ws.cell(rowNumber, 17).number((x.level0_total || 0) - (x.level0_used || 0))
+          ws.cell(rowNumber, 18).number(x.home_isolation_total || 0)
+          ws.cell(rowNumber, 19).number(x.home_isolation_used || 0)
+          ws.cell(rowNumber, 20).number((x.home_isolation_total || 0) - (x.home_isolation_used || 0))
+          ws.cell(rowNumber, 21).number(x.community_isolation_total || 0)
+          ws.cell(rowNumber, 22).number(x.community_isolation_used || 0)
+          ws.cell(rowNumber, 23).number((x.community_isolation_total || 0) - (x.community_isolation_used || 0))
+        }
+        rowNumber++
+      })
 
-    const rsZone1 = rs.filter(item => item.zone_code === '01')
-    for (let i = 0; i < rsZone1.length; i++) {
-      ws.cell(3 + i, 1).string(rsZone1[i].zone_code).style(center)
-      ws.cell(3 + i, 2).string(rsZone1[i].province_name)
-      ws.cell(3 + i, 3).number(0)
-      ws.cell(3 + i, 4).number(0)
-      ws.cell(3 + i, 5).number(0)
-      ws.cell(3 + i, 6).number(0)
-      ws.cell(3 + i, 7).number(0)
-      ws.cell(3 + i, 8).number(0)
-      ws.cell(3 + i, 9).number(0)
-      ws.cell(3 + i, 10).number(0)
-      ws.cell(3 + i, 11).number(0)
-      ws.cell(3 + i, 12).number(0)
-      ws.cell(3 + i, 13).number(0)
-      ws.cell(3 + i, 14).number(0)
-      ws.cell(3 + i, 15).number(0)
-      ws.cell(3 + i, 16).number(0)
-      ws.cell(3 + i, 17).number(0)
-      ws.cell(3 + i, 18).number(0)
-      ws.cell(3 + i, 19).number(0)
-      ws.cell(3 + i, 20).number(0)
-      ws.cell(3 + i, 21).number(0)
-      ws.cell(3 + i, 22).number(0)
-      ws.cell(3 + i, 23).number(0)
+      if (items[i].length && items[i][0].zone_code !== '13') {
+        ws.cell(rowNumber, 1, rowNumber, 2, true).string(`รวมเขต ${items[i][0].zone_code}`).style(center)
+        ws.cell(rowNumber, 3).number(sumZone(item, 'level3_total') || 0)
+        ws.cell(rowNumber, 4).number(sumZone(item, 'level3_used') || 0)
+        ws.cell(rowNumber, 5).number((sumZone(item, 'level3_total') || 0) - (sumZone(item, 'level3_used') || 0))
+        ws.cell(rowNumber, 6).number(sumZone(item, 'level2_2_total') || 0)
+        ws.cell(rowNumber, 7).number(sumZone(item, 'level2_2_used') || 0)
+        ws.cell(rowNumber, 8).number((sumZone(item, 'level2_2_total') || 0) - (sumZone(item, 'level2_2_used') || 0))
+        ws.cell(rowNumber, 9).number(sumZone(item, 'level2_1_total') || 0)
+        ws.cell(rowNumber, 10).number(sumZone(item, 'level2_1_used') || 0)
+        ws.cell(rowNumber, 11).number((sumZone(item, 'level2_1_total') || 0) - (sumZone(item, 'level2_1_used') || 0))
+        ws.cell(rowNumber, 12).number(sumZone(item, 'level1_total') || 0)
+        ws.cell(rowNumber, 13).number(sumZone(item, 'level1_used') || 0)
+        ws.cell(rowNumber, 14).number((sumZone(item, 'level1_total') || 0) - (sumZone(item, 'level1_used') || 0))
+        ws.cell(rowNumber, 15).number(sumZone(item, 'level0_total') || 0)
+        ws.cell(rowNumber, 16).number(sumZone(item, 'level0_used') || 0)
+        ws.cell(rowNumber, 17).number((sumZone(item, 'level0_total') || 0) - (sumZone(item, 'level0_used') || 0))
+        ws.cell(rowNumber, 18).number(sumZone(item, 'home_isolation_total') || 0)
+        ws.cell(rowNumber, 19).number(sumZone(item, 'home_isolation_used') || 0)
+        ws.cell(rowNumber, 20).number((sumZone(item, 'home_isolation_total') || 0) - (sumZone(item, 'home_isolation_used') || 0))
+        ws.cell(rowNumber, 21).number(sumZone(item, 'community_isolation_total') || 0)
+        ws.cell(rowNumber, 22).number(sumZone(item, 'community_isolation_used') || 0)
+        ws.cell(rowNumber, 23).number((sumZone(item, 'community_isolation_total') || 0) - (sumZone(item, 'community_isolation_used') || 0))
+        rowNumber++
+      }
+    })
+
+    if (countExistingZone(items) >= 12)  {
+      ws.cell(rowNumber, 1, rowNumber, 2, true).string('รวม 12 เขต').style(center)
+      ws.cell(rowNumber, 3).number(sum12Zone(items, 'level3_total') || 0)
+      ws.cell(rowNumber, 4).number(sum12Zone(items, 'level3_used') || 0)
+      ws.cell(rowNumber, 5).number((sum12Zone(items, 'level3_total') || 0) - (sum12Zone(items, 'level3_used') || 0))
+      ws.cell(rowNumber, 6).number(sum12Zone(items, 'level2_2_total') || 0)
+      ws.cell(rowNumber, 7).number(sum12Zone(items, 'level2_2_used') || 0)
+      ws.cell(rowNumber, 8).number((sum12Zone(items, 'level2_2_total') || 0) - (sum12Zone(items, 'level2_2_used') || 0))
+      ws.cell(rowNumber, 9).number(sum12Zone(items, 'level2_1_total') || 0)
+      ws.cell(rowNumber, 10).number(sum12Zone(items, 'level2_1_used') || 0)
+      ws.cell(rowNumber, 11).number((sum12Zone(items, 'level2_1_total') || 0) - (sum12Zone(items, 'level2_1_used') || 0))
+      ws.cell(rowNumber, 12).number(sum12Zone(items, 'level1_total') || 0)
+      ws.cell(rowNumber, 13).number(sum12Zone(items, 'level1_used') || 0)
+      ws.cell(rowNumber, 14).number((sum12Zone(items, 'level1_total') || 0) - (sum12Zone(items, 'level1_used') || 0))
+      ws.cell(rowNumber, 15).number(sum12Zone(items, 'level0_total') || 0)
+      ws.cell(rowNumber, 16).number(sum12Zone(items, 'level0_used') || 0)
+      ws.cell(rowNumber, 17).number((sum12Zone(items, 'level0_total') || 0) - (sum12Zone(items, 'level0_used') || 0))
+      ws.cell(rowNumber, 18).number(sum12Zone(items, 'home_isolation_total') || 0)
+      ws.cell(rowNumber, 19).number(sum12Zone(items, 'home_isolation_used') || 0)
+      ws.cell(rowNumber, 20).number((sum12Zone(items, 'home_isolation_total') || 0) - (sum12Zone(items, 'home_isolation_used') || 0))
+      ws.cell(rowNumber, 21).number(sum12Zone(items, 'community_isolation_total') || 0)
+      ws.cell(rowNumber, 22).number(sum12Zone(items, 'community_isolation_used') || 0)
+      ws.cell(rowNumber, 23).number((sum12Zone(items, 'community_isolation_total') || 0) - (sum12Zone(items, 'community_isolation_used') || 0))
+      rowNumber++
     }
-    rowEnd1 = 3 + rsZone1.length
-    ws.cell(rowEnd1, 1, rowEnd1, 2, true).string('รวมเขต 1')
-    ws.cell(rowEnd1, 3).number(0)
-    ws.cell(rowEnd1, 4).number(0)
-    ws.cell(rowEnd1, 5).number(0)
-    ws.cell(rowEnd1, 6).number(0)
-    ws.cell(rowEnd1, 7).number(0)
-    ws.cell(rowEnd1, 8).number(0)
-    ws.cell(rowEnd1, 9).number(0)
-    ws.cell(rowEnd1, 10).number(0)
-    ws.cell(rowEnd1, 11).number(0)
-    ws.cell(rowEnd1, 12).number(0)
-    ws.cell(rowEnd1, 13).number(0)
-    ws.cell(rowEnd1, 14).number(0)
-    ws.cell(rowEnd1, 15).number(0)
-    ws.cell(rowEnd1, 16).number(0)
-    ws.cell(rowEnd1, 17).number(0)
-    ws.cell(rowEnd1, 18).number(0)
-    ws.cell(rowEnd1, 19).number(0)
-    ws.cell(rowEnd1, 20).number(0)
-    ws.cell(rowEnd1, 21).number(0)
-    ws.cell(rowEnd1, 22).number(0)
-    ws.cell(rowEnd1, 23).number(0)
 
-    const rsZone2 = rs.filter(item => item.zone_code === '02')
-    row2 = rowEnd1 + 1
-    for (let i = 0; i < rsZone2.length; i++) {
-      ws.cell(row2 + i, 1).string(rsZone2[i].zone_code).style(center)
-      ws.cell(row2 + i, 2).string(rsZone2[i].province_name)
-      ws.cell(row2 + i, 3).number(0)
-      ws.cell(row2 + i, 4).number(0)
-      ws.cell(row2 + i, 5).number(0)
-      ws.cell(row2 + i, 6).number(0)
-      ws.cell(row2 + i, 7).number(0)
-      ws.cell(row2 + i, 8).number(0)
-      ws.cell(row2 + i, 9).number(0)
-      ws.cell(row2 + i, 10).number(0)
-      ws.cell(row2 + i, 11).number(0)
-      ws.cell(row2 + i, 12).number(0)
-      ws.cell(row2 + i, 13).number(0)
-      ws.cell(row2 + i, 14).number(0)
-      ws.cell(row2 + i, 15).number(0)
-      ws.cell(row2 + i, 16).number(0)
-      ws.cell(row2 + i, 17).number(0)
-      ws.cell(row2 + i, 18).number(0)
-      ws.cell(row2 + i, 19).number(0)
-      ws.cell(row2 + i, 20).number(0)
-      ws.cell(row2 + i, 21).number(0)
-      ws.cell(row2 + i, 22).number(0)
-      ws.cell(row2 + i, 23).number(0)
+    if (countExistingZone(items) > 12)  {
+      ws.cell(rowNumber, 1, rowNumber, 2, true).string('ทั่วประเทศ').style(center)
+      ws.cell(rowNumber, 3).number(sumAllZone(items, 'level3_total') || 0)
+      ws.cell(rowNumber, 4).number(sumAllZone(items, 'level3_used') || 0)
+      ws.cell(rowNumber, 5).number((sumAllZone(items, 'level3_total') || 0) - (sumAllZone(items, 'level3_used') || 0))
+      ws.cell(rowNumber, 6).number(sumAllZone(items, 'level2_2_total') || 0)
+      ws.cell(rowNumber, 7).number(sumAllZone(items, 'level2_2_used') || 0)
+      ws.cell(rowNumber, 8).number((sumAllZone(items, 'level2_2_total') || 0) - (sumAllZone(items, 'level2_2_used') || 0))
+      ws.cell(rowNumber, 9).number(sumAllZone(items, 'level2_1_total') || 0)
+      ws.cell(rowNumber, 10).number(sumAllZone(items, 'level2_1_used') || 0)
+      ws.cell(rowNumber, 11).number((sumAllZone(items, 'level2_1_total') || 0) - (sumAllZone(items, 'level2_1_used') || 0))
+      ws.cell(rowNumber, 12).number(sumAllZone(items, 'level1_total') || 0)
+      ws.cell(rowNumber, 13).number(sumAllZone(items, 'level1_used') || 0)
+      ws.cell(rowNumber, 14).number((sumAllZone(items, 'level1_total') || 0) - (sumAllZone(items, 'level1_used') || 0))
+      ws.cell(rowNumber, 15).number(sumAllZone(items, 'level0_total') || 0)
+      ws.cell(rowNumber, 16).number(sumAllZone(items, 'level0_used') || 0)
+      ws.cell(rowNumber, 17).number((sumAllZone(items, 'level0_total') || 0) - (sumAllZone(items, 'level0_used') || 0))
+      ws.cell(rowNumber, 18).number(sumAllZone(items, 'home_isolation_total') || 0)
+      ws.cell(rowNumber, 19).number(sumAllZone(items, 'home_isolation_used') || 0)
+      ws.cell(rowNumber, 20).number((sumAllZone(items, 'home_isolation_total') || 0) - (sumAllZone(items, 'home_isolation_used') || 0))
+      ws.cell(rowNumber, 21).number(sumAllZone(items, 'community_isolation_total') || 0)
+      ws.cell(rowNumber, 22).number(sumAllZone(items, 'community_isolation_used') || 0)
+      ws.cell(rowNumber, 23).number((sumAllZone(items, 'community_isolation_total') || 0) - (sumAllZone(items, 'community_isolation_used') || 0))
     }
-    rowEnd2 = row2 + rsZone2.length
-    ws.cell(rowEnd2, 1, rowEnd2, 2, true).string('รวมเขต 2')
-    ws.cell(rowEnd2, 3).number(0)
-    ws.cell(rowEnd2, 4).number(0)
-    ws.cell(rowEnd2, 5).number(0)
-    ws.cell(rowEnd2, 6).number(0)
-    ws.cell(rowEnd2, 7).number(0)
-    ws.cell(rowEnd2, 8).number(0)
-    ws.cell(rowEnd2, 9).number(0)
-    ws.cell(rowEnd2, 10).number(0)
-    ws.cell(rowEnd2, 11).number(0)
-    ws.cell(rowEnd2, 12).number(0)
-    ws.cell(rowEnd2, 13).number(0)
-    ws.cell(rowEnd2, 14).number(0)
-    ws.cell(rowEnd2, 15).number(0)
-    ws.cell(rowEnd2, 16).number(0)
-    ws.cell(rowEnd2, 17).number(0)
-    ws.cell(rowEnd2, 18).number(0)
-    ws.cell(rowEnd2, 19).number(0)
-    ws.cell(rowEnd2, 20).number(0)
-    ws.cell(rowEnd2, 21).number(0)
-    ws.cell(rowEnd2, 22).number(0)
-    ws.cell(rowEnd2, 23).number(0)
-
-    const rsZone3 = rs.filter(item => item.zone_code === '03')
-    row3 = rowEnd2 + 1
-    for (let i = 0; i < rsZone3.length; i++) {
-      ws.cell(row3 + i, 1).string(rsZone3[i].zone_code).style(center)
-      ws.cell(row3 + i, 2).string(rsZone3[i].province_name)
-      ws.cell(row3 + i, 3).number(0)
-      ws.cell(row3 + i, 4).number(0)
-      ws.cell(row3 + i, 5).number(0)
-      ws.cell(row3 + i, 6).number(0)
-      ws.cell(row3 + i, 7).number(0)
-      ws.cell(row3 + i, 8).number(0)
-      ws.cell(row3 + i, 9).number(0)
-      ws.cell(row3 + i, 10).number(0)
-      ws.cell(row3 + i, 11).number(0)
-      ws.cell(row3 + i, 12).number(0)
-      ws.cell(row3 + i, 13).number(0)
-      ws.cell(row3 + i, 14).number(0)
-      ws.cell(row3 + i, 15).number(0)
-      ws.cell(row3 + i, 16).number(0)
-      ws.cell(row3 + i, 17).number(0)
-      ws.cell(row3 + i, 18).number(0)
-      ws.cell(row3 + i, 19).number(0)
-      ws.cell(row3 + i, 20).number(0)
-      ws.cell(row3 + i, 21).number(0)
-      ws.cell(row3 + i, 22).number(0)
-      ws.cell(row3 + i, 23).number(0)
-    }
-    rowEnd3 = row3 + rsZone3.length
-    ws.cell(rowEnd3, 1, rowEnd3, 2, true).string('รวมเขต 3')
-    ws.cell(rowEnd3, 3).number(0)
-    ws.cell(rowEnd3, 4).number(0)
-    ws.cell(rowEnd3, 5).number(0)
-    ws.cell(rowEnd3, 6).number(0)
-    ws.cell(rowEnd3, 7).number(0)
-    ws.cell(rowEnd3, 8).number(0)
-    ws.cell(rowEnd3, 9).number(0)
-    ws.cell(rowEnd3, 10).number(0)
-    ws.cell(rowEnd3, 11).number(0)
-    ws.cell(rowEnd3, 12).number(0)
-    ws.cell(rowEnd3, 13).number(0)
-    ws.cell(rowEnd3, 14).number(0)
-    ws.cell(rowEnd3, 15).number(0)
-    ws.cell(rowEnd3, 16).number(0)
-    ws.cell(rowEnd3, 17).number(0)
-    ws.cell(rowEnd3, 18).number(0)
-    ws.cell(rowEnd3, 19).number(0)
-    ws.cell(rowEnd3, 20).number(0)
-    ws.cell(rowEnd3, 21).number(0)
-    ws.cell(rowEnd3, 22).number(0)
-    ws.cell(rowEnd3, 23).number(0)
-
-    const rsZone4 = rs.filter(item => item.zone_code === '04')
-    row4 = rowEnd3 + 1
-    for (let i = 0; i < rsZone4.length; i++) {
-      ws.cell(row4 + i, 1).string(rsZone4[i].zone_code).style(center)
-      ws.cell(row4 + i, 2).string(rsZone4[i].province_name)
-      ws.cell(row4 + i, 3).number(0)
-      ws.cell(row4 + i, 4).number(0)
-      ws.cell(row4 + i, 5).number(0)
-      ws.cell(row4 + i, 6).number(0)
-      ws.cell(row4 + i, 7).number(0)
-      ws.cell(row4 + i, 8).number(0)
-      ws.cell(row4 + i, 9).number(0)
-      ws.cell(row4 + i, 10).number(0)
-      ws.cell(row4 + i, 11).number(0)
-      ws.cell(row4 + i, 12).number(0)
-      ws.cell(row4 + i, 13).number(0)
-      ws.cell(row4 + i, 14).number(0)
-      ws.cell(row4 + i, 15).number(0)
-      ws.cell(row4 + i, 16).number(0)
-      ws.cell(row4 + i, 17).number(0)
-      ws.cell(row4 + i, 18).number(0)
-      ws.cell(row4 + i, 19).number(0)
-      ws.cell(row4 + i, 20).number(0)
-      ws.cell(row4 + i, 21).number(0)
-      ws.cell(row4 + i, 22).number(0)
-      ws.cell(row4 + i, 23).number(0)
-    }
-    rowEnd4 = row4 + rsZone4.length
-    ws.cell(rowEnd4, 1, rowEnd4, 2, true).string('รวมเขต 4')
-    ws.cell(rowEnd4, 3).number(0)
-    ws.cell(rowEnd4, 4).number(0)
-    ws.cell(rowEnd4, 5).number(0)
-    ws.cell(rowEnd4, 6).number(0)
-    ws.cell(rowEnd4, 7).number(0)
-    ws.cell(rowEnd4, 8).number(0)
-    ws.cell(rowEnd4, 9).number(0)
-    ws.cell(rowEnd4, 10).number(0)
-    ws.cell(rowEnd4, 11).number(0)
-    ws.cell(rowEnd4, 12).number(0)
-    ws.cell(rowEnd4, 13).number(0)
-    ws.cell(rowEnd4, 14).number(0)
-    ws.cell(rowEnd4, 15).number(0)
-    ws.cell(rowEnd4, 16).number(0)
-    ws.cell(rowEnd4, 17).number(0)
-    ws.cell(rowEnd4, 18).number(0)
-    ws.cell(rowEnd4, 19).number(0)
-    ws.cell(rowEnd4, 20).number(0)
-    ws.cell(rowEnd4, 21).number(0)
-    ws.cell(rowEnd4, 22).number(0)
-    ws.cell(rowEnd4, 23).number(0)
-
-    const rsZone5 = rs.filter(item => item.zone_code === '05')
-    row5 = rowEnd4 + 1
-    for (let i = 0; i < rsZone5.length; i++) {
-      ws.cell(row5 + i, 1).string(rsZone5[i].zone_code).style(center)
-      ws.cell(row5 + i, 2).string(rsZone5[i].province_name)
-      ws.cell(row5 + i, 3).number(0)
-      ws.cell(row5 + i, 4).number(0)
-      ws.cell(row5 + i, 5).number(0)
-      ws.cell(row5 + i, 6).number(0)
-      ws.cell(row5 + i, 7).number(0)
-      ws.cell(row5 + i, 8).number(0)
-      ws.cell(row5 + i, 9).number(0)
-      ws.cell(row5 + i, 10).number(0)
-      ws.cell(row5 + i, 11).number(0)
-      ws.cell(row5 + i, 12).number(0)
-      ws.cell(row5 + i, 13).number(0)
-      ws.cell(row5 + i, 14).number(0)
-      ws.cell(row5 + i, 15).number(0)
-      ws.cell(row5 + i, 16).number(0)
-      ws.cell(row5 + i, 17).number(0)
-      ws.cell(row5 + i, 18).number(0)
-      ws.cell(row5 + i, 19).number(0)
-      ws.cell(row5 + i, 20).number(0)
-      ws.cell(row5 + i, 21).number(0)
-      ws.cell(row5 + i, 22).number(0)
-      ws.cell(row5 + i, 23).number(0)
-    }
-    rowEnd5 = row5 + rsZone5.length
-    ws.cell(rowEnd5, 1, rowEnd5, 2, true).string('รวมเขต 5')
-    ws.cell(rowEnd5, 3).number(0)
-    ws.cell(rowEnd5, 4).number(0)
-    ws.cell(rowEnd5, 5).number(0)
-    ws.cell(rowEnd5, 6).number(0)
-    ws.cell(rowEnd5, 7).number(0)
-    ws.cell(rowEnd5, 8).number(0)
-    ws.cell(rowEnd5, 9).number(0)
-    ws.cell(rowEnd5, 10).number(0)
-    ws.cell(rowEnd5, 11).number(0)
-    ws.cell(rowEnd5, 12).number(0)
-    ws.cell(rowEnd5, 13).number(0)
-    ws.cell(rowEnd5, 14).number(0)
-    ws.cell(rowEnd5, 15).number(0)
-    ws.cell(rowEnd5, 16).number(0)
-    ws.cell(rowEnd5, 17).number(0)
-    ws.cell(rowEnd5, 18).number(0)
-    ws.cell(rowEnd5, 19).number(0)
-    ws.cell(rowEnd5, 20).number(0)
-    ws.cell(rowEnd5, 21).number(0)
-    ws.cell(rowEnd5, 22).number(0)
-    ws.cell(rowEnd5, 23).number(0)
-
-    const rsZone6 = rs.filter(item => item.zone_code === '06')
-    row6 = rowEnd5 + 1
-    for (let i = 0; i < rsZone6.length; i++) {
-      ws.cell(row6 + i, 1).string(rsZone6[i].zone_code).style(center)
-      ws.cell(row6 + i, 2).string(rsZone6[i].province_name)
-      ws.cell(row6 + i, 3).number(0)
-      ws.cell(row6 + i, 4).number(0)
-      ws.cell(row6 + i, 5).number(0)
-      ws.cell(row6 + i, 6).number(0)
-      ws.cell(row6 + i, 7).number(0)
-      ws.cell(row6 + i, 8).number(0)
-      ws.cell(row6 + i, 9).number(0)
-      ws.cell(row6 + i, 10).number(0)
-      ws.cell(row6 + i, 11).number(0)
-      ws.cell(row6 + i, 12).number(0)
-      ws.cell(row6 + i, 13).number(0)
-      ws.cell(row6 + i, 14).number(0)
-      ws.cell(row6 + i, 15).number(0)
-      ws.cell(row6 + i, 16).number(0)
-      ws.cell(row6 + i, 17).number(0)
-      ws.cell(row6 + i, 18).number(0)
-      ws.cell(row6 + i, 19).number(0)
-      ws.cell(row6 + i, 20).number(0)
-      ws.cell(row6 + i, 21).number(0)
-      ws.cell(row6 + i, 22).number(0)
-      ws.cell(row6 + i, 23).number(0)
-    }
-    rowEnd6 = row6 + rsZone6.length
-    ws.cell(rowEnd6, 1, rowEnd6, 2, true).string('รวมเขต 6')
-    ws.cell(rowEnd6, 3).number(0)
-    ws.cell(rowEnd6, 4).number(0)
-    ws.cell(rowEnd6, 5).number(0)
-    ws.cell(rowEnd6, 6).number(0)
-    ws.cell(rowEnd6, 7).number(0)
-    ws.cell(rowEnd6, 8).number(0)
-    ws.cell(rowEnd6, 9).number(0)
-    ws.cell(rowEnd6, 10).number(0)
-    ws.cell(rowEnd6, 11).number(0)
-    ws.cell(rowEnd6, 12).number(0)
-    ws.cell(rowEnd6, 13).number(0)
-    ws.cell(rowEnd6, 14).number(0)
-    ws.cell(rowEnd6, 15).number(0)
-    ws.cell(rowEnd6, 16).number(0)
-    ws.cell(rowEnd6, 17).number(0)
-    ws.cell(rowEnd6, 18).number(0)
-    ws.cell(rowEnd6, 19).number(0)
-    ws.cell(rowEnd6, 20).number(0)
-    ws.cell(rowEnd6, 21).number(0)
-    ws.cell(rowEnd6, 22).number(0)
-    ws.cell(rowEnd6, 23).number(0)
-
-    const rsZone7 = rs.filter(item => item.zone_code === '07')
-    row7 = rowEnd6 + 1
-    for (let i = 0; i < rsZone7.length; i++) {
-      ws.cell(row7 + i, 1).string(rsZone7[i].zone_code).style(center)
-      ws.cell(row7 + i, 2).string(rsZone7[i].province_name)
-      ws.cell(row7 + i, 3).number(0)
-      ws.cell(row7 + i, 4).number(0)
-      ws.cell(row7 + i, 5).number(0)
-      ws.cell(row7 + i, 6).number(0)
-      ws.cell(row7 + i, 7).number(0)
-      ws.cell(row7 + i, 8).number(0)
-      ws.cell(row7 + i, 9).number(0)
-      ws.cell(row7 + i, 10).number(0)
-      ws.cell(row7 + i, 11).number(0)
-      ws.cell(row7 + i, 12).number(0)
-      ws.cell(row7 + i, 13).number(0)
-      ws.cell(row7 + i, 14).number(0)
-      ws.cell(row7 + i, 15).number(0)
-      ws.cell(row7 + i, 16).number(0)
-      ws.cell(row7 + i, 17).number(0)
-      ws.cell(row7 + i, 18).number(0)
-      ws.cell(row7 + i, 19).number(0)
-      ws.cell(row7 + i, 20).number(0)
-      ws.cell(row7 + i, 21).number(0)
-      ws.cell(row7 + i, 22).number(0)
-      ws.cell(row7 + i, 23).number(0)
-    }
-    rowEnd7 = row7 + rsZone7.length
-    ws.cell(rowEnd7, 1, rowEnd7, 2, true).string('รวมเขต 7')
-    ws.cell(rowEnd7, 3).number(0)
-    ws.cell(rowEnd7, 4).number(0)
-    ws.cell(rowEnd7, 5).number(0)
-    ws.cell(rowEnd7, 6).number(0)
-    ws.cell(rowEnd7, 7).number(0)
-    ws.cell(rowEnd7, 8).number(0)
-    ws.cell(rowEnd7, 9).number(0)
-    ws.cell(rowEnd7, 10).number(0)
-    ws.cell(rowEnd7, 11).number(0)
-    ws.cell(rowEnd7, 12).number(0)
-    ws.cell(rowEnd7, 13).number(0)
-    ws.cell(rowEnd7, 14).number(0)
-    ws.cell(rowEnd7, 15).number(0)
-    ws.cell(rowEnd7, 16).number(0)
-    ws.cell(rowEnd7, 17).number(0)
-    ws.cell(rowEnd7, 18).number(0)
-    ws.cell(rowEnd7, 19).number(0)
-    ws.cell(rowEnd7, 20).number(0)
-    ws.cell(rowEnd7, 21).number(0)
-    ws.cell(rowEnd7, 22).number(0)
-    ws.cell(rowEnd7, 23).number(0)
-
-    const rsZone8 = rs.filter(item => item.zone_code === '08')
-    row8 = rowEnd7 + 1
-    for (let i = 0; i < rsZone8.length; i++) {
-      ws.cell(row8 + i, 1).string(rsZone8[i].zone_code).style(center)
-      ws.cell(row8 + i, 2).string(rsZone8[i].province_name)
-      ws.cell(row8 + i, 3).number(0)
-      ws.cell(row8 + i, 4).number(0)
-      ws.cell(row8 + i, 5).number(0)
-      ws.cell(row8 + i, 6).number(0)
-      ws.cell(row8 + i, 7).number(0)
-      ws.cell(row8 + i, 8).number(0)
-      ws.cell(row8 + i, 9).number(0)
-      ws.cell(row8 + i, 10).number(0)
-      ws.cell(row8 + i, 11).number(0)
-      ws.cell(row8 + i, 12).number(0)
-      ws.cell(row8 + i, 13).number(0)
-      ws.cell(row8 + i, 14).number(0)
-      ws.cell(row8 + i, 15).number(0)
-      ws.cell(row8 + i, 16).number(0)
-      ws.cell(row8 + i, 17).number(0)
-      ws.cell(row8 + i, 18).number(0)
-      ws.cell(row8 + i, 19).number(0)
-      ws.cell(row8 + i, 20).number(0)
-      ws.cell(row8 + i, 21).number(0)
-      ws.cell(row8 + i, 22).number(0)
-      ws.cell(row8 + i, 23).number(0)
-    }
-    rowEnd8 = row8 + rsZone8.length
-    ws.cell(rowEnd8, 1, rowEnd8, 2, true).string('รวมเขต 8')
-    ws.cell(rowEnd8, 3).number(0)
-    ws.cell(rowEnd8, 4).number(0)
-    ws.cell(rowEnd8, 5).number(0)
-    ws.cell(rowEnd8, 6).number(0)
-    ws.cell(rowEnd8, 7).number(0)
-    ws.cell(rowEnd8, 8).number(0)
-    ws.cell(rowEnd8, 9).number(0)
-    ws.cell(rowEnd8, 10).number(0)
-    ws.cell(rowEnd8, 11).number(0)
-    ws.cell(rowEnd8, 12).number(0)
-    ws.cell(rowEnd8, 13).number(0)
-    ws.cell(rowEnd8, 14).number(0)
-    ws.cell(rowEnd8, 15).number(0)
-    ws.cell(rowEnd8, 16).number(0)
-    ws.cell(rowEnd8, 17).number(0)
-    ws.cell(rowEnd8, 18).number(0)
-    ws.cell(rowEnd8, 19).number(0)
-    ws.cell(rowEnd8, 20).number(0)
-    ws.cell(rowEnd8, 21).number(0)
-    ws.cell(rowEnd8, 22).number(0)
-    ws.cell(rowEnd8, 23).number(0)
-
-    const rsZone9 = rs.filter(item => item.zone_code === '09')
-    row9 = rowEnd8 + 1
-    for (let i = 0; i < rsZone9.length; i++) {
-      ws.cell(row9 + i, 1).string(rsZone9[i].zone_code).style(center)
-      ws.cell(row9 + i, 2).string(rsZone9[i].province_name)
-      ws.cell(row9 + i, 3).number(0)
-      ws.cell(row9 + i, 4).number(0)
-      ws.cell(row9 + i, 5).number(0)
-      ws.cell(row9 + i, 6).number(0)
-      ws.cell(row9 + i, 7).number(0)
-      ws.cell(row9 + i, 8).number(0)
-      ws.cell(row9 + i, 9).number(0)
-      ws.cell(row9 + i, 10).number(0)
-      ws.cell(row9 + i, 11).number(0)
-      ws.cell(row9 + i, 12).number(0)
-      ws.cell(row9 + i, 13).number(0)
-      ws.cell(row9 + i, 14).number(0)
-      ws.cell(row9 + i, 15).number(0)
-      ws.cell(row9 + i, 16).number(0)
-      ws.cell(row9 + i, 17).number(0)
-      ws.cell(row9 + i, 18).number(0)
-      ws.cell(row9 + i, 19).number(0)
-      ws.cell(row9 + i, 20).number(0)
-      ws.cell(row9 + i, 21).number(0)
-      ws.cell(row9 + i, 22).number(0)
-      ws.cell(row9 + i, 23).number(0)
-    }
-    rowEnd9 = row9 + rsZone9.length
-    ws.cell(rowEnd9, 1, rowEnd9, 2, true).string('รวมเขต 9')
-    ws.cell(rowEnd9, 3).number(0)
-    ws.cell(rowEnd9, 4).number(0)
-    ws.cell(rowEnd9, 5).number(0)
-    ws.cell(rowEnd9, 6).number(0)
-    ws.cell(rowEnd9, 7).number(0)
-    ws.cell(rowEnd9, 8).number(0)
-    ws.cell(rowEnd9, 9).number(0)
-    ws.cell(rowEnd9, 10).number(0)
-    ws.cell(rowEnd9, 11).number(0)
-    ws.cell(rowEnd9, 12).number(0)
-    ws.cell(rowEnd9, 13).number(0)
-    ws.cell(rowEnd9, 14).number(0)
-    ws.cell(rowEnd9, 15).number(0)
-    ws.cell(rowEnd9, 16).number(0)
-    ws.cell(rowEnd9, 17).number(0)
-    ws.cell(rowEnd9, 18).number(0)
-    ws.cell(rowEnd9, 19).number(0)
-    ws.cell(rowEnd9, 20).number(0)
-    ws.cell(rowEnd9, 21).number(0)
-    ws.cell(rowEnd9, 22).number(0)
-    ws.cell(rowEnd9, 23).number(0)
-
-    const rsZone10 = rs.filter(item => item.zone_code === '10')
-    row10 = rowEnd9 + 1
-    for (let i = 0; i < rsZone10.length; i++) {
-      ws.cell(row10 + i, 1).string(rsZone10[i].zone_code).style(center)
-      ws.cell(row10 + i, 2).string(rsZone10[i].province_name)
-      ws.cell(row10 + i, 3).number(0)
-      ws.cell(row10 + i, 4).number(0)
-      ws.cell(row10 + i, 5).number(0)
-      ws.cell(row10 + i, 6).number(0)
-      ws.cell(row10 + i, 7).number(0)
-      ws.cell(row10 + i, 8).number(0)
-      ws.cell(row10 + i, 9).number(0)
-      ws.cell(row10 + i, 10).number(0)
-      ws.cell(row10 + i, 11).number(0)
-      ws.cell(row10 + i, 12).number(0)
-      ws.cell(row10 + i, 13).number(0)
-      ws.cell(row10 + i, 14).number(0)
-      ws.cell(row10 + i, 15).number(0)
-      ws.cell(row10 + i, 16).number(0)
-      ws.cell(row10 + i, 17).number(0)
-      ws.cell(row10 + i, 18).number(0)
-      ws.cell(row10 + i, 19).number(0)
-      ws.cell(row10 + i, 20).number(0)
-      ws.cell(row10 + i, 21).number(0)
-      ws.cell(row10 + i, 22).number(0)
-      ws.cell(row10 + i, 23).number(0)
-    }
-    rowEnd10 = row10 + rsZone10.length
-    ws.cell(rowEnd10, 1, rowEnd10, 2, true).string('รวมเขต 10')
-    ws.cell(rowEnd10, 3).number(0)
-    ws.cell(rowEnd10, 4).number(0)
-    ws.cell(rowEnd10, 5).number(0)
-    ws.cell(rowEnd10, 6).number(0)
-    ws.cell(rowEnd10, 7).number(0)
-    ws.cell(rowEnd10, 8).number(0)
-    ws.cell(rowEnd10, 9).number(0)
-    ws.cell(rowEnd10, 10).number(0)
-    ws.cell(rowEnd10, 11).number(0)
-    ws.cell(rowEnd10, 12).number(0)
-    ws.cell(rowEnd10, 13).number(0)
-    ws.cell(rowEnd10, 14).number(0)
-    ws.cell(rowEnd10, 15).number(0)
-    ws.cell(rowEnd10, 16).number(0)
-    ws.cell(rowEnd10, 17).number(0)
-    ws.cell(rowEnd10, 18).number(0)
-    ws.cell(rowEnd10, 19).number(0)
-    ws.cell(rowEnd10, 20).number(0)
-    ws.cell(rowEnd10, 21).number(0)
-    ws.cell(rowEnd10, 22).number(0)
-    ws.cell(rowEnd10, 23).number(0)
-
-    const rsZone11 = rs.filter(item => item.zone_code === '11')
-    row11 = rowEnd10 + 1
-    for (let i = 0; i < rsZone11.length; i++) {
-      ws.cell(row11 + i, 1).string(rsZone11[i].zone_code).style(center)
-      ws.cell(row11 + i, 2).string(rsZone11[i].province_name)
-      ws.cell(row11 + i, 3).number(0)
-      ws.cell(row11 + i, 4).number(0)
-      ws.cell(row11 + i, 5).number(0)
-      ws.cell(row11 + i, 6).number(0)
-      ws.cell(row11 + i, 7).number(0)
-      ws.cell(row11 + i, 8).number(0)
-      ws.cell(row11 + i, 9).number(0)
-      ws.cell(row11 + i, 10).number(0)
-      ws.cell(row11 + i, 11).number(0)
-      ws.cell(row11 + i, 12).number(0)
-      ws.cell(row11 + i, 13).number(0)
-      ws.cell(row11 + i, 14).number(0)
-      ws.cell(row11 + i, 15).number(0)
-      ws.cell(row11 + i, 16).number(0)
-      ws.cell(row11 + i, 17).number(0)
-      ws.cell(row11 + i, 18).number(0)
-      ws.cell(row11 + i, 19).number(0)
-      ws.cell(row11 + i, 20).number(0)
-      ws.cell(row11 + i, 21).number(0)
-      ws.cell(row11 + i, 22).number(0)
-      ws.cell(row11 + i, 23).number(0)
-    }
-    rowEnd11 = row11 + rsZone11.length
-    ws.cell(rowEnd11, 1, rowEnd11, 2, true).string('รวมเขต 11')
-    ws.cell(rowEnd11, 3).number(0)
-    ws.cell(rowEnd11, 4).number(0)
-    ws.cell(rowEnd11, 5).number(0)
-    ws.cell(rowEnd11, 6).number(0)
-    ws.cell(rowEnd11, 7).number(0)
-    ws.cell(rowEnd11, 8).number(0)
-    ws.cell(rowEnd11, 9).number(0)
-    ws.cell(rowEnd11, 10).number(0)
-    ws.cell(rowEnd11, 11).number(0)
-    ws.cell(rowEnd11, 12).number(0)
-    ws.cell(rowEnd11, 13).number(0)
-    ws.cell(rowEnd11, 14).number(0)
-    ws.cell(rowEnd11, 15).number(0)
-    ws.cell(rowEnd11, 16).number(0)
-    ws.cell(rowEnd11, 17).number(0)
-    ws.cell(rowEnd11, 18).number(0)
-    ws.cell(rowEnd11, 19).number(0)
-    ws.cell(rowEnd11, 20).number(0)
-    ws.cell(rowEnd11, 21).number(0)
-    ws.cell(rowEnd11, 22).number(0)
-    ws.cell(rowEnd11, 23).number(0)
-
-    const rsZone12 = rs.filter(item => item.zone_code === '12')
-    row12 = rowEnd11 + 1
-    for (let i = 0; i < rsZone12.length; i++) {
-      ws.cell(row12 + i, 1).string(rsZone12[i].zone_code).style(center)
-      ws.cell(row12 + i, 2).string(rsZone12[i].province_name)
-      ws.cell(row12 + i, 3).number(0)
-      ws.cell(row12 + i, 4).number(0)
-      ws.cell(row12 + i, 5).number(0)
-      ws.cell(row12 + i, 6).number(0)
-      ws.cell(row12 + i, 7).number(0)
-      ws.cell(row12 + i, 8).number(0)
-      ws.cell(row12 + i, 9).number(0)
-      ws.cell(row12 + i, 10).number(0)
-      ws.cell(row12 + i, 11).number(0)
-      ws.cell(row12 + i, 12).number(0)
-      ws.cell(row12 + i, 13).number(0)
-      ws.cell(row12 + i, 14).number(0)
-      ws.cell(row12 + i, 15).number(0)
-      ws.cell(row12 + i, 16).number(0)
-      ws.cell(row12 + i, 17).number(0)
-      ws.cell(row12 + i, 18).number(0)
-      ws.cell(row12 + i, 19).number(0)
-      ws.cell(row12 + i, 20).number(0)
-      ws.cell(row12 + i, 21).number(0)
-      ws.cell(row12 + i, 22).number(0)
-      ws.cell(row12 + i, 23).number(0)
-    }
-    rowEnd12 = row12 + rsZone12.length
-    ws.cell(rowEnd12, 1, rowEnd12, 2, true).string('รวมเขต 12')
-    ws.cell(rowEnd12, 3).number(0)
-    ws.cell(rowEnd12, 4).number(0)
-    ws.cell(rowEnd12, 5).number(0)
-    ws.cell(rowEnd12, 6).number(0)
-    ws.cell(rowEnd12, 7).number(0)
-    ws.cell(rowEnd12, 8).number(0)
-    ws.cell(rowEnd12, 9).number(0)
-    ws.cell(rowEnd12, 10).number(0)
-    ws.cell(rowEnd12, 11).number(0)
-    ws.cell(rowEnd12, 12).number(0)
-    ws.cell(rowEnd12, 13).number(0)
-    ws.cell(rowEnd12, 14).number(0)
-    ws.cell(rowEnd12, 15).number(0)
-    ws.cell(rowEnd12, 16).number(0)
-    ws.cell(rowEnd12, 17).number(0)
-    ws.cell(rowEnd12, 18).number(0)
-    ws.cell(rowEnd12, 19).number(0)
-    ws.cell(rowEnd12, 20).number(0)
-    ws.cell(rowEnd12, 21).number(0)
-    ws.cell(rowEnd12, 22).number(0)
-    ws.cell(rowEnd12, 23).number(0)
-
-    const rsZone13 = rs.filter(item => item.zone_code === '13')
-    const row13 = rowEnd12 + rsZone13.length
-    ws.cell(row13, 1, row13, 2, true).string('กรุงเทพมหานคร')
-    ws.cell(row13, 3).number(0)
-    ws.cell(row13, 4).number(0)
-    ws.cell(row13, 5).number(0)
-    ws.cell(row13, 6).number(0)
-    ws.cell(row13, 7).number(0)
-    ws.cell(row13, 8).number(0)
-    ws.cell(row13, 9).number(0)
-    ws.cell(row13, 10).number(0)
-    ws.cell(row13, 11).number(0)
-    ws.cell(row13, 12).number(0)
-    ws.cell(row13, 13).number(0)
-    ws.cell(row13, 14).number(0)
-    ws.cell(row13, 15).number(0)
-    ws.cell(row13, 16).number(0)
-    ws.cell(row13, 17).number(0)
-    ws.cell(row13, 18).number(0)
-    ws.cell(row13, 19).number(0)
-    ws.cell(row13, 20).number(0)
-    ws.cell(row13, 21).number(0)
-    ws.cell(row13, 22).number(0)
-    ws.cell(row13, 23).number(0)
-
-    const row14 = row13 + 1
-    ws.cell(row14, 1, row14, 2, true).string('รวม 12 เขต')
-    ws.cell(row14, 3).number(0)
-    ws.cell(row14, 4).number(0)
-    ws.cell(row14, 5).number(0)
-    ws.cell(row14, 6).number(0)
-    ws.cell(row14, 7).number(0)
-    ws.cell(row14, 8).number(0)
-    ws.cell(row14, 9).number(0)
-    ws.cell(row14, 10).number(0)
-    ws.cell(row14, 11).number(0)
-    ws.cell(row14, 12).number(0)
-    ws.cell(row14, 13).number(0)
-    ws.cell(row14, 14).number(0)
-    ws.cell(row14, 15).number(0)
-    ws.cell(row14, 16).number(0)
-    ws.cell(row14, 17).number(0)
-    ws.cell(row14, 18).number(0)
-    ws.cell(row14, 19).number(0)
-    ws.cell(row14, 20).number(0)
-    ws.cell(row14, 21).number(0)
-    ws.cell(row14, 22).number(0)
-    ws.cell(row14, 23).number(0)
-
-    const row15 = row14 + 1
-    ws.cell(row15, 1, row15, 2, true).string('ทั่วประเทศ')
-    ws.cell(row15, 3).number(0)
-    ws.cell(row15, 4).number(0)
-    ws.cell(row15, 5).number(0)
-    ws.cell(row15, 6).number(0)
-    ws.cell(row15, 7).number(0)
-    ws.cell(row15, 8).number(0)
-    ws.cell(row15, 9).number(0)
-    ws.cell(row15, 10).number(0)
-    ws.cell(row15, 11).number(0)
-    ws.cell(row15, 12).number(0)
-    ws.cell(row15, 13).number(0)
-    ws.cell(row15, 14).number(0)
-    ws.cell(row15, 15).number(0)
-    ws.cell(row15, 16).number(0)
-    ws.cell(row15, 17).number(0)
-    ws.cell(row15, 18).number(0)
-    ws.cell(row15, 19).number(0)
-    ws.cell(row15, 20).number(0)
-    ws.cell(row15, 21).number(0)
-    ws.cell(row15, 22).number(0)
-    ws.cell(row15, 23).number(0)
-
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
@@ -1525,9 +1074,8 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
 })
 
 router.get('/patient-report-by-hospital', async (req: Request, res: Response) => {
-  const db = req.dbReport
-  const date = req.query.date
-  const sector = req.query.sector
+  const db = req.dbReport;
+  const { zones, provinces, date, sector } = req.query;
 
   var wb = new excel4node.Workbook()
   var ws = wb.addWorksheet('Sheet 1')
@@ -1546,7 +1094,14 @@ router.get('/patient-report-by-hospital', async (req: Request, res: Response) =>
   })
 
   try {
-    const rs: any = await model.patientReportByHospital(db, date, sector);
+    const [ headers, cases, deathCases, puiCases ] = await Promise.all([
+      model.getPatientsReportHeaders(db),
+      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.id', zones, provinces }),
+      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'DEATH', groupBy: 'h.id', zones, provinces }),
+      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'PUI', status: 'ADMIT', groupBy: 'h.id', zones, provinces })
+    ])
+
+    const result = mapPatientReportByHospital(cases, deathCases, puiCases)
 
     ws.cell(1,1).string('เขตสุขภาพ').style(center)
     ws.cell(1,2).string('จังหวัด').style(center)
@@ -1565,24 +1120,24 @@ router.get('/patient-report-by-hospital', async (req: Request, res: Response) =>
     ws.cell(1,15).string('PUI').style(center)
     ws.cell(1,16).string('หน่วยงาน').style(center)
 
-    for (let i = 0; i < rs.length; i++) {
-      ws.cell(2 + i, 1).string(rs[i].zone_code).style(center)
-      ws.cell(2 + i, 2).string(rs[i].province_name).style(center)
-      ws.cell(2 + i, 3).string(rs[i].hospcode).style(center)
-      ws.cell(2 + i, 4).string(rs[i].hospname).style(center)
-      ws.cell(2 + i, 5).number(0)
-      ws.cell(2 + i, 6).number(0)
-      ws.cell(2 + i, 7).number(0)
-      ws.cell(2 + i, 8).number(0)
-      ws.cell(2 + i, 9).number(0)
-      ws.cell(2 + i, 10).number(0)
-      ws.cell(2 + i, 11).number(0)
-      ws.cell(2 + i, 12).number(0)
-      ws.cell(2 + i, 13).number(0)
-      ws.cell(2 + i, 14).number(0)
-      ws.cell(2 + i, 15).number(0)
-      ws.cell(2 + i, 16).number(0)
-    }
+    result.forEach((row, i) => {
+      ws.cell(2 + i, 1).string(row.zone_code).style(center)
+      ws.cell(2 + i, 2).string(row.province_name).style(center)
+      ws.cell(2 + i, 3).string(row.hospcode).style(center)
+      ws.cell(2 + i, 4).string(row.hospname).style(center)
+      ws.cell(2 + i, 5).string(row.level)
+      ws.cell(2 + i, 6).number(row.total || 0)
+      ws.cell(2 + i, 7).number(row.severe || 0)
+      ws.cell(2 + i, 8).number(row.invasive || 0)
+      ws.cell(2 + i, 9).number(row.non_invasive || 0)
+      ws.cell(2 + i, 10).number(row.high_flow || 0)
+      ws.cell(2 + i, 11).number(row.moderate || 0)
+      ws.cell(2 + i, 12).number(row.mild || 0)
+      ws.cell(2 + i, 13).number(row.asymptomatic || 0)
+      ws.cell(2 + i, 14).number(row.dead || 0)
+      ws.cell(2 + i, 15).number(row.pui || 0)
+      ws.cell(2 + i, 16).string(row.sub_ministry_name || '-')
+    })
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
@@ -1607,9 +1162,8 @@ router.get('/patient-report-by-hospital', async (req: Request, res: Response) =>
 })
 
 router.get('/bed-report-by-hospital', async (req: Request, res: Response) => {
-  const db = req.dbReport
-  const date = req.query.date
-  const sector = req.query.sector
+  const db = req.dbReport;
+  const { zones, provinces, date, } = req.query;
 
   var wb = new excel4node.Workbook()
   var ws = wb.addWorksheet('Sheet 1')
@@ -1628,7 +1182,58 @@ router.get('/bed-report-by-hospital', async (req: Request, res: Response) => {
   })
 
   try {
-    const rs: any = await model.bedReportByHospital(db, date, sector);
+    const rs: any = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.id', zones, provinces });
+    const results = mapBedReports(rs)
+    const items = []
+
+    results.forEach((result, i) => {
+      result.forEach((x, j) => {
+        if (!items.some(item => item.hospcode === x.hospcode)) {
+          items.push({
+            zone_code: x.zone_code,
+            province_code: x.province_code,
+            province_name: x.province_name,
+            hospcode: x.hospcode,
+            hospname: x.hospname,
+            level: x.level,
+            sub_ministry_name: x.sub_ministry_name
+          })
+        }
+
+        const index = items.findIndex(item => item.hospcode === x.hospcode)
+        if (index > -1) {
+          if (x.bed_name === 'ระดับ3 ใส่ท่อและเครื่องช่วยหายใจ') {
+            items[index].level3_total = x.total
+            items[index].level3_used = x.used
+          } else if (x.bed_name === 'ระดับ 2.2 Oxygen high flow') {
+            items[index].level2_2_total = x.total
+            items[index].level2_2_used = x.used
+          } else if (x.bed_name === 'ระดับ 2.2 Oxygen high flow') {
+            items[index].level2_2_total = x.total
+            items[index].level2_2_used = x.used
+          } else if (x.bed_name === 'ระดับ 2.1 Oxygen high low') {
+            items[index].level2_1_total = x.total
+            items[index].level2_1_used = x.used
+          } else if (x.bed_name === 'ระดับ 1 ไม่ใช่ Oxygen') {
+            items[index].level1_total = x.total
+            items[index].level1_used = x.used
+          } else if (x.bed_name === 'ระดับ 0 Home Isolation (stepdown)') {
+            items[index].level0_total = x.total
+            items[index].level0_used = x.used
+          } else if (x.bed_name === 'Home Isolation') {
+            items[index].home_isolation_total = x.total
+            items[index].home_isolation_used = x.used
+          } else if (x.bed_name === 'Community Isolation') {
+            items[index].community_isolation_total = x.total
+            items[index].community_isolation_used = x.used
+          }
+        }
+      })
+    })
+
+    ws.column(2).setWidth(20)
+    ws.column(4).setWidth(40)
+    ws.column(27).setWidth(40)
 
     ws.cell(1, 1, 2, 1, true).string('เขตสุขภาพ').style(center)
     ws.cell(1, 2, 2, 2, true).string('จังหวัด').style(center)
@@ -1658,35 +1263,37 @@ router.get('/bed-report-by-hospital', async (req: Request, res: Response) => {
       use += 3
       left += 3
     }
+    ws.cell(1, 27, 2, 27, true).string('หน่วยงาน').style(center)
 
-    for (let i = 0; i < rs.length - 1; i++) {
-      ws.cell(3 + i, 1).string(rs[i].zone_code).style(center)
-      ws.cell(3 + i, 2).string(rs[i].province_name).style(center)
-      ws.cell(3 + i, 3).string(rs[i].hospcode).style(center)
-      ws.cell(3 + i, 4).string(rs[i].hospname).style(center)
-      ws.cell(3 + i, 5).number(0)
-      ws.cell(3 + i, 6).number(0)
-      ws.cell(3 + i, 7).number(0)
-      ws.cell(3 + i, 8).number(0)
-      ws.cell(3 + i, 9).number(0)
-      ws.cell(3 + i, 10).number(0)
-      ws.cell(3 + i, 11).number(0)
-      ws.cell(3 + i, 12).number(0)
-      ws.cell(3 + i, 13).number(0)
-      ws.cell(3 + i, 14).number(0)
-      ws.cell(3 + i, 15).number(0)
-      ws.cell(3 + i, 16).number(0)
-      ws.cell(3 + i, 17).number(0)
-      ws.cell(3 + i, 18).number(0)
-      ws.cell(3 + i, 19).number(0)
-      ws.cell(3 + i, 20).number(0)
-      ws.cell(3 + i, 21).number(0)
-      ws.cell(3 + i, 22).number(0)
-      ws.cell(3 + i, 23).number(0)
-      ws.cell(3 + i, 24).number(0)
-      ws.cell(3 + i, 25).number(0)
-      ws.cell(3 + i, 26).number(0)
-    }
+    items.forEach((item, i) => {
+      ws.cell(3 + i, 1).string(item.zone_code).style(center)
+      ws.cell(3 + i, 2).string(item.province_name).style(center)
+      ws.cell(3 + i, 3).string(item.hospcode).style(center)
+      ws.cell(3 + i, 4).string(item.hospname).style(center)
+      ws.cell(3 + i, 5).string(item.level).style(center)
+      ws.cell(3 + i, 6).number(item.level3_total || 0)
+      ws.cell(3 + i, 7).number(item.level3_used || 0)
+      ws.cell(3 + i, 8).number((item.level3_total || 0) - (item.level3_used || 0))
+      ws.cell(3 + i, 9).number(item.level2_2_total || 0)
+      ws.cell(3 + i, 10).number(item.level2_2_used || 0)
+      ws.cell(3 + i, 11).number((item.level2_2_total || 0) - (item.level2_2_used || 0))
+      ws.cell(3 + i, 12).number(item.level2_1_total || 0)
+      ws.cell(3 + i, 13).number(item.level2_1_used || 0)
+      ws.cell(3 + i, 14).number((item.level2_1_total || 0) - (item.level2_1_used || 0))
+      ws.cell(3 + i, 15).number(item.level1_total || 0)
+      ws.cell(3 + i, 16).number(item.level1_used || 0)
+      ws.cell(3 + i, 17).number((item.level1_total || 0) - (item.level1_used || 0))
+      ws.cell(3 + i, 18).number(item.level0_total || 0)
+      ws.cell(3 + i, 19).number(item.level0_used || 0)
+      ws.cell(3 + i, 20).number((item.level0_total || 0) - (item.level0_used || 0))
+      ws.cell(3 + i, 21).number(item.home_isolation_total || 0)
+      ws.cell(3 + i, 22).number(item.home_isolation_used || 0)
+      ws.cell(3 + i, 23).number((item.home_isolation_total || 0) - (item.home_isolation_used || 0))
+      ws.cell(3 + i, 24).number(item.community_isolation_total || 0)
+      ws.cell(3 + i, 25).number(item.community_isolation_used || 0)
+      ws.cell(3 + i, 26).number((item.community_isolation_total || 0) - (item.community_isolation_used || 0))
+      ws.cell(3 + i, 27).string(item.sub_ministry_name || '-').style(center)
+    })
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
@@ -1710,10 +1317,9 @@ router.get('/bed-report-by-hospital', async (req: Request, res: Response) => {
   }
 })
 
-router.get('/patient-admit', async (req: Request, res: Response) => {
-  const db = req.dbReport
-  const date = req.query.date
-  const sector = req.query.sector
+router.get('/admit-case', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const date = req.query.date || moment().format('YYYY-MM-DD');
 
   var wb = new excel4node.Workbook()
   var ws = wb.addWorksheet('Sheet 1')
@@ -1732,7 +1338,19 @@ router.get('/patient-admit', async (req: Request, res: Response) => {
   })
 
   try {
-    // const rs: any = await model.patientReportAdmit(db, date, sector);
+    const [ cases, genericsPersons, headers ] = await Promise.all([
+      reportModel.admitCase(db, date),
+      reportModel.getPersonsGenerics(db, date),
+      reportModel.getGenericNames(db)
+    ])
+    const results = mapPersonsGenerics(genericsPersons, cases)
+
+    ws.column(2).setWidth(20)
+    ws.column(3).setWidth(40)
+    ws.column(7).setWidth(20)
+    ws.column(8).setWidth(20)
+    ws.column(13).setWidth(20)
+    ws.column(23).setWidth(40)
 
     ws.cell(1,1).string('เขต').style(center)
     ws.cell(1,2).string('จังหวัด').style(center)
@@ -1758,35 +1376,35 @@ router.get('/patient-admit', async (req: Request, res: Response) => {
     ws.cell(1,22).string('Favipiravi').style(center)
     ws.cell(1,23).string('หน่วยงานสังกัด').style(center)
 
-    // for (let i = 0; i < rs.length; i++) {
-    //   ws.cell(2 + i, 1).string(rs[i].zone_code).style(center)
-    //   ws.cell(2 + i, 2).string(rs[i].province_name).style(center)
-    //   ws.cell(2 + i, 3).string(rs[i].hospname).style(center)
-    //   ws.cell(2 + i, 4).string('').style(center)
-    //   ws.cell(2 + i, 5).number(0)
-    //   ws.cell(2 + i, 6).number(0)
-    //   ws.cell(2 + i, 7).number(0)
-    //   ws.cell(2 + i, 8).number(0)
-    //   ws.cell(2 + i, 9).number(0)
-    //   ws.cell(2 + i, 10).number(0)
-    //   ws.cell(2 + i, 11).number(0)
-    //   ws.cell(2 + i, 12).number(0)
-    //   ws.cell(2 + i, 13).number(0)
-    //   ws.cell(2 + i, 14).number(0)
-    //   ws.cell(2 + i, 15).number(0)
-    //   ws.cell(2 + i, 16).number(0)
-    //   ws.cell(2 + i, 17).number(0)
-    //   ws.cell(2 + i, 18).number(0)
-    //   ws.cell(2 + i, 19).number(0)
-    //   ws.cell(2 + i, 20).number(0)
-    //   ws.cell(2 + i, 21).number(0)
-    //   ws.cell(2 + i, 22).number(0)
-    //   ws.cell(2 + i, 23).number(0)
-    // }
+    results.forEach((result, i) => {
+      ws.cell(2 + i, 1).string(result.zone_code).style(center)
+      ws.cell(2 + i, 2).string(result.province_name).style(center)
+      ws.cell(2 + i, 3).string(result.hospname).style(center)
+      ws.cell(2 + i, 4).string(result.hn).style(center)
+      ws.cell(2 + i, 5).string(result.an).style(center)
+      ws.cell(2 + i, 6).number(result.cid)
+      ws.cell(2 + i, 7).string(result.first_name).style(center)
+      ws.cell(2 + i, 8).string(result.last_name).style(center)
+      ws.cell(2 + i, 9).string(result.gender).style(center)
+      ws.cell(2 + i, 10).number(getAge(result.birth_date))
+      ws.cell(2 + i, 11).string(formatDate(result.date_admit)).style(center)
+      ws.cell(2 + i, 12).string(formatDate(result.create_date)).style(center)
+      ws.cell(2 + i, 13).string(result.gcs_name || '-').style(center)
+      ws.cell(2 + i, 14).string(result.bed_name || '-').style(center)
+      ws.cell(2 + i, 15).string(result.supplies_name || '-').style(center)
+      ws.cell(2 + i, 16).string(formatDate(result.update_date)).style(center)
+      ws.cell(2 + i, 17).number(result.notUpdated || 0)
+      ws.cell(2 + i, 18).string(result['Darunavir 600 mg.'] ? '✔️' : '❌').style(center)
+      ws.cell(2 + i, 19).string(result['Lopinavir 200 mg. / Ritonavir 50 mg.'] ? '✔️' : '❌').style(center)
+      ws.cell(2 + i, 20).string(result['Ritonavir 100 mg.'] ? '✔️' : '❌').style(center)
+      ws.cell(2 + i, 21).string(result['Azithromycin 250 mg.'] ? '✔️' : '❌').style(center)
+      ws.cell(2 + i, 22).string(result['Favipiravi'] ? '✔️' : '❌').style(center)
+      ws.cell(2 + i, 23).string(result.sub_ministry_name || '-').style(center)
+    })
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
-    let filename = 'report-patient-admit' + moment().format('x');
+    let filename = 'admit-case' + moment().format('x');
     let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
     wb.write(filenamePath, function (err, stats) {
       if (err) {
@@ -1806,10 +1424,10 @@ router.get('/patient-admit', async (req: Request, res: Response) => {
   }
 })
 
-router.get('/patient-discharge', async (req: Request, res: Response) => {
-  const db = req.dbReport
-  const date = req.query.date
-  const sector = req.query.sector
+router.get('/admit-case-summary', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const start = req.query.start || moment().format('YYYY-MM-DD');
+  const end = req.query.end || moment().format('YYYY-MM-DD');
 
   var wb = new excel4node.Workbook()
   var ws = wb.addWorksheet('Sheet 1')
@@ -1828,7 +1446,68 @@ router.get('/patient-discharge', async (req: Request, res: Response) => {
   })
 
   try {
-    // const rs: any = await model.patientReportAdmit(db, date, sector);
+    const results = await reportModel.admitCaseSummary(db, { start, end })
+
+    ws.cell(1,1).string('เขต').style(center)
+    ws.cell(1,2).string('Admit').style(center)
+
+    results.forEach((result, i) => {
+      ws.cell(2 + i, 1).string(result.zone_code).style(center)
+      ws.cell(2 + i, 2).number(result.admit)
+    })
+
+    fse.ensureDirSync(process.env.TMP_PATH);
+
+    let filename = 'admit-case-summary' + moment().format('x');
+    let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+      }
+    })
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+})
+
+router.get('/discharge-case', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const date = req.query.date || moment().format('YYYY-MM-DD');
+
+  var wb = new excel4node.Workbook()
+  var ws = wb.addWorksheet('Sheet 1')
+
+  var center = wb.createStyle({
+    alignment: {
+      wrapText: true,
+      horizontal: 'center',
+    },
+  })
+  var right = wb.createStyle({
+    alignment: {
+      wrapText: true,
+      horizontal: 'right',
+    },
+  })
+
+  try {
+    const rs: any = await reportModel.dischargeCase(db, date, true);
+
+    ws.column(2).setWidth(20)
+    ws.column(4).setWidth(40)
+    ws.column(7).setWidth(20)
+    ws.column(8).setWidth(20)
+    ws.column(9).setWidth(20)
+    ws.column(16).setWidth(40)
+    ws.column(17).setWidth(40)
 
     ws.cell(1,1).string('เขต').style(center)
     ws.cell(1,2).string('จังหวัด').style(center)
@@ -1848,29 +1527,29 @@ router.get('/patient-discharge', async (req: Request, res: Response) => {
     ws.cell(1,16).string('Refer Hospital Name').style(center)
     ws.cell(1,17).string('หน่วยงานสังกัด').style(center)
 
-    // for (let i = 0; i < rs.length; i++) {
-    //   ws.cell(2 + i, 1).string(rs[i].zone_code).style(center)
-    //   ws.cell(2 + i, 2).string(rs[i].province_name).style(center)
-    //   ws.cell(2 + i, 3).string(rs[i].hospcode).style(center)
-    //   ws.cell(2 + i, 4).string(rs[i].hospname).style(center)
-    //   ws.cell(2 + i, 5).number(0)
-    //   ws.cell(2 + i, 6).number(0)
-    //   ws.cell(2 + i, 7).number(0)
-    //   ws.cell(2 + i, 8).number(0)
-    //   ws.cell(2 + i, 9).number(0)
-    //   ws.cell(2 + i, 10).number(0)
-    //   ws.cell(2 + i, 11).number(0)
-    //   ws.cell(2 + i, 12).number(0)
-    //   ws.cell(2 + i, 13).number(0)
-    //   ws.cell(2 + i, 14).number(0)
-    //   ws.cell(2 + i, 15).number(0)
-    //   ws.cell(2 + i, 16).number(0)
-    //   ws.cell(2 + i, 17).number(0)
-    // }
+    rs.forEach((row, i) => {
+      ws.cell(2 + i, 1).string(row.zone_code).style(center)
+      ws.cell(2 + i, 2).string(row.province_name || '-').style(center)
+      ws.cell(2 + i, 3).string(row.hospcode).style(center)
+      ws.cell(2 + i, 4).string(row.hospname).style(center)
+      ws.cell(2 + i, 5).string(row.hn).style(center)
+      ws.cell(2 + i, 6).string(row.an || '-').style(center)
+      ws.cell(2 + i, 7).string(row.cid || '-').style(center)
+      ws.cell(2 + i, 8).string(row.first_name).style(center)
+      ws.cell(2 + i, 9).string(row.last_name).style(center)
+      ws.cell(2 + i, 10).string(row.gender || '-').style(center)
+      ws.cell(2 + i, 11).number(getAge(row.birth_date))
+      ws.cell(2 + i, 12).string(row.status).style(center)
+      ws.cell(2 + i, 13).string(formatDate(row.date_admit)).style(center)
+      ws.cell(2 + i, 14).string(formatDate(row.date_discharge)).style(center)
+      ws.cell(2 + i, 15).string(row.refer_hospcode || '-').style(center)
+      ws.cell(2 + i, 16).string(row.refer_hospname || '-').style(center)
+      ws.cell(2 + i, 17).string(row.sub_ministry_name || '-').style(center)
+    })
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
-    let filename = 'report-patient-discharge' + moment().format('x');
+    let filename = 'discharge-case' + moment().format('x');
     let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
     wb.write(filenamePath, function (err, stats) {
       if (err) {
@@ -1890,10 +1569,10 @@ router.get('/patient-discharge', async (req: Request, res: Response) => {
   }
 })
 
-router.get('/patient-sum-daily', async (req: Request, res: Response) => {
-  const db = req.dbReport
-  const date = req.query.date
-  const sector = req.query.sector
+router.get('/discharge-case-summary', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const start = req.query.start || moment().format('YYYY-MM-DD');
+  const end = req.query.end || moment().format('YYYY-MM-DD');
 
   var wb = new excel4node.Workbook()
   var ws = wb.addWorksheet('Sheet 1')
@@ -1912,7 +1591,81 @@ router.get('/patient-sum-daily', async (req: Request, res: Response) => {
   })
 
   try {
-    // const rs: any = await model.patientReportAdmit(db, date, sector);
+    const results = await reportModel.dischargeSummary(db, { start, end })
+    const mapped = mapDischargeSummary(results)
+
+    ws.column(1).setWidth(20)
+
+    ws.cell(1,1).string('เขต').style(center)
+    ws.cell(1,2).string('Discharge').style(center)
+    ws.cell(1,3).string('Negative').style(center)
+    ws.cell(1,4).string('Refer').style(center)
+    ws.cell(1,5).string('Death').style(center)
+    ws.cell(1,6).string('รวม').style(center)
+
+    mapped.forEach((item, i) => {
+      if (item.zone_code !== '13') {
+        ws.cell(2 + i, 1).string(item.zone_code).style(center)
+      } else {
+        ws.cell(2 + i, 1).string(' กรุงเทพมหานคร ').style(center)
+      }
+      ws.cell(2 + i, 2).number(item['DISCHARGE'] || 0)
+      ws.cell(2 + i, 3).number(item['NEGATIVE'] || 0)
+      ws.cell(2 + i, 4).number(item['REFER'] || 0)
+      ws.cell(2 + i, 5).number(item['DEATH'] || 0)
+      ws.cell(2 + i, 6).number(sumField(item) || 0)
+    })
+
+    fse.ensureDirSync(process.env.TMP_PATH);
+
+    let filename = 'discharge-case-summary' + moment().format('x');
+    let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+      }
+    })
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+})
+
+router.get('/patients-report', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const date = req.query.date;
+  const sector = req.query.sector;
+
+  var wb = new excel4node.Workbook()
+  var ws = wb.addWorksheet('Sheet 1')
+
+  var center = wb.createStyle({
+    alignment: {
+      wrapText: true,
+      horizontal: 'center',
+    },
+  })
+  var right = wb.createStyle({
+    alignment: {
+      wrapText: true,
+      horizontal: 'right',
+    },
+  })
+
+  try {
+    const totalResult: any = await model.getPatientsReport(db, date, sector);
+    const todayResult: any = await model.getPatientsReportByDate(db, date, sector);
+    const result = mapPatientsResult(totalResult, todayResult)
+
+    ws.column(4).setWidth(40)
+    ws.column(21).setWidth(40)
 
     ws.cell(1, 1, 2, 1, true).string('เขตสุขภาพ').style(center)
     ws.cell(1, 2, 2, 2, true).string('จังหวัด').style(center)
@@ -1941,30 +1694,33 @@ router.get('/patient-sum-daily', async (req: Request, res: Response) => {
       dischargeDead += 4
     }
 
-
-    // for (let i = 0; i < rs.length; i++) {
-    //   ws.cell(2 + i, 1).string(rs[i].zone_code).style(center)
-    //   ws.cell(2 + i, 2).string(rs[i].province_name).style(center)
-    //   ws.cell(2 + i, 3).string(rs[i].hospcode).style(center)
-    //   ws.cell(2 + i, 4).string(rs[i].hospname).style(center)
-    //   ws.cell(2 + i, 5).number(0)
-    //   ws.cell(2 + i, 6).number(0)
-    //   ws.cell(2 + i, 7).number(0)
-    //   ws.cell(2 + i, 8).number(0)
-    //   ws.cell(2 + i, 9).number(0)
-    //   ws.cell(2 + i, 10).number(0)
-    //   ws.cell(2 + i, 11).number(0)
-    //   ws.cell(2 + i, 12).number(0)
-    //   ws.cell(2 + i, 13).number(0)
-    //   ws.cell(2 + i, 14).number(0)
-    //   ws.cell(2 + i, 15).number(0)
-    //   ws.cell(2 + i, 16).number(0)
-    //   ws.cell(2 + i, 17).number(0)
-    // }
+    result.forEach((row, i) => {
+      ws.cell(3 + i, 1).string(row.zone_code).style(center)
+      ws.cell(3 + i, 2).string(row.province_name).style(center)
+      ws.cell(3 + i, 3).string(row.hospcode).style(center)
+      ws.cell(3 + i, 4).string(row.hospname).style(center)
+      ws.cell(3 + i, 5).number(row.admit || 0)
+      ws.cell(3 + i, 6).number(row.discharge || 0)
+      ws.cell(3 + i, 7).number(row.discharge_hospitel || 0)
+      ws.cell(3 + i, 8).number(row.discharge_death || 0)
+      ws.cell(3 + i, 9).number(row.pui_admit || 0)
+      ws.cell(3 + i, 10).number(row.pui_discharge || 0)
+      ws.cell(3 + i, 11).number(row.pui_discharge_hospitel || 0)
+      ws.cell(3 + i, 12).number(row.pui_discharge_death || 0)
+      ws.cell(3 + i, 13).number(row.today_admit || 0)
+      ws.cell(3 + i, 14).number(row.today_discharge || 0)
+      ws.cell(3 + i, 15).number(row.today_discharge_hospitel || 0)
+      ws.cell(3 + i, 16).number(row.today_discharge_death || 0)
+      ws.cell(3 + i, 17).number(row.today_pui_admit || 0)
+      ws.cell(3 + i, 18).number(row.today_pui_discharge || 0)
+      ws.cell(3 + i, 19).number(row.today_pui_discharge_hospitel || 0)
+      ws.cell(3 + i, 20).number(row.today_pui_discharge_death || 0)
+      ws.cell(3 + i, 21).string(row.sub_ministry_name || '-').style(center)
+    })
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
-    let filename = 'report-patient-sum-daily' + moment().format('x');
+    let filename = 'patients-report' + moment().format('x');
     let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
     wb.write(filenamePath, function (err, stats) {
       if (err) {
@@ -1984,10 +1740,9 @@ router.get('/patient-sum-daily', async (req: Request, res: Response) => {
   }
 })
 
-router.get('/respirator', async (req: Request, res: Response) => {
-  const db = req.dbReport
-  const date = req.query.date
-  const sector = req.query.sector
+router.get('/medicals-supplies-report-by-hospital', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const { hospital_ids, date, sector } = req.query;
 
   var wb = new excel4node.Workbook()
   var ws = wb.addWorksheet('Sheet 1')
@@ -2006,7 +1761,10 @@ router.get('/respirator', async (req: Request, res: Response) => {
   })
 
   try {
-    // const rs: any = await model.patientReportAdmit(db, date, sector);
+    const rs: any = await model.medicalsSupplyReportByHospital(db, date, sector, hospital_ids);
+
+    ws.column(4).setWidth(40)
+    ws.column(13).setWidth(40)
 
     ws.cell(1, 1, 2, 1, true).string('เขตสุขภาพ').style(center)
     ws.cell(1, 2, 2, 2, true).string('จังหวัด').style(center)
@@ -2017,7 +1775,7 @@ router.get('/respirator', async (req: Request, res: Response) => {
     ws.cell(1, 7, 1, 8, true).string('Invasive Ventilator').style(center)
     ws.cell(1, 9, 1, 10, true).string('High Flow').style(center)
     ws.cell(1, 11, 1, 12, true).string('PAPR').style(center)
-    ws.cell(1, 13, 2, 14, true).string('หน่วยงาน').style(center)
+    ws.cell(1, 13, 2, 13, true).string('หน่วยงาน').style(center)
 
     let use = 5
     let all = 6
@@ -2030,29 +1788,25 @@ router.get('/respirator', async (req: Request, res: Response) => {
       all += 2
     }
 
-    // for (let i = 0; i < rs.length; i++) {
-    //   ws.cell(2 + i, 1).string(rs[i].zone_code).style(center)
-    //   ws.cell(2 + i, 2).string(rs[i].province_name).style(center)
-    //   ws.cell(2 + i, 3).string(rs[i].hospcode).style(center)
-    //   ws.cell(2 + i, 4).string(rs[i].hospname).style(center)
-    //   ws.cell(2 + i, 5).number(0)
-    //   ws.cell(2 + i, 6).number(0)
-    //   ws.cell(2 + i, 7).number(0)
-    //   ws.cell(2 + i, 8).number(0)
-    //   ws.cell(2 + i, 9).number(0)
-    //   ws.cell(2 + i, 10).number(0)
-    //   ws.cell(2 + i, 11).number(0)
-    //   ws.cell(2 + i, 12).number(0)
-    //   ws.cell(2 + i, 13).number(0)
-    //   ws.cell(2 + i, 14).number(0)
-    //   ws.cell(2 + i, 15).number(0)
-    //   ws.cell(2 + i, 16).number(0)
-    //   ws.cell(2 + i, 17).number(0)
-    // }
+    rs.forEach((row, i) => {
+      ws.cell(3 + i, 1).string(row.zone_code).style(center)
+      ws.cell(3 + i, 2).string(row.province_name).style(center)
+      ws.cell(3 + i, 3).string(row.hospcode).style(center)
+      ws.cell(3 + i, 4).string(row.hospname).style(center)
+      ws.cell(3 + i, 5).number(row.non_invasive_usage_qty || 0)
+      ws.cell(3 + i, 6).number(row.non_invasive_covid_qty || 0)
+      ws.cell(3 + i, 7).number(row.invasive_usage_qty || 0)
+      ws.cell(3 + i, 8).number(row.invasive_covid_qty || 0)
+      ws.cell(3 + i, 9).number(row.high_flow_usage_qty || 0)
+      ws.cell(3 + i, 10).number(row.high_flow_covid_qty || 0)
+      ws.cell(3 + i, 11).number(row.papr_usage_qty || 0)
+      ws.cell(3 + i, 12).number(row.papr_covid_qty || 0)
+      ws.cell(3 + i, 13).string(row.sub_ministry_name || '-').style(center)
+    })
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
-    let filename = 'report-respirator' + moment().format('x');
+    let filename = 'medicals-supplies-report-by-hospital' + moment().format('x');
     let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
     wb.write(filenamePath, function (err, stats) {
       if (err) {
