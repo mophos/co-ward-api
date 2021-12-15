@@ -43,6 +43,7 @@ export class ReportAllModel {
       .leftJoin('p_covid_cases as c', 'cd.covid_case_id', 'c.id')
       .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
       .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')
+      .leftJoin('b_hospital_subministry as hs', 'hs.code', 'h.sub_ministry_code')
       .leftJoin('b_beds as b', 'b.id', 'cd.bed_id')
       .joinRaw('LEFT JOIN b_bed_hospitals AS bh ON bh.bed_id = cd.bed_id AND bh.hospital_id = h.id')
       .where('cd.entry_date', date)
@@ -61,7 +62,7 @@ export class ReportAllModel {
     }
 
     if (options.groupBy === 'h.id') {
-      sql.select('h.zone_code', 'cd.bed_id', 'b.name as bed_name', 'h.province_code', 'h.province_name', 'h.hospname', 'h.id', 'h.hospcode', 'h.level')
+      sql.select('h.zone_code', 'cd.bed_id', 'b.name as bed_name', 'h.province_code', 'h.province_name', 'h.hospname', 'h.id', 'h.hospcode', 'h.level', 'hs.name as sub_ministry_name')
     }
 
     if (options.zones?.length > 0) {

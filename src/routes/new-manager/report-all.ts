@@ -41,14 +41,6 @@ router.get('/medicals-supplies-report-by-hospital', async (req: Request, res: Re
 const mapBedReports = (raws: any[]) => {
   const results = []
 
-  // raws.forEach((raw) => {
-  //   if (results[raw.zone_code]) {
-  //     results[raw.zone_code].push(raw)
-  //   } else {
-  //     results[raw.zone_code] = [raw]
-  //   }
-  // })
-
   for (let index = 1; index <= 13; index++) {
     const indexString = index.toString().padStart(2, '0')
     const grouped = raws.filter((raw) => raw.zone_code === indexString)
