@@ -126,6 +126,36 @@ router.get('/approved-detail', async (req: Request, res: Response) => {
   }
 });
 
+const dateOfDischargeEvent = () => {
+  const limitEvents = [
+    { statusId: 3, limit: 30 },
+    { statusId: 4, limit: 14 },
+    { statusId: 2, limit: 30 },
+    { statusId: 1, limit: 30 },
+    { statusId: 8, limit: 10, isBedType: true },
+  ]
+
+  const today = moment()
+  const result = limitEvents.map((each) => ({
+    ...each,
+    expireDate: today.subtract(each.limit, 'days').format('YYYY-MM-DD')
+  }))
+
+  return result
+}
+
+router.patch('/case-must-discharge', async (req: Request, res: Response) => {
+  const db = req.db;
+
+  try {
+    const dischargeEvents = dateOfDischargeEvent()
+    const cases = await Promise.all(dischargeEvents.map((each) => covidCaseModel.getCaseMustDischarge(db, each.statusId, each.expireDate, each.isBedType || false)))
+    res.send({ ok: true, rows: cases })
+  } catch (error) {
+    res.send({ ok: false, error: error.message });
+  }
+})
+
 router.put('/', async (req: Request, res: Response) => {
   const data = req.body.data;
   const db = req.db;
@@ -271,26 +301,49 @@ router.post('/', async (req: Request, res: Response) => { // TODO: check amount 
   try {
 
     // check patient 
-    // const rsPatient = await covidCaseModel.getPatientByHN(db, hospitalId, data.hn);
-    const bedAmount = await covidCaseModel.getAmountOfBedByHospitalId(db, 61)
-    console.log({bedAmount})
-    res.json({bedAmount})
-  //   if (rsPatient.length && data.confirm != 'Y') {
-  //     if (data.type == 'CID' || (data.type == 'PASSPORT' && data.passport)) {
-  //       // มี patient
-  //       res.send(await saveCovidCase(db, req, data));
-  //     } else {
-  //       const rsPerson = await covidCaseModel.getPerson(db, rsPatient[0].person_id);
-  //       if (rsPerson.length) {
-  //         res.send({ ok: false, code: 3301, rows: rsPerson[0] });
-  //       } else {
-  //         res.send({ ok: false, error: 'มีบัครุนแรงติดต่อคุณแอมป์ด่วนค่ะ !!' });
-  //       }
-  //     }
-  //   } else {
-  //     // ไม่มี patient
-  //     res.send(await saveCovidCase(db, req, data));
-  //   }
+    const rsPatient = await covidCaseModel.getPatientByHN(db, hospitalId, data.hn);
+    const { detail } = data
+    const bedAmounts: any[] = await Promise.all(detail.map((each: any) => {
+      const date = moment(each.date).format('YYYY-MM-DD')
+      return covidCaseModel.getAmountOfBedByHospitalId(db, hospitalId, each.bed_id, date)
+    }))
+
+    let errorMessage = ''
+    for (const bed of bedAmounts) {
+      if (!bed.length) {
+        errorMessage = 'beds have not been set amount'
+        break
+      }
+
+      if (!bed[0].qty || !bed[0].covid_qty) {
+        errorMessage = `beds (${bed[0].name}) have not been set amount`
+        break
+      }
+
+      if (bed[0].spare_qty < 1) {
+        errorMessage = 'beds are not enough'
+        break
+      }
+    }
+    
+    if (rsPatient.length && data.confirm != 'Y' && !errorMessage) {
+      if (data.type == 'CID' || (data.type == 'PASSPORT' && data.passport)) {
+        // มี patient
+        res.send(await saveCovidCase(db, req, data));
+      } else {
+        const rsPerson = await covidCaseModel.getPerson(db, rsPatient[0].person_id);
+        if (rsPerson.length) {
+          res.send({ ok: false, code: 3301, rows: rsPerson[0] });
+        } else {
+          res.send({ ok: false, error: 'มีบัครุนแรงติดต่อคุณแอมป์ด่วนค่ะ !!' });
+        }
+      }
+    } else if (errorMessage) {
+      res.send({ ok: false, error: errorMessage });
+    } else {
+      // ไม่มี patient
+      res.send(await saveCovidCase(db, req, data));
+    } 
   } catch (error) {
     res.send({ ok: false, error: error });
   }

@@ -26,6 +26,36 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
+const dateOfDischargeEvent = () => {
+  const limitEvents = [
+    { statusId: 1, limit: 30 },
+    { statusId: 2, limit: 30 },
+    { statusId: 3, limit: 30 },
+    { statusId: 4, limit: 14 },
+    { statusId: 8, limit: 10, isBedType: true },
+  ]
+
+  const today = moment()
+  const result = limitEvents.map((each) => ({
+    ...each,
+    expireDate: today.subtract(each.limit, 'days').format('YYYY-MM-DD')
+  }))
+
+  return result
+}
+
+router.patch('/case-must-discharge', async (req: Request, res: Response) => {
+  const db = req.db;
+
+  try {
+    const dischargeEvents = dateOfDischargeEvent()
+    const cases = await Promise.all(dischargeEvents.map((each) => covidCaseModel.getCaseMustDischarge(db, each.statusId, each.expireDate, each.isBedType)))
+    res.send({ ok: true, rows: cases })
+  } catch (error) {
+    res.send({ ok: false, error: error.message });
+  }
+})
+
 
 router.post('/', async (req: Request, res: Response) => {
   const data = req.body.data;
