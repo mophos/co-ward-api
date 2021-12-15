@@ -254,7 +254,8 @@ const removeDupHospitalHeaders = (normalCases: any[], deathCases: any[], puiCase
         zone_code: each.zone_code,
         hospname: each.hospname,
         hospcode: each.hospcode,
-        sub_ministry_name: each.sub_ministry_name
+        sub_ministry_name: each.sub_ministry_name,
+        level: each.level
       })
     }
   })
@@ -268,7 +269,8 @@ const removeDupHospitalHeaders = (normalCases: any[], deathCases: any[], puiCase
         zone_code: each.zone_code,
         hospname: each.hospname,
         hospcode: each.hospcode,
-        sub_ministry_name: each.sub_ministry_name
+        sub_ministry_name: each.sub_ministry_name,
+        level: each.level
       })
     }
   })
@@ -282,7 +284,8 @@ const removeDupHospitalHeaders = (normalCases: any[], deathCases: any[], puiCase
         zone_code: each.zone_code,
         hospname: each.hospname,
         hospcode: each.hospcode,
-        sub_ministry_name: each.sub_ministry_name
+        sub_ministry_name: each.sub_ministry_name,
+        level: each.level
       })
     }
   })
