@@ -378,6 +378,75 @@ router.get('/patient-report-by-zone', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/bed-report-overview', async (req: Request, res: Response) => {
+  const db = req.dbReport
+  const { start, end } = req.query
+  const dateRange = { 
+    start: start ? moment(start).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
+    end: end ? moment(end).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD')
+  }
+
+  try {
+    const usedBedTotal = await model.getTotalUsedBedByDateRange(db, dateRange)
+    const bedTotal = await model.getTotalBedByDateRange(db, dateRange)
+    res.send({ ok: true, rows: { usedBedTotal, bedTotal } })
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+})
+
+const mapPatientsReportByStatusAndEachDate = (patients: any[]) => {
+  const results = {}
+  
+  patients.forEach((patient) => {
+    const statusString = patient.status.toLowerCase()
+    if (results[statusString]?.length) {
+      results[statusString].push(patient)
+    } 
+    
+    else if (!results[statusString]) {
+      results[statusString] = [patient]
+    }
+
+    const currentTotalStatus = results[`${statusString}_total`] || 0
+    results[`${statusString}_total`] = currentTotalStatus + patient.amount
+  })
+
+  return results
+}
+
+router.get('/patient-report-by-status-each-date', async (req: Request, res: Response) => {
+  const db = req.dbReport
+  const { start, end } = req.query
+  const dateRange = { 
+    start: start ? moment(start).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
+    end: end ? moment(end).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD')
+  }
+
+  try {
+    const patients = await model.getPatientsStatusByEachDate(db, dateRange)
+    res.send({ ok: true, rows: mapPatientsReportByStatusAndEachDate(patients) })
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+})
+
+router.get('/patient-report-by-gcs-each-date', async (req: Request, res: Response) => {
+  const db = req.dbReport
+  const { start, end } = req.query
+  const dateRange = { 
+    start: start ? moment(start).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
+    end: end ? moment(end).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD')
+  }
+
+  try {
+    const patients = await model.getPatientsGcsByEachDate(db, dateRange)
+    res.send({ ok: true, rows: mapPatientsReportByStatusAndEachDate(patients) })
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+})
+
 router.get('/patient-report-by-province', async (req: Request, res: Response) => {
   const db = req.dbReport;
   const { zones, date } = req.query;

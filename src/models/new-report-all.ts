@@ -22,6 +22,51 @@ export class ReportAllModel {
 
   }
 
+  getPatientsGcsByEachDate (db: Knex, { start, end }: { start: string, end: string }) {
+    const sql = db('p_covid_cases as covid_case')
+      .select('covid_case.status', 'covid_case.date_admit')
+      .count('* as amount')
+      .whereBetween('covid_case.date_admit', [start, end])
+      .groupBy('covid_case.status')
+      .groupBy('covid_case.date_admit')
+
+    return sql
+  }
+
+  getPatientsStatusByEachDate (db: Knex, { start, end }: { start: string, end: string }) {
+    const sql = db('p_covid_cases as covid_case')
+      .select('covid_case.status', 'covid_case.date_admit')
+      .count('* as amount')
+      .whereBetween('covid_case.date_admit', [start, end])
+      .groupBy('covid_case.status')
+      .groupBy('covid_case.date_admit')
+
+    return sql
+  }
+
+  getTotalUsedBedByDateRange (db: Knex, { start, end }: { start: string, end: string }) {
+    const sql = db('p_covid_cases as covid_case')
+      .select('covid_case.status')
+      .count('* as usedBed_total')
+      .whereBetween('covid_case.date_admit', [start, end])
+      .whereNot('covid_case.status', 'DEATH')
+      .groupBy('covid_case.status')
+
+    return sql
+  }
+
+  getTotalBedByDateRange (db: Knex, { start, end }: { start: string, end: string }) {
+    const sql = db('wm_bed_details as bed_details')
+      .select('bed_details.covid_qty as covid_qty', 'bed_details.spare_qty as spare_qty', 'bed_details.bed_id')
+      .leftJoin('wm_beds as bed', 'bed.id', 'bed_details.wm_bed_id')
+      // .whereRaw('bed.date = (SELECT MAX(wm_beds.date) FROM wm_beds WHERE )')
+      .where('bed.date', '<', end)
+      .orWhereNull('bed.date')
+      .groupBy('bed_details.bed_id')
+
+    return sql
+  }
+
   medicalsSupplyReportByHospital(db: Knex, date: any, sector: any, hospitalIds = []) {
     const sql = db('views_hospital_all as vh')
       .select('vh.*', 'vm.*')
