@@ -378,18 +378,51 @@ router.get('/patient-report-by-zone', async (req: Request, res: Response) => {
   }
 });
 
+const mapBedOverviewReport = (totalBeds: any[], usedBeds: any[]) => {
+  const results = totalBeds.map((bed) => {
+    const foundUsedBed = usedBeds.find((each) => each.bed_id === bed.bed_id)
+    const covid_qty = bed.covid_qty || 0
+    const used_qty = foundUsedBed?.amount || 0
+    const spare_qty = covid_qty - used_qty
+
+    return {
+      ...bed,
+      covid_qty,
+      used_qty,
+      spare_qty
+    }
+  })
+
+  return {
+    results,
+    total_covid_qty: results.reduce((total, acc) => total + acc.covid_qty, 0),
+    total_used_qty: results.reduce((total, acc) => total + acc.used_qty, 0),
+    total_spare_qty: results.reduce((total, acc) => total + acc.spare_qty, 0)
+  }
+}
+
 router.get('/bed-report-overview', async (req: Request, res: Response) => {
   const db = req.dbReport
-  const { start, end } = req.query
+  const { start, end, sub_ministry_codes, zones, provinces, bed_ids } = req.query
   const dateRange = { 
     start: start ? moment(start).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
     end: end ? moment(end).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD')
   }
 
+  const options = {
+    sub_ministry_codes: sub_ministry_codes || [],
+    zones: zones || [],
+    provinces: provinces || [],
+    bed_ids: bed_ids || []
+  }
+
   try {
-    const usedBedTotal = await model.getTotalUsedBedByDateRange(db, dateRange)
-    const bedTotal = await model.getTotalBedByDateRange(db, dateRange)
-    res.send({ ok: true, rows: { usedBedTotal, bedTotal } })
+    const [usedBedTotal, bedTotal] = await Promise.all([
+      model.getTotalUsedBedByDateRange(db, dateRange, options),
+      model.getTotalBedByDateRange(db, dateRange, options)
+    ])
+
+    res.send({ ok: true, rows: mapBedOverviewReport(bedTotal, usedBedTotal) })
   } catch (error) {
     res.send({ ok: false, error: error });
   }
@@ -415,58 +448,173 @@ const mapPatientsReportByStatusAndEachDate = (patients: any[]) => {
   return results
 }
 
+const mapPatientsReportByCaseAndEachDate = (patients: any[]) => {
+  const results = {}
+  
+  patients.forEach((patient) => {
+    const statusString = patient.name.toLowerCase()
+    if (results[statusString]?.length) {
+      results[statusString].push(patient)
+    } 
+    
+    else if (!results[statusString]) {
+      results[statusString] = [patient]
+    }
+
+    const currentTotalStatus = results[`${statusString}_total`] || 0
+    results[`${statusString}_total`] = currentTotalStatus + patient.amount
+  })
+
+  return results
+}
+
 router.get('/patient-report-by-status-each-date', async (req: Request, res: Response) => {
   const db = req.dbReport
-  const { start, end } = req.query
+  const { start, end, sub_ministry_codes, zones, provinces, bed_ids } = req.query
   const dateRange = { 
     start: start ? moment(start).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
     end: end ? moment(end).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD')
   }
 
+  const options = {
+    sub_ministry_codes: sub_ministry_codes || [],
+    zones: zones || [],
+    provinces: provinces || [],
+    bed_ids: bed_ids || []
+  }
+
   try {
-    const patients = await model.getPatientsStatusByEachDate(db, dateRange)
+    const patients = await model.getPatientsStatusByEachDate(db, dateRange, options)
     res.send({ ok: true, rows: mapPatientsReportByStatusAndEachDate(patients) })
   } catch (error) {
     res.send({ ok: false, error: error });
   }
 })
 
-router.get('/patient-report-by-gcs-each-date', async (req: Request, res: Response) => {
+router.get('/patient-report-by-status-each-date', async (req: Request, res: Response) => {
   const db = req.dbReport
-  const { start, end } = req.query
+  const { start, end, sub_ministry_codes, zones, provinces, bed_ids } = req.query
   const dateRange = { 
     start: start ? moment(start).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
     end: end ? moment(end).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD')
   }
 
+  const options = {
+    sub_ministry_codes: sub_ministry_codes || [],
+    zones: zones || [],
+    provinces: provinces || [],
+    bed_ids: bed_ids || []
+  }
+
   try {
-    const patients = await model.getPatientsGcsByEachDate(db, dateRange)
+    const patients = await model.getPatientsStatusByEachDate(db, dateRange, options)
     res.send({ ok: true, rows: mapPatientsReportByStatusAndEachDate(patients) })
   } catch (error) {
     res.send({ ok: false, error: error });
   }
 })
 
-router.get('/patient-report-by-province', async (req: Request, res: Response) => {
-  const db = req.dbReport;
-  const { zones, date } = req.query;
+router.get('/patient-report-by-category', async (req: Request, res: Response) => {
+  const db = req.dbReport
+  const { start, end, sub_ministry_codes, zones, provinces, bed_ids } = req.query
+  const dateRange = { 
+    start: start ? moment(start).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
+    end: end ? moment(end).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD')
+  }
+
+  const options = {
+    sub_ministry_codes: sub_ministry_codes || [],
+    zones: zones || [],
+    provinces: provinces || [],
+    bed_ids: bed_ids || []
+  }
 
   try {
-    const [ headers, cases, deathCases, puiCases ] = await Promise.all([
-      model.getPatientsReportHeaders(db),
-      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] }),
-      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'DEATH', groupBy: 'h.province_code', zones, provinces: [] }),
-      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'PUI', status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] })
+
+    const [patients, severeCases, invasionVentilatorCases] = await Promise.all([
+      model.getPatientsCategoryByEachDate(db, dateRange, options),
+      model.getPatientsCaseByEachDate(db, dateRange, { ...options, case: 'COVID', status: 'ADMIT', gcs_id: 1}),
+      model.getPatientsCaseByEachDate(
+        db,
+        dateRange,
+        { 
+          ...options,
+          case: 'COVID',
+          status: 'ADMIT',
+          medical_supplie_id: 1,
+          groupBy: 'cd.medical_supplie_id'
+        }
+      )
     ])
 
-    const result = mapPatientReportByProvince(cases, deathCases, puiCases)
-    res.send({ ok: true, rows: result, code: HttpStatus.OK });
+    res.send({ ok: true, rows: { patients, severeCases, invasionVentilatorCases } })
   } catch (error) {
-    console.log(error);
-
     res.send({ ok: false, error: error });
   }
-});
+})
+
+router.get('/ett-and-date-report', async (req: Request, res: Response) => {
+  const db = req.dbReport
+  const { start, end, sub_ministry_codes, zones, provinces, bed_ids } = req.query
+  const dateRange = { 
+    start: start ? moment(start).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
+    end: end ? moment(end).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD')
+  }
+
+  const options = {
+    sub_ministry_codes: sub_ministry_codes || [],
+    zones: zones || [],
+    provinces: provinces || [],
+    bed_ids: bed_ids || [],
+    case: 'COVID',
+    status: 'ADMIT'
+  }
+
+  try {
+    const [deathCases, invasionVentilatorCases] = await Promise.all([
+      model.getPatientsCaseByEachDate(db, dateRange, { ...options, case: 'COVID', status: 'DEATH' }),
+      model.getPatientsCaseByEachDate(
+        db,
+        dateRange,
+        { 
+          ...options,
+          case: 'COVID',
+          status: 'ADMIT',
+          medical_supplie_id: 1,
+          groupBy: 'cd.medical_supplie_id'
+        }
+      )
+    ])
+    res.send({ ok: true, rows: { deathCases, invasionVentilatorCases } })
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+})
+
+router.get('/patient-report-by-case-each-date', async (req: Request, res: Response) => {
+  const db = req.dbReport
+  const { start, end, sub_ministry_codes, zones, provinces, bed_ids } = req.query
+  const dateRange = { 
+    start: start ? moment(start).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
+    end: end ? moment(end).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD')
+  }
+
+  const options = {
+    sub_ministry_codes: sub_ministry_codes || [],
+    zones: zones || [],
+    provinces: provinces || [],
+    bed_ids: bed_ids || [],
+    case: 'COVID',
+    status: 'ADMIT'
+  }
+
+  try {
+    const patients = await model.getPatientsCaseByEachDate(db, dateRange, options)
+    res.send({ ok: true, rows: mapPatientsReportByCaseAndEachDate(patients) })
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+})
 
 router.get('/patient-report-by-hospital', async (req: Request, res: Response) => {
   const db = req.dbReport;

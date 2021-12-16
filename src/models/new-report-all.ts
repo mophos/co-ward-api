@@ -22,47 +22,181 @@ export class ReportAllModel {
 
   }
 
-  getPatientsGcsByEachDate (db: Knex, { start, end }: { start: string, end: string }) {
-    const sql = db('p_covid_cases as covid_case')
+  getPatientsCaseByEachDate (db: Knex, { start, end }: { start: string, end: string }, options: any) {
+
+    const groupBy = options.groupBy || 'cd.gcs_id'
+    const sql = db('p_covid_case_details AS cd')
+      .select('g.name', 'c.date_admit')
+      .count('* as amount')
+      .leftJoin('p_covid_cases as c', 'cd.covid_case_id', 'c.id')
+      .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
+      .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')
+      .leftJoin('b_hospital_subministry as hs', 'hs.code', 'h.sub_ministry_code')
+      .leftJoin('b_gcs as g', 'g.id', 'cd.gcs_id')
+      .whereBetween('c.date_admit', [start, end])
+      .where('c.case_status', options.case)
+      .where('cd.status', options.status)
+      .where('c.is_deleted', 'N')
+      .groupBy('c.date_admit', groupBy)
+      .orderBy('c.date_admit')
+
+      if (options.gcs_id) {
+        sql.where('cd.gcs_id', options.gcs_id)
+      }
+
+      if (options.medical_supplie_id) {
+        sql.where('cd.medical_supplie_id', options.medical_supplie_id)
+      }
+
+      if (options.sub_ministry_codes?.length) {
+        sql.whereIn('sub_ministry_code.bed_id', options.sub_ministry_codes)
+      }
+  
+      if (options.zones?.length) {
+        sql.whereIn('hospitals.zone', options.zones)
+      }
+  
+      if (options.provinces?.length) {
+        sql.whereIn('hospitals.province_code', options.provinces)
+      }
+  
+      if (options.bed_ids?.length) {
+        sql.whereIn('covid_case_detail.bed_id', options.bed_ids)
+      }
+
+    return sql
+  }
+
+  getPatientsStatusByEachDate (db: Knex, { start, end }: { start: string, end: string }, options: any) {
+    const sql = db('p_covid_case_details as covid_case_detail')
       .select('covid_case.status', 'covid_case.date_admit')
       .count('* as amount')
+      .leftJoin('p_covid_cases as covid_case', 'covid_case_detail.covid_case_id', 'covid_case.id')
+      .leftJoin('p_patients as patients', 'patients.id', 'covid_case.patient_id')
+      .leftJoin('b_hospitals as hospitals', 'patients.hospital_id', 'hospitals.id')
+      .leftJoin('b_hospital_subministry as hospital_subministry', 'hospital_subministry.code', 'hospitals.sub_ministry_code')
+      .leftJoin('b_beds as beds', 'beds.id', 'covid_case_detail.bed_id')
+      .joinRaw('LEFT JOIN b_bed_hospitals AS bed_hospitals ON bed_hospitals.bed_id = covid_case_detail.bed_id AND bed_hospitals.hospital_id = hospitals.id')
       .whereBetween('covid_case.date_admit', [start, end])
+      .where('covid_case.is_deleted', 'N')
       .groupBy('covid_case.status')
       .groupBy('covid_case.date_admit')
 
+    if (options.sub_ministry_codes?.length) {
+      sql.whereIn('sub_ministry_code.bed_id', options.sub_ministry_codes)
+    }
+
+    if (options.zones?.length) {
+      sql.whereIn('hospitals.zone', options.zones)
+    }
+
+    if (options.provinces?.length) {
+      sql.whereIn('hospitals.province_code', options.provinces)
+    }
+
+    if (options.bed_ids?.length) {
+      sql.whereIn('covid_case_detail.bed_id', options.bed_ids)
+    }
+
     return sql
   }
 
-  getPatientsStatusByEachDate (db: Knex, { start, end }: { start: string, end: string }) {
-    const sql = db('p_covid_cases as covid_case')
-      .select('covid_case.status', 'covid_case.date_admit')
+  getPatientsCategoryByEachDate (db: Knex, { start, end }: { start: string, end: string }, options: any) {
+    const sql = db('p_covid_case_details as covid_case_detail')
+      .select('covid_case.date_admit')
       .count('* as amount')
+      .leftJoin('p_covid_cases as covid_case', 'covid_case_detail.covid_case_id', 'covid_case.id')
+      .leftJoin('p_patients as patients', 'patients.id', 'covid_case.patient_id')
+      .leftJoin('b_hospitals as hospitals', 'patients.hospital_id', 'hospitals.id')
+      .leftJoin('b_hospital_subministry as hospital_subministry', 'hospital_subministry.code', 'hospitals.sub_ministry_code')
+      .leftJoin('b_beds as beds', 'beds.id', 'covid_case_detail.bed_id')
+      .joinRaw('LEFT JOIN b_bed_hospitals AS bed_hospitals ON bed_hospitals.bed_id = covid_case_detail.bed_id AND bed_hospitals.hospital_id = hospitals.id')
       .whereBetween('covid_case.date_admit', [start, end])
-      .groupBy('covid_case.status')
+      .where('covid_case.is_deleted', 'N')
+      .whereNotIn('covid_case.status', ['DEATH', 'DISCHARGE'])
       .groupBy('covid_case.date_admit')
 
+    if (options.sub_ministry_codes?.length) {
+      sql.whereIn('sub_ministry_code.bed_id', options.sub_ministry_codes)
+    }
+
+    if (options.zones?.length) {
+      sql.whereIn('hospitals.zone', options.zones)
+    }
+
+    if (options.provinces?.length) {
+      sql.whereIn('hospitals.province_code', options.provinces)
+    }
+
+    if (options.bed_ids?.length) {
+      sql.whereIn('covid_case_detail.bed_id', options.bed_ids)
+    }
+
     return sql
   }
 
-  getTotalUsedBedByDateRange (db: Knex, { start, end }: { start: string, end: string }) {
-    const sql = db('p_covid_cases as covid_case')
-      .select('covid_case.status')
-      .count('* as usedBed_total')
-      .whereBetween('covid_case.date_admit', [start, end])
-      .whereNot('covid_case.status', 'DEATH')
-      .groupBy('covid_case.status')
+  getTotalUsedBedByDateRange (db: Knex, { start, end }: { start: string, end: string }, options: any) {
+    const sql = db('p_covid_case_details as covid_case_details')
+      .select('beds.name', 'beds.id as bed_id')
+      .count('* as amount')
+      .leftJoin('p_covid_cases as covid_cases', 'covid_case_details.covid_case_id', 'covid_cases.id')
+      .leftJoin('b_beds as beds', 'beds.id', 'covid_case_details.bed_id')
+      .leftJoin('p_patients as patients', 'patients.id', 'covid_cases.patient_id')
+      .leftJoin('b_hospitals as hospitals', 'patients.hospital_id', 'hospitals.id')
+      .leftJoin('b_hospital_subministry as hospital_subministry', 'hospital_subministry.code', 'hospitals.sub_ministry_code')
+      .where('covid_cases.case_status', 'COVID')
+      .whereBetween('covid_cases.date_admit', [start, end])
+      .whereIn('beds.id', [11, 12, 13, 14])
+      .whereNotIn('covid_cases.status', ['DEATH', 'DISCHARGE'])
+      .groupBy('covid_case_details.bed_id', 'covid_cases.date_admit')
+
+      if (options.sub_ministry_codes?.length) {
+        sql.whereIn('sub_ministry_code.bed_id', options.sub_ministry_codes)
+      }
+  
+      if (options.zones?.length) {
+        sql.whereIn('hospitals.zone', options.zones)
+      }
+  
+      if (options.provinces?.length) {
+        sql.whereIn('hospitals.province_code', options.provinces)
+      }
+  
+      if (options.bed_ids?.length) {
+        sql.whereIn('covid_case_details.bed_id', options.bed_ids)
+      }
 
     return sql
   }
 
-  getTotalBedByDateRange (db: Knex, { start, end }: { start: string, end: string }) {
+  getTotalBedByDateRange (db: Knex, { start, end }: { start: string, end: string }, options: any) {
     const sql = db('wm_bed_details as bed_details')
-      .select('bed_details.covid_qty as covid_qty', 'bed_details.spare_qty as spare_qty', 'bed_details.bed_id')
+      .select('bed_details.covid_qty as covid_qty', 'bed_details.spare_qty as spare_qty', 'bed_details.bed_id', 'bed_info.name')
       .leftJoin('wm_beds as bed', 'bed.id', 'bed_details.wm_bed_id')
+      .leftJoin('b_beds as bed_info', 'bed_details.bed_id', 'bed_info.id')
+      .leftJoin('b_hospitals as hospitals', 'bed.hospital_id', 'hospitals.id')
+      .leftJoin('b_hospital_subministry as hospital_subministry', 'hospital_subministry.code', 'hospitals.sub_ministry_code')
       // .whereRaw('bed.date = (SELECT MAX(wm_beds.date) FROM wm_beds WHERE )')
       .where('bed.date', '<', end)
+      .whereIn('bed_details.bed_id', [11, 12, 13, 14])
       .orWhereNull('bed.date')
       .groupBy('bed_details.bed_id')
+
+      if (options.sub_ministry_codes?.length) {
+        sql.whereIn('sub_ministry_code.bed_id', options.sub_ministry_codes)
+      }
+  
+      if (options.zones?.length) {
+        sql.whereIn('hospitals.zone', options.zones)
+      }
+  
+      if (options.provinces?.length) {
+        sql.whereIn('hospitals.province_code', options.provinces)
+      }
+  
+      if (options.bed_ids?.length) {
+        sql.whereIn('bed.bed_id', options.bed_ids)
+      }
 
     return sql
   }
@@ -299,7 +433,7 @@ export class ReportAllModel {
           sum(c.status='DEATH'  and (cl.gcs_id in (1,2,3,4) or cl.gcs_id is null)  ) as discharge_death,
           
           sum(cl.gcs_id = 5 ) as pui_admit,
-          sum(c.status!='ADMIT' and cl.gcs_id = 5 ) as pui_discharge,
+          sum(c.status='ADMIT' and cl.gcs_id = 5 ) as pui_discharge,
           sum(c.status='REFER' and hr.hospital_type='HOSPITEL'  and cl.gcs_id = 5 ) as pui_discharge_hospitel,
           sum(c.status='DEATH'  and cl.gcs_id = 5 ) as pui_discharge_death,
           sum(cl.gcs_id = 6) as observe`

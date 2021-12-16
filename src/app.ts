@@ -334,6 +334,9 @@ staff.use('/approve-drugs', approveDrugsRoute);
 staff.use('/approve-supplies', approveSuppliesRoute);
 staff.use('/hpvc', hpvcRoute);
 
+api.use('/new-staff', checkAuth, staffAuth, staff);
+staff.use('/report-all', newReportAllRoute);
+
 // index
 app.use('/', indexRoute);
 
