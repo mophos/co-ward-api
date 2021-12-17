@@ -491,29 +491,6 @@ router.get('/patient-report-by-status-each-date', async (req: Request, res: Resp
   }
 })
 
-router.get('/patient-report-by-status-each-date', async (req: Request, res: Response) => {
-  const db = req.dbReport
-  const { start, end, sub_ministry_codes, zones, provinces, bed_ids } = req.query
-  const dateRange = { 
-    start: start ? moment(start).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
-    end: end ? moment(end).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD')
-  }
-
-  const options = {
-    sub_ministry_codes: sub_ministry_codes || [],
-    zones: zones || [],
-    provinces: provinces || [],
-    bed_ids: bed_ids || []
-  }
-
-  try {
-    const patients = await model.getPatientsStatusByEachDate(db, dateRange, options)
-    res.send({ ok: true, rows: mapPatientsReportByStatusAndEachDate(patients) })
-  } catch (error) {
-    res.send({ ok: false, error: error });
-  }
-})
-
 router.get('/patient-report-by-category', async (req: Request, res: Response) => {
   const db = req.dbReport
   const { start, end, sub_ministry_codes, zones, provinces, bed_ids } = req.query
@@ -547,7 +524,16 @@ router.get('/patient-report-by-category', async (req: Request, res: Response) =>
       )
     ])
 
-    res.send({ ok: true, rows: { patients, severeCases, invasionVentilatorCases } })
+    res.send({ 
+      ok: true, rows: { 
+        patients,
+        patients_total: patients.reduce((total: number, acc: any) => total + acc.amount, 0),
+        severeCases,
+        severeCases_total: severeCases.reduce((total: number, acc: any) => total + acc.amount, 0),
+        invasionVentilatorCases,
+        invasionVentilatorCases_total: invasionVentilatorCases.reduce((total: number, acc: any) => total + acc.amount, 0),
+      }
+    })
   } catch (error) {
     res.send({ ok: false, error: error });
   }
