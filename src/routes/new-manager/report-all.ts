@@ -403,13 +403,14 @@ const mapBedOverviewReport = (totalBeds: any[], usedBeds: any[]) => {
 
 router.get('/bed-report-overview', async (req: Request, res: Response) => {
   const db = req.dbReport
-  const { start, end, sub_ministry_codes, zones, provinces, bed_ids } = req.query
+  const { start, end, sectors, sub_ministry_codes, zones, provinces, bed_ids } = req.query
   const dateRange = { 
     start: start ? moment(start).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
     end: end ? moment(end).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD')
   }
 
   const options = {
+    sectors: sectors || [],
     sub_ministry_codes: sub_ministry_codes || [],
     zones: zones || [],
     provinces: provinces || [],
@@ -470,13 +471,14 @@ const mapPatientsReportByCaseAndEachDate = (patients: any[]) => {
 
 router.get('/patient-report-by-status-each-date', async (req: Request, res: Response) => {
   const db = req.dbReport
-  const { start, end, sub_ministry_codes, zones, provinces, bed_ids } = req.query
+  const { start, end, sectors, sub_ministry_codes, zones, provinces, bed_ids } = req.query
   const dateRange = { 
     start: start ? moment(start).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
     end: end ? moment(end).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD')
   }
 
   const options = {
+    sectors: sectors || [],
     sub_ministry_codes: sub_ministry_codes || [],
     zones: zones || [],
     provinces: provinces || [],
@@ -493,13 +495,14 @@ router.get('/patient-report-by-status-each-date', async (req: Request, res: Resp
 
 router.get('/patient-report-by-category', async (req: Request, res: Response) => {
   const db = req.dbReport
-  const { start, end, sub_ministry_codes, zones, provinces, bed_ids } = req.query
+  const { start, end, sectors,sub_ministry_codes, zones, provinces, bed_ids } = req.query
   const dateRange = { 
     start: start ? moment(start).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
     end: end ? moment(end).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD')
   }
 
   const options = {
+    sectors: sectors || [],
     sub_ministry_codes: sub_ministry_codes || [],
     zones: zones || [],
     provinces: provinces || [],
@@ -541,13 +544,14 @@ router.get('/patient-report-by-category', async (req: Request, res: Response) =>
 
 router.get('/ett-and-date-report', async (req: Request, res: Response) => {
   const db = req.dbReport
-  const { start, end, sub_ministry_codes, zones, provinces, bed_ids } = req.query
+  const { start, end, sectors, sub_ministry_codes, zones, provinces, bed_ids } = req.query
   const dateRange = { 
     start: start ? moment(start).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
     end: end ? moment(end).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD')
   }
 
   const options = {
+    sectors: sectors || [],
     sub_ministry_codes: sub_ministry_codes || [],
     zones: zones || [],
     provinces: provinces || [],
@@ -579,13 +583,14 @@ router.get('/ett-and-date-report', async (req: Request, res: Response) => {
 
 router.get('/patient-report-by-case-each-date', async (req: Request, res: Response) => {
   const db = req.dbReport
-  const { start, end, sub_ministry_codes, zones, provinces, bed_ids } = req.query
+  const { start, end, sectors, sub_ministry_codes, zones, provinces, bed_ids } = req.query
   const dateRange = { 
     start: start ? moment(start).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
     end: end ? moment(end).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD')
   }
 
   const options = {
+    sectors: sectors || [],
     sub_ministry_codes: sub_ministry_codes || [],
     zones: zones || [],
     provinces: provinces || [],

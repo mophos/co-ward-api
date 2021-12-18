@@ -116,6 +116,11 @@ export class ReportAllModel {
       .whereNotIn('covid_case.status', ['DEATH', 'DISCHARGE'])
       .groupBy('covid_case.date_admit')
 
+    if (options.sectors?.length) {
+      sql.leftJoin('views_hospital_dms as dms', 'dms.id', 'hospitals.id')
+        .whereIn('dms.sector', options.sectors)
+    }
+
     if (options.sub_ministry_codes?.length) {
       sql.whereIn('sub_ministry_code.bed_id', options.sub_ministry_codes)
     }
@@ -150,6 +155,11 @@ export class ReportAllModel {
       .whereNotIn('covid_cases.status', ['DEATH', 'DISCHARGE'])
       .groupBy('covid_case_details.bed_id', 'covid_cases.date_admit')
 
+      if (options.sectors?.length) {
+        sql.leftJoin('views_hospital_dms as dms', 'dms.id', 'hospitals.id')
+          .whereIn('dms.sector', options.sectors)
+      }
+
       if (options.sub_ministry_codes?.length) {
         sql.whereIn('sub_ministry_code.bed_id', options.sub_ministry_codes)
       }
@@ -182,6 +192,11 @@ export class ReportAllModel {
       .orWhereNull('bed.date')
       .groupBy('bed_details.bed_id')
 
+      if (options.sectors?.length) {
+        sql.leftJoin('views_hospital_dms as dms', 'dms.id', 'hospitals.id')
+          .whereIn('dms.sector', options.sectors)
+      }
+      
       if (options.sub_ministry_codes?.length) {
         sql.whereIn('sub_ministry_code.bed_id', options.sub_ministry_codes)
       }
