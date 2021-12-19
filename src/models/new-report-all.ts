@@ -151,7 +151,7 @@ export class ReportAllModel {
       .leftJoin('b_hospital_subministry as hospital_subministry', 'hospital_subministry.code', 'hospitals.sub_ministry_code')
       .where('covid_cases.case_status', 'COVID')
       .whereBetween('covid_cases.date_admit', [start, end])
-      .whereIn('beds.id', [11, 12, 13, 14])
+      .whereIn('covid_case_details.bed_id', options.bed_ids || [11, 12, 13, 14])
       .whereNotIn('covid_cases.status', ['DEATH', 'DISCHARGE'])
       .groupBy('covid_case_details.bed_id', 'covid_cases.date_admit')
 
@@ -171,10 +171,6 @@ export class ReportAllModel {
       if (options.provinces?.length) {
         sql.whereIn('hospitals.province_code', options.provinces)
       }
-  
-      if (options.bed_ids?.length) {
-        sql.whereIn('covid_case_details.bed_id', options.bed_ids)
-      }
 
     return sql
   }
@@ -187,8 +183,9 @@ export class ReportAllModel {
       .leftJoin('b_hospitals as hospitals', 'bed.hospital_id', 'hospitals.id')
       .leftJoin('b_hospital_subministry as hospital_subministry', 'hospital_subministry.code', 'hospitals.sub_ministry_code')
       // .whereRaw('bed.date = (SELECT MAX(wm_beds.date) FROM wm_beds WHERE )')
+      .whereIn('bed_details.bed_id', options.bed_ids || [11, 12, 13, 14])
       .where('bed.date', '<', end)
-      .whereIn('bed_details.bed_id', [11, 12, 13, 14])
+      
       .orWhereNull('bed.date')
       .groupBy('bed_details.bed_id')
 
@@ -207,10 +204,6 @@ export class ReportAllModel {
   
       if (options.provinces?.length) {
         sql.whereIn('hospitals.province_code', options.provinces)
-      }
-  
-      if (options.bed_ids?.length) {
-        sql.whereIn('bed.bed_id', options.bed_ids)
       }
 
     return sql

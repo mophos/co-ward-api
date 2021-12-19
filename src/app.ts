@@ -308,6 +308,7 @@ manager.use('/eoc', eocRoute);
 
 // new manager
 api.use('/new-manager', checkAuth, managerAuth, manager);
+manager.use('/hospital', hospitalAdminRoute);
 manager.use('/patient-info', newPatientInfoRoute);
 manager.use('/report-dms', newReportDmsRoute);
 manager.use('/report-all', newReportAllRoute);
