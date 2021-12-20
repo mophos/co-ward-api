@@ -1064,12 +1064,13 @@ export class ReportModel {
 
   dischargeCase(db: Knex, date, showPersons = false) {
     let sql = db('p_covid_cases as pc')
-      .select('pc.*', 'p.hn', 'p.hospital_id', 'p.person_id', 'h.hospcode', 'h.hospname', 'h.zone_code', 'h.province_code', 'h.province_name as p_name', 'rh.hospcode as refer_hospcode', 'gd.name as gender', 'rh.hospname as refer_hospname', 'hs.name as sub_ministry_name')
+      .select('pc.*', 'p.hn', 'p.hospital_id', 'p.person_id', 'h.hospcode', 'h.hospname', 'h.zone_code', 'h.province_code', 'h.province_name as p_name', 'rh.hospcode as refer_hospcode', 'gd.name as gender', 'rh.hospname as refer_hospname', 'hs.name as sub_ministry_name', 'dms.sector')
       .join('p_patients as p', 'p.id', ' pc.patient_id')
       .leftJoin('p_persons as ps', 'ps.id', 'p.person_id')
       .join('b_hospitals as h', 'h.id', 'p.hospital_id')
       .join('views_covid_case_last as vl', 'vl.covid_case_id', 'pc.id')
       .leftJoin('b_hospitals as rh', 'rh.id', 'pc.hospital_id_refer')
+      sql.leftJoin('views_hospital_dms as dms', 'dms.id', 'h.id')
       .leftJoin('b_genders as gd', 'gd.id', 'ps.gender_id')
       .leftJoin('b_hospital_subministry as hs', 'hs.code', 'h.sub_ministry_code')
       .where('pc.is_deleted', 'N')

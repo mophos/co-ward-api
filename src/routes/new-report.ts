@@ -3607,7 +3607,7 @@ const mapPersonsGenerics = (genericsPersons: any[], cases: any[]) => {
 
     const notUpdated = today.diff(moment(eachCase.update_date), 'day')
 
-    return { ...eachCase, ...obj, age, notUpdated }
+    return { ...eachCase, ...obj, age, notUpdated, sector: eachCase.sector }
   })
 
   return results
@@ -3651,7 +3651,7 @@ const mapDischargeSummary = (raws: any[]) => {
 
   raws.forEach((raw) => {
     const foundIndex = results.findIndex((result) => result.zone_code === raw.zone_code)
-    let obj = { zone_code: raw.zone_code }
+    let obj = { zone_code: raw.zone_code, sector: raw.sector }
     obj[raw.status] = raw.count
 
     if (foundIndex === -1) {
