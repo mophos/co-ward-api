@@ -49,19 +49,19 @@ export class ReportAllModel {
       }
 
       if (options.sub_ministry_codes?.length) {
-        sql.whereIn('sub_ministry_code.bed_id', options.sub_ministry_codes)
+        sql.whereIn('h.sub_ministry_code', options.sub_ministry_codes)
       }
   
       if (options.zones?.length) {
-        sql.whereIn('hospitals.zone', options.zones)
+        sql.whereIn('h.zone_code', options.zones)
       }
   
       if (options.provinces?.length) {
-        sql.whereIn('hospitals.province_code', options.provinces)
+        sql.whereIn('h.province_code', options.provinces)
       }
   
       if (options.bed_ids?.length) {
-        sql.whereIn('covid_case_detail.bed_id', options.bed_ids)
+        sql.whereIn('cd.bed_id', options.bed_ids)
       }
 
     return sql
@@ -83,11 +83,11 @@ export class ReportAllModel {
       .groupBy('covid_case.date_admit')
 
     if (options.sub_ministry_codes?.length) {
-      sql.whereIn('sub_ministry_code.bed_id', options.sub_ministry_codes)
+      sql.whereIn('hospitals.sub_ministry_code', options.sub_ministry_codes)
     }
 
     if (options.zones?.length) {
-      sql.whereIn('hospitals.zone', options.zones)
+      sql.whereIn('hospitals.zone_code', options.zones)
     }
 
     if (options.provinces?.length) {
@@ -122,11 +122,11 @@ export class ReportAllModel {
     }
 
     if (options.sub_ministry_codes?.length) {
-      sql.whereIn('sub_ministry_code.bed_id', options.sub_ministry_codes)
+      sql.whereIn('hospitals.sub_ministry_code', options.sub_ministry_codes)
     }
 
     if (options.zones?.length) {
-      sql.whereIn('hospitals.zone', options.zones)
+      sql.whereIn('hospitals.zone_code', options.zones)
     }
 
     if (options.provinces?.length) {
@@ -161,11 +161,11 @@ export class ReportAllModel {
       }
 
       if (options.sub_ministry_codes?.length) {
-        sql.whereIn('sub_ministry_code.bed_id', options.sub_ministry_codes)
+        sql.whereIn('hospitals.sub_ministry_code', options.sub_ministry_codes)
       }
   
       if (options.zones?.length) {
-        sql.whereIn('hospitals.zone', options.zones)
+        sql.whereIn('hospitals.zone_code', options.zones)
       }
   
       if (options.provinces?.length) {
@@ -195,11 +195,11 @@ export class ReportAllModel {
       }
       
       if (options.sub_ministry_codes?.length) {
-        sql.whereIn('sub_ministry_code.bed_id', options.sub_ministry_codes)
+        sql.whereIn('hospitals.sub_ministry_code', options.sub_ministry_codes)
       }
   
       if (options.zones?.length) {
-        sql.whereIn('hospitals.zone', options.zones)
+        sql.whereIn('hospitals.zone_code', options.zones)
       }
   
       if (options.provinces?.length) {
