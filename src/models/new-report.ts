@@ -957,13 +957,15 @@ export class ReportModel {
         'cd.id as detail_id',
         'h.head_hospcode',
         'hs.name as sub_ministry_name',
-        'p.birth_date'
+        'p.birth_date',
+        'dms.sector'
       )
       .leftJoin('p_covid_case_details as cd', 'cd.covid_case_id', 'c.id')
       .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
       .leftJoin('p_persons as p', 'p.id', 'pt.person_id')
       .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')
       .leftJoin('b_gcs as g', 'cd.gcs_id', 'g.id')
+      .leftJoin('views_hospital_dms as dms', 'dms.id', 'h.id')
       .leftJoin('b_beds as b', 'b.id', 'cd.bed_id')
       .leftJoin('b_medical_supplies as m', 'm.id', 'cd.medical_supplie_id')
       .leftJoin('b_genders as gd', 'gd.id', 'p.gender_id')
@@ -994,10 +996,11 @@ export class ReportModel {
 
   dischargeSummary(db: Knex, date: { start: string, end: string }) {
     let sql = db('p_covid_cases AS c')
-      .select('h.zone_code', 'c.status')
+      .select('h.zone_code', 'c.status', 'dms.sector')
       .count('* as count')
       .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
       .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')
+      sql.leftJoin('views_hospital_dms as dms', 'dms.id', 'h.id')
       .where('c.is_deleted ', 'N')
       .whereIn('c.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
       .whereBetween('c.date_admit', [date.start, date.end])
