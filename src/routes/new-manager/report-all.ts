@@ -357,6 +357,28 @@ const mapPatientReportByHospital = (normalCases: any[], deathCases: any[], puiCa
   return results
 }
 
+router.get('/patient-report-by-province', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const date = req.query.date || moment().format('YYYY-MM-DD');
+  const { zones } = req.query
+
+  try {
+    const [ headers, cases, deathCases, puiCases ] = await Promise.all([
+      model.getPatientsReportHeaders(db),
+      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] }),
+      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'DEATH', groupBy: 'h.province_code', zones, provinces: [] }),
+      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'PUI', status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] })
+    ])
+
+    const result = mapPatientReportByProvince(cases, deathCases, puiCases)
+    res.send({ ok: true, rows: result, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error });
+  }
+});
+
 router.get('/patient-report-by-zone', async (req: Request, res: Response) => {
   const db = req.dbReport;
   const date = req.query.date || moment().format('YYYY-MM-DD');

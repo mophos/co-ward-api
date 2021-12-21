@@ -27,6 +27,17 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/:hospcode/hospcode', async (req: Request, res: Response) => {
+  const hospcode = req.params.hospcode
+
+  try {
+    let rs: any = await hospitalModel.getHospitalByHospCode(req.db, hospcode);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
+  } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
 router.get('/total', async (req: Request, res: Response) => {
   const hosptypeId = req.query.hosptype_id || undefined;
   const query = req.query.query || '';

@@ -303,24 +303,26 @@ router.post('/', async (req: Request, res: Response) => { // TODO: check amount 
     // check patient 
     const rsPatient = await covidCaseModel.getPatientByHN(db, hospitalId, data.hn);
     const { detail } = data
-    const bedAmounts: any[] = await Promise.all(detail.map((each: any) => {
+    const bedAmounts: any[] = await Promise.all(detail.map(async (each: any) => {
       const date = moment(each.date).format('YYYY-MM-DD')
       return covidCaseModel.getAmountOfBedByHospitalId(db, hospitalId, each.bed_id, date)
     }))
 
-    let errorMessage = ''
-    for (const bed of bedAmounts) {
-      if (!bed.length) {
+    const caseAmounts: any[] = await Promise.all(detail.map(async (each: any) => {
+      const date = moment(each.date).format('YYYY-MM-DD')
+      return covidCaseModel.getCovidCasesAmount(db, date, hospitalId, each.bed_id)
+    }))
+
+
+    let errorMessage = null
+    for (let i = 0; i < bedAmounts.length; i++) {
+      if (!bedAmounts[i]?.length || !bedAmounts[i][0]?.covid_qty) {
         errorMessage = 'beds have not been set amount'
         break
       }
+      const useQty = caseAmounts[i][0]?.used_qty || 0
 
-      if (!bed[0].qty || !bed[0].covid_qty) {
-        errorMessage = `beds (${bed[0].name}) have not been set amount`
-        break
-      }
-
-      if (bed[0].spare_qty < 1) {
+      if (bedAmounts[i][0]?.covid_qty <= useQty) {
         errorMessage = 'beds are not enough'
         break
       }

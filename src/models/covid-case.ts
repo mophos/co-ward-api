@@ -43,6 +43,21 @@ export class CovidCaseModel {
     // .groupBy('pt.id')
   }
 
+  getCovidCasesAmount(db: Knex, date: string, hospitalId: number, bedId: number) {
+    let sql = db('p_covid_cases as covid_case')
+      .count('* as used_qty')
+      .select('covid_case.date_admit')
+      .leftJoin('p_covid_case_details as covid_case_details', 'covid_case_details.covid_case_id', 'covid_case.id')
+      .leftJoin('p_patients as patients', 'patients.id', 'covid_case.patient_id')
+      .where('covid_case.date_admit', date)
+      .whereNotIn('covid_case.date_admit', ['DISCHARGE', 'DEATH'])
+      .where('covid_case.case_status', 'COVID')
+      .where('covid_case_details.bed_id', bedId)
+      .where('patients.hospital_id', hospitalId)
+
+    return sql
+  }
+
   getCaseMustDischarge(db: Knex, statusId: number, date: string, isBedtype = false) {
     let sql = db('p_covid_case_details as covid_case_details')
       .leftJoin('p_covid_cases as covid_cases', 'covid_cases.id', 'covid_case_details.covid_case_id')
@@ -202,7 +217,11 @@ export class CovidCaseModel {
       .leftJoin('b_beds as bb', 'bb.id', 'bd.bed_id')
       .where('b.hospital_id', hospitalId)
       .where('bd.bed_id', bedId)
-      .where('b.date', '<=', date)
+      .where((v) => {
+        v.where('b.date', '<', date)
+        v.orWhere('b.date', date)
+      })
+      .orderBy('b.date', 'DESC')
 
     return sql
   }

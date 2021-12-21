@@ -25,6 +25,11 @@ export class HospitalModel {
     return null;
   }
 
+
+  getHospitalByHospCode (db: Knex, hospcode: string) {
+    return db('b_hospitals').select('*').where('hospcode', hospcode).where('is_deleted', 'N')
+  }
+
   getHospByType(db: Knex, offset, limit, q, hosptypeId) {
     let sql = db('b_hospitals')
       .where('is_deleted', 'N')
