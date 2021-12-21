@@ -67,6 +67,7 @@ import newReportAllRoute from './routes/new-manager/report-all';
 import newServicesRoute from './routes/new-manager/services';
 import newPatientInfoRoute from './routes/new-manager/patient-info';
 import newReportExportExcelRoute from './routes/new-manager/excel-new-report';
+import newStaffExportExcelRoute from './routes/staff/excel-new-report';
 
 // Assign router to the express.Router() instance
 const app: express.Application = express();
@@ -337,6 +338,7 @@ staff.use('/hpvc', hpvcRoute);
 
 api.use('/new-staff', checkAuth, staffAuth, staff);
 staff.use('/report-all', newReportAllRoute);
+staff.use('/export', newStaffExportExcelRoute);
 
 // index
 app.use('/', indexRoute);
