@@ -25,6 +25,11 @@ export class HospitalModel {
     return null;
   }
 
+
+  getHospitalByHospCode (db: Knex, hospcode: string) {
+    return db('b_hospitals').select('*').where('hospcode', hospcode).where('is_deleted', 'N')
+  }
+
   getHospByType(db: Knex, offset, limit, q, hosptypeId) {
     let sql = db('b_hospitals')
       .where('is_deleted', 'N')
@@ -76,6 +81,10 @@ export class HospitalModel {
 
   checkHospCode(db: Knex, code: any) {
     return db('b_hospitals').where('hospcode', code);
+  }
+
+  getNextInsertId(db: Knex) {
+    return db('b_hospitals as b').select('b.id as id').orderBy('b.id', 'DESC').limit(1);
   }
   
   getZone(db: Knex, provinceCode) {
