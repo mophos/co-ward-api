@@ -175,10 +175,25 @@ export class CovidCaseModel {
       });
     }
     // console.log(sql.toString());
-
     return sql;
   }
 
+  getDrugsFromCovidCaseDetailId(db: Knex, covidCaseDetailId) {
+    const sql = db('b_generics as g')
+    .select('g.id','g.name',db.raw(`if(pdi.id is null,false,true) as is_check`))
+      .leftJoin('p_covid_case_detail_items as pdi', (w: any) => {
+        w.on('pdi.generic_id', 'g.id')
+        w.on('pdi.covid_case_detail_id', db.raw(`${covidCaseDetailId}`))
+      })
+      .where('g.is_deleted', 'N')
+      .where('g.is_actived', 'Y')
+      .where('g.type', 'DRUG')
+      .where('g.sub_type', 'COVID')
+      // console.log(sql.toString());
+      return sql;
+      
+  }
+  
   getInfo(db: Knex, hospitalId, covidCaseId) {
     return db('p_covid_cases as c')
       .select('c.id as covid_case_id', 'c.an', 'c.status', 'c.date_admit', 'c.confirm_date', 'pt.person_id', 'pt.id as patient_id', 'pt.hn', 'p.*', 't.name as title_name',

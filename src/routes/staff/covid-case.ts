@@ -834,6 +834,10 @@ router.get('/present', async (req: Request, res: Response) => {
   bedSearchId = bedSearchId === 'null' ? null : bedSearchId;
   try {
     const rs: any = await covidCaseModel.getCasePresent(req.db, hospitalId, query, gcsSearchId, bedSearchId);
+    for (const i of rs) {
+      const drug: any = await covidCaseModel.getDrugsFromCovidCaseDetailId(req.db, i.covid_case_details_id)
+      i.drugs = drug;
+    }
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -872,18 +876,20 @@ router.put('/present', async (req: Request, res: Response) => {
     const generic = await basicModel.getGenerics(db);
     const items = []
     for (const i of data.drugs) {
-      const item: any = {
-        covid_case_detail_id: covidCaseDetailId[0].insertId == 0 ? data.id : covidCaseDetailId[0].insertId,
-        generic_id: i.genericId,
-      }
+      if (i.is_check) {
+        const item: any = {
+          covid_case_detail_id: covidCaseDetailId[0].insertId == 0 ? data.id : covidCaseDetailId[0].insertId,
+          generic_id: i.id,
+        }
 
-      const idx = _.findIndex(generic, { 'id': +i.genericId });
+        const idx = _.findIndex(generic, { 'id': +i.id });
 
-      if (idx > -1) {
-        item.qty = generic[idx].pay_qty;
-        i.qty = generic[idx].pay_qty;
+        if (idx > -1) {
+          item.qty = generic[idx].pay_qty;
+          i.qty = generic[idx].pay_qty;
+        }
+        items.push(item);
       }
-      items.push(item);
     }
     try {
       await covidCaseModel.saveCovidCaseDetailItem(db, items);
