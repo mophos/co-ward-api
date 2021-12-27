@@ -935,7 +935,7 @@ export class ReportModel {
     return sql
   }
 
-  admitCase(db: Knex, date: string) {
+  admitCase(db: Knex, date: string, caseStatuses = ['IPPUI', 'COVID'], provinceCode = null) {
     let sql = db('p_covid_cases AS c')
       .select(
         'h.zone_code',
@@ -958,7 +958,7 @@ export class ReportModel {
         'h.head_hospcode',
         'hs.name as sub_ministry_name',
         'p.birth_date',
-        'dms.sector'
+        'dms.sector',
       )
       .leftJoin('p_covid_case_details as cd', 'cd.covid_case_id', 'c.id')
       .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
@@ -969,17 +969,50 @@ export class ReportModel {
       .leftJoin('b_beds as b', 'b.id', 'cd.bed_id')
       .leftJoin('b_medical_supplies as m', 'm.id', 'cd.medical_supplie_id')
       .leftJoin('b_genders as gd', 'gd.id', 'p.gender_id')
-      .leftJoin('b_generics as bg', 'bg.id', 'g.id')
       .leftJoin('b_hospital_subministry as hs', 'hs.code', 'h.sub_ministry_code')
       .where('c.is_deleted ', 'N')
       .where('c.date_admit', date)
       .where('c.status', 'ADMIT')
       .orderBy('h.zone_code')
 
+    if (provinceCode) {
+      sql.where('h.province_code', provinceCode)
+    }
+
+    if (caseStatuses.length) {
+      sql.whereIn('c.case_status', caseStatuses)
+    }
+
     return sql
   }
 
-  admitCaseSummary(db: Knex, date: { start: string, end: string }) {
+  getPersonsGenerics(db: Knex, date) {
+    let sql = db('p_covid_cases as c')
+      .select('ci.*', 'g.id as generic_id', 'g.name as generic_name')
+      .leftJoin('p_covid_case_details as cd', 'cd.covid_case_id', 'c.id')
+      .leftJoin('p_covid_case_detail_items as ci', 'ci.covid_case_detail_id', 'cd.id')
+      .leftJoin('b_generics as g', 'g.id', 'ci.generic_id')
+      .groupBy('ci.covid_case_detail_id')
+      .where('c.is_deleted ', 'N')
+      .where('c.date_admit', date)
+
+    return sql
+  }
+
+  // getPersonsGenerics(db: Knex, date) {
+  //   let sql = db('p_covid_case_detail_items as ci')
+  //     .select('ci.*', 'g.id as generic_id', 'g.name as generic_name')
+  //     .leftJoin('p_covid_case_details as cd', 'cd.id', 'ci.covid_case_detail_id')
+  //     .leftJoin('p_covid_cases as c', 'c.id', 'cd.covid_case_id')
+  //     .leftJoin('b_generics as g', 'g.id', 'ci.generic_id')
+  //     .groupBy('cd.id')
+  //     .where('c.is_deleted ', 'N')
+  //     .where('c.date_admit', date)
+
+  //   return sql
+  // }
+
+  admitCaseSummary(db: Knex, date: { start: string, end: string }, caseStatuses = ['IPPUI', 'COVID'], provinceCode = null) {
     let sql = db('p_covid_cases AS c')
       .select('h.zone_code')
       .count('* as admit')
@@ -990,6 +1023,14 @@ export class ReportModel {
       .whereBetween('c.date_admit', [date.start, date.end])
       .groupBy('h.zone_code')
       .orderBy('h.zone_code')
+
+    if (provinceCode) {
+      sql.where('h.province_code', provinceCode)
+    }
+
+    if (caseStatuses.length) {
+      sql.whereIn('c.case_status', caseStatuses)
+    }
 
     return sql
   }
@@ -1049,28 +1090,15 @@ export class ReportModel {
     return sql
   }
 
-  getPersonsGenerics(db: Knex, date) {
-    let sql = db('p_covid_cases as c')
-      .select('ci.*', 'g.*')
-      .leftJoin('p_covid_case_details as cd', 'cd.covid_case_id', 'c.id')
-      .leftJoin('p_covid_case_detail_items as ci', 'ci.covid_case_detail_id', 'cd.id')
-      .leftJoin('b_generics as g', 'g.id', 'ci.generic_id')
-      .groupBy('cd.id')
-      .where('c.is_deleted ', 'N')
-      .where('c.date_admit', date)
-
-    return sql
-  }
-
   dischargeCase(db: Knex, date, showPersons = false) {
     let sql = db('p_covid_cases as pc')
-      .select('pc.*', 'p.hn', 'p.hospital_id', 'p.person_id', 'h.hospcode', 'h.hospname', 'h.zone_code', 'h.province_code', 'h.province_name as p_name', 'rh.hospcode as refer_hospcode', 'gd.name as gender', 'rh.hospname as refer_hospname', 'hs.name as sub_ministry_name', 'dms.sector')
+      .select('pc.*', 'p.hn', 'p.hospital_id', 'p.person_id', 'h.hospcode', 'h.hospname', 'h.zone_code', 'h.province_code', 'h.province_name as province', 'rh.hospcode as refer_hospcode', 'gd.name as gender', 'rh.hospname as refer_hospname', 'hs.name as sub_ministry_name', 'dms.sector')
       .join('p_patients as p', 'p.id', ' pc.patient_id')
       .leftJoin('p_persons as ps', 'ps.id', 'p.person_id')
       .join('b_hospitals as h', 'h.id', 'p.hospital_id')
       .join('views_covid_case_last as vl', 'vl.covid_case_id', 'pc.id')
       .leftJoin('b_hospitals as rh', 'rh.id', 'pc.hospital_id_refer')
-      sql.leftJoin('views_hospital_dms as dms', 'dms.id', 'h.id')
+      .leftJoin('views_hospital_dms as dms', 'dms.id', 'h.id')
       .leftJoin('b_genders as gd', 'gd.id', 'ps.gender_id')
       .leftJoin('b_hospital_subministry as hs', 'hs.code', 'h.sub_ministry_code')
       .where('pc.is_deleted', 'N')
