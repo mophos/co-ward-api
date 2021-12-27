@@ -3596,10 +3596,11 @@ const mapPersonsGenerics = (genericsPersons: any[], cases: any[]) => {
   results = cases.map((eachCase) => {
     const found = results.filter((result) => result.covid_case_detail_id === eachCase.detail_id)
 
-    console.log({found})
     const obj = {}
+    const generics = []
     found.forEach((each) => {
       obj[each.name] = each.qty
+      generics.push({ label: each.name, qty: each.qty})
     })
 
     const today = moment()
@@ -3607,7 +3608,7 @@ const mapPersonsGenerics = (genericsPersons: any[], cases: any[]) => {
     const age = today.diff(birthDate, 'year')
     const notUpdated = today.diff(moment(eachCase.update_date), 'day')
 
-    return { ...eachCase, ...obj, age, notUpdated, sector: eachCase.sector }
+    return { ...eachCase, ...obj, age, notUpdated, generics, sector: eachCase.sector }
   })
 
   return results
@@ -3620,13 +3621,12 @@ router.get('/admit-case', async (req: Request, res: Response) => { // TODO: [6]
   const { case_status } = req.query
 
   try {
-    const [ cases, genericsPersons, headers ] = await Promise.all([
+    const [ cases, headers ] = await Promise.all([
       model.admitCase(db, date, case_status, provinceCode),
-      model.getPersonsGenerics(db, date),
       model.getGenericNames(db)
     ])
-    // const data = await mapDataAdmitByDate(rs);
-    const results = mapPersonsGenerics(genericsPersons, cases)
+    const genericsUsages = await model.getGenericsUsaged(db, cases.map((each) => each.detail_id))
+    const results = mapPersonsGenerics(genericsUsages, cases)
     res.send({ ok: true, rows: { headers, results }, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);

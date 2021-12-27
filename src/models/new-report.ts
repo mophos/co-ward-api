@@ -986,31 +986,41 @@ export class ReportModel {
     return sql
   }
 
+  // getPersonsGenerics(db: Knex, date) {
+  //   let sql = db('p_covid_cases as c')
+  //     .select('ci.*', 'g.id as generic_id', 'g.name as generic_name')
+  //     .leftJoin('p_covid_case_details as cd', 'cd.covid_case_id', 'c.id')
+  //     .leftJoin('p_covid_case_detail_items as ci', 'ci.covid_case_detail_id', 'cd.id')
+  //     .leftJoin('b_generics as g', 'g.id', 'ci.generic_id')
+  //     .groupBy('ci.covid_case_detail_id')
+  //     .where('c.is_deleted ', 'N')
+  //     .where('c.date_admit', date)
+
+  //   return sql
+  // }
+
   getPersonsGenerics(db: Knex, date) {
-    let sql = db('p_covid_cases as c')
+    let sql = db('p_covid_case_detail_items as ci')
       .select('ci.*', 'g.id as generic_id', 'g.name as generic_name')
-      .leftJoin('p_covid_case_details as cd', 'cd.covid_case_id', 'c.id')
-      .leftJoin('p_covid_case_detail_items as ci', 'ci.covid_case_detail_id', 'cd.id')
+      .leftJoin('p_covid_case_details as cd', 'cd.id', 'ci.covid_case_detail_id')
+      .leftJoin('p_covid_cases as c', 'c.id', 'cd.covid_case_id')
       .leftJoin('b_generics as g', 'g.id', 'ci.generic_id')
-      .groupBy('ci.covid_case_detail_id')
+      .groupBy('cd.id')
       .where('c.is_deleted ', 'N')
       .where('c.date_admit', date)
 
     return sql
   }
 
-  // getPersonsGenerics(db: Knex, date) {
-  //   let sql = db('p_covid_case_detail_items as ci')
-  //     .select('ci.*', 'g.id as generic_id', 'g.name as generic_name')
-  //     .leftJoin('p_covid_case_details as cd', 'cd.id', 'ci.covid_case_detail_id')
-  //     .leftJoin('p_covid_cases as c', 'c.id', 'cd.covid_case_id')
-  //     .leftJoin('b_generics as g', 'g.id', 'ci.generic_id')
-  //     .groupBy('cd.id')
-  //     .where('c.is_deleted ', 'N')
-  //     .where('c.date_admit', date)
+  getGenericsUsaged(db: Knex, detailIds: any[]) {
+    let sql = db('p_covid_case_detail_items as items')
+      .select('items.qty', 'generics.name', 'generics.id as generic_id', 'items.covid_case_detail_id', 'details.covid_case_id as cid')
+      .leftJoin('b_generics as generics', 'generics.id', 'items.generic_id')
+      .leftJoin('p_covid_case_details as details', 'details.id', 'items.covid_case_detail_id')
+      .whereIn('items.covid_case_detail_id', detailIds)
 
-  //   return sql
-  // }
+    return sql
+  }
 
   admitCaseSummary(db: Knex, date: { start: string, end: string }, caseStatuses = ['IPPUI', 'COVID'], provinceCode = null) {
     let sql = db('p_covid_cases AS c')
