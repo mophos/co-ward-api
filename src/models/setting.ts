@@ -13,6 +13,7 @@ export class BedModel {
 				v.on('b.id', 'bh.bed_id')
 				v.on('bh.hospital_id', db.raw(`${hospitalId}`));
 			})
+			.where('b.is_deleted', 'N')
 		if (hospitalType === 'HOSPITAL') {
 			sql.where('b.is_hospital', 'Y')
 		} else if (hospitalType === 'HOSPITEL') {
