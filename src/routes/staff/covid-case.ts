@@ -126,6 +126,36 @@ router.get('/approved-detail', async (req: Request, res: Response) => {
   }
 });
 
+const dateOfDischargeEvent = () => {
+  const limitEvents = [
+    { statusId: 3, limit: 30 },
+    { statusId: 4, limit: 14 },
+    { statusId: 2, limit: 30 },
+    { statusId: 1, limit: 30 },
+    { statusId: 8, limit: 10, isBedType: true },
+  ]
+
+  const today = moment()
+  const result = limitEvents.map((each) => ({
+    ...each,
+    expireDate: today.subtract(each.limit, 'days').format('YYYY-MM-DD')
+  }))
+
+  return result
+}
+
+router.patch('/case-must-discharge', async (req: Request, res: Response) => {
+  const db = req.db;
+
+  try {
+    const dischargeEvents = dateOfDischargeEvent()
+    const cases = await Promise.all(dischargeEvents.map((each) => covidCaseModel.getCaseMustDischarge(db, each.statusId, each.expireDate, each.isBedType || false)))
+    res.send({ ok: true, rows: cases })
+  } catch (error) {
+    res.send({ ok: false, error: error.message });
+  }
+})
+
 router.put('/', async (req: Request, res: Response) => {
   const data = req.body.data;
   const db = req.db;
@@ -264,7 +294,7 @@ router.put('/confirm-date', async (req: Request, res: Response) => {
 });
 
 //#######START CODE NEW ########################################
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', async (req: Request, res: Response) => { // TODO: check amount of bed
   const hospitalId = req.decoded.hospitalId;
   const db = req.db;
   const data = req.body.data;
@@ -272,7 +302,33 @@ router.post('/', async (req: Request, res: Response) => {
 
     // check patient 
     const rsPatient = await covidCaseModel.getPatientByHN(db, hospitalId, data.hn);
-    if (rsPatient.length && data.confirm != 'Y') {
+    const { detail } = data
+    const bedAmounts: any[] = await Promise.all(detail.map(async (each: any) => {
+      const date = moment(each.date).format('YYYY-MM-DD')
+      return covidCaseModel.getAmountOfBedByHospitalId(db, hospitalId, each.bed_id, date)
+    }))
+
+    const caseAmounts: any[] = await Promise.all(detail.map(async (each: any) => {
+      const date = moment(each.date).format('YYYY-MM-DD')
+      return covidCaseModel.getCovidCasesAmount(db, date, hospitalId, each.bed_id)
+    }))
+
+
+    let errorMessage = null
+    for (let i = 0; i < bedAmounts.length; i++) {
+      if (!bedAmounts[i]?.length || !bedAmounts[i][0]?.covid_qty) {
+        errorMessage = 'beds have not been set amount'
+        break
+      }
+      const useQty = caseAmounts[i][0]?.used_qty || 0
+
+      if (bedAmounts[i][0]?.covid_qty <= useQty) {
+        errorMessage = 'beds are not enough'
+        break
+      }
+    }
+    
+    if (rsPatient.length && data.confirm != 'Y' && !errorMessage) {
       if (data.type == 'CID' || (data.type == 'PASSPORT' && data.passport)) {
         // มี patient
         res.send(await saveCovidCase(db, req, data));
@@ -284,14 +340,17 @@ router.post('/', async (req: Request, res: Response) => {
           res.send({ ok: false, error: 'มีบัครุนแรงติดต่อคุณแอมป์ด่วนค่ะ !!' });
         }
       }
+    } else if (errorMessage) {
+      res.send({ ok: false, error: errorMessage });
     } else {
       // ไม่มี patient
       res.send(await saveCovidCase(db, req, data));
-    }
+    } 
   } catch (error) {
     res.send({ ok: false, error: error });
   }
 });
+
 router.post('/sd', async (req: Request, res: Response) => {
   const db = req.db;
   const data = req.body.data;

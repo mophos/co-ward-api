@@ -1,4 +1,4 @@
-import { ReportModel } from '../models/report';
+import { ReportModel } from '../models/new-report';
 /// <reference path="../../typings.d.ts" />
 import { Router, Request, Response } from 'express';
 import * as HttpStatus from 'http-status-codes';
@@ -3511,14 +3511,182 @@ async function setDataDischargeDaily(rs) {
   return data;
 }
 
-router.get('/discharge-daily', async (req: Request, res: Response) => {
+async function mapDataDischargeByDate(rs) {
+  const data = await orderBy(map(groupBy(rs, vgz => { return vgz.zone_code }), (vmz: any, kmz) => {
+    return {
+      zone_code: kmz,
+      DISCHARGE: countBy(vmz, { 'status': 'DISCHARGE' }).true || 0,
+      NEGATIVE: countBy(vmz, { 'status': 'NEGATIVE' }).true || 0,
+      REFER: countBy(vmz, { 'status': 'REFER' }).true || 0,
+      DEATH: countBy(vmz, { 'status': 'DEATH' }).true || 0,
+      value: orderBy(map(groupBy(vmz, vgp => { return vgp.province_name }), (vmp: any, kmp) => {
+        return {
+          province_name: kmp,
+          DISCHARGE: countBy(vmp, { 'status': 'DISCHARGE' }).true || 0,
+          NEGATIVE: countBy(vmp, { 'status': 'NEGATIVE' }).true || 0,
+          REFER: countBy(vmp, { 'status': 'REFER' }).true || 0,
+          DEATH: countBy(vmp, { 'status': 'DEATH' }).true || 0,
+          value: orderBy(map(groupBy(vmp, vgh => { return vgh.hospname }), (vmh: any, kmh) => {
+            return {
+              hospname: kmh,
+              DISCHARGE: countBy(vmh, { 'status': 'DISCHARGE' }).true || 0,
+              NEGATIVE: countBy(vmh, { 'status': 'NEGATIVE' }).true || 0,
+              REFER: countBy(vmh, { 'status': 'REFER' }).true || 0,
+              DEATH: countBy(vmh, { 'status': 'DEATH' }).true || 0,
+              value: vmh
+            }
+          }), 'hospname', 'asc')
+        }
+      }), 'province_name', 'asc')
+    }
+  }), 'zone_code', 'asc')
+
+  return data;
+}
+
+async function mapDataAdmitByDate(rs) {
+  const data = await orderBy(map(groupBy(rs, vgz => { return vgz.zone_code }), (vmz: any, kmz) => {
+    return {
+      zone_code: kmz,
+      ADMIT: countBy(vmz, { 'status': 'ADMIT' }).true || 0,
+      NEGATIVE: countBy(vmz, { 'status': 'NEGATIVE' }).true || 0,
+      REFER: countBy(vmz, { 'status': 'REFER' }).true || 0,
+      DEATH: countBy(vmz, { 'status': 'DEATH' }).true || 0,
+      value: orderBy(map(groupBy(vmz, vgp => { return vgp.province_name }), (vmp: any, kmp) => {
+        return {
+          province_name: kmp,
+          ADMIT: countBy(vmp, { 'status': 'ADMIT' }).true || 0,
+          NEGATIVE: countBy(vmp, { 'status': 'NEGATIVE' }).true || 0,
+          REFER: countBy(vmp, { 'status': 'REFER' }).true || 0,
+          DEATH: countBy(vmp, { 'status': 'DEATH' }).true || 0,
+          value: orderBy(map(groupBy(vmp, vgh => { return vgh.hospname }), (vmh: any, kmh) => {
+            return {
+              hospname: kmh,
+              ADMIT: countBy(vmh, { 'status': 'ADMIT' }).true || 0,
+              NEGATIVE: countBy(vmh, { 'status': 'NEGATIVE' }).true || 0,
+              REFER: countBy(vmh, { 'status': 'REFER' }).true || 0,
+              DEATH: countBy(vmh, { 'status': 'DEATH' }).true || 0,
+              value: vmh
+            }
+          }), 'hospname', 'asc')
+        }
+      }), 'province_name', 'asc')
+    }
+  }), 'zone_code', 'asc')
+
+  return data;
+}
+
+router.get('/discharge-daily', async (req: Request, res: Response) => { // TODO: [6]
   const db = req.dbReport;
   const date = req.query.date || moment().format('YYYY-MM-DD');
 
   try {
-    const rs: any = await model.dischargeCase(db, date);
+    const rs: any = await model.dischargeCase(db, {start: date, end: date});
     const data = await setDataDischargeDaily(rs);
     res.send({ ok: true, rows: data, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+const mapPersonsGenerics = (genericsPersons: any[], cases: any[]) => {
+  let results = genericsPersons
+  results = cases.map((eachCase) => {
+    const found = results.filter((result) => result.covid_case_detail_id === eachCase.detail_id)
+
+    const obj = {}
+    found.forEach((each) => {
+      obj[each.name] = each.qty
+    })
+
+    const today = moment()
+    const birthDate = moment(eachCase.birth_date)
+    const age = today.diff(birthDate, 'year')
+
+    const notUpdated = today.diff(moment(eachCase.update_date), 'day')
+
+    return { ...eachCase, ...obj, age, notUpdated, sector: eachCase.sector }
+  })
+
+  return results
+}
+
+router.get('/admit-case', async (req: Request, res: Response) => { // TODO: [6]
+  const db = req.dbReport;
+  const date = req.query.date || moment().format('YYYY-MM-DD');
+
+  try {
+    const [ cases, genericsPersons, headers ] = await Promise.all([
+      model.admitCase(db, date),
+      model.getPersonsGenerics(db, date),
+      model.getGenericNames(db)
+    ])
+    // const data = await mapDataAdmitByDate(rs);
+    const results = mapPersonsGenerics(genericsPersons, cases)
+    res.send({ ok: true, rows: { headers, results }, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/admit-case-summary', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const start = req.query.start || moment().format('YYYY-MM-DD');
+  const end = req.query.end || moment().format('YYYY-MM-DD');
+
+  try {
+    const results = await model.admitCaseSummary(db, { start, end })
+    res.send({ ok: true, rows: results, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+})
+
+const mapDischargeSummary = (raws: any[]) => {
+  const results = []
+
+  raws.forEach((raw) => {
+    const foundIndex = results.findIndex((result) => result.zone_code === raw.zone_code)
+    let obj = { zone_code: raw.zone_code, sector: raw.sector }
+    obj[raw.status] = raw.count
+
+    if (foundIndex === -1) {
+      results.push(obj)
+    } else {
+      results[foundIndex][raw.status] = raw.count
+    }
+  })
+
+  return results
+}
+
+router.get('/discharge-case-summary', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const start = req.query.start || moment().format('YYYY-MM-DD');
+  const end = req.query.end || moment().format('YYYY-MM-DD');
+
+  try {
+    const results = await model.dischargeSummary(db, { start, end })
+    const mapped = mapDischargeSummary(results)
+    res.send({ ok: true, rows: mapped, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+})
+
+router.get('/discharge-case', async (req: Request, res: Response) => { // TODO: [6]
+  const db = req.dbReport;
+  const date = req.query.date || moment().format('YYYY-MM-DD');
+
+  try {
+    const rs: any = await model.dischargeCase(db, date, true);
+    // const data = await mapDataDischargeByDate(rs);
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });

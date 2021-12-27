@@ -43,6 +43,39 @@ export class CovidCaseModel {
     // .groupBy('pt.id')
   }
 
+  getCovidCasesAmount(db: Knex, date: string, hospitalId: number, bedId: number) {
+    let sql = db('p_covid_cases as covid_case')
+      .count('* as used_qty')
+      .select('covid_case.date_admit')
+      .leftJoin('p_covid_case_details as covid_case_details', 'covid_case_details.covid_case_id', 'covid_case.id')
+      .leftJoin('p_patients as patients', 'patients.id', 'covid_case.patient_id')
+      .where('covid_case.date_admit', date)
+      .whereNotIn('covid_case.date_admit', ['DISCHARGE', 'DEATH'])
+      .where('covid_case.case_status', 'COVID')
+      .where('covid_case_details.bed_id', bedId)
+      .where('patients.hospital_id', hospitalId)
+
+    return sql
+  }
+
+  getCaseMustDischarge(db: Knex, statusId: number, date: string, isBedtype = false) {
+    let sql = db('p_covid_case_details as covid_case_details')
+      .leftJoin('p_covid_cases as covid_cases', 'covid_cases.id', 'covid_case_details.covid_case_id')
+      .where('covid_case_details.status', 'ADMIT')
+      .update('covid_case_details.status', 'DISCHARGE')
+
+      if (!isBedtype) {
+        sql.where('covid_case_details.gcs_id', statusId)
+        .where('covid_cases.date_admit', '<', date)
+      }
+      
+      if (isBedtype) {
+        sql.where('covid_case_details.bed_id', statusId)
+        .where('covid_cases.date_admit', '<', date)
+      }
+
+    return sql
+  }
 
   getListHosp(db: Knex, hospitalId) {
     return db('wm_requisitions as r')
@@ -181,6 +214,31 @@ export class CovidCaseModel {
       })
       .where('c.id', covidCaseId)
       .where('pt.hospital_id', hospitalId)
+  }
+
+  // getAmountOfBedByHospitalId(db: Knex, hospitalId: any) {
+  //   let sql = db('b_bed_hospitals as bh')
+  //     .select('covid_qty', 'qty', 'b.name', 'bh.bed_id')
+  //     .leftJoin('b_beds as b', 'b.id', 'bh.bed_id')
+  //     .where('bh.hospital_id', hospitalId)
+
+  //   return sql
+  // }
+
+  getAmountOfBedByHospitalId(db: Knex, hospitalId: any, bedId: string, date: string) {
+    let sql = db('wm_bed_details as bd')
+      .select('bd.covid_qty', 'bd.qty', 'bd.spare_qty', 'bb.name', 'b.date', 'bd.bed_id' )
+      .leftJoin('wm_beds as b', 'b.id', 'bd.wm_bed_id')
+      .leftJoin('b_beds as bb', 'bb.id', 'bd.bed_id')
+      .where('b.hospital_id', hospitalId)
+      .where('bd.bed_id', bedId)
+      .where((v) => {
+        v.where('b.date', '<', date)
+        v.orWhere('b.date', date)
+      })
+      .orderBy('b.date', 'DESC')
+
+    return sql
   }
 
 

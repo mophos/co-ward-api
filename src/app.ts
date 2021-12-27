@@ -51,6 +51,7 @@ import reportStaffRoute from './routes/staff/report';
 import receiveRoute from './routes/staff/receives';
 
 import reportRoute from './routes/report';
+import newReportRoute from './routes/new-report';
 import reportDmsRoute from './routes/manager/report-dms';
 import reportAllRoute from './routes/manager/report-all';
 import basicRoute from './routes/basic';
@@ -61,6 +62,12 @@ import approveDrugsRoute from './routes/staff/approve-drugs';
 import approveSuppliesRoute from './routes/staff/approve-supplies';
 import hpvcRoute from './routes/staff/hpvc';
 
+import newReportDmsRoute from './routes/new-manager/report-dms';
+import newReportAllRoute from './routes/new-manager/report-all';
+import newServicesRoute from './routes/new-manager/services';
+import newPatientInfoRoute from './routes/new-manager/patient-info';
+import newReportExportExcelRoute from './routes/new-manager/excel-new-report';
+import newStaffExportExcelRoute from './routes/staff/excel-new-report';
 
 // Assign router to the express.Router() instance
 const app: express.Application = express();
@@ -273,6 +280,7 @@ api.use('/login', loginRoute);
 api.use('/register', registerRoute);
 api.use('/basic', basicRoute);
 api.use('/report', checkAuth, reportRoute);
+api.use('/new-report', checkAuth, newReportRoute);
 api.use('/basic-auth', checkAuth, basicAuthRoute);
 
 // admin
@@ -299,6 +307,16 @@ manager.use('/report-all', reportAllRoute);
 manager.use('/services', servicesRoute);
 manager.use('/eoc', eocRoute);
 
+// new manager
+api.use('/new-manager', checkAuth, managerAuth, manager);
+manager.use('/hospital', hospitalAdminRoute);
+manager.use('/patient-info', newPatientInfoRoute);
+manager.use('/report-dms', newReportDmsRoute);
+manager.use('/report-all', newReportAllRoute);
+manager.use('/services', newServicesRoute);
+manager.use('/eoc', eocRoute);
+manager.use('/export', newReportExportExcelRoute)
+
 // staff
 api.use('/staff', checkAuth, staffAuth, staff);
 staff.use('/supplies', suppliesStaffRoute);
@@ -317,6 +335,10 @@ staff.use('/covid-case', covidCaseRoute);
 staff.use('/approve-drugs', approveDrugsRoute);
 staff.use('/approve-supplies', approveSuppliesRoute);
 staff.use('/hpvc', hpvcRoute);
+
+api.use('/new-staff', checkAuth, staffAuth, staff);
+staff.use('/report-all', newReportAllRoute);
+staff.use('/export', newStaffExportExcelRoute);
 
 // index
 app.use('/', indexRoute);

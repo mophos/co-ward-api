@@ -3,7 +3,7 @@ import * as Knex from 'knex';
 export class Login {
   login(db: Knex, username: string, password: string) {
     let sql = db('um_users as u')
-      .select('u.*', 'h.hospname', 'h.zone_code', 'h.hospital_type', 'h.id as hospital_id', 'h.hosptype_code as type_code', 'h.province_code', 'ut.name as title_name', 'up.name as position')
+      .select('u.*', 'h.hospname', 'h.zone_code', 'h.hospital_type', 'h.id as hospital_id', 'h.hosptype_code as type_code', 'h.province_code', 'ut.name as title_name', 'up.name as position', 'h.is_deleted as hospital_available')
       .leftJoin('b_hospitals as h', 'h.hospcode', 'u.hospcode')
       .leftJoin('um_titles as ut', 'ut.id', 'u.title_id')
       .leftJoin('um_positions as up', 'up.id', 'u.position_id')
