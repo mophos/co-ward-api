@@ -20,14 +20,20 @@ export class BasicModel {
 			.where('is_deleted', 'N')
 	}
 
-	getGenerics(db: Knex) {
-		return db('b_generics')
+	getGenerics(db: Knex, type = '') {
+		const sql = db('b_generics')
 			.where('is_deleted', 'N')
 			.andWhere('is_actived', 'Y')
+		if (type != '') {
+			sql.where('type', type)
+		}
+		return sql;
 	}
 
 	getGenericsType(db: Knex, type) {
 		return db('b_generics')
+			.where('is_deleted', 'N')
+			.andWhere('is_actived', 'Y')
 			.andWhere('type', type)
 	}
 
