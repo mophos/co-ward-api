@@ -3597,17 +3597,18 @@ const mapPersonsGenerics = (genericsPersons: any[], cases: any[]) => {
     const found = results.filter((result) => result.covid_case_detail_id === eachCase.detail_id)
 
     const obj = {}
+    const generics = []
     found.forEach((each) => {
       obj[each.name] = each.qty
+      generics.push({ label: each.name, qty: each.qty})
     })
 
     const today = moment()
     const birthDate = moment(eachCase.birth_date)
     const age = today.diff(birthDate, 'year')
-
     const notUpdated = today.diff(moment(eachCase.update_date), 'day')
 
-    return { ...eachCase, ...obj, age, notUpdated, sector: eachCase.sector }
+    return { ...eachCase, ...obj, age, notUpdated, generics, sector: eachCase.sector }
   })
 
   return results
@@ -3616,15 +3617,16 @@ const mapPersonsGenerics = (genericsPersons: any[], cases: any[]) => {
 router.get('/admit-case', async (req: Request, res: Response) => { // TODO: [6]
   const db = req.dbReport;
   const date = req.query.date || moment().format('YYYY-MM-DD');
+  const provinceCode = req.decoded?.type === 'STAFF' ? req.decoded.provinceCode : null
+  const { case_status } = req.query
 
   try {
-    const [ cases, genericsPersons, headers ] = await Promise.all([
-      model.admitCase(db, date),
-      model.getPersonsGenerics(db, date),
+    const [ cases, headers ] = await Promise.all([
+      model.admitCase(db, date, case_status, provinceCode),
       model.getGenericNames(db)
     ])
-    // const data = await mapDataAdmitByDate(rs);
-    const results = mapPersonsGenerics(genericsPersons, cases)
+    const genericsUsages = await model.getGenericsUsaged(db, cases.map((each) => each.detail_id))
+    const results = mapPersonsGenerics(genericsUsages, cases)
     res.send({ ok: true, rows: { headers, results }, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -3636,9 +3638,11 @@ router.get('/admit-case-summary', async (req: Request, res: Response) => {
   const db = req.dbReport;
   const start = req.query.start || moment().format('YYYY-MM-DD');
   const end = req.query.end || moment().format('YYYY-MM-DD');
+  const provinceCode = req.decoded?.type === 'STAFF' ? req.decoded.provinceCode : null
+  const { case_status } = req.query
 
   try {
-    const results = await model.admitCaseSummary(db, { start, end })
+    const results = await model.admitCaseSummary(db, { start, end }, case_status, provinceCode)
     res.send({ ok: true, rows: results, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
