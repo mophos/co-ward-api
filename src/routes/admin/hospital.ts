@@ -79,24 +79,19 @@ router.put('/:id', async (req: Request, res: Response) => {
   }
 });
 
-const generateHospCode = async (db: Knex, hospType: string, hosptypeCode: any, zoneCode: any) => {
-  let typeCode = ''
+const generateHospCode = async (db: Knex, hospType: string, zoneCode: any) => {
   const allHospitals = await hospitalModel.getNextInsertId(db)
   const currentId = allHospitals[0]?.id || 0
 
-  if (hospType === 'FIELD') {
-    typeCode = 'F'
+  const typeCodes = {
+    'FIELD': 'F',
+    'HOSPITEL': 'H',
+    'CI': 'C'
   }
 
-  if (hospType === 'HOSPITEL') {
-    typeCode = 'H'
-  }
+  const typeCode = typeCodes[hospType] || ''
 
-  if (hospType === 'CI') {
-    typeCode = 'C'
-  }
-
-  return `${hosptypeCode}${typeCode}${zoneCode}${currentId + 1}`
+  return `${typeCode}${zoneCode}${currentId + 1}`
 }
 
 router.post('/', async (req: Request, res: Response) => {
@@ -107,7 +102,7 @@ router.post('/', async (req: Request, res: Response) => {
       const zone = await hospitalModel.getZone(req.db, data.province_code);
       data.zone_code = zone[0].zone_code;
       data.hospcode = data.hospital_type !== 'HOSPITAL'
-      ? await generateHospCode(req.db, data.hospital_type, data.hosptype_code, data.zone_code)
+      ? await generateHospCode(req.db, data.hospital_type, data.zone_code)
       : data.hospcode
 
       const dupCode: any = await hospitalModel.checkHospCode(req.db, data.hospcode)
