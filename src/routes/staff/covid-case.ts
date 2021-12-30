@@ -303,26 +303,44 @@ router.post('/', async (req: Request, res: Response) => { // TODO: check amount 
     // check patient 
     const rsPatient = await covidCaseModel.getPatientByHN(db, hospitalId, data.hn);
     const { detail } = data
-    const bedAmounts: any[] = await Promise.all(detail.map(async (each: any) => {
-      const date = moment(each.date).format('YYYY-MM-DD')
-      return covidCaseModel.getAmountOfBedByHospitalId(db, hospitalId, each.bed_id, date)
-    }))
+    // const bedAmounts: any[] = await Promise.all(detail.map(async (each: any) => {
+    //   const date = moment(each.date).format('YYYY-MM-DD')
+    //   return covidCaseModel.getAmountOfBedByHospitalId(db, hospitalId, each.bed_id, date)
+    // }))
+
+    const bedAmounts =  await covidCaseModel.getAmountOfBedByHospitalId(db, hospitalId)
 
     const caseAmounts: any[] = await Promise.all(detail.map(async (each: any) => {
       const date = moment(each.date).format('YYYY-MM-DD')
       return covidCaseModel.getCovidCasesAmount(db, date, hospitalId, each.bed_id)
     }))
 
-
     let errorMessage = null
-    for (let i = 0; i < bedAmounts.length; i++) {
-      if (!bedAmounts[i]?.length || !bedAmounts[i][0]?.covid_qty) {
+    // for (let i = 0; i < bedAmounts.length; i++) {
+    //   if (!bedAmounts[i]?.length) {
+    //     errorMessage = 'beds have not been set amount'
+    //     break
+    //   }
+    //   const useQty = caseAmounts[i][0]?.used_qty || 0
+    //   const covidQty = bedAmounts[i][0]?.covid_qty || 0
+
+    //   if ( covidQty <= useQty) {
+    //     errorMessage = 'beds are not enough'
+    //     break
+    //   }
+    // }
+
+    for (let i = 0; i < caseAmounts.length; i++) {
+      const useQty = caseAmounts[i][0]?.used_qty || 0
+      const currentBed = bedAmounts.find((bed) => bed.bed_id === detail[i].bed_id)
+      
+      if (!currentBed) {
         errorMessage = 'beds have not been set amount'
         break
       }
-      const useQty = caseAmounts[i][0]?.used_qty || 0
 
-      if (bedAmounts[i][0]?.covid_qty <= useQty) {
+      const covidQty = currentBed.covid_qty || 0
+      if ( covidQty <= useQty) {
         errorMessage = 'beds are not enough'
         break
       }

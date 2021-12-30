@@ -46,7 +46,7 @@ export class CovidCaseModel {
   getCovidCasesAmount(db: Knex, date: string, hospitalId: number, bedId: number) {
     let sql = db('p_covid_cases as covid_case')
       .count('* as used_qty')
-      .select('covid_case.date_admit')
+      .select('covid_case.date_admit', 'covid_case_details.bed_id')
       .leftJoin('p_covid_case_details as covid_case_details', 'covid_case_details.covid_case_id', 'covid_case.id')
       .leftJoin('p_patients as patients', 'patients.id', 'covid_case.patient_id')
       .where('covid_case.date_admit', date)
@@ -216,31 +216,30 @@ export class CovidCaseModel {
       .where('pt.hospital_id', hospitalId)
   }
 
-  // getAmountOfBedByHospitalId(db: Knex, hospitalId: any) {
-  //   let sql = db('b_bed_hospitals as bh')
-  //     .select('covid_qty', 'qty', 'b.name', 'bh.bed_id')
-  //     .leftJoin('b_beds as b', 'b.id', 'bh.bed_id')
-  //     .where('bh.hospital_id', hospitalId)
-
-  //   return sql
-  // }
-
-  getAmountOfBedByHospitalId(db: Knex, hospitalId: any, bedId: string, date: string) {
-    let sql = db('wm_bed_details as bd')
-      .select('bd.covid_qty', 'bd.qty', 'bd.spare_qty', 'bb.name', 'b.date', 'bd.bed_id' )
-      .leftJoin('wm_beds as b', 'b.id', 'bd.wm_bed_id')
-      .leftJoin('b_beds as bb', 'bb.id', 'bd.bed_id')
-      .where('b.hospital_id', hospitalId)
-      .where('bd.bed_id', bedId)
-      .where((v) => {
-        v.where('b.date', '<', date)
-        v.orWhere('b.date', date)
-      })
-      .orderBy('b.date', 'DESC')
+  getAmountOfBedByHospitalId(db: Knex, hospitalId: any) {
+    let sql = db('b_bed_hospitals as bh')
+      .select('covid_qty', 'qty', 'b.name', 'bh.bed_id')
+      .leftJoin('b_beds as b', 'b.id', 'bh.bed_id')
+      .where('bh.hospital_id', hospitalId)
 
     return sql
   }
 
+  // getAmountOfBedByHospitalId(db: Knex, hospitalId: any, bedId: string, date: string) {
+  //   let sql = db('wm_bed_details as bd')
+  //     .select('bd.covid_qty', 'bd.qty', 'bd.spare_qty', 'bb.name', 'b.date', 'bd.bed_id' )
+  //     .leftJoin('wm_beds as b', 'b.id', 'bd.wm_bed_id')
+  //     .leftJoin('b_beds as bb', 'bb.id', 'bd.bed_id')
+  //     .where('b.hospital_id', hospitalId)
+  //     .where('bd.bed_id', bedId)
+  //     .where((v) => {
+  //       v.where('b.date', '<', date)
+  //       v.orWhere('b.date', date)
+  //     })
+  //     .orderBy('b.date', 'DESC')
+
+  //   return sql
+  // }
 
   getHistory(db: Knex, personId) {
     return db('p_covid_cases as c')
