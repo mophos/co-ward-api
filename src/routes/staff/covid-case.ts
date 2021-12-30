@@ -315,8 +315,6 @@ router.post('/', async (req: Request, res: Response) => { // TODO: check amount 
       return covidCaseModel.getCovidCasesAmount(db, date, hospitalId, each.bed_id)
     }))
 
-    console.log(caseAmounts)
-
     let errorMessage = null
     // for (let i = 0; i < bedAmounts.length; i++) {
     //   if (!bedAmounts[i]?.length) {

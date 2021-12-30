@@ -360,7 +360,7 @@ router.get('/patient-report-by-zone', async (req: Request, res: Response) => {
       model.getPatientsReportHeaders(db),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] }),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'DEATH', groupBy: 'h.zone_code', zones: [], provinces: [] }),
-      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'PUI', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] })
+      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'IPPUI', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] })
     ])
 
     const result = mapPatientReportByZone(cases, deathCases, puiCases)
@@ -468,7 +468,7 @@ router.get('/patient-report-by-province', async (req: Request, res: Response) =>
       model.getPatientsReportHeaders(db),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] }),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'DEATH', groupBy: 'h.province_code', zones, provinces: [] }),
-      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'PUI', status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] })
+      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'IPPUI', status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] })
     ])
     const result = mapPatientReportByProvince(cases, deathCases, puiCases)
     const items = [
@@ -1120,7 +1120,7 @@ router.get('/patient-report-by-hospital', async (req: Request, res: Response) =>
       model.getPatientsReportHeaders(db),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.id', zones, provinces }),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'DEATH', groupBy: 'h.id', zones, provinces }),
-      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'PUI', status: 'ADMIT', groupBy: 'h.id', zones, provinces })
+      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'IPPUI', status: 'ADMIT', groupBy: 'h.id', zones, provinces })
     ])
     const result = mapPatientReportByHospital(cases, deathCases, puiCases)
 

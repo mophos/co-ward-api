@@ -223,7 +223,16 @@ export class ReportAllModel {
     return sql
   }
 
-  getBedReportByZone(db: Knex, date: string, options: { case: string, status: string, groupBy: string, zones: string[], provinces: string[]}) {
+  getBedReportByZone(
+    db: Knex, 
+    date: string, 
+    options: { 
+      case: string, 
+      status: string, 
+      groupBy: string, 
+      zones: string[], 
+      provinces: string[]
+    }) {
     const sql = db('p_covid_case_details AS cd')
       .select('h.zone_code', 'cd.bed_id', 'b.name as bed_name', 'bh.covid_qty as total')
       .count('* as used')
@@ -257,7 +266,7 @@ export class ReportAllModel {
     }
 
     if (options.provinces?.length > 0) {
-      sql.whereIn('h.zone_code', options.zones)
+      // sql.whereIn('h.zone_code', options.zones)
       sql.whereIn('h.province_code', options.provinces)
     }
 
@@ -534,6 +543,7 @@ export class ReportAllModel {
       .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
       .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')
       .leftJoin('b_hospital_subministry as hs', 'hs.code', 'h.sub_ministry_code')
+      // .leftJoin('b_medical_supplies as ms', 'ms.id', 'cd.medical_supplie_id')
       .leftJoin('b_gcs as g', 'g.id', 'cd.gcs_id')
       .where('cd.entry_date', date)
       .where('c.case_status', options.case)
@@ -559,7 +569,47 @@ export class ReportAllModel {
     }
 
     if (options.provinces?.length > 0) {
+      // sql.whereIn('h.zone_code', options.zones)
+      sql.whereIn('h.province_code', options.provinces)
+    }
+
+    return sql
+  }
+
+  getPatientsCasesGroupByMedicalSupplies(db: Knex, date: string, options: { case: string, status: string, groupBy: string, zones: string[], provinces: string[]}) {
+    const sql = db('p_covid_case_details AS cd')
+      
+      .count('* as count')
+      .leftJoin('p_covid_cases as c', 'cd.covid_case_id', 'c.id')
+      .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
+      .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')
+      .leftJoin('b_hospital_subministry as hs', 'hs.code', 'h.sub_ministry_code')
+      .leftJoin('b_medical_supplies as ms', 'ms.id', 'cd.medical_supplie_id')
+      .where('cd.entry_date', date)
+      .where('c.case_status', options.case)
+      .where('cd.status', options.status)
+      .where('c.is_deleted', 'N')
+      .groupBy(options.groupBy, 'cd.medical_supplie_id')
+      .orderBy('h.zone_code')
+
+    if (options.groupBy === 'h.zone_code') {
+      sql.select('h.zone_code', 'cd.medical_supplie_id', 'ms.name as ms_name')
+    }
+
+    if (options.groupBy === 'h.province_code') {
+      sql.select('h.zone_code', 'cd.medical_supplie_id', 'ms.name as ms_name', 'h.province_code', 'h.province_name')
+    }
+
+    if (options.groupBy === 'h.id') {
+      sql.select('h.zone_code', 'cd.medical_supplie_id', 'ms.name as ms_name', 'h.province_code', 'h.province_name', 'h.hospname', 'h.id', 'h.hospcode', 'hs.name as sub_ministry_name', 'h.level')
+    }
+
+    if (options.zones?.length > 0) {
       sql.whereIn('h.zone_code', options.zones)
+    }
+
+    if (options.provinces?.length > 0) {
+      // sql.whereIn('h.zone_code', options.zones)
       sql.whereIn('h.province_code', options.provinces)
     }
 
