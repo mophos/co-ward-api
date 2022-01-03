@@ -52,10 +52,18 @@ const mapBedReports = (raws: any[]) => {
 
 router.get('/bed-report-by-zone', async (req: Request, res: Response) => {
   const db = req.dbReport;
-  const { date } = req.query;
+  const { date, start, end } = req.query
 
   try {
-    const rs: any = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] });
+    let rs: any
+    if (date) {
+      rs = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] });
+    }
+
+    if (!date) {
+      rs = await model.getBedReportByZone(db, null, { case: 'COVID', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] }, { start: moment(start).format('YYYY-MM-DD'), end: moment(end).add(1, 'day').format('YYYY-MM-DD')});
+    }
+    
     res.send({ ok: true, rows: mapBedReports(rs), code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -65,10 +73,17 @@ router.get('/bed-report-by-zone', async (req: Request, res: Response) => {
 
 router.get('/bed-report-by-province', async (req: Request, res: Response) => {
   const db = req.dbReport;
-  const { zones, date, } = req.query;
+  const { zones, date, start, end } = req.query;
 
   try {
-    const rs: any = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] });
+    let rs: any
+    if (date) {
+      rs = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] });
+    }
+
+    if (!date) {
+      rs = await model.getBedReportByZone(db, null, { case: 'COVID', status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] }, { start: moment(start).format('YYYY-MM-DD'), end: moment(end).add(1, 'day').format('YYYY-MM-DD')});
+    }
     res.send({ ok: true, rows: mapBedReports(rs), code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -78,10 +93,18 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
 
 router.get('/bed-report-by-hospital', async (req: Request, res: Response) => {
   const db = req.dbReport;
-  const { zones, provinces, date, } = req.query;
+  const { zones, provinces, date, start, end } = req.query;
 
   try {
-    const rs: any = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.id', zones, provinces });
+    let rs: any
+    if (date) {
+      rs = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.id', zones, provinces })
+    }
+
+    if (!date) {
+      rs = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.id', zones, provinces }, { start: moment(start).format('YYYY-MM-DD'), end: moment(end).add(1, 'day').format('YYYY-MM-DD')})
+    }
+    
     res.send({ ok: true, rows: mapBedReports(rs), code: HttpStatus.OK });
   } catch (error) {
     console.log(error);

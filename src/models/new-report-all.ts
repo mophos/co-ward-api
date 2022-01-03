@@ -232,7 +232,11 @@ export class ReportAllModel {
       groupBy: string, 
       zones: string[], 
       provinces: string[]
-    }) {
+    },
+    dateRange: {
+      start: string,
+      end: string
+    } = null) {
     const sql = db('p_covid_case_details AS cd')
       .select('h.zone_code', 'cd.bed_id', 'b.name as bed_name', 'bh.covid_qty as total')
       .count('* as used')
@@ -242,12 +246,19 @@ export class ReportAllModel {
       .leftJoin('b_hospital_subministry as hs', 'hs.code', 'h.sub_ministry_code')
       .leftJoin('b_beds as b', 'b.id', 'cd.bed_id')
       .joinRaw('LEFT JOIN b_bed_hospitals AS bh ON bh.bed_id = cd.bed_id AND bh.hospital_id = h.id')
-      .where('cd.entry_date', date)
       .where('c.case_status', options.case)
       .where('cd.status', options.status)
       .where('c.is_deleted', 'N')
       .groupBy(options.groupBy, 'cd.bed_id')
       .orderBy('h.zone_code')
+    
+    if (date) {
+      sql.where('cd.entry_date', date)
+    }
+
+    if (!date) {
+      sql.whereBetween('cd.entry_date', [dateRange.start, dateRange.end])
+    }
 
     if (options.groupBy === 'h.zone_code') {
       sql.select('h.zone_code', 'cd.bed_id', 'b.name as bed_name')
