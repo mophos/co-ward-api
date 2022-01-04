@@ -80,8 +80,10 @@ router.put('/:id', async (req: Request, res: Response) => {
 });
 
 const generateHospCode = async (db: Knex, hospType: string, zoneCode: any) => {
-  const allHospitals = await hospitalModel.getNextInsertId(db)
-  const currentId = allHospitals[0]?.id || 0
+  // const allHospitals = await hospitalModel.getNextInsertId(db)
+  // const currentId = allHospitals[0]?.id || 0
+  const count = await hospitalModel.getHospitalCounter(db, hospType.toLowerCase()) || 0
+  const currentId = (count + 1).toString().padStart(5, '0')
 
   const typeCodes = {
     'FIELD': 'F',
@@ -91,7 +93,7 @@ const generateHospCode = async (db: Knex, hospType: string, zoneCode: any) => {
 
   const typeCode = typeCodes[hospType] || ''
 
-  return `${typeCode}${zoneCode}${currentId + 1}`
+  return `${typeCode}${zoneCode}${currentId}`
 }
 
 router.post('/', async (req: Request, res: Response) => {

@@ -86,6 +86,10 @@ export class HospitalModel {
   getNextInsertId(db: Knex) {
     return db('b_hospitals as b').select('b.id as id').orderBy('b.id', 'DESC').limit(1);
   }
+
+  getHospitalCounter(db: Knex, label: string) {
+    return db('hospital_create_counter').select('*').orderBy('id', 'DESC').where('label', label);
+  }
   
   getZone(db: Knex, provinceCode) {
     return db('b_province').where('code', provinceCode);
