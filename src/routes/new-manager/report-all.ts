@@ -55,6 +55,16 @@ router.get('/bed-report-by-zone', async (req: Request, res: Response) => {
   const { date, start, end } = req.query
 
   try {
+    // let headers = [];
+    // let subHeader = [];
+    // const bed = await model.getBed(db);
+    // for (const i of bed) {
+    //   headers.push(i.name);
+    //   subHeader.push('ทั้งหมด')
+    //   subHeader.push('ใช้ไปแล้ว')
+    //   subHeader.push('คงเหลือ')
+    // }
+
     let rs: any
     if (date) {
       rs = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] });
@@ -94,15 +104,15 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
 router.get('/bed-report-by-hospital', async (req: Request, res: Response) => {
   const db = req.dbReport;
   const { zones, provinces, date, start, end } = req.query;
-
+  
   try {
     let rs: any
     if (date) {
-      rs = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.id', zones, provinces })
+      rs = await model.getBedReportByZone(db, date, { case: 'COVID', status: 'ADMIT', groupBy: 'h.id', zones, provinces })
     }
 
     if (!date) {
-      rs = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.id', zones, provinces }, { start: moment(start).format('YYYY-MM-DD'), end: moment(end).add(1, 'day').format('YYYY-MM-DD') })
+      rs = await model.getBedReportByZone(db, date, { case: 'COVID', status: 'ADMIT', groupBy: 'h.id', zones, provinces }, { start: moment(start).format('YYYY-MM-DD'), end: moment(end).add(1, 'day').format('YYYY-MM-DD') })
     }
 
     res.send({ ok: true, rows: mapBedReports(rs), code: HttpStatus.OK });
@@ -217,7 +227,7 @@ router.get('/report4', async (req: Request, res: Response) => {
 const mapPatientReportByZone = (normalCases: any[], medicalCases: any[], deathCases: any[], puiCases: any[]) => {
   const results = []
   console.log(normalCases);
-  
+
   for (let index = 1; index <= 13; index++) {
     const zoneCodeString = (index + '').padStart(2, '0')
     const obj = { zoneCode: zoneCodeString }
@@ -230,19 +240,19 @@ const mapPatientReportByZone = (normalCases: any[], medicalCases: any[], deathCa
 
     normalCaseFounds.forEach((each) => {
       // if (each.zone_code == +index) {
-        const field = each.gcs_name.toLowerCase().split(' ').join('_')
-        obj[field] = each.count
-        normalCaseAmount += each.count
+      const field = each.gcs_name.toLowerCase().split(' ').join('_')
+      obj[field] = each.count
+      normalCaseAmount += each.count
       // }
     })
 
     medicalCasesFounds.forEach((each) => {
       // if (each.zone_code == +index) {
-        if (each.ms_name) {
-          console.log(each.ms_name);
-          const field = each.ms_name?.toLowerCase().split(' ').join('_')
-          obj[field] = each.count
-        }
+      if (each.ms_name) {
+        console.log(each.ms_name);
+        const field = each.ms_name?.toLowerCase().split(' ').join('_')
+        obj[field] = each.count
+      }
       // }
     })
 

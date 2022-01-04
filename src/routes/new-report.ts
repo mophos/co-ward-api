@@ -3617,7 +3617,7 @@ const mapPersonsGenerics = (genericsPersons: any[], cases: any[]) => {
 
 router.get('/admit-case', async (req: Request, res: Response) => { // TODO: [6]
   const db = req.dbReport;
-  const date = req.query.date || moment().format('YYYY-MM-DD');
+  const date = req.query.date || null;
   const provinceCode = req.decoded?.type === 'STAFF' ? req.decoded.provinceCode : null
   const { case_status } = req.query
 
@@ -3637,8 +3637,8 @@ router.get('/admit-case', async (req: Request, res: Response) => { // TODO: [6]
 
 router.get('/admit-case-summary', async (req: Request, res: Response) => {
   const db = req.dbReport;
-  const start = req.query.start || moment().format('YYYY-MM-DD');
-  const end = req.query.end || moment().format('YYYY-MM-DD');
+  const start = req.query.start || null;
+  const end = req.query.end || null;
   const provinceCode = req.decoded?.type === 'STAFF' ? req.decoded.provinceCode : null
   const { case_status } = req.query
 

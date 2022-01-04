@@ -239,7 +239,7 @@ export class ReportModel {
       .join('p_patients as pp', 'pp.id', 'p.patient_id')
       .join('view_case_lasted as pc', 'pc.covid_case_id', 'p.id')
       .join('b_gcs as g', 'g.id', 'pc.gcs_id');
-      // .whereBetween('p.create_date', [`${date.start}`, `${date.end}`])
+    // .whereBetween('p.create_date', [`${date.start}`, `${date.end}`])
   }
 
   getSupplie(db: Knex, date: any, query: any) {
@@ -616,7 +616,7 @@ export class ReportModel {
 
     if (provinceCode) {
       sql.where('h.province_code', provinceCode);
-    }    
+    }
     return sql;
   }
 
@@ -631,7 +631,7 @@ export class ReportModel {
 
   admitConfirmCaseSummaryExcel(db: Knex) {
     const sql = db('temp_report_admit_comfirm_case_summary')
-    .select(db.raw(`IFNULL(zone_code, 0) as 'เขต',IFNULL(confirm, 0) as 'รวม',IFNULL(severe, 0) as 'Severe',IFNULL(moderate, 0) as 'moderate',IFNULL(mild, 0) as 'mild',IFNULL(asymptomatic, 0) as 'asymptomatic',IFNULL(aiir, 0) as 'aiir',IFNULL(modified_aiir, 0) as 'modified_aiir',IFNULL(isolate, 0) as 'isolate',IFNULL(cohort, 0) as 'cohort',IFNULL(cohort_icu, 0) as 'cohort_icu',IFNULL(hospitel, 0) as 'Hospitel',IFNULL(invasive, 0) as 'invasive',IFNULL(noninvasive, 0) as 'noninvasive',IFNULL(high_flow, 0) as 'high_flow',IFNULL(d3, 0) as 'Darunavir 600 mg.',IFNULL(d4, 0) as 'Lopinavir 200 mg./Ritonavir 50 mg.',IFNULL(d5, 0) as 'Ritonavir 100 mg.',IFNULL(d7, 0) as 'Azithromycin 250 mg.',IFNULL(d8, 0) as 'Favipiravi(คน)'`))
+      .select(db.raw(`IFNULL(zone_code, 0) as 'เขต',IFNULL(confirm, 0) as 'รวม',IFNULL(severe, 0) as 'Severe',IFNULL(moderate, 0) as 'moderate',IFNULL(mild, 0) as 'mild',IFNULL(asymptomatic, 0) as 'asymptomatic',IFNULL(aiir, 0) as 'aiir',IFNULL(modified_aiir, 0) as 'modified_aiir',IFNULL(isolate, 0) as 'isolate',IFNULL(cohort, 0) as 'cohort',IFNULL(cohort_icu, 0) as 'cohort_icu',IFNULL(hospitel, 0) as 'Hospitel',IFNULL(invasive, 0) as 'invasive',IFNULL(noninvasive, 0) as 'noninvasive',IFNULL(high_flow, 0) as 'high_flow',IFNULL(d3, 0) as 'Darunavir 600 mg.',IFNULL(d4, 0) as 'Lopinavir 200 mg./Ritonavir 50 mg.',IFNULL(d5, 0) as 'Ritonavir 100 mg.',IFNULL(d7, 0) as 'Azithromycin 250 mg.',IFNULL(d8, 0) as 'Favipiravi(คน)'`))
     return sql;
   }
 
@@ -960,7 +960,8 @@ export class ReportModel {
         'p.birth_date',
         'dms.sector',
       )
-      .leftJoin('p_covid_case_details as cd', 'cd.covid_case_id', 'c.id')
+      .leftJoin('p_covid_case_detail_last as cl', 'c.id', 'cl.covid_case_id')
+      .leftJoin('p_covid_case_details as cd', 'cd.id', 'cl.covid_case_detail_id')
       .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
       .leftJoin('p_persons as p', 'p.id', 'pt.person_id')
       .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')
@@ -971,9 +972,13 @@ export class ReportModel {
       .leftJoin('b_genders as gd', 'gd.id', 'p.gender_id')
       .leftJoin('b_hospital_subministry as hs', 'hs.code', 'h.sub_ministry_code')
       .where('c.is_deleted ', 'N')
-      .where('c.date_admit', date)
+
       .where('c.status', 'ADMIT')
       .orderBy('h.zone_code')
+
+    if (moment(date, 'YYYY-MM-DD').isValid()) {
+      sql.where('c.date_admit', date)
+    }
 
     if (provinceCode) {
       sql.where('h.province_code', provinceCode)
@@ -1022,7 +1027,7 @@ export class ReportModel {
     return sql
   }
 
-  admitCaseSummary(db: Knex, date: { start: string, end: string }, caseStatuses = ['IPPUI', 'COVID'], provinceCode = null) {
+  admitCaseSummary(db: Knex, date: { start: any, end: any }, caseStatuses = ['IPPUI', 'COVID'], provinceCode = null) {
     let sql = db('p_covid_cases AS c')
       .select('h.zone_code')
       .count('* as admit')
@@ -1030,14 +1035,14 @@ export class ReportModel {
       .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')
       .where('c.is_deleted ', 'N')
       .where('c.status', 'ADMIT')
-      .whereBetween('c.date_admit', [date.start, date.end])
       .groupBy('h.zone_code')
       .orderBy('h.zone_code')
-
+    if (moment(date.start, 'YYYY-MM-DD').isValid() && moment(date.end, 'YYYY-MM-DD').isValid()) {
+      sql.whereBetween('c.date_admit', [date.start, date.end])
+    }
     if (provinceCode) {
       sql.where('h.province_code', provinceCode)
     }
-
     if (caseStatuses.length) {
       sql.whereIn('c.case_status', caseStatuses)
     }
@@ -1051,7 +1056,7 @@ export class ReportModel {
       .count('* as count')
       .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
       .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')
-      sql.leftJoin('views_hospital_dms as dms', 'dms.id', 'h.id')
+    sql.leftJoin('views_hospital_dms as dms', 'dms.id', 'h.id')
       .where('c.is_deleted ', 'N')
       .whereIn('c.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
       .whereBetween('c.date_admit', [date.start, date.end])

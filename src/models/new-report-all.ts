@@ -1,5 +1,6 @@
 import { groupBy } from 'lodash';
 import Knex = require('knex');
+import moment = require('moment');
 
 export class ReportAllModel {
 
@@ -252,12 +253,14 @@ export class ReportAllModel {
       .groupBy(options.groupBy, 'cd.bed_id')
       .orderBy('h.zone_code')
 
-    if (date) {
+    if (moment(date, 'YYYY-MM-DD').isValid()) {
       sql.where('cd.entry_date', date)
     }
 
     if (!date) {
-      sql.whereBetween('cd.entry_date', [dateRange.start, dateRange.end])
+      if (moment(dateRange.start, 'YYYY-MM-DD').isValid()) {
+        sql.whereBetween('cd.entry_date', [dateRange.start, dateRange.end])
+      }
     }
 
     if (options.groupBy === 'h.zone_code') {
@@ -1054,7 +1057,7 @@ vc.updated_entry  as updated_entry`))
       .select('b.id', 'b.name')
       .where('b.is_deleted', 'N')
   }
-  
+
   homework(db: Knex, type) {
     return db('views_review_homework_dms as v')
       .select('*')
