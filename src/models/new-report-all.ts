@@ -247,7 +247,7 @@ export class ReportAllModel {
       .leftJoin('b_hospital_subministry as hs', 'hs.code', 'h.sub_ministry_code')
       .leftJoin('b_beds as b', 'b.id', 'cd.bed_id')
       .joinRaw('LEFT JOIN b_bed_hospitals AS bh ON bh.bed_id = cd.bed_id AND bh.hospital_id = h.id')
-      .where('c.case_status', options.case)
+
       .where('cd.status', options.status)
       .where('c.is_deleted', 'N')
       .groupBy(options.groupBy, 'cd.bed_id')
@@ -255,6 +255,10 @@ export class ReportAllModel {
 
     if (moment(date, 'YYYY-MM-DD').isValid()) {
       sql.where('cd.entry_date', date)
+    }
+
+    if (options.case) {
+      sql.where('c.case_status', options.case)
     }
 
     if (!date) {
@@ -600,12 +604,13 @@ export class ReportAllModel {
       .leftJoin('b_hospital_subministry as hs', 'hs.code', 'h.sub_ministry_code')
       .leftJoin('b_medical_supplies as ms', 'ms.id', 'cd.medical_supplie_id')
       .where('cd.entry_date', date)
-      .where('c.case_status', options.case)
       .where('cd.status', options.status)
       .where('c.is_deleted', 'N')
       .groupBy(options.groupBy, 'cd.medical_supplie_id')
       .orderBy('h.zone_code')
-
+    if (options.case) {
+      sql.where('c.case_status', options.case)
+    }
     if (options.groupBy === 'h.zone_code') {
       sql.select('h.zone_code', 'cd.medical_supplie_id', 'ms.name as ms_name')
     }
@@ -626,7 +631,7 @@ export class ReportAllModel {
       // sql.whereIn('h.zone_code', options.zones)
       sql.whereIn('h.province_code', options.provinces)
     }
-    console.log(sql.toString());
+    // console.log(sql.toString());
 
     return sql
   }
@@ -1055,6 +1060,7 @@ vc.updated_entry  as updated_entry`))
   getBed(db: Knex) {
     return db('b_beds as b')
       .select('b.id', 'b.name')
+      .orderBy('b.id', 'desc')
       .where('b.is_deleted', 'N')
   }
 

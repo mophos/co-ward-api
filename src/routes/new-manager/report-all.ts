@@ -2,7 +2,7 @@
 
 import * as HttpStatus from 'http-status-codes';
 import { Router, Request, Response } from 'express';
-import { sumBy, filter } from 'lodash';
+import { sumBy, filter, findIndex, uniqBy } from 'lodash';
 import { ReportAllModel } from '../../models/new-report-all';
 const excel4node = require('excel4node');
 const path = require('path')
@@ -55,26 +55,58 @@ router.get('/bed-report-by-zone', async (req: Request, res: Response) => {
   const { date, start, end } = req.query
 
   try {
-    // let headers = [];
-    // let subHeader = [];
-    // const bed = await model.getBed(db);
-    // for (const i of bed) {
-    //   headers.push(i.name);
-    //   subHeader.push('ทั้งหมด')
-    //   subHeader.push('ใช้ไปแล้ว')
-    //   subHeader.push('คงเหลือ')
-    // }
+
 
     let rs: any
     if (date) {
-      rs = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] });
+      rs = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: null, status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] });
     }
 
     if (!date) {
-      rs = await model.getBedReportByZone(db, null, { case: 'COVID', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] }, { start: moment(start).format('YYYY-MM-DD'), end: moment(end).add(1, 'day').format('YYYY-MM-DD') });
+      rs = await model.getBedReportByZone(db, null, { case: null, status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] }, { start: moment(start).format('YYYY-MM-DD'), end: moment(end).add(1, 'day').format('YYYY-MM-DD') });
     }
 
-    res.send({ ok: true, rows: mapBedReports(rs), code: HttpStatus.OK });
+    let headers = [];
+    let subHeader = [];
+    let data = [];
+    const bed = await model.getBed(db);
+    for (const i of bed) {
+      headers.push({ id: i.id, name: i.name });
+      subHeader.push('ทั้งหมด')
+      subHeader.push('ใช้ไปแล้ว')
+      subHeader.push('คงเหลือ')
+    }
+    for (let index = 0; index < 13; index++) {
+      const indexString = (index + 1).toString().padStart(2, '0')
+      data.push([indexString])
+    }
+
+    for (let index = 1; index <= 13; index++) {
+      // const indexString = index.toString().padStart(2, '0')
+      const grouped = rs.filter((raw) => +raw.zone_code === index)
+      // console.log(index, grouped);
+
+      //   data.push([indexString]);
+      for (const i of headers) {
+        const idx = findIndex(grouped, { bed_id: i.id });
+        if (idx > -1) {
+          data[index - 1].push(grouped[idx].total)
+          data[index - 1].push(grouped[idx].used)
+          data[index - 1].push(grouped[idx].total - grouped[idx].used)
+        } else {
+          data[index - 1].push(null);
+          data[index - 1].push(null);
+          data[index - 1].push(null);
+        }
+      }
+    }
+
+    res.send({ ok: true, headers, subHeader, data })
+
+
+    // // console.log(mapBedReports(rs));
+
+    // res.send({ ok: true, rows: mapBedReports(rs), code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error });
@@ -88,11 +120,11 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
   try {
     let rs: any
     if (date) {
-      rs = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] });
+      rs = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: null, status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] });
     }
 
     if (!date) {
-      rs = await model.getBedReportByZone(db, null, { case: 'COVID', status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] }, { start: moment(start).format('YYYY-MM-DD'), end: moment(end).add(1, 'day').format('YYYY-MM-DD') });
+      rs = await model.getBedReportByZone(db, null, { case: null, status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] }, { start: moment(start).format('YYYY-MM-DD'), end: moment(end).add(1, 'day').format('YYYY-MM-DD') });
     }
     res.send({ ok: true, rows: mapBedReports(rs), code: HttpStatus.OK });
   } catch (error) {
@@ -104,18 +136,102 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
 router.get('/bed-report-by-hospital', async (req: Request, res: Response) => {
   const db = req.dbReport;
   const { zones, provinces, date, start, end } = req.query;
-  
+
   try {
     let rs: any
     if (date) {
-      rs = await model.getBedReportByZone(db, date, { case: 'COVID', status: 'ADMIT', groupBy: 'h.id', zones, provinces })
+      rs = await model.getBedReportByZone(db, date, { case: null, status: 'ADMIT', groupBy: 'h.id', zones, provinces })
     }
 
     if (!date) {
-      rs = await model.getBedReportByZone(db, date, { case: 'COVID', status: 'ADMIT', groupBy: 'h.id', zones, provinces }, { start: moment(start).format('YYYY-MM-DD'), end: moment(end).add(1, 'day').format('YYYY-MM-DD') })
+      rs = await model.getBedReportByZone(db, date, { case: null, status: 'ADMIT', groupBy: 'h.id', zones, provinces }, { start: moment(start).format('YYYY-MM-DD'), end: moment(end).add(1, 'day').format('YYYY-MM-DD') })
     }
 
-    res.send({ ok: true, rows: mapBedReports(rs), code: HttpStatus.OK });
+    let headers = [];
+    let subHeader = [];
+    let data = [];
+    const bed = await model.getBed(db);
+    for (const i of bed) {
+      headers.push({ id: i.id, name: i.name });
+      subHeader.push('ทั้งหมด')
+      subHeader.push('ใช้ไปแล้ว')
+      subHeader.push('คงเหลือ')
+    }
+
+    const uniq = uniqBy(rs, 'hospcode');
+    for (const u of uniq) {
+      const fil = filter(rs, { hospcode: u.hospcode });
+      let array = [];
+
+      // array.push(u.zone_code);
+      // array.push(u.province_name);
+      // array.push(u.hospcode);
+      // array.push(u.hospname);
+      // array.push(u.level);
+      for (const i of headers) {
+        const idx = findIndex(fil, { bed_id: i.id });
+        if (idx > -1) {
+          array.push(fil[idx].total)
+          array.push(fil[idx].used)
+          array.push(fil[idx].total - fil[idx].used)
+        } else {
+          array.push(null);
+          array.push(null);
+          array.push(null);
+        }
+      }
+
+      let object:any = {
+        zone_code:u.zone_code,
+        province_name:u.province_name,
+        hospcode:u.hospcode,
+        hospname:u.hospname,
+        level:u.level,
+        sub_ministry_name:u.sub_ministry_name,
+        array:array
+      }
+
+      data.push(object);
+    }
+    // let headers = [];
+    // let subHeader = [];
+    // let data = [];
+    // const bed = await model.getBed(db);
+    // for (const i of bed) {
+    //   headers.push({ id: i.id, name: i.name });
+    //   subHeader.push('ทั้งหมด')
+    //   subHeader.push('ใช้ไปแล้ว')
+    //   subHeader.push('คงเหลือ')
+    // }
+    // for (let index = 0; index < 13; index++) {
+    //   const indexString = (index + 1).toString().padStart(2, '0')
+    //   data.push([indexString])
+    // }
+
+    // for (let index = 1; index <= 13; index++) {
+    //   // const indexString = index.toString().padStart(2, '0')
+    //   const grouped = rs.filter((raw) => +raw.zone_code === index)
+    //   // console.log(index, grouped);
+
+    //   //   data.push([indexString]);
+    //   for (const i of headers) {
+    //     const idx = findIndex(grouped, { bed_id: i.id });
+    //     if (idx > -1) {
+    //       data[index - 1].push(grouped[idx].total)
+    //       data[index - 1].push(grouped[idx].used)
+    //       data[index - 1].push(grouped[idx].total - grouped[idx].used)
+    //     } else {
+    //       data[index - 1].push(null);
+    //       data[index - 1].push(null);
+    //       data[index - 1].push(null);
+    //     }
+    //   }
+    // }
+
+    // res.send(rs);
+    res.send({ ok: true, headers, subHeader, data })
+
+    // res.send({ ok: true, rows: mapBedReports(rs), code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error });
@@ -351,6 +467,7 @@ const mapPatientReportByProvince = (normalCases: any[], medicalCases: any[], dea
     const obj = { province_code, province_name, zone_code }
 
     const normalCaseFounds = normalCases.filter((each) => each.province_code === province_code)
+    const medicalCasesFounds = medicalCases.filter((each) => each.province_code === province_code)
     const puiCaseFounds = puiCases.filter((each) => each.province_code === province_code)
     const deathCasesFounds = deathCases.filter((each) => each.province_code === province_code)
 
@@ -362,7 +479,7 @@ const mapPatientReportByProvince = (normalCases: any[], medicalCases: any[], dea
       normalCaseAmount += each.count
     })
 
-    medicalCases.forEach((each) => {
+    medicalCasesFounds.forEach((each) => {
       if (each.ms_name) {
         const field = each.ms_name?.toLowerCase().split(' ').join('_')
         obj[field] = each.count
@@ -390,6 +507,7 @@ const mapPatientReportByHospital = (normalCases: any[], medicalCases: any[], dea
     const obj = { id, hospcode, hospname, province_name, zone_code, sub_ministry_name, level, province_code }
 
     const normalCaseFounds = normalCases.filter((each) => each.id === id)
+    const medicalCasesFounds = medicalCases.filter((each) => each.id === id)
     const puiCaseFounds = puiCases.filter((each) => each.id === id)
     const deathCasesFounds = deathCases.filter((each) => each.id === id)
 
@@ -401,7 +519,7 @@ const mapPatientReportByHospital = (normalCases: any[], medicalCases: any[], dea
       normalCaseAmount += each.count
     })
 
-    medicalCases.forEach((each) => {
+    medicalCasesFounds.forEach((each) => {
       if (each.ms_name) {
         const field = each.ms_name?.toLowerCase().split(' ').join('_')
         obj[field] = each.count
@@ -429,7 +547,7 @@ router.get('/patient-report-by-province', async (req: Request, res: Response) =>
     const [headers, cases, medicalCases, deathCases, puiCases] = await Promise.all([
       model.getPatientsReportHeaders(db),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] }),
-      model.getPatientsCasesGroupByMedicalSupplies(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] }),
+      model.getPatientsCasesGroupByMedicalSupplies(db, moment(date).format('YYYY-MM-DD'), { case: null, status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] }),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'DEATH', groupBy: 'h.province_code', zones, provinces: [] }),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'IPPUI', status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] })
     ])
@@ -451,7 +569,7 @@ router.get('/patient-report-by-zone', async (req: Request, res: Response) => {
     const [headers, cases, medicalCases, deathCases, puiCases] = await Promise.all([
       model.getPatientsReportHeaders(db),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] }),
-      model.getPatientsCasesGroupByMedicalSupplies(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] }),
+      model.getPatientsCasesGroupByMedicalSupplies(db, moment(date).format('YYYY-MM-DD'), { case: null, status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] }),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'DEATH', groupBy: 'h.zone_code', zones: [], provinces: [] }),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'IPPUI', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] })
     ])
