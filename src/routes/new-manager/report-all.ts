@@ -126,7 +126,60 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
     if (!date) {
       rs = await model.getBedReportByZone(db, null, { case: null, status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] }, { start: moment(start).format('YYYY-MM-DD'), end: moment(end).add(1, 'day').format('YYYY-MM-DD') });
     }
-    res.send({ ok: true, rows: mapBedReports(rs), code: HttpStatus.OK });
+    let headers = [];
+    let subHeader = [];
+    let data = [];
+    let sumAll = [];
+    const bed = await model.getBed(db);
+    for (const i of bed) {
+      headers.push({ id: i.id, name: i.name });
+      subHeader.push('ทั้งหมด')
+      subHeader.push('ใช้ไปแล้ว')
+      subHeader.push('คงเหลือ')
+    }
+    const uniq = uniqBy(rs, 'zone_code');
+    for (const u of uniq) {
+      const fil = filter(rs, { zone_code: u.zone_code });
+      let sum = ['รวมเขต', u.zone_code];
+      console.log(fil);
+      const uniqP = uniqBy(fil, 'province_code');
+      for (const f of uniqP) {
+        const filP = filter(fil, { province_code: f.province_code });
+        let array = [];
+        array.push(f.zone_code);
+        array.push(f.province_name);
+        for (const i of headers) {
+          const idx = findIndex(filP, { bed_id: i.id });
+          if (idx > -1) {
+            array.push(filP[idx].total)
+            array.push(filP[idx].used)
+            array.push(filP[idx].total - filP[idx].used)
+          } else {
+            array.push(null);
+            array.push(null);
+            array.push(null);
+          }
+        }
+        data.push(array);
+
+      }
+      for (const i of headers) {
+        const hfil = filter(fil, { bed_id: i.id });
+        sum.push(sumBy(hfil, 'total'))
+        sum.push(sumBy(hfil, 'used'))
+        sum.push(sumBy(hfil, 'total') - sumBy(hfil, 'used'))
+      }
+      data.push(sum);
+    }
+    sumAll.push('รวมทั้งหมด')
+    for (const i of headers) {
+      const rsFil = filter(rs, { bed_id: i.id });
+      sumAll.push(sumBy(rsFil, 'total'))
+      sumAll.push(sumBy(rsFil, 'used'))
+      sumAll.push(sumBy(rsFil, 'total') - sumBy(rsFil, 'used'))
+    }
+    res.send({ ok: true, headers, subHeader, data, footer: [sumAll] });
+    // res.send({ ok: true, rows: mapBedReports(rs), code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error });
@@ -181,18 +234,19 @@ router.get('/bed-report-by-hospital', async (req: Request, res: Response) => {
         }
       }
 
-      let object:any = {
-        zone_code:u.zone_code,
-        province_name:u.province_name,
-        hospcode:u.hospcode,
-        hospname:u.hospname,
-        level:u.level,
-        sub_ministry_name:u.sub_ministry_name,
-        array:array
+      let object: any = {
+        zone_code: u.zone_code,
+        province_name: u.province_name,
+        hospcode: u.hospcode,
+        hospname: u.hospname,
+        level: u.level,
+        sub_ministry_name: u.sub_ministry_name,
+        array: array
       }
 
       data.push(object);
     }
+
     // let headers = [];
     // let subHeader = [];
     // let data = [];
