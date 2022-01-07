@@ -239,8 +239,9 @@ export class ReportAllModel {
       end: string
     } = null) {
     const sql = db('p_covid_case_details AS cd')
-      .select('h.zone_code', 'cd.bed_id', 'b.name as bed_name', 'bh.covid_qty as total')
+      .select('h.zone_code', 'cd.bed_id', 'b.name as bed_name')
       .count('* as used')
+      .sum('bh.covid_qty as total')
       .leftJoin('p_covid_cases as c', 'cd.covid_case_id', 'c.id')
       .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
       .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')

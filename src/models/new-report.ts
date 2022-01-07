@@ -1059,7 +1059,8 @@ export class ReportModel {
     sql.leftJoin('views_hospital_dms as dms', 'dms.id', 'h.id')
       .where('c.is_deleted ', 'N')
       .whereIn('c.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
-      .whereBetween('c.date_admit', [date.start, date.end])
+      // .whereBetween('c.date_admit', [date.start, date.end])
+      .whereBetween('c.date_discharge', [`${date.start} 00:00:00`, `${date.end} 23:59:00`])
       .groupBy('h.zone_code', 'c.status')
       .orderBy('h.zone_code')
 
