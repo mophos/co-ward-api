@@ -64,6 +64,7 @@ import hpvcRoute from './routes/staff/hpvc';
 
 import newReportDmsRoute from './routes/new-manager/report-dms';
 import newReportAllRoute from './routes/new-manager/report-all';
+import newReportStaffAllRoute from './routes/staff/report-all';
 import newServicesRoute from './routes/new-manager/services';
 import newPatientInfoRoute from './routes/new-manager/patient-info';
 import newReportExportExcelRoute from './routes/new-manager/excel-new-report';
@@ -337,7 +338,7 @@ staff.use('/approve-supplies', approveSuppliesRoute);
 staff.use('/hpvc', hpvcRoute);
 
 api.use('/new-staff', checkAuth, staffAuth, staff);
-staff.use('/report-all', newReportAllRoute);
+staff.use('/report-all', newReportStaffAllRoute);
 staff.use('/export', newStaffExportExcelRoute);
 
 // index

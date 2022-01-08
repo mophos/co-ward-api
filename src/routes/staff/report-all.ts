@@ -3,13 +3,13 @@
 import * as HttpStatus from 'http-status-codes';
 import { Router, Request, Response } from 'express';
 import { sumBy, filter, findIndex, uniqBy } from 'lodash';
-import { ReportAllModel } from '../../models/new-report-all';
+import { ReportAllStaffModel } from '../../models/new-report-all-staff';
 const excel4node = require('excel4node');
 const path = require('path')
 const fse = require('fs-extra');
 import moment = require('moment');
 
-const model = new ReportAllModel();
+const model = new ReportAllStaffModel();
 const router: Router = Router();
 
 router.get('/report1', async (req: Request, res: Response) => {
@@ -191,18 +191,9 @@ router.get('/bed-report-by-hospital', async (req: Request, res: Response) => {
   const { zones, provinces, date, start, end } = req.query;
 
   try {
-    let rs: any
-    if (date) {
-      rs = await model.getBedReportByZone(db, date, { case: null, status: 'ADMIT', groupBy: 'h.id', zones, provinces })
-    }
+    let rs = await model.getBedReportByZone(db, date, { case: null, status: 'ADMIT', groupBy: 'h.id', zones, provinces })
 
-    if (!date) {
-      if(start && end){
-        rs = await model.getBedReportByZone(db, date, { case: null, status: 'ADMIT', groupBy: 'h.id', zones, provinces }, { start: moment(start).format('YYYY-MM-DD'), end: moment(end).add(1, 'day').format('YYYY-MM-DD') })
-      } else {
-        rs = await model.getBedReportByZone(db, date, { case: null, status: 'ADMIT', groupBy: 'h.id', zones, provinces });
-      }
-    }
+
 
     let headers = [];
     let subHeader = [];

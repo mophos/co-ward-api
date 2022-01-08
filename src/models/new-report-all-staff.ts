@@ -2,7 +2,7 @@ import { groupBy } from 'lodash';
 import Knex = require('knex');
 import moment = require('moment');
 
-export class ReportAllModel {
+export class ReportAllStaffModel {
 
   getProvince(db: Knex) {
     return db('b_province')
