@@ -545,7 +545,7 @@ export class CovidCaseModel {
       .where((v) => {
         v.where('bb.is_hospital', hospitalType == 'HOSPITAL' ? 'Y' : 'N')
         v.orWhere('bb.is_hospitel', hospitalType == 'HOSPITEL' ? 'Y' : 'N')
-        v.orWhere('b.is_field', hospitalType == 'FIELD' ? 'Y' : 'N')
+        v.orWhere('bb.is_field', hospitalType == 'FIELD' ? 'Y' : 'N')
       })
       .where('bb.is_deleted', 'N')
   }
@@ -576,7 +576,7 @@ export class CovidCaseModel {
       .where((v) => {
         v.where('bg.is_hospital', hospitalType == 'HOSPITAL' ? 'Y' : 'N')
         v.orWhere('bg.is_hospitel', hospitalType == 'HOSPITEL' ? 'Y' : 'N')
-        v.orWhere('b.is_field', hospitalType == 'FIELD' ? 'Y' : 'N')
+        v.orWhere('bg.is_field', hospitalType == 'FIELD' ? 'Y' : 'N')
       })
       .where('bg.is_deleted', 'N')
   }
