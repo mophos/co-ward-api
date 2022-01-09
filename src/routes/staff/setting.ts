@@ -82,18 +82,18 @@ router.post('/beds', async (req: Request, res: Response) => {
       _data.push({
         hospital_id: hospitalId,
         bed_id: i.bed_id,
-        qty: i.qty > 0 ? i.qty : null,
-        covid_qty: i.covid_qty > 0 ? i.covid_qty : null,
-        spare_qty: i.spare_qty > 0 ? i.spare_qty : null,
+        qty: i.qty > 0 ? +i.qty : null,
+        covid_qty: i.covid_qty > 0 ? +i.covid_qty : null,
+        spare_qty: i.spare_qty > 0 ? +i.spare_qty : null,
         created_by: id
       });
 
       detail.push({
         wm_bed_id: rs,
         bed_id: i.bed_id,
-        qty: i.qty > 0 ? i.qty : null,
-        covid_qty: i.covid_qty > 0 ? i.covid_qty : null,
-        spare_qty: i.spare_qty > 0 ? i.spare_qty : null
+        qty: i.qty > 0 ? +i.qty : null,
+        covid_qty: i.covid_qty > 0 ? +i.covid_qty : null,
+        spare_qty: i.spare_qty > 0 ? +i.spare_qty : null
       });
     }
     await model.saveBeds(db, _data);
@@ -137,16 +137,16 @@ router.post('/medical-supplies', async (req: Request, res: Response) => {
       _data.push({
         hospital_id: hospitalId,
         medical_supplie_id: i.id,
-        qty: i.qty,
-        covid_qty: i.covid_qty,
+        qty: +i.qty ,
+        covid_qty: +i.covid_qty,
         created_by: id
       });
 
       detail.push({
         wm_medical_supplie_id: rs,
         medical_supplie_id: i.id,
-        qty: i.qty,
-        covid_qty: i.covid_qty
+        qty: +i.qty,
+        covid_qty: +i.covid_qty
       });
     }
     await model.saveMedicalSupplies(db, _data);

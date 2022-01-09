@@ -188,9 +188,21 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
 
 router.get('/bed-report-by-hospital', async (req: Request, res: Response) => {
   const db = req.dbReport;
-  const { zones, provinces, date, start, end } = req.query;
+  const zoneCode = req.decoded.zone_code;
+  const type = req.decoded.type;
+  const providerType = req.decoded.providerType;
+  const provinceCode = req.decoded.provinceCode;
+  const zone = req.query.zone;
+
+  let { zones, provinces, date, start, end } = req.query;
+
 
   try {
+    if (providerType == 'ZONE') {
+      zones = [zoneCode];
+    } else {
+      provinces = [provinceCode];
+    }
     let rs = await model.getBedReportByZone(db, date, { case: null, status: 'ADMIT', groupBy: 'h.id', zones, provinces })
 
 
@@ -2693,4 +2705,66 @@ function toNumber(value) {
   }
 }
 
+
+router.get('/admit-case-summary', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const start = req.query.start || null;
+  const end = req.query.end || null;
+  const provinceCode = req.decoded?.type === 'STAFF' ? req.decoded.provinceCode : null
+  const { case_status } = req.query
+
+  try {
+    const results = await model.admitCaseSummary(db, { start, end }, case_status, provinceCode)
+    res.send({ ok: true, rows: results, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+})
+
+
+router.get('/admit-case', async (req: Request, res: Response) => { // TODO: [6]
+  const db = req.dbReport;
+  const date = req.query.date || null;
+  const provinceCode = req.decoded?.type === 'STAFF' ? req.decoded.provinceCode : null
+  const { case_status } = req.query
+
+  try {
+    const [ cases, headers ] = await Promise.all([
+      model.admitCase(db, date, case_status, provinceCode),
+      model.getGenericNames(db)
+    ])
+    const genericsUsages = await model.getGenericsUsaged(db, cases.map((each) => each.detail_id))
+    const results = mapPersonsGenerics(genericsUsages, cases)
+    res.send({ ok: true, rows: { headers, results }, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+
+const mapPersonsGenerics = (genericsPersons: any[], cases: any[]) => {
+  let results = genericsPersons
+  results = cases.map((eachCase) => {
+    const found = results.filter((result) => result.covid_case_detail_id === eachCase.detail_id)
+
+    const obj = {}
+    const generics = []
+    found.forEach((each) => {
+      obj[each.name] = each.qty
+      generics.push({ label: each.name, qty: each.qty})
+    })
+
+    const today = moment()
+    const birthDate = moment(eachCase.birth_date)
+    const age = today.diff(birthDate, 'year')
+    const updatedDate = eachCase.update_date || eachCase.create_date
+    const notUpdated = today.diff(moment(updatedDate), 'day')
+
+    return { ...eachCase, ...obj, age, update_date: updatedDate, notUpdated, generics, sector: eachCase.sector }
+  })
+
+  return results
+}
 export default router;
