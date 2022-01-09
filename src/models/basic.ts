@@ -177,6 +177,7 @@ export class BasicModel {
 			.where((v) => {
 				v.where('b.is_hospital', hospitalType == 'HOSPITAL' ? 'Y' : 'N')
 				v.orWhere('b.is_hospitel', hospitalType == 'HOSPITEL' ? 'Y' : 'N')
+				v.orWhere('b.is_field', hospitalType == 'FIELD' ? 'Y' : 'N')
 			})
 	}
 
@@ -192,6 +193,7 @@ export class BasicModel {
 			.where((v) => {
 				v.where('b.is_hospital', hospitalType == 'HOSPITAL' ? 'Y' : 'N')
 				v.orWhere('b.is_hospitel', hospitalType == 'HOSPITEL' ? 'Y' : 'N')
+				v.orWhere('b.is_field', hospitalType == 'FIELD' ? 'Y' : 'N')
 			})
 	}
 
