@@ -987,7 +987,8 @@ export class ReportModel {
     if (caseStatuses.length) {
       sql.whereIn('c.case_status', caseStatuses)
     }
-
+    console.log(sql.toString());
+    
     return sql
   }
 

@@ -535,7 +535,7 @@ export class ReportModel {
     sql.join('b_hospitals as h', 'h.id', 'c.hospital_id');
     sql.whereIn('h.province_code', province);
     sql.orderBy('h.province_name');
-    // console.log(sql.toString());
+    console.log(sql.toString());
     return sql;
   }
 

@@ -173,7 +173,7 @@ export class ReportAllStaffModel {
       sql.whereIn('hospitals.province_code', options.provinces)
     }
     console.log(sql.toString());
-    
+
     return sql
   }
 
@@ -207,7 +207,7 @@ export class ReportAllStaffModel {
     if (options.provinces?.length) {
       sql.whereIn('hospitals.province_code', options.provinces)
     }
-    
+
     return sql
   }
 
@@ -289,7 +289,7 @@ export class ReportAllStaffModel {
       // sql.whereIn('h.zone_code', options.zones)
       sql.whereIn('h.province_code', options.provinces)
     }
-console.log(sql.toString());
+    console.log(sql.toString());
 
     return sql
   }
@@ -1074,7 +1074,7 @@ vc.updated_entry  as updated_entry`))
       .where('vh.sector', type)
   }
 
-  admitCaseSummary(db: Knex, date: { start: any, end: any }, caseStatuses = ['IPPUI', 'COVID'], provinceCode = null) {
+  admitCaseSummary(db: Knex, date: { start: any, end: any }, caseStatuses = ['IPPUI', 'COVID'], zone = null, provinceCode = null) {
     let sql = db('p_covid_cases AS c')
       .select('h.zone_code')
       .count('* as admit')
@@ -1090,6 +1090,9 @@ vc.updated_entry  as updated_entry`))
     if (provinceCode) {
       sql.where('h.province_code', provinceCode)
     }
+    if (zone) {
+      sql.where('h.zone_code', zone)
+    }
     if (caseStatuses.length) {
       sql.whereIn('c.case_status', caseStatuses)
     }
@@ -1098,7 +1101,7 @@ vc.updated_entry  as updated_entry`))
   }
 
 
-  admitCase(db: Knex, date: string, caseStatuses = ['IPPUI', 'COVID'], provinceCode = null) {
+  admitCase(db: Knex, date: string, caseStatuses = ['IPPUI', 'COVID'], zone = null, provinceCode = null) {
     let sql = db('p_covid_cases AS c')
       .select(
         'h.zone_code',
@@ -1146,10 +1149,14 @@ vc.updated_entry  as updated_entry`))
     if (provinceCode) {
       sql.where('h.province_code', provinceCode)
     }
+    if (zone) {
+      sql.where('h.zone_code', zone)
+    }
 
     if (caseStatuses.length) {
       sql.whereIn('c.case_status', caseStatuses)
     }
+    console.log(sql.toString());
 
     return sql
   }
@@ -1170,5 +1177,5 @@ vc.updated_entry  as updated_entry`))
     return sql
   }
 
-  
+
 }
