@@ -1074,6 +1074,101 @@ vc.updated_entry  as updated_entry`))
       .where('vh.sector', type)
   }
 
+  admitCaseSummary(db: Knex, date: { start: any, end: any }, caseStatuses = ['IPPUI', 'COVID'], provinceCode = null) {
+    let sql = db('p_covid_cases AS c')
+      .select('h.zone_code')
+      .count('* as admit')
+      .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
+      .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')
+      .where('c.is_deleted ', 'N')
+      .where('c.status', 'ADMIT')
+      .groupBy('h.zone_code')
+      .orderBy('h.zone_code')
+    if (moment(date.start, 'YYYY-MM-DD').isValid() && moment(date.end, 'YYYY-MM-DD').isValid()) {
+      sql.whereBetween('c.date_admit', [date.start, date.end])
+    }
+    if (provinceCode) {
+      sql.where('h.province_code', provinceCode)
+    }
+    if (caseStatuses.length) {
+      sql.whereIn('c.case_status', caseStatuses)
+    }
+
+    return sql
+  }
 
 
+  admitCase(db: Knex, date: string, caseStatuses = ['IPPUI', 'COVID'], provinceCode = null) {
+    let sql = db('p_covid_cases AS c')
+      .select(
+        'h.zone_code',
+        'h.province_name',
+        'h.hospname',
+        'pt.hn',
+        'cd.covid_case_id',
+        'p.first_name',
+        'p.last_name',
+        'gd.name as gender',
+        'c.date_admit',
+        'c.create_date',
+        'g.name as gcs_name',
+        'b.name as bed_name',
+        'm.name as supplies_name',
+        'c.update_date',
+        'c.an',
+        'c.id as cid',
+        'cd.id as detail_id',
+        'h.head_hospcode',
+        'hs.name as sub_ministry_name',
+        'p.birth_date',
+        'dms.sector',
+      )
+      .leftJoin('p_covid_case_detail_last as cl', 'c.id', 'cl.covid_case_id')
+      .leftJoin('p_covid_case_details as cd', 'cd.id', 'cl.covid_case_detail_id')
+      .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
+      .leftJoin('p_persons as p', 'p.id', 'pt.person_id')
+      .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')
+      .leftJoin('b_gcs as g', 'cd.gcs_id', 'g.id')
+      .leftJoin('views_hospital_dms as dms', 'dms.id', 'h.id')
+      .leftJoin('b_beds as b', 'b.id', 'cd.bed_id')
+      .leftJoin('b_medical_supplies as m', 'm.id', 'cd.medical_supplie_id')
+      .leftJoin('b_genders as gd', 'gd.id', 'p.gender_id')
+      .leftJoin('b_hospital_subministry as hs', 'hs.code', 'h.sub_ministry_code')
+      .where('c.is_deleted ', 'N')
+
+      .where('c.status', 'ADMIT')
+      .orderBy('h.zone_code')
+
+    if (moment(date, 'YYYY-MM-DD').isValid()) {
+      sql.where('c.date_admit', date)
+    }
+
+    if (provinceCode) {
+      sql.where('h.province_code', provinceCode)
+    }
+
+    if (caseStatuses.length) {
+      sql.whereIn('c.case_status', caseStatuses)
+    }
+
+    return sql
+  }
+
+  getGenericNames(db: Knex) {
+    let sql = db('b_generics').select('name', 'id').where('is_actived', 'Y')
+
+    return sql
+  }
+
+  getGenericsUsaged(db: Knex, detailIds: any[]) {
+    let sql = db('p_covid_case_detail_items as items')
+      .select('items.qty', 'generics.name', 'generics.id as generic_id', 'items.covid_case_detail_id', 'details.covid_case_id as cid')
+      .leftJoin('b_generics as generics', 'generics.id', 'items.generic_id')
+      .leftJoin('p_covid_case_details as details', 'details.id', 'items.covid_case_detail_id')
+      .whereIn('items.covid_case_detail_id', detailIds)
+
+    return sql
+  }
+
+  
 }

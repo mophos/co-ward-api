@@ -173,7 +173,7 @@ export class ReportAllModel {
       sql.whereIn('hospitals.province_code', options.provinces)
     }
     console.log(sql.toString());
-    
+
     return sql
   }
 
@@ -207,7 +207,7 @@ export class ReportAllModel {
     if (options.provinces?.length) {
       sql.whereIn('hospitals.province_code', options.provinces)
     }
-    
+
     return sql
   }
 
@@ -289,7 +289,52 @@ export class ReportAllModel {
       // sql.whereIn('h.zone_code', options.zones)
       sql.whereIn('h.province_code', options.provinces)
     }
-console.log(sql.toString());
+    console.log(sql.toString());
+
+    return sql
+  }
+
+  getBedReportByHospital(
+    db: Knex,
+    date: string,
+    options: {
+      case: string,
+      status: string,
+      zones: string[],
+      provinces: string[]
+    }) {
+    const sql = db('p_covid_case_details AS cd')
+    sql.select('h.zone_code', 'cd.bed_id', 'b.name as bed_name', 'h.province_code', 'h.province_name', 'h.hospname', 'h.id', 'h.hospcode', 'h.level', 'hs.name as sub_ministry_name')
+      .count('* as used')
+      .sum('bh.covid_qty as total')
+      .leftJoin('p_covid_cases as c', 'cd.covid_case_id', 'c.id')
+      .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
+      .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')
+      .leftJoin('b_hospital_subministry as hs', 'hs.code', 'h.sub_ministry_code')
+      .leftJoin('b_beds as b', 'b.id', 'cd.bed_id')
+      .joinRaw('LEFT JOIN b_bed_hospitals AS bh ON bh.bed_id = cd.bed_id AND bh.hospital_id = h.id')
+      .where('cd.status', options.status)
+      .where('c.is_deleted', 'N')
+      .groupBy('h.id', 'cd.bed_id')
+      .orderBy('h.zone_code')
+
+    if (moment(date, 'YYYY-MM-DD').isValid()) {
+      sql.where('cd.entry_date', date)
+    }
+
+    if (options.case) {
+      sql.where('c.case_status', options.case)
+    }
+
+    if (options.zones?.length > 0) {
+      sql.whereIn('h.zone_code', options.zones)
+    }
+
+    if (options.provinces?.length > 0) {
+      // sql.whereIn('h.zone_code', options.zones)
+      sql.whereIn('h.province_code', options.provinces)
+    }
+    console.log(sql.toString());
 
     return sql
   }
@@ -1074,6 +1119,15 @@ vc.updated_entry  as updated_entry`))
       .where('vh.sector', type)
   }
 
-
+  getBedHospital(db: Knex) {
+    return db('b_bed_hospitals as bh')
+      .select('bh.covid_qty', 'bh.qty', 'bh.bed_id', 'bh.hospital_id', 'b.name as bed_name', 'h.province_name', 'h.hospcode', 'h.hospname', 'hs.name as sub_ministry_name', 'h.zone_code')
+      .join('b_beds as b', 'b.id', 'bh.bed_id')
+      .join('b_hospitals as h', 'h.id', 'bh.hospital_id')
+      .leftJoin('b_hospital_subministry as hs', 'hs.code', 'h.sub_ministry_code')
+      .orderBy('h.zone_code')
+      .orderBy('h.province_name')
+      .orderBy('h.hospname')
+  }
 
 }
