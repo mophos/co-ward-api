@@ -188,8 +188,8 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
 
 router.get('/bed-report-by-hospital', async (req: Request, res: Response) => {
   const db = req.dbReport;
-  const zoneCode = req.decoded.zone_code;
   const type = req.decoded.type;
+  const zoneCode = req.decoded.zone_code;
   const providerType = req.decoded.providerType;
   const provinceCode = req.decoded.provinceCode;
   const zone = req.query.zone;
@@ -2710,28 +2710,47 @@ router.get('/admit-case-summary', async (req: Request, res: Response) => {
   const db = req.dbReport;
   const start = req.query.start || null;
   const end = req.query.end || null;
-  const provinceCode = req.decoded?.type === 'STAFF' ? req.decoded.provinceCode : null
+  const providerType = req.decoded.providerType;
+  const provinceCode = req.decoded.provinceCode;
+  const zoneCode = req.decoded.zone_code;
   const { case_status } = req.query
-
+  let zone: any;
+  let province: any;
   try {
-    const results = await model.admitCaseSummary(db, { start, end }, case_status, provinceCode)
-    res.send({ ok: true, rows: results, code: HttpStatus.OK });
-  } catch (error) {
-    console.log(error);
-    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
-  }
-})
+    if (providerType == 'ZONE') {
+      zone = zoneCode;
+    } else {
+      province = provinceCode;
+    }
+
+  
+      const results = await model.admitCaseSummary(db, { start, end }, case_status, zone, province)
+      res.send({ ok: true, rows: results, code: HttpStatus.OK });
+    } catch (error) {
+      console.log(error);
+      res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+    }
+  });
 
 
 router.get('/admit-case', async (req: Request, res: Response) => { // TODO: [6]
   const db = req.dbReport;
   const date = req.query.date || null;
-  const provinceCode = req.decoded?.type === 'STAFF' ? req.decoded.provinceCode : null
+  const zoneCode = req.decoded.zone_code;
+  const providerType = req.decoded.providerType;
+  const provinceCode = req.decoded.provinceCode;
   const { case_status } = req.query
-
+  let zone: any;
+  let province: any;
   try {
-    const [ cases, headers ] = await Promise.all([
-      model.admitCase(db, date, case_status, provinceCode),
+    if (providerType == 'ZONE') {
+      zone = zoneCode;
+    } else {
+      province = provinceCode;
+    }
+
+    const [cases, headers] = await Promise.all([
+      model.admitCase(db, date, case_status, zone, province),
       model.getGenericNames(db)
     ])
     const genericsUsages = await model.getGenericsUsaged(db, cases.map((each) => each.detail_id))
@@ -2753,7 +2772,7 @@ const mapPersonsGenerics = (genericsPersons: any[], cases: any[]) => {
     const generics = []
     found.forEach((each) => {
       obj[each.name] = each.qty
-      generics.push({ label: each.name, qty: each.qty})
+      generics.push({ label: each.name, qty: each.qty })
     })
 
     const today = moment()
