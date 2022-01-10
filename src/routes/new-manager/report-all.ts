@@ -7,6 +7,7 @@ import { ReportAllModel } from '../../models/new-report-all';
 const excel4node = require('excel4node');
 const path = require('path')
 const fse = require('fs-extra');
+const routeCache = require('route-cache');
 import moment = require('moment');
 
 const model = new ReportAllModel();
@@ -400,7 +401,7 @@ router.get('/report4', async (req: Request, res: Response) => {
 
 const mapPatientReportByZone = (normalCases: any[], medicalCases: any[], deathCases: any[], puiCases: any[]) => {
   const results = []
-  console.log(normalCases);
+  // console.log(normalCases);
 
   for (let index = 1; index <= 13; index++) {
     const zoneCodeString = (index + '').padStart(2, '0')
@@ -413,6 +414,8 @@ const mapPatientReportByZone = (normalCases: any[], medicalCases: any[], deathCa
     let normalCaseAmount = 0
 
     normalCaseFounds.forEach((each) => {
+      // console.log(each);
+      
       // if (each.zone_code == +index) {
       const field = each.gcs_name.toLowerCase().split(' ').join('_')
       obj[field] = each.count
@@ -624,13 +627,19 @@ router.get('/patient-report-by-zone', async (req: Request, res: Response) => {
   const date = req.query.date || moment().format('YYYY-MM-DD');
 
   try {
-    const [headers, cases, medicalCases, deathCases, puiCases] = await Promise.all([
-      model.getPatientsReportHeaders(db),
+    const [ cases, medicalCases, deathCases, puiCases] = await Promise.all([
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] }),
       model.getPatientsCasesGroupByMedicalSupplies(db, moment(date).format('YYYY-MM-DD'), { case: null, status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] }),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'DEATH', groupBy: 'h.zone_code', zones: [], provinces: [] }),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'IPPUI', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] })
     ])
+    // const [headers, cases, medicalCases, deathCases, puiCases] = await Promise.all([
+    //   model.getPatientsReportHeaders(db),
+    //   model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] }),
+    //   model.getPatientsCasesGroupByMedicalSupplies(db, moment(date).format('YYYY-MM-DD'), { case: null, status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] }),
+    //   model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'DEATH', groupBy: 'h.zone_code', zones: [], provinces: [] }),
+    //   model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'IPPUI', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] })
+    // ])
 
     const result = mapPatientReportByZone(cases, medicalCases, deathCases, puiCases)
     res.send({ ok: true, rows: result, code: HttpStatus.OK });

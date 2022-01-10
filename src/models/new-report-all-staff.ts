@@ -1178,4 +1178,15 @@ vc.updated_entry  as updated_entry`))
   }
 
 
+  getBedHospital(db: Knex) {
+    return db('b_bed_hospitals as bh')
+      .select('bh.covid_qty', 'bh.qty', 'bh.bed_id', 'bh.hospital_id', 'b.name as bed_name', 'h.province_name', 'h.hospcode', 'h.hospname', 'hs.name as sub_ministry_name', 'h.zone_code')
+      .join('b_beds as b', 'b.id', 'bh.bed_id')
+      .join('b_hospitals as h', 'h.id', 'bh.hospital_id')
+      .leftJoin('b_hospital_subministry as hs', 'hs.code', 'h.sub_ministry_code')
+      .orderBy('h.zone_code')
+      .orderBy('h.province_name')
+      .orderBy('h.hospname')
+  }
+
 }

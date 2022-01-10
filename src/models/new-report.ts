@@ -1128,7 +1128,8 @@ export class ReportModel {
         .join('p_persons as pp', 'p.person_id', 'pp.id')
         .leftJoin('um_titles as t', 'pp.title_id', 't.id');
     }
-
+    console.log(sql.toString());
+    
     return sql
   }
 

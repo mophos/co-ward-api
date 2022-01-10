@@ -126,6 +126,7 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
     if (!date) {
       rs = await model.getBedReportByZone(db, null, { case: null, status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] }, { start: moment(start).format('YYYY-MM-DD'), end: moment(end).add(1, 'day').format('YYYY-MM-DD') });
     }
+  //  const bedHospital = await model.getBedHospital(db);
     let headers = [];
     let subHeader = [];
     let data = [];
