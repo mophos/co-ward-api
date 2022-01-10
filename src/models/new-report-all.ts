@@ -498,6 +498,8 @@ export class ReportAllModel {
       .where('cl.entry_date', '>=', '2020-12-15')
       .groupBy('cl.hospital_id')
       .orderBy('vh.zone_code', 'ASC')
+      // console.log(sql.toString());
+      
     return sql;
   }
 
@@ -615,6 +617,7 @@ export class ReportAllModel {
       .where('c.case_status', options.case)
       .where('cd.status', options.status)
       .where('c.is_deleted', 'N')
+      .whereNotNull('cd.gcs_id')
       .groupBy(options.groupBy, 'cd.gcs_id')
       .orderBy('h.zone_code')
 
@@ -638,7 +641,7 @@ export class ReportAllModel {
       // sql.whereIn('h.zone_code', options.zones)
       sql.whereIn('h.province_code', options.provinces)
     }
-
+    
     return sql
   }
 
