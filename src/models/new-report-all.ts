@@ -240,20 +240,18 @@ export class ReportAllModel {
       end: string
     } = null) {
     const sql = db('p_covid_case_details AS cd')
-      .select('h.zone_code', 'cd.bed_id', 'b.name as bed_name')
+      .select('h.zone_code', 'cd.bed_id', 'b.name as bed_name', 'h.province_code', 'h.province_name', 'h.hospname', 'h.id', 'h.hospcode', 'h.level', 'hs.name as sub_ministry_name')
       .count('* as used')
-      .sum('bh.covid_qty as total')
       .leftJoin('p_covid_cases as c', 'cd.covid_case_id', 'c.id')
       .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
       .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')
       .leftJoin('b_hospital_subministry as hs', 'hs.code', 'h.sub_ministry_code')
       .leftJoin('b_beds as b', 'b.id', 'cd.bed_id')
-      .joinRaw('LEFT JOIN b_bed_hospitals AS bh ON bh.bed_id = cd.bed_id AND bh.hospital_id = h.id')
-
       .where('cd.status', options.status)
       .where('c.is_deleted', 'N')
       .groupBy(options.groupBy, 'cd.bed_id')
       .orderBy('h.zone_code')
+      .as('a')
 
     if (moment(date, 'YYYY-MM-DD').isValid()) {
       sql.where('cd.entry_date', date)
@@ -269,29 +267,31 @@ export class ReportAllModel {
       }
     }
 
-    if (options.groupBy === 'h.zone_code') {
-      sql.select('h.zone_code', 'cd.bed_id', 'b.name as bed_name')
-    }
 
-    if (options.groupBy === 'h.province_code') {
-      sql.select('h.zone_code', 'cd.bed_id', 'b.name as bed_name', 'h.province_code', 'h.province_name')
-    }
-
-    if (options.groupBy === 'h.id') {
-      sql.select('h.zone_code', 'cd.bed_id', 'b.name as bed_name', 'h.province_code', 'h.province_name', 'h.hospname', 'h.id', 'h.hospcode', 'h.level', 'hs.name as sub_ministry_name')
-    }
 
     if (options.zones?.length > 0) {
       sql.whereIn('h.zone_code', options.zones)
     }
 
     if (options.provinces?.length > 0) {
-      // sql.whereIn('h.zone_code', options.zones)
       sql.whereIn('h.province_code', options.provinces)
     }
-    console.log(sql.toString());
 
-    return sql
+    const sqlBed = db('b_bed_hospitals as bh')
+      .select('h.zone_code', 'bed_id')
+      .sum('bh.covid_qty as covid_qty')
+      .join('b_hospitals as h', 'h.id', 'bh.hospital_id')
+      .groupBy('bh.bed_id')
+      .groupBy('h.zone_code')
+      .as('b')
+
+    const finalSQL = db(sql).select('a.*', 'b.covid_qty as total')
+      .join(sqlBed, (w) => {
+        w.on('a.zone_code', 'b.zone_code')
+        w.on('a.bed_id', 'b.bed_id')
+      })
+    return finalSQL;
+
   }
 
   getBedReportByHospital(
@@ -498,8 +498,8 @@ export class ReportAllModel {
       .where('cl.entry_date', '>=', '2020-12-15')
       .groupBy('cl.hospital_id')
       .orderBy('vh.zone_code', 'ASC')
-      // console.log(sql.toString());
-      
+    // console.log(sql.toString());
+
     return sql;
   }
 
@@ -641,7 +641,7 @@ export class ReportAllModel {
       // sql.whereIn('h.zone_code', options.zones)
       sql.whereIn('h.province_code', options.provinces)
     }
-    
+
     return sql
   }
 

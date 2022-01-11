@@ -59,6 +59,7 @@ router.get('/bed-report-by-zone', async (req: Request, res: Response) => {
 
 
     let rs: any
+
     if (date) {
       rs = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: null, status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] });
     }
@@ -146,9 +147,8 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
       const uniqP = uniqBy(fil, 'province_code');
       for (const f of uniqP) {
         const filP = filter(fil, { province_code: f.province_code });
+
         let array = [];
-        array.push(f.zone_code);
-        array.push(f.province_name);
         for (const i of headers) {
           const idx = findIndex(filP, { bed_id: i.id });
           if (idx > -1) {
@@ -161,7 +161,12 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
             array.push(null);
           }
         }
-        data.push(array);
+        const obj = {
+          zone_code: f.zone_code,
+          province_name: f.province_name,
+          array
+        }
+        data.push(obj);
 
       }
       for (const i of headers) {
@@ -198,7 +203,7 @@ router.get('/bed-report-by-hospital', async (req: Request, res: Response) => {
     }
 
     if (!date) {
-      if(start && end){
+      if (start && end) {
         rs = await model.getBedReportByZone(db, date, { case: null, status: 'ADMIT', groupBy: 'h.id', zones, provinces }, { start: moment(start).format('YYYY-MM-DD'), end: moment(end).add(1, 'day').format('YYYY-MM-DD') })
       } else {
         rs = await model.getBedReportByZone(db, date, { case: null, status: 'ADMIT', groupBy: 'h.id', zones, provinces });
@@ -415,7 +420,7 @@ const mapPatientReportByZone = (normalCases: any[], medicalCases: any[], deathCa
 
     normalCaseFounds.forEach((each) => {
       // console.log(each);
-      
+
       // if (each.zone_code == +index) {
       const field = each.gcs_name.toLowerCase().split(' ').join('_')
       obj[field] = each.count
@@ -627,7 +632,7 @@ router.get('/patient-report-by-zone', async (req: Request, res: Response) => {
   const date = req.query.date || moment().format('YYYY-MM-DD');
 
   try {
-    const [ cases, medicalCases, deathCases, puiCases] = await Promise.all([
+    const [cases, medicalCases, deathCases, puiCases] = await Promise.all([
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] }),
       model.getPatientsCasesGroupByMedicalSupplies(db, moment(date).format('YYYY-MM-DD'), { case: null, status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] }),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'DEATH', groupBy: 'h.zone_code', zones: [], provinces: [] }),
