@@ -75,7 +75,7 @@ export class BedModel {
   getHospBed(db: Knex, provinceCode, zoneCode) {
     let sql = db('b_hospitals as h')
       .select('h.id', 'h.hospname', 'h.hosptype_id', 'v.*', 'h.hospital_type')
-      .join('views_bed_hopital_cross as v', 'v.hospital_id', 'h.id')
+      .join('views_bed_hospital_cross as v', 'v.hospital_id', 'h.id')
       .where('zone_code', zoneCode)
       .where('province_code', provinceCode);
     return sql;
