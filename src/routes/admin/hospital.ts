@@ -84,7 +84,7 @@ const generateHospCode = async (db: Knex, hospType: string, zoneCode: any) => {
   // const currentId = allHospitals[0]?.id || 0
   const count = await hospitalModel.getHospitalCounter(db, hospType.toLowerCase()) || 0
   const currentId = (count[0].count + 1).toString().padStart(5, '0')
-
+  await hospitalModel.addHospitelCounter(db, hospType.toLowerCase());
   const typeCodes = {
     'FIELD': 'F',
     'HOSPITEL': 'H',
