@@ -91,6 +91,10 @@ export class HospitalModel {
     return db('hospital_create_counter').select('*').orderBy('id', 'DESC').where('label', label);
   }
   
+  addHospitelCounter(db: Knex, label: string) {
+    return db('hospital_create_counter').increment('count',1).where('label', label);
+  }
+
   getZone(db: Knex, provinceCode) {
     return db('b_province').where('code', provinceCode);
   }
