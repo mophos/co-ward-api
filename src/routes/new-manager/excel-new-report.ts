@@ -20,7 +20,11 @@ function getAge(value) {
 }
 
 function formatDate(value) {
-  return moment(value).format('DD-MM-YYYY')
+  if(value){
+    return moment(value).format('DD-MM-YYYY')
+  } else {
+    return '-';
+  }
 }
 
 // function checkExistingZone (items) {
@@ -61,7 +65,7 @@ function sumZone(items, value) {
 }
 
 function sum12Zone(items, value) {
-  return sumBy(items, value) - items[12][value]
+  return +sumBy(items, value) - +items[12][value]
 }
 
 function sumAllZone(items, value) {
@@ -219,7 +223,7 @@ const removeDupHospitalHeaders = (normalCases: any[], deathCases: any[], puiCase
   return results
 }
 
-const mapPatientReportByHospital = (normalCases: any[], deathCases: any[], puiCases: any[]) => {
+const mapPatientReportByHospital = (normalCases: any[], medicalCases: any[], deathCases: any[], puiCases: any[]) => {
   const results = []
 
   const provinces = removeDupHospitalHeaders(normalCases, deathCases, puiCases)
@@ -228,6 +232,7 @@ const mapPatientReportByHospital = (normalCases: any[], deathCases: any[], puiCa
     const obj = { id, hospcode, hospname, province_name, zone_code, sub_ministry_name, level, province_code }
 
     const normalCaseFounds = normalCases.filter((each) => each.id === id)
+    const medicalCasesFounds = medicalCases.filter((each) => each.id === id)
     const puiCaseFounds = puiCases.filter((each) => each.id === id)
     const deathCasesFounds = deathCases.filter((each) => each.id === id)
 
@@ -237,6 +242,13 @@ const mapPatientReportByHospital = (normalCases: any[], deathCases: any[], puiCa
       const field = each.gcs_name.toLowerCase().split(' ').join('_')
       obj[field] = each.count
       normalCaseAmount += each.count
+    })
+
+    medicalCasesFounds.forEach((each) => {
+      if (each.ms_name) {
+        const field = each.ms_name?.toLowerCase().split(' ').join('_')
+        obj[field] = each.count
+      }
     })
 
     const deathCaseAmount = deathCasesFounds.reduce((total, acc) => total + acc.count, 0)
@@ -371,14 +383,27 @@ router.get('/patient-report-by-zone', async (req: Request, res: Response) => {
     ws.cell(1, 1).string('เขตสุขภาพ').style(center)
     ws.cell(1, 2).string('ผู้ป่วยทั้งหมด').style(center)
     ws.cell(1, 3).string('Severe').style(center)
-    ws.cell(1, 4).string('Invasive Ventilator').style(center)
-    ws.cell(1, 5).string('Non-Invasive Ventilator').style(center)
-    ws.cell(1, 6).string('High flow').style(center)
-    ws.cell(1, 7).string('Moderate').style(center)
-    ws.cell(1, 8).string('Mild').style(center)
-    ws.cell(1, 9).string('Asymptomatic').style(center)
+    ws.cell(1, 4).string('Moderate').style(center)
+    ws.cell(1, 5).string('Mild').style(center)
+    ws.cell(1, 6).string('Asymptomatic').style(center)
+    ws.cell(1, 7).string('Invasive Ventilator').style(center)
+    ws.cell(1, 8).string('Non-Invasive Ventilator').style(center)
+    ws.cell(1, 9).string('High flow').style(center)
     ws.cell(1, 10).string('Dead').style(center)
     ws.cell(1, 11).string('PUI').style(center)
+    ws.cell(1, 12).string('ATK').style(center)
+
+    // ws.cell(1, 1).string('เขตสุขภาพ').style(center)
+    // ws.cell(1, 2).string('ผู้ป่วยทั้งหมด').style(center)
+    // ws.cell(1, 3).string('Severe').style(center)
+    // ws.cell(1, 4).string('Invasive Ventilator').style(center)
+    // ws.cell(1, 5).string('Non-Invasive Ventilator').style(center)
+    // ws.cell(1, 6).string('High flow').style(center)
+    // ws.cell(1, 7).string('Moderate').style(center)
+    // ws.cell(1, 8).string('Mild').style(center)
+    // ws.cell(1, 9).string('Asymptomatic').style(center)
+    // ws.cell(1, 10).string('Dead').style(center)
+    // ws.cell(1, 11).string('PUI').style(center)
 
     result.forEach((row, i) => {
       if (row.zoneCode !== '13') {
@@ -388,39 +413,42 @@ router.get('/patient-report-by-zone', async (req: Request, res: Response) => {
       }
       ws.cell(2 + i, 2).number(row.total || 0)
       ws.cell(2 + i, 3).number(row.severe || 0)
-      ws.cell(2 + i, 4).number(row.invasive || 0)
-      ws.cell(2 + i, 5).number(row.nonInvasive || 0)
-      ws.cell(2 + i, 6).number(row.highFlow || 0)
-      ws.cell(2 + i, 7).number(row.moderate || 0)
-      ws.cell(2 + i, 8).number(row.mild || 0)
-      ws.cell(2 + i, 9).number(row.asymptomatic || 0)
+      ws.cell(2 + i, 4).number(row.moderate || 0)
+      ws.cell(2 + i, 5).number(row.mild || 0)
+      ws.cell(2 + i, 6).number(row.asymptomatic || 0)
+      ws.cell(2 + i, 7).number(row.invasive || 0)
+      ws.cell(2 + i, 8).number(row.nonInvasive || 0)
+      ws.cell(2 + i, 9).number(row.highFlow || 0)
       ws.cell(2 + i, 10).number(row.death || 0)
       ws.cell(2 + i, 11).number(row.pui || 0)
+      ws.cell(2 + i, 12).number(row.atk || 0)
     })
 
     ws.cell(15, 1).string('รวม 12 เขต').style(center)
     ws.cell(15, 2).number(sum12Zone(result, 'total') || 0)
     ws.cell(15, 3).number(sum12Zone(result, 'severe') || 0)
     ws.cell(15, 4).number(sum12Zone(result, 'invasive') || 0)
-    ws.cell(15, 5).number(sum12Zone(result, 'nonInvasive') || 0)
-    ws.cell(15, 6).number(sum12Zone(result, 'highFlow') || 0)
-    ws.cell(15, 7).number(sum12Zone(result, 'moderate') || 0)
-    ws.cell(15, 8).number(sum12Zone(result, 'mild') || 0)
-    ws.cell(15, 9).number(sum12Zone(result, 'asymptomatic') || 0)
+    ws.cell(15, 5).number(sum12Zone(result, 'moderate') || 0)
+    ws.cell(15, 6).number(sum12Zone(result, 'mild') || 0)
+    ws.cell(15, 7).number(sum12Zone(result, 'asymptomatic') || 0)
+    ws.cell(15, 8).number(sum12Zone(result, 'nonInvasive') || 0)
+    ws.cell(15, 9).number(sum12Zone(result, 'highFlow') || 0)
     ws.cell(15, 10).number(sum12Zone(result, 'death') || 0)
     ws.cell(15, 11).number(sum12Zone(result, 'pui') || 0)
+    ws.cell(15, 12).number(sum12Zone(result, 'atk') || 0)
 
     ws.cell(16, 1).string('ทั่วประเทศ').style(center)
     ws.cell(16, 2).number(sumAllZone(result, 'total') || 0)
     ws.cell(16, 3).number(sumAllZone(result, 'severe') || 0)
-    ws.cell(16, 4).number(sumAllZone(result, 'invasive') || 0)
-    ws.cell(16, 5).number(sumAllZone(result, 'nonInvasive') || 0)
-    ws.cell(16, 6).number(sumAllZone(result, 'highFlow') || 0)
-    ws.cell(16, 7).number(sumAllZone(result, 'moderate') || 0)
-    ws.cell(16, 8).number(sumAllZone(result, 'mild') || 0)
-    ws.cell(16, 9).number(sumAllZone(result, 'asymptomatic') || 0)
+    ws.cell(16, 4).number(sumAllZone(result, 'moderate') || 0)
+    ws.cell(16, 5).number(sumAllZone(result, 'mild') || 0)
+    ws.cell(16, 6).number(sumAllZone(result, 'asymptomatic') || 0)
+    ws.cell(16, 7).number(sumAllZone(result, 'invasive') || 0)
+    ws.cell(16, 8).number(sumAllZone(result, 'nonInvasive') || 0)
+    ws.cell(16, 9).number(sumAllZone(result, 'highFlow') || 0)
     ws.cell(16, 10).number(sumAllZone(result, 'death') || 0)
     ws.cell(16, 11).number(sumAllZone(result, 'pui') || 0)
+    ws.cell(16, 12).number(sumAllZone(result, 'atk') || 0)
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
@@ -641,11 +669,11 @@ router.get('/bed-report-by-zone', async (req: Request, res: Response) => {
   })
 
   try {
-    const rs: any = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] });
+    const rs: any = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: null, status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] });
     const results = mapBedReports(rs)
     const items = []
 
-    console.log('results', results)
+    // console.log('results', results)
 
     results.forEach((result, i) => {
       result.forEach((x, j) => {
@@ -657,28 +685,25 @@ router.get('/bed-report-by-zone', async (req: Request, res: Response) => {
 
         const index = items.findIndex(item => item.zone_code === x.zone_code)
         if (index > -1) {
-          if (x.bed_name === 'ระดับ3 ใส่ท่อและเครื่องช่วยหายใจ') {
+          if (x.bed_id === 14) {
             items[index].level3_total = x.total
             items[index].level3_used = x.used
-          } else if (x.bed_name === 'ระดับ 2.2 Oxygen high flow') {
-            items[index].level2_2_total = x.total
-            items[index].level2_2_used = x.used
-          } else if (x.bed_name === 'ระดับ 2.2 Oxygen high flow') {
-            items[index].level2_2_total = x.total
-            items[index].level2_2_used = x.used
-          } else if (x.bed_name === 'ระดับ 2.1 Oxygen high low') {
-            items[index].level2_1_total = x.total
-            items[index].level2_1_used = x.used
-          } else if (x.bed_name === 'ระดับ 1 ไม่ใช่ Oxygen') {
+          } else if (x.bed_id === 13) {
+            items[index].level22_total = x.total
+            items[index].level22_used = x.used
+          } else if (x.bed_id === 12) {
+            items[index].level21_total = x.total
+            items[index].level21_used = x.used
+          } else if (x.bed_id === 11) {
             items[index].level1_total = x.total
             items[index].level1_used = x.used
-          } else if (x.bed_name === 'ระดับ 0 Home Isolation (stepdown)') {
+          } else if (x.bed_id === 10) {
             items[index].level0_total = x.total
             items[index].level0_used = x.used
-          } else if (x.bed_name === 'Home Isolation') {
+          } else if (x.bed_id === 8) {
             items[index].home_isolation_total = x.total
             items[index].home_isolation_used = x.used
-          } else if (x.bed_name === 'Community Isolation') {
+          } else if (x.bed_id === 9) {
             items[index].community_isolation_total = x.total
             items[index].community_isolation_used = x.used
           }
@@ -720,12 +745,12 @@ router.get('/bed-report-by-zone', async (req: Request, res: Response) => {
       ws.cell(3 + i, 2).number(item.level3_total || 0)
       ws.cell(3 + i, 3).number(item.level3_used || 0)
       ws.cell(3 + i, 4).number((item.level3_total || 0) - (item.level3_used || 0))
-      ws.cell(3 + i, 5).number(item.level2_2_total || 0)
-      ws.cell(3 + i, 6).number(item.level2_2_used || 0)
-      ws.cell(3 + i, 7).number((item.level2_2_total || 0) - (item.level2_2_used || 0))
-      ws.cell(3 + i, 8).number(item.level2_1_total || 0)
-      ws.cell(3 + i, 9).number(item.level2_1_used || 0)
-      ws.cell(3 + i, 10).number((item.level2_1_total || 0) - (item.level2_1_used || 0))
+      ws.cell(3 + i, 5).number(item.level22_total || 0)
+      ws.cell(3 + i, 6).number(item.level22_used || 0)
+      ws.cell(3 + i, 7).number((item.level22_total || 0) - (item.level22_used || 0))
+      ws.cell(3 + i, 8).number(item.level21_total || 0)
+      ws.cell(3 + i, 9).number(item.level21_used || 0)
+      ws.cell(3 + i, 10).number((item.level21_total || 0) - (item.level21_used || 0))
       ws.cell(3 + i, 11).number(item.level1_total || 0)
       ws.cell(3 + i, 12).number(item.level1_used || 0)
       ws.cell(3 + i, 13).number((item.level1_total || 0) - (item.level1_used || 0))
@@ -740,55 +765,56 @@ router.get('/bed-report-by-zone', async (req: Request, res: Response) => {
       ws.cell(3 + i, 22).number((item.community_isolation_total || 0) - (item.community_isolation_used || 0))
     })
 
-    if (countExistingZone(items) >= 12) {
-      ws.cell(16, 1).string('รวม 12 เขต').style(center)
-      ws.cell(16, 2).number(sum12Zone(items, 'level3_total') || 0)
-      ws.cell(16, 3).number(sum12Zone(items, 'level3_used') || 0)
-      ws.cell(16, 4).number((sum12Zone(items, 'level3_total') || 0) - (sum12Zone(items, 'level3_used') || 0))
-      ws.cell(16, 5).number(sum12Zone(items, 'level2_2_total') || 0)
-      ws.cell(16, 6).number(sum12Zone(items, 'level2_2_used') || 0)
-      ws.cell(16, 7).number((sum12Zone(items, 'level2_2_total') || 0) - (sum12Zone(items, 'level2_2_used') || 0))
-      ws.cell(16, 8).number(sum12Zone(items, 'level2_1_total') || 0)
-      ws.cell(16, 9).number(sum12Zone(items, 'level2_1_used') || 0)
-      ws.cell(16, 10).number((sum12Zone(items, 'level2_1_total') || 0) - (sum12Zone(items, 'level2_1_used') || 0))
-      ws.cell(16, 11).number(sum12Zone(items, 'level1_total') || 0)
-      ws.cell(16, 12).number(sum12Zone(items, 'level1_used') || 0)
-      ws.cell(16, 13).number((sum12Zone(items, 'level1_total') || 0) - (sum12Zone(items, 'level1_used') || 0))
-      ws.cell(16, 14).number(sum12Zone(items, 'level0_total') || 0)
-      ws.cell(16, 15).number(sum12Zone(items, 'level0_used') || 0)
-      ws.cell(16, 16).number((sum12Zone(items, 'level0_total') || 0) - (sum12Zone(items, 'level0_used') || 0))
-      ws.cell(16, 17).number(sum12Zone(items, 'home_isolation_total') || 0)
-      ws.cell(16, 18).number(sum12Zone(items, 'home_isolation_used') || 0)
-      ws.cell(16, 19).number((sum12Zone(items, 'home_isolation_total') || 0) - (sum12Zone(items, 'home_isolation_used') || 0))
-      ws.cell(16, 20).number(sum12Zone(items, 'community_isolation_total') || 0)
-      ws.cell(16, 21).number(sum12Zone(items, 'community_isolation_used') || 0)
-      ws.cell(16, 22).number((sum12Zone(items, 'community_isolation_total') || 0) - (sum12Zone(items, 'community_isolation_used') || 0))
-    }
 
-    if (countExistingZone(items) > 12) {
-      ws.cell(17, 1).string('ทั่วประเทศ').style(center)
-      ws.cell(17, 2).number(sumAllZone(items, 'level3_total') || 0)
-      ws.cell(17, 3).number(sumAllZone(items, 'level3_used') || 0)
-      ws.cell(17, 4).number((sumAllZone(items, 'level3_total') || 0) - (sumAllZone(items, 'level3_used') || 0))
-      ws.cell(17, 5).number(sumAllZone(items, 'level2_2_total') || 0)
-      ws.cell(17, 6).number(sumAllZone(items, 'level2_2_used') || 0)
-      ws.cell(17, 7).number((sumAllZone(items, 'level2_2_total') || 0) - (sumAllZone(items, 'level2_2_used') || 0))
-      ws.cell(17, 8).number(sumAllZone(items, 'level2_1_total') || 0)
-      ws.cell(17, 9).number(sumAllZone(items, 'level2_1_used') || 0)
-      ws.cell(17, 10).number((sumAllZone(items, 'level2_1_total') || 0) - (sumAllZone(items, 'level2_1_used') || 0))
-      ws.cell(17, 11).number(sumAllZone(items, 'level1_total') || 0)
-      ws.cell(17, 12).number(sumAllZone(items, 'level1_used') || 0)
-      ws.cell(17, 13).number((sumAllZone(items, 'level1_total') || 0) - (sumAllZone(items, 'level1_used') || 0))
-      ws.cell(17, 14).number(sumAllZone(items, 'level0_total') || 0)
-      ws.cell(17, 15).number(sumAllZone(items, 'level0_used') || 0)
-      ws.cell(17, 16).number((sumAllZone(items, 'level0_total') || 0) - (sumAllZone(items, 'level0_used') || 0))
-      ws.cell(17, 17).number(sumAllZone(items, 'home_isolation_total') || 0)
-      ws.cell(17, 18).number(sumAllZone(items, 'home_isolation_used') || 0)
-      ws.cell(17, 19).number((sumAllZone(items, 'home_isolation_total') || 0) - (sumAllZone(items, 'home_isolation_used') || 0))
-      ws.cell(17, 20).number(sumAllZone(items, 'community_isolation_total') || 0)
-      ws.cell(17, 21).number(sumAllZone(items, 'community_isolation_used') || 0)
-      ws.cell(17, 22).number((sumAllZone(items, 'community_isolation_total') || 0) - (sumAllZone(items, 'community_isolation_used') || 0))
-    }
+    // if (countExistingZone(items) >= 12) {
+    ws.cell(16, 1).string('รวม 12 เขต').style(center)
+    ws.cell(16, 2).number(sum12Zone(items, 'level3_total') || 0)
+    ws.cell(16, 3).number(sum12Zone(items, 'level3_used') || 0)
+    ws.cell(16, 4).number((sum12Zone(items, 'level3_total') || 0) - (sum12Zone(items, 'level3_used') || 0))
+    ws.cell(16, 5).number(sum12Zone(items, 'level22_total') || 0)
+    ws.cell(16, 6).number(sum12Zone(items, 'level22_used') || 0)
+    ws.cell(16, 7).number((sum12Zone(items, 'level22_total') || 0) - (sum12Zone(items, 'level22_used') || 0))
+    ws.cell(16, 8).number(sum12Zone(items, 'level21_total') || 0)
+    ws.cell(16, 9).number(sum12Zone(items, 'level21_used') || 0)
+    ws.cell(16, 10).number((sum12Zone(items, 'level21_total') || 0) - (sum12Zone(items, 'level21_used') || 0))
+    ws.cell(16, 11).number(sum12Zone(items, 'level1_total') || 0)
+    ws.cell(16, 12).number(sum12Zone(items, 'level1_used') || 0)
+    ws.cell(16, 13).number((sum12Zone(items, 'level1_total') || 0) - (sum12Zone(items, 'level1_used') || 0))
+    ws.cell(16, 14).number(sum12Zone(items, 'level0_total') || 0)
+    ws.cell(16, 15).number(sum12Zone(items, 'level0_used') || 0)
+    ws.cell(16, 16).number((sum12Zone(items, 'level0_total') || 0) - (sum12Zone(items, 'level0_used') || 0))
+    ws.cell(16, 17).number(sum12Zone(items, 'home_isolation_total') || 0)
+    ws.cell(16, 18).number(sum12Zone(items, 'home_isolation_used') || 0)
+    ws.cell(16, 19).number((sum12Zone(items, 'home_isolation_total') || 0) - (sum12Zone(items, 'home_isolation_used') || 0))
+    ws.cell(16, 20).number(sum12Zone(items, 'community_isolation_total') || 0)
+    ws.cell(16, 21).number(sum12Zone(items, 'community_isolation_used') || 0)
+    ws.cell(16, 22).number((sum12Zone(items, 'community_isolation_total') || 0) - (sum12Zone(items, 'community_isolation_used') || 0))
+    // }
+
+    // if (countExistingZone(items) > 12) {
+    ws.cell(17, 1).string('ทั่วประเทศ').style(center)
+    ws.cell(17, 2).number(sumAllZone(items, 'level3_total') || 0)
+    ws.cell(17, 3).number(sumAllZone(items, 'level3_used') || 0)
+    ws.cell(17, 4).number((sumAllZone(items, 'level3_total') || 0) - (sumAllZone(items, 'level3_used') || 0))
+    ws.cell(17, 5).number(sumAllZone(items, 'level22_total') || 0)
+    ws.cell(17, 6).number(sumAllZone(items, 'level22_used') || 0)
+    ws.cell(17, 7).number((sumAllZone(items, 'level22_total') || 0) - (sumAllZone(items, 'level22_used') || 0))
+    ws.cell(17, 8).number(sumAllZone(items, 'level21_total') || 0)
+    ws.cell(17, 9).number(sumAllZone(items, 'level21_used') || 0)
+    ws.cell(17, 10).number((sumAllZone(items, 'level21_total') || 0) - (sumAllZone(items, 'level21_used') || 0))
+    ws.cell(17, 11).number(sumAllZone(items, 'level1_total') || 0)
+    ws.cell(17, 12).number(sumAllZone(items, 'level1_used') || 0)
+    ws.cell(17, 13).number((sumAllZone(items, 'level1_total') || 0) - (sumAllZone(items, 'level1_used') || 0))
+    ws.cell(17, 14).number(sumAllZone(items, 'level0_total') || 0)
+    ws.cell(17, 15).number(sumAllZone(items, 'level0_used') || 0)
+    ws.cell(17, 16).number((sumAllZone(items, 'level0_total') || 0) - (sumAllZone(items, 'level0_used') || 0))
+    ws.cell(17, 17).number(sumAllZone(items, 'home_isolation_total') || 0)
+    ws.cell(17, 18).number(sumAllZone(items, 'home_isolation_used') || 0)
+    ws.cell(17, 19).number((sumAllZone(items, 'home_isolation_total') || 0) - (sumAllZone(items, 'home_isolation_used') || 0))
+    ws.cell(17, 20).number(sumAllZone(items, 'community_isolation_total') || 0)
+    ws.cell(17, 21).number(sumAllZone(items, 'community_isolation_used') || 0)
+    ws.cell(17, 22).number((sumAllZone(items, 'community_isolation_total') || 0) - (sumAllZone(items, 'community_isolation_used') || 0))
+    // }
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
@@ -834,8 +860,9 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
   })
 
   try {
-    const rs: any = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] });
+    const rs: any = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: null, status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] });
     const results = mapBedReports(rs)
+
     const rows = []
     const items = [
       [], [], [], [], [],
@@ -844,7 +871,6 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
     ]
     let rowNumber = 3
 
-    console.log(results)
 
     results.forEach((result, i) => {
       result.forEach((x, j) => {
@@ -858,28 +884,25 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
 
         const index = rows.findIndex(item => item.province_code === x.province_code)
         if (index > -1) {
-          if (x.bed_name === 'ระดับ3 ใส่ท่อและเครื่องช่วยหายใจ') {
+          if (x.bed_id === 14) {
             rows[index].level3_total = x.total
             rows[index].level3_used = x.used
-          } else if (x.bed_name === 'ระดับ 2.2 Oxygen high flow') {
-            rows[index].level2_2_total = x.total
-            rows[index].level2_2_used = x.used
-          } else if (x.bed_name === 'ระดับ 2.2 Oxygen high flow') {
-            rows[index].level2_2_total = x.total
-            rows[index].level2_2_used = x.used
-          } else if (x.bed_name === 'ระดับ 2.1 Oxygen high low') {
-            rows[index].level2_1_total = x.total
-            rows[index].level2_1_used = x.used
-          } else if (x.bed_name === 'ระดับ 1 ไม่ใช่ Oxygen') {
+          } else if (x.bed_id === 13) {
+            rows[index].level22_total = x.total
+            rows[index].level22_used = x.used
+          } else if (x.bed_id === 12) {
+            rows[index].level21_total = x.total
+            rows[index].level21_used = x.used
+          } else if (x.bed_id === 11) {
             rows[index].level1_total = x.total
             rows[index].level1_used = x.used
-          } else if (x.bed_name === 'ระดับ 0 Home Isolation (stepdown)') {
+          } else if (x.bed_id === 10) {
             rows[index].level0_total = x.total
             rows[index].level0_used = x.used
-          } else if (x.bed_name === 'Home Isolation') {
+          } else if (x.bed_id === 8) {
             rows[index].home_isolation_total = x.total
             rows[index].home_isolation_used = x.used
-          } else if (x.bed_name === 'Community Isolation') {
+          } else if (x.bed_id === 9) {
             rows[index].community_isolation_total = x.total
             rows[index].community_isolation_used = x.used
           }
@@ -941,8 +964,26 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
       use += 3
       left += 3
     }
-
+    const sum: any = [];
     items.forEach((item, i) => {
+      sum.push(
+        {
+          zone_code: item[0].zone_code,
+          level3_total: sumBy(item, 'level3_total'),
+          level3_used: sumBy(item, 'level3_used'),
+          level22_total: sumBy(item, 'level22_total'),
+          level22_used: sumBy(item, 'level22_used'),
+          level21_total: sumBy(item, 'level21_total'),
+          level21_used: sumBy(item, 'level21_used'),
+          level1_total: sumBy(item, 'level1_total'),
+          level1_used: sumBy(item, 'level1_used'),
+          level0_total: sumBy(item, 'level0_total'),
+          level0_used: sumBy(item, 'level0_used'),
+          home_isolation_total: sumBy(item, 'home_isolation_total'),
+          home_isolation_used: sumBy(item, 'home_isolation_used'),
+          community_isolation_total: sumBy(item, 'community_isolation_total'),
+          community_isolation_used: sumBy(item, 'community_isolation_used')
+        })
       item.forEach((x, j) => {
         if (x.zone_code !== '13') {
           ws.cell(rowNumber, 1).string(x.zone_code).style(center)
@@ -950,12 +991,12 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
           ws.cell(rowNumber, 3).number(x.level3_total || 0)
           ws.cell(rowNumber, 4).number(x.level3_used || 0)
           ws.cell(rowNumber, 5).number((x.level3_total || 0) - (x.level3_used || 0))
-          ws.cell(rowNumber, 6).number(x.level2_2_total || 0)
-          ws.cell(rowNumber, 7).number(x.level2_2_used || 0)
-          ws.cell(rowNumber, 8).number((x.level2_2_total || 0) - (x.level2_2_used || 0))
-          ws.cell(rowNumber, 9).number(x.level2_1_total || 0)
-          ws.cell(rowNumber, 10).number(x.level2_1_used || 0)
-          ws.cell(rowNumber, 11).number((x.level2_1_total || 0) - (x.level2_1_used || 0))
+          ws.cell(rowNumber, 6).number(x.level22_total || 0)
+          ws.cell(rowNumber, 7).number(x.level22_used || 0)
+          ws.cell(rowNumber, 8).number((x.level22_total || 0) - (x.level22_used || 0))
+          ws.cell(rowNumber, 9).number(x.level21_total || 0)
+          ws.cell(rowNumber, 10).number(x.level21_used || 0)
+          ws.cell(rowNumber, 11).number((x.level21_total || 0) - (x.level21_used || 0))
           ws.cell(rowNumber, 12).number(x.level1_total || 0)
           ws.cell(rowNumber, 13).number(x.level1_used || 0)
           ws.cell(rowNumber, 14).number((x.level1_total || 0) - (x.level1_used || 0))
@@ -973,12 +1014,12 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
           ws.cell(rowNumber, 3).number(x.level3_total || 0)
           ws.cell(rowNumber, 4).number(x.level3_used || 0)
           ws.cell(rowNumber, 5).number((x.level3_total || 0) - (x.level3_used || 0))
-          ws.cell(rowNumber, 6).number(x.level2_2_total || 0)
-          ws.cell(rowNumber, 7).number(x.level2_2_used || 0)
-          ws.cell(rowNumber, 8).number((x.level2_2_total || 0) - (x.level2_2_used || 0))
-          ws.cell(rowNumber, 9).number(x.level2_1_total || 0)
-          ws.cell(rowNumber, 10).number(x.level2_1_used || 0)
-          ws.cell(rowNumber, 11).number((x.level2_1_total || 0) - (x.level2_1_used || 0))
+          ws.cell(rowNumber, 6).number(x.level22_total || 0)
+          ws.cell(rowNumber, 7).number(x.level22_used || 0)
+          ws.cell(rowNumber, 8).number((x.level22_total || 0) - (x.level22_used || 0))
+          ws.cell(rowNumber, 9).number(x.level21_total || 0)
+          ws.cell(rowNumber, 10).number(x.level21_used || 0)
+          ws.cell(rowNumber, 11).number((x.level21_total || 0) - (x.level21_used || 0))
           ws.cell(rowNumber, 12).number(x.level1_total || 0)
           ws.cell(rowNumber, 13).number(x.level1_used || 0)
           ws.cell(rowNumber, 14).number((x.level1_total || 0) - (x.level1_used || 0))
@@ -1000,12 +1041,12 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
         ws.cell(rowNumber, 3).number(sumZone(item, 'level3_total') || 0)
         ws.cell(rowNumber, 4).number(sumZone(item, 'level3_used') || 0)
         ws.cell(rowNumber, 5).number((sumZone(item, 'level3_total') || 0) - (sumZone(item, 'level3_used') || 0))
-        ws.cell(rowNumber, 6).number(sumZone(item, 'level2_2_total') || 0)
-        ws.cell(rowNumber, 7).number(sumZone(item, 'level2_2_used') || 0)
-        ws.cell(rowNumber, 8).number((sumZone(item, 'level2_2_total') || 0) - (sumZone(item, 'level2_2_used') || 0))
-        ws.cell(rowNumber, 9).number(sumZone(item, 'level2_1_total') || 0)
-        ws.cell(rowNumber, 10).number(sumZone(item, 'level2_1_used') || 0)
-        ws.cell(rowNumber, 11).number((sumZone(item, 'level2_1_total') || 0) - (sumZone(item, 'level2_1_used') || 0))
+        ws.cell(rowNumber, 6).number(sumZone(item, 'level22_total') || 0)
+        ws.cell(rowNumber, 7).number(sumZone(item, 'level22_used') || 0)
+        ws.cell(rowNumber, 8).number((sumZone(item, 'level22_total') || 0) - (sumZone(item, 'level22_used') || 0))
+        ws.cell(rowNumber, 9).number(sumZone(item, 'level21_total') || 0)
+        ws.cell(rowNumber, 10).number(sumZone(item, 'level21_used') || 0)
+        ws.cell(rowNumber, 11).number((sumZone(item, 'level21_total') || 0) - (sumZone(item, 'level21_used') || 0))
         ws.cell(rowNumber, 12).number(sumZone(item, 'level1_total') || 0)
         ws.cell(rowNumber, 13).number(sumZone(item, 'level1_used') || 0)
         ws.cell(rowNumber, 14).number((sumZone(item, 'level1_total') || 0) - (sumZone(item, 'level1_used') || 0))
@@ -1022,56 +1063,61 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
       }
     })
 
-    if (countExistingZone(items) >= 12) {
-      ws.cell(rowNumber, 1, rowNumber, 2, true).string('รวม 12 เขต').style(center)
-      ws.cell(rowNumber, 3).number(sum12Zone(items, 'level3_total') || 0)
-      ws.cell(rowNumber, 4).number(sum12Zone(items, 'level3_used') || 0)
-      ws.cell(rowNumber, 5).number((sum12Zone(items, 'level3_total') || 0) - (sum12Zone(items, 'level3_used') || 0))
-      ws.cell(rowNumber, 6).number(sum12Zone(items, 'level2_2_total') || 0)
-      ws.cell(rowNumber, 7).number(sum12Zone(items, 'level2_2_used') || 0)
-      ws.cell(rowNumber, 8).number((sum12Zone(items, 'level2_2_total') || 0) - (sum12Zone(items, 'level2_2_used') || 0))
-      ws.cell(rowNumber, 9).number(sum12Zone(items, 'level2_1_total') || 0)
-      ws.cell(rowNumber, 10).number(sum12Zone(items, 'level2_1_used') || 0)
-      ws.cell(rowNumber, 11).number((sum12Zone(items, 'level2_1_total') || 0) - (sum12Zone(items, 'level2_1_used') || 0))
-      ws.cell(rowNumber, 12).number(sum12Zone(items, 'level1_total') || 0)
-      ws.cell(rowNumber, 13).number(sum12Zone(items, 'level1_used') || 0)
-      ws.cell(rowNumber, 14).number((sum12Zone(items, 'level1_total') || 0) - (sum12Zone(items, 'level1_used') || 0))
-      ws.cell(rowNumber, 15).number(sum12Zone(items, 'level0_total') || 0)
-      ws.cell(rowNumber, 16).number(sum12Zone(items, 'level0_used') || 0)
-      ws.cell(rowNumber, 17).number((sum12Zone(items, 'level0_total') || 0) - (sum12Zone(items, 'level0_used') || 0))
-      ws.cell(rowNumber, 18).number(sum12Zone(items, 'home_isolation_total') || 0)
-      ws.cell(rowNumber, 19).number(sum12Zone(items, 'home_isolation_used') || 0)
-      ws.cell(rowNumber, 20).number((sum12Zone(items, 'home_isolation_total') || 0) - (sum12Zone(items, 'home_isolation_used') || 0))
-      ws.cell(rowNumber, 21).number(sum12Zone(items, 'community_isolation_total') || 0)
-      ws.cell(rowNumber, 22).number(sum12Zone(items, 'community_isolation_used') || 0)
-      ws.cell(rowNumber, 23).number((sum12Zone(items, 'community_isolation_total') || 0) - (sum12Zone(items, 'community_isolation_used') || 0))
-      rowNumber++
-    }
+    // if (countExistingZone(items) >= 12) {
+    // console.log(items);
+    // console.log(rowNumber);
 
-    if (countExistingZone(items) > 12) {
-      ws.cell(rowNumber, 1, rowNumber, 2, true).string('ทั่วประเทศ').style(center)
-      ws.cell(rowNumber, 3).number(sumAllZone(items, 'level3_total') || 0)
-      ws.cell(rowNumber, 4).number(sumAllZone(items, 'level3_used') || 0)
-      ws.cell(rowNumber, 5).number((sumAllZone(items, 'level3_total') || 0) - (sumAllZone(items, 'level3_used') || 0))
-      ws.cell(rowNumber, 6).number(sumAllZone(items, 'level2_2_total') || 0)
-      ws.cell(rowNumber, 7).number(sumAllZone(items, 'level2_2_used') || 0)
-      ws.cell(rowNumber, 8).number((sumAllZone(items, 'level2_2_total') || 0) - (sumAllZone(items, 'level2_2_used') || 0))
-      ws.cell(rowNumber, 9).number(sumAllZone(items, 'level2_1_total') || 0)
-      ws.cell(rowNumber, 10).number(sumAllZone(items, 'level2_1_used') || 0)
-      ws.cell(rowNumber, 11).number((sumAllZone(items, 'level2_1_total') || 0) - (sumAllZone(items, 'level2_1_used') || 0))
-      ws.cell(rowNumber, 12).number(sumAllZone(items, 'level1_total') || 0)
-      ws.cell(rowNumber, 13).number(sumAllZone(items, 'level1_used') || 0)
-      ws.cell(rowNumber, 14).number((sumAllZone(items, 'level1_total') || 0) - (sumAllZone(items, 'level1_used') || 0))
-      ws.cell(rowNumber, 15).number(sumAllZone(items, 'level0_total') || 0)
-      ws.cell(rowNumber, 16).number(sumAllZone(items, 'level0_used') || 0)
-      ws.cell(rowNumber, 17).number((sumAllZone(items, 'level0_total') || 0) - (sumAllZone(items, 'level0_used') || 0))
-      ws.cell(rowNumber, 18).number(sumAllZone(items, 'home_isolation_total') || 0)
-      ws.cell(rowNumber, 19).number(sumAllZone(items, 'home_isolation_used') || 0)
-      ws.cell(rowNumber, 20).number((sumAllZone(items, 'home_isolation_total') || 0) - (sumAllZone(items, 'home_isolation_used') || 0))
-      ws.cell(rowNumber, 21).number(sumAllZone(items, 'community_isolation_total') || 0)
-      ws.cell(rowNumber, 22).number(sumAllZone(items, 'community_isolation_used') || 0)
-      ws.cell(rowNumber, 23).number((sumAllZone(items, 'community_isolation_total') || 0) - (sumAllZone(items, 'community_isolation_used') || 0))
-    }
+
+
+    ws.cell(rowNumber, 1, rowNumber, 2, true).string('รวม 12 เขต').style(center)
+    ws.cell(rowNumber, 3).number(sum12Zone(sum, 'level3_total') || 0)
+    ws.cell(rowNumber, 4).number(sum12Zone(sum, 'level3_used') || 0)
+    ws.cell(rowNumber, 5).number((sum12Zone(sum, 'level3_total') || 0) - (sum12Zone(sum, 'level3_used') || 0))
+    ws.cell(rowNumber, 6).number(sum12Zone(sum, 'level22_total') || 0)
+    ws.cell(rowNumber, 7).number(sum12Zone(sum, 'level22_used') || 0)
+    ws.cell(rowNumber, 8).number((sum12Zone(sum, 'level22_total') || 0) - (sum12Zone(sum, 'level22_used') || 0))
+    ws.cell(rowNumber, 9).number(sum12Zone(sum, 'level21_total') || 0)
+    ws.cell(rowNumber, 10).number(sum12Zone(sum, 'level21_used') || 0)
+    ws.cell(rowNumber, 11).number((sum12Zone(sum, 'level21_total') || 0) - (sum12Zone(sum, 'level21_used') || 0))
+    ws.cell(rowNumber, 12).number(sum12Zone(sum, 'level1_total') || 0)
+    ws.cell(rowNumber, 13).number(sum12Zone(sum, 'level1_used') || 0)
+    ws.cell(rowNumber, 14).number((sum12Zone(sum, 'level1_total') || 0) - (sum12Zone(sum, 'level1_used') || 0))
+    ws.cell(rowNumber, 15).number(sum12Zone(sum, 'level0_total') || 0)
+    ws.cell(rowNumber, 16).number(sum12Zone(sum, 'level0_used') || 0)
+    ws.cell(rowNumber, 17).number((sum12Zone(sum, 'level0_total') || 0) - (sum12Zone(sum, 'level0_used') || 0))
+    ws.cell(rowNumber, 18).number(sum12Zone(sum, 'home_isolation_total') || 0)
+    ws.cell(rowNumber, 19).number(sum12Zone(sum, 'home_isolation_used') || 0)
+    ws.cell(rowNumber, 20).number((sum12Zone(sum, 'home_isolation_total') || 0) - (sum12Zone(sum, 'home_isolation_used') || 0))
+    ws.cell(rowNumber, 21).number(sum12Zone(sum, 'community_isolation_total') || 0)
+    ws.cell(rowNumber, 22).number(sum12Zone(sum, 'community_isolation_used') || 0)
+    ws.cell(rowNumber, 23).number((sum12Zone(sum, 'community_isolation_total') || 0) - (sum12Zone(sum, 'community_isolation_used') || 0))
+    rowNumber++
+    // }
+
+    // if (countExistingZone(items) > 12) {
+    ws.cell(rowNumber, 1, rowNumber, 2, true).string('ทั่วประเทศ').style(center)
+    ws.cell(rowNumber, 3).number(sumAllZone(sum, 'level3_total') || 0)
+    ws.cell(rowNumber, 4).number(sumAllZone(sum, 'level3_used') || 0)
+    ws.cell(rowNumber, 5).number((sumAllZone(sum, 'level3_total') || 0) - (sumAllZone(sum, 'level3_used') || 0))
+    ws.cell(rowNumber, 6).number(sumAllZone(sum, 'level22_total') || 0)
+    ws.cell(rowNumber, 7).number(sumAllZone(sum, 'level22_used') || 0)
+    ws.cell(rowNumber, 8).number((sumAllZone(sum, 'level22_total') || 0) - (sumAllZone(sum, 'level22_used') || 0))
+    ws.cell(rowNumber, 9).number(sumAllZone(sum, 'level21_total') || 0)
+    ws.cell(rowNumber, 10).number(sumAllZone(sum, 'level21_used') || 0)
+    ws.cell(rowNumber, 11).number((sumAllZone(sum, 'level21_total') || 0) - (sumAllZone(sum, 'level21_used') || 0))
+    ws.cell(rowNumber, 12).number(sumAllZone(sum, 'level1_total') || 0)
+    ws.cell(rowNumber, 13).number(sumAllZone(sum, 'level1_used') || 0)
+    ws.cell(rowNumber, 14).number((sumAllZone(sum, 'level1_total') || 0) - (sumAllZone(sum, 'level1_used') || 0))
+    ws.cell(rowNumber, 15).number(sumAllZone(sum, 'level0_total') || 0)
+    ws.cell(rowNumber, 16).number(sumAllZone(sum, 'level0_used') || 0)
+    ws.cell(rowNumber, 17).number((sumAllZone(sum, 'level0_total') || 0) - (sumAllZone(sum, 'level0_used') || 0))
+    ws.cell(rowNumber, 18).number(sumAllZone(sum, 'home_isolation_total') || 0)
+    ws.cell(rowNumber, 19).number(sumAllZone(sum, 'home_isolation_used') || 0)
+    ws.cell(rowNumber, 20).number((sumAllZone(sum, 'home_isolation_total') || 0) - (sumAllZone(sum, 'home_isolation_used') || 0))
+    ws.cell(rowNumber, 21).number(sumAllZone(sum, 'community_isolation_total') || 0)
+    ws.cell(rowNumber, 22).number(sumAllZone(sum, 'community_isolation_used') || 0)
+    ws.cell(rowNumber, 23).number((sumAllZone(sum, 'community_isolation_total') || 0) - (sumAllZone(sum, 'community_isolation_used') || 0))
+    // }
 
     fse.ensureDirSync(process.env.TMP_PATH);
 
@@ -1117,17 +1163,18 @@ router.get('/patient-report-by-hospital', async (req: Request, res: Response) =>
   })
 
   try {
-    const [headers, cases, deathCases, puiCases] = await Promise.all([
+    const [headers, cases, casesWithMedicals, deathCases, puiCases] = await Promise.all([
       model.getPatientsReportHeaders(db),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.id', zones, provinces }),
+      model.getPatientsCasesGroupByMedicalSupplies(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.id', zones, provinces }),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'DEATH', groupBy: 'h.id', zones, provinces }),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'IPPUI', status: 'ADMIT', groupBy: 'h.id', zones, provinces })
     ])
-    const result = mapPatientReportByHospital(cases, deathCases, puiCases)
+    const result = mapPatientReportByHospital(cases, casesWithMedicals, deathCases, puiCases)
 
     ws.column(2).setWidth(20)
     ws.column(4).setWidth(40)
-    ws.column(16).setWidth(40)
+    ws.column(17).setWidth(40)
 
     ws.cell(1, 1).string('เขตสุขภาพ').style(center)
     ws.cell(1, 2).string('จังหวัด').style(center)
@@ -1136,15 +1183,18 @@ router.get('/patient-report-by-hospital', async (req: Request, res: Response) =>
     ws.cell(1, 5).string('ระดับขีดความสามารถ').style(center)
     ws.cell(1, 6).string('ผู้ป่วยทั้งหมด').style(center)
     ws.cell(1, 7).string('Severe').style(center)
-    ws.cell(1, 8).string('Invasive Ventilator').style(center)
-    ws.cell(1, 9).string('Non-Invasive Ventilator').style(center)
-    ws.cell(1, 10).string('High flow').style(center)
-    ws.cell(1, 11).string('Moderate').style(center)
-    ws.cell(1, 12).string('Mild').style(center)
-    ws.cell(1, 13).string('Asymptomatic').style(center)
+    ws.cell(1, 8).string('Moderate').style(center)
+    ws.cell(1, 9).string('Mild').style(center)
+    ws.cell(1, 10).string('Asymptomatic').style(center)
+    ws.cell(1, 11).string('Invasive Ventilator').style(center)
+    ws.cell(1, 12).string('Non-Invasive Ventilator').style(center)
+    ws.cell(1, 13).string('High flow').style(center)
     ws.cell(1, 14).string('Dead').style(center)
     ws.cell(1, 15).string('PUI').style(center)
-    ws.cell(1, 16).string('หน่วยงาน').style(center)
+    ws.cell(1, 16).string('ATK').style(center)
+    ws.cell(1, 17).string('หน่วยงาน').style(center)
+
+    console.log(result);
 
     result.forEach((row, i) => {
       ws.cell(2 + i, 1).string(row.zone_code).style(center)
@@ -1154,15 +1204,16 @@ router.get('/patient-report-by-hospital', async (req: Request, res: Response) =>
       ws.cell(2 + i, 5).string(row.level || '-').style(center)
       ws.cell(2 + i, 6).number(row.total || 0)
       ws.cell(2 + i, 7).number(row.severe || 0)
-      ws.cell(2 + i, 8).number(row.invasive || 0)
-      ws.cell(2 + i, 9).number(row.non_invasive || 0)
-      ws.cell(2 + i, 10).number(row.high_flow || 0)
-      ws.cell(2 + i, 11).number(row.moderate || 0)
-      ws.cell(2 + i, 12).number(row.mild || 0)
-      ws.cell(2 + i, 13).number(row.asymptomatic || 0)
+      ws.cell(2 + i, 8).number(row.moderate || 0)
+      ws.cell(2 + i, 9).number(row.mild || 0)
+      ws.cell(2 + i, 10).number(row.asymptomatic || 0)
+      ws.cell(2 + i, 11).number(row.invasive_ventilator || 0)
+      ws.cell(2 + i, 12).number(row.non_invasive_ventilator || 0)
+      ws.cell(2 + i, 13).number(row.high_flow || 0)
       ws.cell(2 + i, 14).number(row.dead || 0)
       ws.cell(2 + i, 15).number(row.pui || 0)
-      ws.cell(2 + i, 16).string(row.sub_ministry_name || '-').style(center)
+      ws.cell(2 + i, 16).number(row.atk || 0)
+      ws.cell(2 + i, 17).string(row.sub_ministry_name || '-').style(center)
     })
 
     fse.ensureDirSync(process.env.TMP_PATH);
@@ -1208,9 +1259,10 @@ router.get('/bed-report-by-hospital', async (req: Request, res: Response) => {
   })
 
   try {
-    const bedHospital: any = await model.getBedHospital(db);
-    const rs: any = await model.getBedReportByHospital(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', zones, provinces });
-    const hospcode = uniqBy(bedHospital, 'hospcode');
+    // const bedHospital: any = await model.getBedHospital(db);
+    const rs: any = await model.getBedReportByHospital(db, date, { case: null, status: 'ADMIT', zones, provinces });
+
+    const hospcode = uniqBy(rs, 'hospcode');
     const beds: any = await model.getBed(db);
     // const results = mapBedReports(rs)
     // const items = []
@@ -1298,6 +1350,7 @@ router.get('/bed-report-by-hospital', async (req: Request, res: Response) => {
 
 
     let i = 2;
+    // console.log(rs);
     for (const item of hospcode) {
       i++;
       ws.cell(i, 1).string(item.zone_code).style(center)
@@ -1309,12 +1362,19 @@ router.get('/bed-report-by-hospital', async (req: Request, res: Response) => {
       for (const b of beds) {
         const fil = filter(rs, { hospcode: item.hospcode });
         const idx = findIndex(fil, { bed_id: b.id })
+
+        // const filB = filter(bedHospital, { hospcode: item.hospcode });
+        // const idxB = findIndex(filB, { bed_id: b.id })
         
-        const filB = filter(bedHospital, { hospcode: item.hospcode });
-        const idxB = findIndex(filB, { bed_id: b.id })    
-        ws.cell(i, b.col_all).number(idxB > -1 ? +filB[idxB].covid_qty || 0 : 0);
-        ws.cell(i, b.col_use).number(idx > -1 ? +fil[idx].used || 0 : 0);
-        ws.cell(i, b.col_balance).number((idxB > -1 ? +filB[idxB].covid_qty || 0 : 0) - (idx > -1 ? +fil[idx].used || 0 : 0))
+        if (idx > -1) {
+          ws.cell(i, b.col_all).number(+fil[idx].total || 0);
+          ws.cell(i, b.col_use).number(+fil[idx].used || 0);
+          ws.cell(i, b.col_balance).number((+fil[idx].total || 0) - (+fil[idx].used || 0))
+        } else{
+          ws.cell(i, b.col_all).number( 0);
+          ws.cell(i, b.col_use).number( 0);
+          ws.cell(i, b.col_balance).number( 0)
+        }
       }
       // ws.cell(i, 6).number(item.level3_total || 0)
       // ws.cell(i, 7).number(item.level3_used || 0)
@@ -1385,19 +1445,27 @@ router.get('/admit-case', async (req: Request, res: Response) => {
   })
 
   try {
-    const [cases, genericsPersons, headers] = await Promise.all([
+    // const [cases, genericsPersons, headers] = await Promise.all([
+    //   reportModel.admitCase(db, date),
+    //   reportModel.getPersonsGenerics(db, date),
+    //   reportModel.getGenericNames(db)
+    // ])
+    // const results = mapPersonsGenerics(genericsPersons, cases)
+
+
+    const [ cases, headers ] = await Promise.all([
       reportModel.admitCase(db, date),
-      reportModel.getPersonsGenerics(db, date),
       reportModel.getGenericNames(db)
     ])
-    const results = mapPersonsGenerics(genericsPersons, cases)
+    const genericsUsages = await reportModel.getGenericsUsaged(db, cases.map((each) => each.detail_id))
+    const results = mapPersonsGenerics(genericsUsages, cases)
 
     ws.column(2).setWidth(20)
     ws.column(3).setWidth(40)
     ws.column(7).setWidth(20)
     ws.column(8).setWidth(20)
     ws.column(13).setWidth(20)
-    ws.column(23).setWidth(40)
+    ws.column(21).setWidth(40)
 
     ws.cell(1, 1).string('เขต').style(center)
     ws.cell(1, 2).string('จังหวัด').style(center)
@@ -1416,20 +1484,21 @@ router.get('/admit-case', async (req: Request, res: Response) => {
     ws.cell(1, 15).string('เครื่องช่วยหายใจ').style(center)
     ws.cell(1, 16).string('วันที่ update อาการล่าสุด').style(center)
     ws.cell(1, 17).string('ไม่ได้บันทึกมา').style(center)
-    ws.cell(1, 18).string('Darunavir 600 mg.').style(center)
-    ws.cell(1, 19).string('Lopinavir 200 mg. / Ritonavir 50 mg.').style(center)
-    ws.cell(1, 20).string('Ritonavir 100 mg.').style(center)
-    ws.cell(1, 21).string('Azithromycin 250 mg.').style(center)
-    ws.cell(1, 22).string('Favipiravi').style(center)
-    ws.cell(1, 23).string('หน่วยงานสังกัด').style(center)
-
+    ws.cell(1, 18).string('Favipiravir').style(center)
+    ws.cell(1, 19).string('Casirivimab and imdevimab').style(center)
+    ws.cell(1, 20).string('Molnupiravir').style(center)
+    ws.cell(1, 21).string('หน่วยงานสังกัด').style(center)
+    // console.log(results);
+    
     results.forEach((result, i) => {
+      console.log(result);
+      
       ws.cell(2 + i, 1).string(result.zone_code).style(center)
       ws.cell(2 + i, 2).string(result.province_name).style(center)
       ws.cell(2 + i, 3).string(result.hospname).style(center)
       ws.cell(2 + i, 4).string(result.hn).style(center)
       ws.cell(2 + i, 5).string(result.an).style(center)
-      ws.cell(2 + i, 6).number(result.cid)
+      ws.cell(2 + i, 6).string(result.cid ? result.cid.toString() : '')
       ws.cell(2 + i, 7).string(result.first_name).style(center)
       ws.cell(2 + i, 8).string(result.last_name).style(center)
       ws.cell(2 + i, 9).string(result.gender).style(center)
@@ -1440,13 +1509,11 @@ router.get('/admit-case', async (req: Request, res: Response) => {
       ws.cell(2 + i, 14).string(result.bed_name || '-').style(center)
       ws.cell(2 + i, 15).string(result.supplies_name || '-').style(center)
       ws.cell(2 + i, 16).string(formatDate(result.update_date)).style(center)
-      ws.cell(2 + i, 17).number(result.notUpdated || 0)
-      ws.cell(2 + i, 18).string(result['Darunavir 600 mg.'] ? '✔️' : '❌').style(center)
-      ws.cell(2 + i, 19).string(result['Lopinavir 200 mg. / Ritonavir 50 mg.'] ? '✔️' : '❌').style(center)
-      ws.cell(2 + i, 20).string(result['Ritonavir 100 mg.'] ? '✔️' : '❌').style(center)
-      ws.cell(2 + i, 21).string(result['Azithromycin 250 mg.'] ? '✔️' : '❌').style(center)
-      ws.cell(2 + i, 22).string(result['Favipiravi'] ? '✔️' : '❌').style(center)
-      ws.cell(2 + i, 23).string(result.sub_ministry_name || '-').style(center)
+      ws.cell(2 + i, 17).number(result.day_not || 0)
+      ws.cell(2 + i, 18).string(result.hasOwnProperty('Favipiravir') ? '✔️' : '❌').style(center)
+      ws.cell(2 + i, 19).string(result['Casirivimab and imdevimab'] ? '✔️' : '❌').style(center)
+      ws.cell(2 + i, 20).string(result['Molnupiravir'] ? '✔️' : '❌').style(center)
+      ws.cell(2 + i, 21).string(result.sub_ministry_name || '-').style(center)
     })
 
     fse.ensureDirSync(process.env.TMP_PATH);
@@ -1467,6 +1534,8 @@ router.get('/admit-case', async (req: Request, res: Response) => {
       }
     })
   } catch (error) {
+    console.log(error);
+    
     res.send({ ok: false, error: error });
   }
 })
