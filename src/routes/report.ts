@@ -887,31 +887,49 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
     wsAll.cell(1, 2).string('รหัสโรงพยาบาล');
     wsAll.cell(1, 3).string('โรงพยาบาล');
     wsAll.cell(1, 4).string('ระดับขีดความสามารถ');
-    wsAll.cell(1, 5).string('AIIR ทั้งหมด');
-    wsAll.cell(1, 6).string('AIIR ใช้ไปแล้ว');
-    wsAll.cell(1, 7).string('AIIR คงเหลือ');
-    wsAll.cell(1, 8).string('Modified AIIR ทั้งหมด');
-    wsAll.cell(1, 9).string('Modified AIIR ใช้ไปแล้ว');
-    wsAll.cell(1, 10).string('Modified AIIR คงเหลือ');
-    wsAll.cell(1, 11).string('Cohort ICU ทั้งหมด');
-    wsAll.cell(1, 12).string('Cohort ICU ใช้ไปแล้ว');
-    wsAll.cell(1, 13).string('Cohort ICU คงเหลือ');
-    wsAll.cell(1, 14).string('Isolate ทั้งหมด');
-    wsAll.cell(1, 15).string('Isolate ใช้ไปแล้ว');
-    wsAll.cell(1, 16).string('Isolate คงเหลือ');
-    wsAll.cell(1, 17).string('Cohort ทั้งหมด');
-    wsAll.cell(1, 18).string('Cohort ใช้ไปแล้ว');
-    wsAll.cell(1, 19).string('Cohort คงเหลือ');
-    wsAll.cell(1, 20).string('Hospitel ทั้งหมด');
-    wsAll.cell(1, 21).string('Hospitel ใช้ไปแล้ว');
-    wsAll.cell(1, 22).string('Hospitel คงเหลือ');
-    wsAll.cell(1, 23).string('Home Isolation ทั้งหมด');
-    wsAll.cell(1, 24).string('Home Isolation ใช้ไปแล้ว');
-    wsAll.cell(1, 25).string('Home Isolation คงเหลือ');
-    wsAll.cell(1, 26).string('Community Isolation ทั้งหมด');
-    wsAll.cell(1, 27).string('Community Isolation ใช้ไปแล้ว');
-    wsAll.cell(1, 28).string('Community Isolation คงเหลือ');
-    wsAll.cell(1, 29).string('Hospital Type');
+    // wsAll.cell(1, 5).string('AIIR ทั้งหมด');
+    // wsAll.cell(1, 6).string('AIIR ใช้ไปแล้ว');
+    // wsAll.cell(1, 7).string('AIIR คงเหลือ');
+    // wsAll.cell(1, 8).string('Modified AIIR ทั้งหมด');
+    // wsAll.cell(1, 9).string('Modified AIIR ใช้ไปแล้ว');
+    // wsAll.cell(1, 10).string('Modified AIIR คงเหลือ');
+    // wsAll.cell(1, 11).string('Cohort ICU ทั้งหมด');
+    // wsAll.cell(1, 12).string('Cohort ICU ใช้ไปแล้ว');
+    // wsAll.cell(1, 13).string('Cohort ICU คงเหลือ');
+    // wsAll.cell(1, 14).string('Isolate ทั้งหมด');
+    // wsAll.cell(1, 15).string('Isolate ใช้ไปแล้ว');
+    // wsAll.cell(1, 16).string('Isolate คงเหลือ');
+    // wsAll.cell(1, 17).string('Cohort ทั้งหมด');
+    // wsAll.cell(1, 18).string('Cohort ใช้ไปแล้ว');
+    // wsAll.cell(1, 19).string('Cohort คงเหลือ');
+    // wsAll.cell(1, 20).string('Hospitel ทั้งหมด');
+    // wsAll.cell(1, 21).string('Hospitel ใช้ไปแล้ว');
+    // wsAll.cell(1, 22).string('Hospitel คงเหลือ');
+
+
+
+    wsAll.cell(1, 5).string('Home Isolation (New case) ทั้งหมด');
+    wsAll.cell(1, 6).string('Home Isolation (New case) ใช้ไปแล้ว');
+    wsAll.cell(1, 7).string('Home Isolation (New case) คงเหลือ');
+    wsAll.cell(1, 8).string('Community Isolation (New case) ทั้งหมด');
+    wsAll.cell(1, 9).string('Community Isolation (New case) ใช้ไปแล้ว');
+    wsAll.cell(1, 10).string('Community Isolation (New case) คงเหลือ');
+    wsAll.cell(1, 11).string('ระดับ 3 ใส่ท่อและเครื่องช่วยหายใจได้ ทั้งหมด');
+    wsAll.cell(1, 12).string('ระดับ 3 ใส่ท่อและเครื่องช่วยหายใจได้ ใช้ไปแล้ว');
+    wsAll.cell(1, 13).string('ระดับ 3 ใส่ท่อและเครื่องช่วยหายใจได้ คงเหลือ');
+    wsAll.cell(1, 14).string('ระดับ 2.2 Oxygen high flow ทั้งหมด');
+    wsAll.cell(1, 15).string('ระดับ 2.2 Oxygen high flow ใช้ไปแล้ว');
+    wsAll.cell(1, 16).string('ระดับ 2.2 Oxygen high flow คงเหลือ');
+    wsAll.cell(1, 17).string('ระดับ 2.1 Oxygen low flow ทั้งหมด');
+    wsAll.cell(1, 18).string('ระดับ 2.1 Oxygen low flow ใช้ไปแล้ว');
+    wsAll.cell(1, 19).string('ระดับ 2.1 Oxygen low flow คงเหลือ');
+    wsAll.cell(1, 20).string('ระดับ 1 ไม่ใช้ Oxygen ทั้งหมด');
+    wsAll.cell(1, 21).string('ระดับ 1 ไม่ใช้ Oxygen ใช้ไปแล้ว');
+    wsAll.cell(1, 22).string('ระดับ 1 ไม่ใช้ Oxygen คงเหลือ');
+    wsAll.cell(1, 23).string('ระดับ 0 Home Isolation (stepdown) ทั้งหมด');
+    wsAll.cell(1, 24).string('ระดับ 0 Home Isolation (stepdown) ใช้ไปแล้ว');
+    wsAll.cell(1, 25).string('ระดับ 0 Home Isolation (stepdown) คงเหลือ');
+    wsAll.cell(1, 26).string('สังกัด');
     let rowAll = 2;
     for (const v of zoneCodes) {
       let row = 2;
@@ -922,98 +940,83 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
         ws.cell(1, 2).string('รหัสโรงพยาบาล');
         ws.cell(1, 3).string('โรงพยาบาล');
         ws.cell(1, 4).string('ระดับขีดความสามารถ');
-        ws.cell(1, 5).string('AIIR ทั้งหมด');
-        ws.cell(1, 6).string('AIIR ใช้ไปแล้ว');
-        ws.cell(1, 7).string('AIIR คงเหลือ');
-        ws.cell(1, 8).string('Modified AIIR ทั้งหมด');
-        ws.cell(1, 9).string('Modified AIIR ใช้ไปแล้ว');
-        ws.cell(1, 10).string('Modified AIIR คงเหลือ');
-        ws.cell(1, 11).string('Cohort ICU ทั้งหมด');
-        ws.cell(1, 12).string('Cohort ICU ใช้ไปแล้ว');
-        ws.cell(1, 13).string('Cohort ICU คงเหลือ');
-        ws.cell(1, 14).string('Isolate ทั้งหมด');
-        ws.cell(1, 15).string('Isolate ใช้ไปแล้ว');
-        ws.cell(1, 16).string('Isolate คงเหลือ');
-        ws.cell(1, 17).string('Cohort ทั้งหมด');
-        ws.cell(1, 18).string('Cohort ใช้ไปแล้ว');
-        ws.cell(1, 19).string('Cohort คงเหลือ');
-        ws.cell(1, 20).string('Hospitel ทั้งหมด');
-        ws.cell(1, 21).string('Hospitel ใช้ไปแล้ว');
-        ws.cell(1, 22).string('Hospitel คงเหลือ');
-        ws.cell(1, 20).string('Hospitel ทั้งหมด');
-        ws.cell(1, 21).string('Hospitel ใช้ไปแล้ว');
-        ws.cell(1, 22).string('Hospitel คงเหลือ');
-        ws.cell(1, 20).string('Hospitel ทั้งหมด');
-        ws.cell(1, 21).string('Hospitel ใช้ไปแล้ว');
-        ws.cell(1, 22).string('Hospitel คงเหลือ');
-        ws.cell(1, 23).string('Home Isolation ทั้งหมด');
-        ws.cell(1, 24).string('Home Isolation ใช้ไปแล้ว');
-        ws.cell(1, 25).string('Home Isolation คงเหลือ');
-        ws.cell(1, 26).string('Community Isolation ทั้งหมด');
-        ws.cell(1, 27).string('Community Isolation ใช้ไปแล้ว');
-        ws.cell(1, 28).string('Community Isolation คงเหลือ');
-        ws.cell(1, 29).string('Hospital Type');
+        ws.cell(1, 5).string('Home Isolation (New case) ทั้งหมด');
+        ws.cell(1, 6).string('Home Isolation (New case) ใช้ไปแล้ว');
+        ws.cell(1, 7).string('Home Isolation (New case) คงเหลือ');
+        ws.cell(1, 8).string('Community Isolation (New case) ทั้งหมด');
+        ws.cell(1, 9).string('Community Isolation (New case) ใช้ไปแล้ว');
+        ws.cell(1, 10).string('Community Isolation (New case) คงเหลือ');
+        ws.cell(1, 11).string('ระดับ 3 ใส่ท่อและเครื่องช่วยหายใจได้ ทั้งหมด');
+        ws.cell(1, 12).string('ระดับ 3 ใส่ท่อและเครื่องช่วยหายใจได้ ใช้ไปแล้ว');
+        ws.cell(1, 13).string('ระดับ 3 ใส่ท่อและเครื่องช่วยหายใจได้ คงเหลือ');
+        ws.cell(1, 14).string('ระดับ 2.2 Oxygen high flow ทั้งหมด');
+        ws.cell(1, 15).string('ระดับ 2.2 Oxygen high flow ใช้ไปแล้ว');
+        ws.cell(1, 16).string('ระดับ 2.2 Oxygen high flow คงเหลือ');
+        ws.cell(1, 17).string('ระดับ 2.1 Oxygen low flow ทั้งหมด');
+        ws.cell(1, 18).string('ระดับ 2.1 Oxygen low flow ใช้ไปแล้ว');
+        ws.cell(1, 19).string('ระดับ 2.1 Oxygen low flow คงเหลือ');
+        ws.cell(1, 20).string('ระดับ 1 ไม่ใช้ Oxygen ทั้งหมด');
+        ws.cell(1, 21).string('ระดับ 1 ไม่ใช้ Oxygen ใช้ไปแล้ว');
+        ws.cell(1, 22).string('ระดับ 1 ไม่ใช้ Oxygen คงเหลือ');
+        ws.cell(1, 23).string('ระดับ 0 Home Isolation (stepdown) ทั้งหมด');
+        ws.cell(1, 24).string('ระดับ 0 Home Isolation (stepdown) ใช้ไปแล้ว');
+        ws.cell(1, 25).string('ระดับ 0 Home Isolation (stepdown) คงเหลือ');
+        ws.cell(1, 29).string('สังกัด');
 
         ws.cell(row, 1).string(d.province_name);
         ws.cell(row, 2).string(d.hospcode);
         ws.cell(row, 3).string(d.hospname);
         ws.cell(row, 4).string(d.level);
-        ws.cell(row, 5).number(d['aiir_covid_qty'] === null ? 0 : d['aiir_covid_qty'] || 0);
-        ws.cell(row, 6).number(d['aiir_usage_qty'] === null ? 0 : d['aiir_usage_qty'] || 0);
-        ws.cell(row, 7).number(+d['aiir_covid_qty'] - +d['aiir_usage_qty'] || 0);
-        ws.cell(row, 8).number(d['modified_aiir_covid_qty'] || 0);
-        ws.cell(row, 9).number(d['modified_aiir_usage_qty'] || 0);
-        ws.cell(row, 10).number(+d['modified_aiir_covid_qty'] - +d['modified_aiir_usage_qty'] || 0);
-        ws.cell(row, 11).number(d['cohort_icu_covid_qty'] || 0);
-        ws.cell(row, 12).number(d['cohort_icu_usage_qty'] || 0);
-        ws.cell(row, 13).number(+d['cohort_icu_covid_qty'] - +d['cohort_icu_usage_qty'] || 0);
-        ws.cell(row, 14).number(d['isolate_covid_qty'] || 0);
-        ws.cell(row, 15).number(d['isolate_usage_qty'] || 0);
-        ws.cell(row, 16).number(+d['isolate_covid_qty'] - +d['isolate_usage_qty'] || 0);
-        ws.cell(row, 17).number(d['cohort_covid_qty'] || 0);
-        ws.cell(row, 18).number(d['cohort_usage_qty'] || 0);
-        ws.cell(row, 19).number(+d['cohort_covid_qty'] - +d['cohort_usage_qty'] || 0);
-        ws.cell(row, 20).number(d['hospitel_covid_qty'] || 0);
-        ws.cell(row, 21).number(d['hospitel_usage_qty'] || 0);
-        ws.cell(row, 22).number(+d['hospitel_covid_qty'] - +d['hospitel_usage_qty'] || 0);
-        ws.cell(row, 23).number(d['home_isolation_covid_qty'] || 0);
-        ws.cell(row, 24).number(d['home_isolation_usage_qty'] || 0);
-        ws.cell(row, 25).number(+d['home_isolation_covid_qty'] - +d['home_isolation_usage_qty'] || 0);
-        ws.cell(row, 26).number(d['community_isolation_covid_qty'] || 0);
-        ws.cell(row, 27).number(d['community_isolation_usage_qty'] || 0);
-        ws.cell(row, 28).number(+d['community_isolation_covid_qty'] - +d['community_isolation_usage_qty'] || 0);
-        ws.cell(row, 29).string(d.hospital_type);
+        ws.cell(row, 5).number(d['home_isolation_covid_qty'] || 0);
+        ws.cell(row, 6).number(d['home_isolation_usage_qty'] || 0);
+        ws.cell(row, 7).number(+d['home_isolation_covid_qty'] - +d['home_isolation_usage_qty'] || 0);
+        ws.cell(row, 8).number(d['community_isolation_covid_qty'] || 0);
+        ws.cell(row, 9).number(d['community_isolation_usage_qty'] || 0);
+        ws.cell(row, 10).number(+d['community_isolation_covid_qty'] - +d['community_isolation_usage_qty'] || 0);
+        ws.cell(row, 11).number(d['lv3_covid_qty'] || 0);
+        ws.cell(row, 12).number(d['lv3_usage_qty'] || 0);
+        ws.cell(row, 13).number(+d['lv3_covid_qty'] - +d['lv3_usage_qty'] || 0);
+        ws.cell(row, 14).number(d['lv22_covid_qty'] || 0);
+        ws.cell(row, 15).number(d['lv22_usage_qty'] || 0);
+        ws.cell(row, 16).number(+d['lv22_covid_qty'] - +d['lv22_usage_qty'] || 0);
+        ws.cell(row, 17).number(d['lv21_covid_qty'] || 0);
+        ws.cell(row, 18).number(d['lv21_usage_qty'] || 0);
+        ws.cell(row, 19).number(+d['lv21_covid_qty'] - +d['lv21_usage_qty'] || 0);
+        ws.cell(row, 20).number(d['lv1_covid_qty'] || 0);
+        ws.cell(row, 21).number(d['lv1_usage_qty'] || 0);
+        ws.cell(row, 22).number(+d['lv1_covid_qty'] - +d['lv1_usage_qty'] || 0);
+        ws.cell(row, 23).number(d['lv0_covid_qty'] || 0);
+        ws.cell(row, 24).number(d['lv0_usage_qty'] || 0);
+        ws.cell(row, 25).number(+d['lv0_covid_qty'] - +d['lv0_usage_qty'] || 0);
+        ws.cell(row, 26).string(d.sub_ministry_name);
         row++
 
         wsAll.cell(rowAll, 1).string(d.province_name);
         wsAll.cell(rowAll, 2).string(d.hospcode);
         wsAll.cell(rowAll, 3).string(d.hospname);
         wsAll.cell(rowAll, 4).string(d.level);
-        wsAll.cell(rowAll, 5).number(d['aiir_covid_qty'] === null ? 0 : d['aiir_covid_qty'] || 0);
-        wsAll.cell(rowAll, 6).number(d['aiir_usage_qty'] === null ? 0 : d['aiir_usage_qty'] || 0);
-        wsAll.cell(rowAll, 7).number(+d['aiir_covid_qty'] - +d['aiir_usage_qty'] || 0);
-        wsAll.cell(rowAll, 8).number(d['modified_aiir_covid_qty'] || 0);
-        wsAll.cell(rowAll, 9).number(d['modified_aiir_usage_qty'] || 0);
-        wsAll.cell(rowAll, 10).number(+d['modified_aiir_covid_qty'] - +d['modified_aiir_usage_qty'] || 0);
-        wsAll.cell(rowAll, 11).number(d['cohort_icu_covid_qty'] || 0);
-        wsAll.cell(rowAll, 12).number(d['cohort_icu_usage_qty'] || 0);
-        wsAll.cell(rowAll, 13).number(+d['cohort_icu_covid_qty'] - +d['cohort_icu_usage_qty'] || 0);
-        wsAll.cell(rowAll, 14).number(d['isolate_covid_qty'] || 0);
-        wsAll.cell(rowAll, 15).number(d['isolate_usage_qty'] || 0);
-        wsAll.cell(rowAll, 16).number(+d['isolate_covid_qty'] - +d['isolate_usage_qty'] || 0);
-        wsAll.cell(rowAll, 17).number(d['cohort_covid_qty'] || 0);
-        wsAll.cell(rowAll, 18).number(d['cohort_usage_qty'] || 0);
-        wsAll.cell(rowAll, 19).number(+d['cohort_covid_qty'] - +d['cohort_usage_qty'] || 0);
-        wsAll.cell(rowAll, 20).number(d['hospitel_covid_qty'] || 0);
-        wsAll.cell(rowAll, 21).number(d['hospitel_usage_qty'] || 0);
-        wsAll.cell(rowAll, 22).number(+d['hospitel_covid_qty'] - +d['hospitel_usage_qty'] || 0);
-        wsAll.cell(rowAll, 23).number(d['home_isolation_covid_qty'] || 0);
-        wsAll.cell(rowAll, 24).number(d['home_isolation_usage_qty'] || 0);
-        wsAll.cell(rowAll, 25).number(+d['home_isolation_covid_qty'] - +d['home_isolation_usage_qty'] || 0);
-        wsAll.cell(rowAll, 26).number(d['community_isolation_covid_qty'] || 0);
-        wsAll.cell(rowAll, 27).number(d['community_isolation_usage_qty'] || 0);
-        wsAll.cell(rowAll, 28).number(+d['community_isolation_covid_qty'] - +d['community_isolation_usage_qty'] || 0);
-        wsAll.cell(rowAll, 29).string(d.hospital_type);
+        wsAll.cell(rowAll, 5).number(d['home_isolation_covid_qty'] || 0);
+        wsAll.cell(rowAll, 6).number(d['home_isolation_usage_qty'] || 0);
+        wsAll.cell(rowAll, 7).number(+d['home_isolation_covid_qty'] - +d['home_isolation_usage_qty'] || 0);
+        wsAll.cell(rowAll, 8).number(d['community_isolation_covid_qty'] || 0);
+        wsAll.cell(rowAll, 9).number(d['community_isolation_usage_qty'] || 0);
+        wsAll.cell(rowAll, 10).number(+d['community_isolation_covid_qty'] - +d['community_isolation_usage_qty'] || 0);
+        wsAll.cell(rowAll, 11).number(d['lv3_covid_qty'] || 0);
+        wsAll.cell(rowAll, 12).number(d['lv3_usage_qty'] || 0);
+        wsAll.cell(rowAll, 13).number(+d['lv3_covid_qty'] - +d['lv3_usage_qty'] || 0);
+        wsAll.cell(rowAll, 14).number(d['lv22_covid_qty'] || 0);
+        wsAll.cell(rowAll, 15).number(d['lv22_usage_qty'] || 0);
+        wsAll.cell(rowAll, 16).number(+d['lv22_covid_qty'] - +d['lv22_usage_qty'] || 0);
+        wsAll.cell(rowAll, 17).number(d['lv21_covid_qty'] || 0);
+        wsAll.cell(rowAll, 18).number(d['lv21_usage_qty'] || 0);
+        wsAll.cell(rowAll, 19).number(+d['lv21_covid_qty'] - +d['lv21_usage_qty'] || 0);
+        wsAll.cell(rowAll, 20).number(d['lv1_covid_qty'] || 0);
+        wsAll.cell(rowAll, 21).number(d['lv1_usage_qty'] || 0);
+        wsAll.cell(rowAll, 22).number(+d['lv1_covid_qty'] - +d['lv1_usage_qty'] || 0);
+        wsAll.cell(rowAll, 23).number(d['lv0_covid_qty'] || 0);
+        wsAll.cell(rowAll, 24).number(d['lv0_usage_qty'] || 0);
+        wsAll.cell(rowAll, 25).number(+d['lv0_covid_qty'] - +d['lv0_usage_qty'] || 0);
+        wsAll.cell(rowAll, 26).string(d.sub_ministry_name);
         rowAll++;
       }
     }
@@ -2182,7 +2185,6 @@ router.get('/admit-confirm-case', async (req: Request, res: Response) => {
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else if (providerType == 'SSJ') {
       const rs: any = await model.admitConfirmCaseProvice(db, zoneCode, provinceCode, showPersons);
-      console.log(rs);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else {
       res.send({ ok: false, code: HttpStatus.UNAUTHORIZED, error: HttpStatus.UNAUTHORIZED });
@@ -2235,13 +2237,9 @@ router.get('/admit-confirm-case/excel', async (req: Request, res: Response) => {
       ws.cell(1, 11).string('เครื่องช่วยหายใจ');
       ws.cell(1, 12).string('วันที่บันทึกล่าสุด');
       ws.cell(1, 13).string('ไม่ได้บันทึกมา');
-      ws.cell(1, 14).string('Hydroxychloroquine 200 mg.');
-      ws.cell(1, 15).string('Chloroquine 250 mg.');
-      ws.cell(1, 16).string('Darunavir 600 mg.');
-      ws.cell(1, 17).string('Lopinavir 200 mg. Ritonavir 50 mg.');
-      ws.cell(1, 18).string('Ritonavir 100 mg.');
-      ws.cell(1, 19).string('Azithromycin 250 mg.');
-      ws.cell(1, 20).string('Favipiravi');
+      ws.cell(1, 14).string('Favipiravi');
+      ws.cell(1, 15).string('Casirivimab and imdevimab');
+      ws.cell(1, 16).string('Molnupiravir');
 
       for (const item of rs) {
         item.date_admit = moment(item.date_admit).format('DD/MM/YYYY')
@@ -2259,13 +2257,9 @@ router.get('/admit-confirm-case/excel', async (req: Request, res: Response) => {
         ws.cell(row, 11).string(toString(item.medical_supplies_name));
         ws.cell(row, 12).string(toString(item.date_discharge));
         ws.cell(row, 13).string(toString(item.days));
-        ws.cell(row, 14).string(toString(item.d1));
-        ws.cell(row, 15).string(toString(item.d2));
-        ws.cell(row, 16).string(toString(item.d3));
-        ws.cell(row, 17).string(toString(item.d4));
-        ws.cell(row, 18).string(toString(item.d5));
-        ws.cell(row, 19).string(toString(item.d7));
-        ws.cell(row, 20).string(toString(item.d8));
+        ws.cell(row, 14).string(toString(item.d8));
+        ws.cell(row, 15).string(toString(item.d26));
+        ws.cell(row, 16).string(toString(item.d27));
         row++;
       }
     } else {
@@ -2280,13 +2274,9 @@ router.get('/admit-confirm-case/excel', async (req: Request, res: Response) => {
       ws.cell(1, 9).string('เครื่องช่วยหายใจ');
       ws.cell(1, 10).string('วันที่บันทึกล่าสุด');
       ws.cell(1, 11).string('ไม่ได้บันทึกมา');
-      ws.cell(1, 12).string('Hydroxychloroquine 200 mg.');
-      ws.cell(1, 13).string('Chloroquine 250 mg.');
-      ws.cell(1, 14).string('Darunavir 600 mg.');
-      ws.cell(1, 15).string('Lopinavir 200 mg. Ritonavir 50 mg.');
-      ws.cell(1, 16).string('Ritonavir 100 mg.');
-      ws.cell(1, 17).string('Azithromycin 250 mg.');
-      ws.cell(1, 18).string('Favipiravi');
+      ws.cell(1, 12).string('Favipiravir');
+      ws.cell(1, 13).string('Casirivimab and imdevimab');
+      ws.cell(1, 14).string('Molnupiravir');
 
       for (const item of rs) {
         item.date_admit = moment(item.date_admit).format('DD/MM/YYYY')
@@ -2302,13 +2292,9 @@ router.get('/admit-confirm-case/excel', async (req: Request, res: Response) => {
         ws.cell(row, 9).string(toString(item.medical_supplies_name));
         ws.cell(row, 10).string(toString(item.date_discharge));
         ws.cell(row, 11).string(toString(item.days));
-        ws.cell(row, 12).string(toString(item.d1));
-        ws.cell(row, 13).string(toString(item.d2));
-        ws.cell(row, 14).string(toString(item.d3));
-        ws.cell(row, 15).string(toString(item.d4));
-        ws.cell(row, 16).string(toString(item.d5));
-        ws.cell(row, 17).string(toString(item.d7));
-        ws.cell(row, 18).string(toString(item.d8));
+        ws.cell(row, 12).string(toString(item.d8));
+        ws.cell(row, 13).string(toString(item.d26));
+        ws.cell(row, 14).string(toString(item.d27));
         row++;
       }
     }
@@ -3165,21 +3151,20 @@ router.get('/admit-confirm-case-summary/excel', async (req: Request, res: Respon
     ws.cell(1, 4).string('moderate');
     ws.cell(1, 5).string('mild');
     ws.cell(1, 6).string('asymptomatic');
-    ws.cell(1, 7).string('aiir');
-    ws.cell(1, 8).string('modified_aiir');
-    ws.cell(1, 9).string('isolate');
-    ws.cell(1, 10).string('cohort');
-    ws.cell(1, 11).string('Hospitel');
-    ws.cell(1, 12).string('invasive');
-    ws.cell(1, 13).string('noninvasive');
-    ws.cell(1, 14).string('high_flow');
-    ws.cell(1, 15).string('Hydroxychloroquine 200 mg.');
-    ws.cell(1, 16).string('Chloroquine 250 mg.');
-    ws.cell(1, 17).string('Darunavir 600 mg.');
-    ws.cell(1, 18).string('Lopinavir 200 mg./Ritonavir 50 mg.');
-    ws.cell(1, 19).string('Ritonavir 100 mg.');
-    ws.cell(1, 20).string('Azithromycin 250 mg.');
-    ws.cell(1, 21).string('Favipiravi');
+    ws.cell(1, 7).string('ระดับ 3 ใส่ท่อและเครื่องช่วยหายใจได้');
+    ws.cell(1, 8).string('ระดับ 2.2 Oxygen high flow');
+    ws.cell(1, 9).string('ระดับ 2.1 Oxygen low flow');
+    ws.cell(1, 10).string('ระดับ 1 ไม่ใช้ Oxygen');
+    ws.cell(1, 11).string('ระดับ 0 Home Isolation (stepdown)');
+    ws.cell(1, 12).string('Home Isolation (New case)');
+    ws.cell(1, 13).string('Community Isolation (New case)');
+    ws.cell(1, 14).string('invasive');
+    ws.cell(1, 15).string('noninvasive');
+    ws.cell(1, 16).string('high_flow');
+    ws.cell(1, 17).string('Favipiravir');
+    ws.cell(1, 18).string('Casirivimab and imdevimab');
+    ws.cell(1, 19).string('Molnupiravir');
+
 
     let row = 2;
     for (const v of rs) {
@@ -3189,21 +3174,19 @@ router.get('/admit-confirm-case-summary/excel', async (req: Request, res: Respon
       ws.cell(row, 4).number(toNumber(v.moderate));
       ws.cell(row, 5).number(toNumber(v.mild));
       ws.cell(row, 6).number(toNumber(v.asymptomatic));
-      ws.cell(row, 7).number(toNumber(v.aiir));
-      ws.cell(row, 8).number(toNumber(v.modified_aiir));
-      ws.cell(row, 9).number(toNumber(v.isolate));
-      ws.cell(row, 10).number(toNumber(v.cohort));
-      ws.cell(row, 11).number(toNumber(v.hospitel));
-      ws.cell(row, 12).number(toNumber(v.invasive));
-      ws.cell(row, 13).number(toNumber(v.noninvasive));
-      ws.cell(row, 14).number(toNumber(v.high_flow));
-      ws.cell(row, 15).number(toNumber(v.d1));
-      ws.cell(row, 16).number(toNumber(v.d2));
-      ws.cell(row, 17).number(toNumber(v.d3));
-      ws.cell(row, 18).number(toNumber(v.d4));
-      ws.cell(row, 19).number(toNumber(v.d5));
-      ws.cell(row, 20).number(toNumber(v.d7));
-      ws.cell(row++, 21).number(toNumber(v.d8));
+      ws.cell(row, 7).number(toNumber(v.lv3));
+      ws.cell(row, 8).number(toNumber(v.lv22));
+      ws.cell(row, 9).number(toNumber(v.lv21));
+      ws.cell(row, 10).number(toNumber(v.lv1));
+      ws.cell(row, 11).number(toNumber(v.lv0));
+      ws.cell(row, 12).number(toNumber(v.home_isolation));
+      ws.cell(row, 13).number(toNumber(v.community_isolation));
+      ws.cell(row, 14).number(toNumber(v.invasive));
+      ws.cell(row, 15).number(toNumber(v.noninvasive));
+      ws.cell(row, 16).number(toNumber(v.high_flow));
+      ws.cell(row, 17).number(toNumber(v.d8));
+      ws.cell(row, 18).number(toNumber(v.d26));
+      ws.cell(row++, 19).number(toNumber(v.d27));
     }
 
     ws2.cell(1, 1).string('จังหวัด');
@@ -3217,11 +3200,13 @@ router.get('/admit-confirm-case-summary/excel', async (req: Request, res: Respon
     ws2.cell(1, 9).string('เครื่องช่วยหายใจ');
     ws2.cell(1, 10).string('วันที่บันทึกล่าสุด');
     ws2.cell(1, 11).string('ไม่ได้บันทึกมา');
-    ws2.cell(1, 12).string('Favipiravi');
+    ws2.cell(1, 12).string('Favipiravir');
+    ws2.cell(1, 13).string('Casirivimab and imdevimab');
+    ws2.cell(1, 14).string('Molnupiravir');
+
 
     let rows = 2;
     for (const v of rsList) {
-      console.log(v.date_admit, 'xxxxxxxxxxxxxxxxxxxxxx');
       ws2.cell(rows, 1).string(v.province_name);
       ws2.cell(rows, 2).string(v.hospname);
       ws2.cell(rows, 3).string(v.hn + '/' + v.an);
@@ -3234,6 +3219,8 @@ router.get('/admit-confirm-case-summary/excel', async (req: Request, res: Respon
       ws2.cell(rows, 10).string(moment(v.updated_entry_last).format('DD-MM-YYYY'));
       ws2.cell(rows, 11).string(v.days + ' วัน');
       ws2.cell(rows, 12).string(toString(v['d8']));
+      ws2.cell(rows, 12).string(toString(v['d26']));
+      ws2.cell(rows, 12).string(toString(v['d27']));
       rows++;
     }
 
