@@ -43,14 +43,14 @@ export class CovidCaseModel {
     // .groupBy('pt.id')
   }
 
-  getCovidCasesAmount(db: Knex, hospitalId: number, bedId: number) {
+  getCovidCasesAmount(db: Knex, date: string, hospitalId: number, bedId: number) {
     let sql = db('p_covid_cases as c')
       .count('* as used_qty')
-      .select('c.date_admit', 'c_details.bed_id')
+      .leftJoin('p_covid_case_details as cd', 'cd.covid_case_id', 'c.id')
       .leftJoin('p_patients as p', 'p.id', 'c.patient_id')
       .where('c.is_deleted','N')
       .where('c.status','ADMIT')
-      .where('c_details.bed_id', bedId)
+      .where('cd.bed_id', bedId)
       .where('p.hospital_id', hospitalId)
 
     return sql
