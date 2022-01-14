@@ -43,17 +43,15 @@ export class CovidCaseModel {
     // .groupBy('pt.id')
   }
 
-  getCovidCasesAmount(db: Knex, date: string, hospitalId: number, bedId: number) {
-    let sql = db('p_covid_cases as covid_case')
+  getCovidCasesAmount(db: Knex, hospitalId: number, bedId: number) {
+    let sql = db('p_covid_cases as c')
       .count('* as used_qty')
-      .select('covid_case.date_admit', 'covid_case_details.bed_id')
-      .leftJoin('p_covid_case_details as covid_case_details', 'covid_case_details.covid_case_id', 'covid_case.id')
-      .leftJoin('p_patients as patients', 'patients.id', 'covid_case.patient_id')
-      .where('covid_case.date_admit', date)
-      .whereNotIn('covid_case.date_admit', ['DISCHARGE', 'DEATH'])
-      .where('covid_case.case_status', 'COVID')
-      .where('covid_case_details.bed_id', bedId)
-      .where('patients.hospital_id', hospitalId)
+      .leftJoin('p_covid_case_details as cd', 'cd.covid_case_id', 'c.id')
+      .leftJoin('p_patients as p', 'p.id', 'c.patient_id')
+      .where('c.is_deleted', 'N')
+      .where('c.status', 'ADMIT')
+      .where('cd.bed_id', bedId)
+      .where('p.hospital_id', hospitalId)
 
     return sql
   }
@@ -64,15 +62,15 @@ export class CovidCaseModel {
       .where('covid_case_details.status', 'ADMIT')
       .update('covid_case_details.status', 'DISCHARGE')
 
-      if (!isBedtype) {
-        sql.where('covid_case_details.gcs_id', statusId)
+    if (!isBedtype) {
+      sql.where('covid_case_details.gcs_id', statusId)
         .where('covid_cases.date_admit', '<', date)
-      }
-      
-      if (isBedtype) {
-        sql.where('covid_case_details.bed_id', statusId)
+    }
+
+    if (isBedtype) {
+      sql.where('covid_case_details.bed_id', statusId)
         .where('covid_cases.date_admit', '<', date)
-      }
+    }
 
     return sql
   }
@@ -180,7 +178,7 @@ export class CovidCaseModel {
 
   getDrugsFromCovidCaseDetailId(db: Knex, covidCaseDetailId) {
     const sql = db('b_generics as g')
-    .select('g.id','g.name',db.raw(`if(pdi.id is null,false,true) as is_check`))
+      .select('g.id', 'g.name', db.raw(`if(pdi.id is null,false,true) as is_check`))
       .leftJoin('p_covid_case_detail_items as pdi', (w: any) => {
         w.on('pdi.generic_id', 'g.id')
         w.on('pdi.covid_case_detail_id', db.raw(`${covidCaseDetailId}`))
@@ -189,11 +187,11 @@ export class CovidCaseModel {
       .where('g.is_actived', 'Y')
       .where('g.type', 'DRUG')
       .where('g.sub_type', 'COVID')
-      // console.log(sql.toString());
-      return sql;
-      
+    // console.log(sql.toString());
+    return sql;
+
   }
-  
+
   getInfo(db: Knex, hospitalId, covidCaseId) {
     return db('p_covid_cases as c')
       .select('c.id as covid_case_id', 'c.an', 'c.status', 'c.date_admit', 'c.confirm_date', 'pt.person_id', 'pt.id as patient_id', 'pt.hn', 'p.*', 't.name as title_name',
@@ -546,6 +544,7 @@ export class CovidCaseModel {
         v.where('bb.is_hospital', hospitalType == 'HOSPITAL' ? 'Y' : 'N')
         v.orWhere('bb.is_hospitel', hospitalType == 'HOSPITEL' ? 'Y' : 'N')
         v.orWhere('bb.is_field', hospitalType == 'FIELD' ? 'Y' : 'N')
+        v.orWhere('bb.is_ci', hospitalType == 'CI' ? 'Y' : 'N')
       })
       .where('bb.is_deleted', 'N')
   }
@@ -577,6 +576,7 @@ export class CovidCaseModel {
         v.where('bg.is_hospital', hospitalType == 'HOSPITAL' ? 'Y' : 'N')
         v.orWhere('bg.is_hospitel', hospitalType == 'HOSPITEL' ? 'Y' : 'N')
         v.orWhere('bg.is_field', hospitalType == 'FIELD' ? 'Y' : 'N')
+        v.orWhere('bg.is_ci', hospitalType == 'CI' ? 'Y' : 'N')
       })
       .where('bg.is_deleted', 'N')
   }
@@ -813,7 +813,7 @@ export class CovidCaseModel {
 
   updateIsSendPhr(db: Knex, caseId) {
     return db('p_covid_cases')
-    .update('is_send_phr', 'Y')
-    .whereIn('id', caseId);
+      .update('is_send_phr', 'Y')
+      .whereIn('id', caseId);
   }
 }

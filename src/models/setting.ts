@@ -18,6 +18,10 @@ export class BedModel {
 			sql.where('b.is_hospital', 'Y')
 		} else if (hospitalType === 'HOSPITEL') {
 			sql.where('b.is_hospitel', 'Y')
+		} else if (hospitalType === 'FIELD') {
+			sql.where('b.is_field', 'Y')
+		} else if (hospitalType === 'CI') {
+			sql.where('b.is_ci', 'Y')
 		}
 		return sql;
 	}

@@ -1119,7 +1119,7 @@ vc.updated_entry  as updated_entry`))
         'm.name as supplies_name',
         'c.update_date',
         'c.an',
-        'c.id as cid',
+        'p.cid as cid',
         'cd.id as detail_id',
         'h.head_hospcode',
         'hs.name as sub_ministry_name',
