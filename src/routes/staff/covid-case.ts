@@ -358,11 +358,9 @@ router.post('/', async (req: Request, res: Response) => { // TODO: check amount 
           res.send({ ok: false, error: 'มีบัครุนแรงติดต่อคุณแอมป์ด่วนค่ะ !!' });
         }
       }
-    } else if (errorMessage) {
-      res.send({ ok: false, error: errorMessage });
     } else {
       // ไม่มี patient
-      res.send(await saveCovidCase(db, req, data));
+      res.send(await saveCovidCase(db, req, data, errorMessage));
     }
   } catch (error) {
     res.send({ ok: false, error: error });
