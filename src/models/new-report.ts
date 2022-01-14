@@ -951,7 +951,7 @@ export class ReportModel {
         'g.name as gcs_name',
         'b.name as bed_name',
         'm.name as supplies_name',
-        'c.update_date',
+        'cd.updated_entry as update_date',
         'c.an',
         'p.cid as cid',
         'cd.id as detail_id',
@@ -959,6 +959,7 @@ export class ReportModel {
         'hs.name as sub_ministry_name',
         'p.birth_date',
         'dms.sector',
+        db.raw(`DATEDIFF( now(),(cd.updated_entry) ) as day_not`)
       )
       .leftJoin('p_covid_case_detail_last as cl', 'c.id', 'cl.covid_case_id')
       .leftJoin('p_covid_case_details as cd', 'cd.id', 'cl.covid_case_detail_id')
@@ -1012,6 +1013,7 @@ export class ReportModel {
       .leftJoin('p_covid_cases as c', 'c.id', 'cd.covid_case_id')
       .leftJoin('b_generics as g', 'g.id', 'ci.generic_id')
       .groupBy('cd.id')
+      .groupBy('g.id')
       .where('c.is_deleted ', 'N')
       .where('c.date_admit', date)
 

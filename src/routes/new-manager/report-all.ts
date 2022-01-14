@@ -142,7 +142,7 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
     const uniq = uniqBy(rs, 'zone_code');
     for (const u of uniq) {
       const fil = filter(rs, { zone_code: u.zone_code });
-      let sum = ['รวมเขต', u.zone_code];
+      // let sum = ['รวมเขต', u.zone_code];
       console.log(fil);
       const uniqP = uniqBy(fil, 'province_code');
       for (const f of uniqP) {
@@ -169,13 +169,19 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
         data.push(obj);
 
       }
+      let sum: any = [];
       for (const i of headers) {
         const hfil = filter(fil, { bed_id: i.id });
         sum.push(sumBy(hfil, 'total'))
         sum.push(sumBy(hfil, 'used'))
         sum.push(sumBy(hfil, 'total') - sumBy(hfil, 'used'))
       }
-      data.push(sum);
+      const objS = {
+        zone_code: 'รวมเขต',
+        province_name: u.zone_code,
+        array: sum
+      }
+      data.push(objS);
     }
     sumAll.push('รวมทั้งหมด')
     for (const i of headers) {
@@ -199,17 +205,13 @@ router.get('/bed-report-by-hospital', async (req: Request, res: Response) => {
   try {
     let rs: any
     if (date) {
-      rs = await model.getBedReportByZone(db, date, { case: null, status: 'ADMIT', groupBy: 'h.id', zones, provinces })
+      rs = await model.getBedReportByHospital(db, date, { case: null, status: 'ADMIT', zones, provinces })
     }
 
     if (!date) {
-      if (start && end) {
-        rs = await model.getBedReportByZone(db, date, { case: null, status: 'ADMIT', groupBy: 'h.id', zones, provinces }, { start: moment(start).format('YYYY-MM-DD'), end: moment(end).add(1, 'day').format('YYYY-MM-DD') })
-      } else {
-        rs = await model.getBedReportByZone(db, date, { case: null, status: 'ADMIT', groupBy: 'h.id', zones, provinces });
-      }
+      rs = await model.getBedReportByHospital(db, date, { case: null, status: 'ADMIT', zones, provinces });
     }
-
+    // res.send(rs);
     let headers = [];
     let subHeader = [];
     let data = [];
@@ -699,7 +701,8 @@ router.get('/bed-report-overview', async (req: Request, res: Response) => {
       model.getTotalUsedBedByDateRange(db, dateRange, options),
       model.getTotalBedByDateRange(db, dateRange, options)
     ])
-
+    // console.log();
+    
     res.send({ ok: true, rows: mapBedOverviewReport(bedTotal, usedBedTotal) })
   } catch (error) {
     res.send({ ok: false, error: error });

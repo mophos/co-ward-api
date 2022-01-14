@@ -156,6 +156,12 @@ export class ReportAllModel {
       .whereNotIn('covid_cases.status', ['DEATH', 'DISCHARGE'])
       .groupBy('covid_case_details.bed_id', 'covid_cases.date_admit')
 
+      if (options.bed_ids.length) {
+        sql.whereIn('covid_case_details.bed_id', options.bed_ids)
+      } else {
+        sql.whereIn('covid_case_details.bed_id', [11, 12, 13, 14])
+      }
+
     if (options.sectors?.length) {
       sql.leftJoin('views_hospital_dms as dms', 'dms.id', 'hospitals.id')
         .whereIn('dms.sector', options.sectors)
@@ -178,19 +184,33 @@ export class ReportAllModel {
   }
 
   getTotalBedByDateRange(db: Knex, { start, end }: { start: string, end: string }, options: any) {
+    console.log(options);
+
+    const max = db('wm_beds')
+      .where('date', '<', end)
+      .max('id')
+      .groupBy('hospital_id');
+
     const sql = db('wm_bed_details as bed_details')
-      .select('bed_details.covid_qty as covid_qty', 'bed_details.spare_qty as spare_qty', 'bed_details.bed_id', 'bed_info.name')
+      .select('bed_details.bed_id', 'bed_info.name')
+      .sum('bed_details.covid_qty as covid_qty')
+      .sum('bed_details.spare_qty as spare_qty')
       .leftJoin('wm_beds as bed', 'bed.id', 'bed_details.wm_bed_id')
       .leftJoin('b_beds as bed_info', 'bed_details.bed_id', 'bed_info.id')
       .leftJoin('b_hospitals as hospitals', 'bed.hospital_id', 'hospitals.id')
       .leftJoin('b_hospital_subministry as hospital_subministry', 'hospital_subministry.code', 'hospitals.sub_ministry_code')
       // .whereRaw('bed.date = (SELECT MAX(wm_beds.date) FROM wm_beds WHERE )')
-      // .whereIn('bed_details.bed_id', options.bed_ids || [11, 12, 13, 14])
-      .where('bed.date', '<', end)
 
-      .orWhereNull('bed.date')
+      // .where('bed.date', '<', end)
+      .whereIn('bed.id', max)
+
+      // .orWhereNull('bed.date')
       .groupBy('bed_details.bed_id')
-
+    if (options.bed_ids.length) {
+      sql.whereIn('bed_details.bed_id', options.bed_ids)
+    } else {
+      sql.whereIn('bed_details.bed_id', [11, 12, 13, 14])
+    }
     if (options.sectors?.length) {
       sql.leftJoin('views_hospital_dms as dms', 'dms.id', 'hospitals.id')
         .whereIn('dms.sector', options.sectors)
@@ -207,6 +227,7 @@ export class ReportAllModel {
     if (options.provinces?.length) {
       sql.whereIn('hospitals.province_code', options.provinces)
     }
+    console.log(sql.toString());
 
     return sql
   }
@@ -217,6 +238,8 @@ export class ReportAllModel {
       .leftJoin('views_medical_supplies_hospital_cross as vm', 'vh.id', 'vm.hospital_id')
       .groupBy('vh.id')
       .orderBy('vh.zone_code', 'ASC')
+      .orderBy('vh.province_name', 'ASC')
+      .orderBy('vh.hospname', 'ASC')
 
     if (hospitalIds.length > 0) {
       sql.whereIn('vm.hospital_id', hospitalIds)
@@ -249,8 +272,11 @@ export class ReportAllModel {
       .leftJoin('b_beds as b', 'b.id', 'cd.bed_id')
       .where('cd.status', options.status)
       .where('c.is_deleted', 'N')
+      .where('h.is_deleted', 'N')
       .groupBy(options.groupBy, 'cd.bed_id')
       .orderBy('h.zone_code')
+      .orderBy('h.province_name')
+      .orderBy('h.hospname')
       .as('a')
 
     if (moment(date, 'YYYY-MM-DD').isValid()) {
@@ -304,19 +330,20 @@ export class ReportAllModel {
       provinces: string[]
     }) {
     const sql = db('p_covid_case_details AS cd')
-    sql.select('h.zone_code', 'cd.bed_id', 'b.name as bed_name', 'h.province_code', 'h.province_name', 'h.hospname', 'h.id', 'h.hospcode', 'h.level', 'hs.name as sub_ministry_name')
+    sql.select('h.zone_code', 'cd.bed_id', 'h.province_code', 'h.province_name', 'h.hospname', 'h.id as hospital_id')
       .count('* as used')
-      .sum('bh.covid_qty as total')
       .leftJoin('p_covid_cases as c', 'cd.covid_case_id', 'c.id')
       .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
       .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')
-      .leftJoin('b_hospital_subministry as hs', 'hs.code', 'h.sub_ministry_code')
-      .leftJoin('b_beds as b', 'b.id', 'cd.bed_id')
-      .joinRaw('LEFT JOIN b_bed_hospitals AS bh ON bh.bed_id = cd.bed_id AND bh.hospital_id = h.id')
+      // .joinRaw('LEFT JOIN b_bed_hospitals AS bh ON bh.bed_id = cd.bed_id AND bh.hospital_id = h.id')
       .where('cd.status', options.status)
       .where('c.is_deleted', 'N')
+      .where('h.is_deleted', 'N')
       .groupBy('h.id', 'cd.bed_id')
       .orderBy('h.zone_code')
+      .orderBy('h.province_name')
+      .orderBy('h.hospname')
+      .as('a')
 
     if (moment(date, 'YYYY-MM-DD').isValid()) {
       sql.where('cd.entry_date', date)
@@ -334,9 +361,29 @@ export class ReportAllModel {
       // sql.whereIn('h.zone_code', options.zones)
       sql.whereIn('h.province_code', options.provinces)
     }
-    console.log(sql.toString());
 
-    return sql
+
+    const sqlBed = db('b_bed_hospitals as bh')
+      .select('h.id as hospital_id', 'bh.bed_id', 'h.hospname', 'h.zone_code', 'h.hospcode', 'h.province_name', 'h.level', 'hs.name as sub_ministry_name')
+      .sum('bh.covid_qty as covid_qty')
+      .join('b_hospitals as h', 'h.id', 'bh.hospital_id')
+      .leftJoin('b_hospital_subministry as hs', 'hs.code', 'h.sub_ministry_code')
+      .where('h.is_deleted', 'N')
+      .groupBy('bh.bed_id')
+      .groupBy('h.id')
+      .orderBy('h.zone_code')
+      .orderBy('h.province_name')
+      .orderBy('h.hospname')
+      .as('b')
+
+    const finalSQL = db(sqlBed).select('b.hospname', 'b.zone_code', 'b.hospcode', 'b.province_name', 'b.level', 'a.used', 'b.bed_id', 'b.sub_ministry_name', 'b.covid_qty as total')
+      .leftJoin(sql, (w) => {
+        w.on('a.hospital_id', 'b.hospital_id')
+        w.on('a.bed_id', 'b.bed_id')
+      })
+    // console.log(finalSQL.toString());
+
+    return finalSQL;
   }
 
   bedReportByZone(db: Knex, date: any, sector: any, zones = []) {
@@ -498,6 +545,8 @@ export class ReportAllModel {
       .where('cl.entry_date', '>=', '2020-12-15')
       .groupBy('cl.hospital_id')
       .orderBy('vh.zone_code', 'ASC')
+      .orderBy('vh.province_name', 'ASC')
+      .orderBy('vh.hospname', 'ASC')
     // console.log(sql.toString());
 
     return sql;
@@ -1128,6 +1177,7 @@ vc.updated_entry  as updated_entry`))
       .join('b_beds as b', 'b.id', 'bh.bed_id')
       .join('b_hospitals as h', 'h.id', 'bh.hospital_id')
       .leftJoin('b_hospital_subministry as hs', 'hs.code', 'h.sub_ministry_code')
+      .where('h.is_deleted', 'N')
       .orderBy('h.zone_code')
       .orderBy('h.province_name')
       .orderBy('h.hospname')
