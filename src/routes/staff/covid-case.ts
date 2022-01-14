@@ -308,11 +308,11 @@ router.post('/', async (req: Request, res: Response) => { // TODO: check amount 
     //   return covidCaseModel.getAmountOfBedByHospitalId(db, hospitalId, each.bed_id, date)
     // }))
 
-    const bedAmounts =  await covidCaseModel.getAmountOfBedByHospitalId(db, hospitalId)
+    const bedAmounts = await covidCaseModel.getAmountOfBedByHospitalId(db, hospitalId)
 
     const caseAmounts: any[] = await Promise.all(detail.map(async (each: any) => {
-      const date = moment(each.date).format('YYYY-MM-DD')
-      return covidCaseModel.getCovidCasesAmount(db, date, hospitalId, each.bed_id)
+      // const date = moment(each.date).format('YYYY-MM-DD')
+      return covidCaseModel.getCovidCasesAmount(db, hospitalId, each.bed_id)
     }))
 
     let errorMessage = null
@@ -333,23 +333,23 @@ router.post('/', async (req: Request, res: Response) => { // TODO: check amount 
     for (let i = 0; i < caseAmounts.length; i++) {
       const useQty = caseAmounts[i][0]?.used_qty || 0
       const currentBed = bedAmounts.find((bed) => bed.bed_id === detail[i].bed_id)
-      
+
       if (!currentBed) {
         errorMessage = 'beds have not been set amount'
         break
       }
 
       const covidQty = currentBed.covid_qty || 0
-      if ( covidQty <= useQty) {
+      if (covidQty <= useQty) {
         errorMessage = 'beds are not enough'
         break
       }
     }
-    
-    if (rsPatient.length && data.confirm != 'Y' && !errorMessage) {
+
+    if (rsPatient.length && data.confirm != 'Y') {
       if (data.type == 'CID' || (data.type == 'PASSPORT' && data.passport)) {
         // มี patient
-        res.send(await saveCovidCase(db, req, data));
+        res.send(await saveCovidCase(db, req, data, errorMessage));
       } else {
         const rsPerson = await covidCaseModel.getPerson(db, rsPatient[0].person_id);
         if (rsPerson.length) {
@@ -363,7 +363,7 @@ router.post('/', async (req: Request, res: Response) => { // TODO: check amount 
     } else {
       // ไม่มี patient
       res.send(await saveCovidCase(db, req, data));
-    } 
+    }
   } catch (error) {
     res.send({ ok: false, error: error });
   }
@@ -375,7 +375,7 @@ router.post('/sd', async (req: Request, res: Response) => {
   return await saveCovidCase(db, req, data);
 });
 
-async function saveCovidCase(db, req, data) {
+async function saveCovidCase(db, req, data, errorMessage = null) {
   const hospitalId = req.decoded.hospitalId;
 
   const userId = req.decoded.id;
@@ -614,7 +614,7 @@ async function saveCovidCase(db, req, data) {
             await covidCaseModel.saveCovidCaseDetailItem(db, item);
           }
         }
-        return ({ ok: true, code: HttpStatus.OK });
+        return ({ ok: true, code: HttpStatus.OK, error: errorMessage });
       } else {
         return ({ ok: false, error: 'ไม่มี personId' });
       }
