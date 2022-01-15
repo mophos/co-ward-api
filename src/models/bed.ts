@@ -77,6 +77,7 @@ export class BedModel {
       .select('h.id', 'h.hospname', 'h.hosptype_id', 'v.*', 'h.hospital_type')
       .join('views_bed_hospital_cross as v', 'v.hospital_id', 'h.id')
       .where('zone_code', zoneCode)
+      .whereIn('h.hosptype_code',['05', '06', '07', '11', '12', '15', '19'])
       .where('province_code', provinceCode);
     return sql;
   }
