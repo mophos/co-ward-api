@@ -156,11 +156,11 @@ export class ReportAllModel {
       .whereNotIn('covid_cases.status', ['DEATH', 'DISCHARGE'])
       .groupBy('covid_case_details.bed_id', 'covid_cases.date_admit')
 
-      if (options.bed_ids.length) {
-        sql.whereIn('covid_case_details.bed_id', options.bed_ids)
-      } else {
-        sql.whereIn('covid_case_details.bed_id', [11, 12, 13, 14])
-      }
+    if (options.bed_ids.length) {
+      sql.whereIn('covid_case_details.bed_id', options.bed_ids)
+    } else {
+      sql.whereIn('covid_case_details.bed_id', [11, 12, 13, 14])
+    }
 
     if (options.sectors?.length) {
       sql.leftJoin('views_hospital_dms as dms', 'dms.id', 'hospitals.id')
@@ -663,13 +663,18 @@ export class ReportAllModel {
       // .leftJoin('b_medical_supplies as ms', 'ms.id', 'cd.medical_supplie_id')
       .leftJoin('b_gcs as g', 'g.id', 'cd.gcs_id')
       .where('cd.entry_date', date)
-      .where('c.case_status', options.case)
+      // .where('c.case_status', options.case)
       .where('cd.status', options.status)
       .where('c.is_deleted', 'N')
       .whereNotNull('cd.gcs_id')
       .groupBy(options.groupBy, 'cd.gcs_id')
       .orderBy('h.zone_code')
 
+    if (options.case == 'COVID') {
+       sql.whereIn('cd.gcs_id', [1,2,3,4]);
+    } else if (options.case == 'IPPUI') {
+      sql.where('cd.gcs_id', 5);
+    }
     if (options.groupBy === 'h.zone_code') {
       sql.select('h.zone_code', 'cd.gcs_id', 'g.name as gcs_name')
     }
