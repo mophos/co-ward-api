@@ -352,6 +352,7 @@ export class ReportAllModel {
     if (options.case) {
       sql.where('c.case_status', options.case)
     }
+    console.log(options.zones);
 
     if (options.zones?.length > 0) {
       sql.whereIn('h.zone_code', options.zones)
@@ -376,6 +377,13 @@ export class ReportAllModel {
       .orderBy('h.hospname')
       .as('b')
 
+    if (options.zones?.length > 0) {
+      sqlBed.whereIn('h.zone_code', options.zones)
+    }
+
+    if (options.provinces?.length > 0) {
+      sqlBed.whereIn('h.province_code', options.provinces)
+    }
     const finalSQL = db(sqlBed).select('b.hospname', 'b.zone_code', 'b.hospcode', 'b.province_name', 'b.level', 'a.used', 'b.bed_id', 'b.sub_ministry_name', 'b.covid_qty as total')
       .leftJoin(sql, (w) => {
         w.on('a.hospital_id', 'b.hospital_id')
@@ -671,9 +679,11 @@ export class ReportAllModel {
       .orderBy('h.zone_code')
 
     if (options.case == 'COVID') {
-       sql.whereIn('cd.gcs_id', [1,2,3,4]);
+      sql.whereIn('cd.gcs_id', [1, 2, 3, 4]);
     } else if (options.case == 'IPPUI') {
       sql.where('cd.gcs_id', 5);
+    } else if (options.case == 'ATK') {
+      sql.where('cd.gcs_id', 7);
     }
     if (options.groupBy === 'h.zone_code') {
       sql.select('h.zone_code', 'cd.gcs_id', 'g.name as gcs_name')
