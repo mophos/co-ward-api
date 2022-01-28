@@ -88,6 +88,18 @@ router.get('/autocomplete/ampur', async (req: Request, res: Response) => {
 
 });
 
+router.get('/province', async (req: Request, res: Response) => {
+  const db = req.db;
+  try {
+
+    const rs = await model.getProvince(db);
+    res.send({ ok: true, rows: rs });
+
+  } catch (error) {
+    res.send({ ok: false, error: error });
+  }
+});
+
 router.get('/autocomplete/province', async (req: Request, res: Response) => {
   const db = req.db;
   const query = req.query.q;
@@ -186,10 +198,10 @@ router.get('/getAddCode', async (req: Request, res: Response) => {
     const province = req.query.p
     const zipcode = req.query.z
     // console.log( tambon, ampur, province, zipcode);
-    
+
     let rs: any = await model.getAdd(req.db, tambon, ampur, province, zipcode);
     // console.log(1,rs);
-    
+
     if (rs[0].length) {
       res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
     } else {
