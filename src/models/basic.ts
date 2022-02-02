@@ -420,4 +420,10 @@ export class BasicModel {
 	showSlaveStatus(db: Knex) {
 		return db.raw('show slave status');
 	}
+
+	getProvince(db: Knex) {
+		return db('b_province')
+			.orderBy('name_th')
+
+	}
 }
