@@ -406,7 +406,7 @@ router.get('/report4', async (req: Request, res: Response) => {
   }
 });
 
-const mapPatientReportByZone = (normalCases: any[], medicalCases: any[], deathCases: any[], puiCases: any[]) => {
+const mapPatientReportByZone = (normalCases: any[], medicalCases: any[], deathCases: any[], puiCases: any[], atkCases: any[]) => {
   const results = []
   // console.log(normalCases);
 
@@ -416,6 +416,7 @@ const mapPatientReportByZone = (normalCases: any[], medicalCases: any[], deathCa
     const normalCaseFounds = normalCases.filter((each) => each.zone_code === zoneCodeString)
     const medicalCasesFounds = medicalCases.filter((each) => each.zone_code === zoneCodeString)
     const puiCaseFounds = puiCases.filter((each) => each.zone_code === zoneCodeString)
+    const atkCaseFounds = atkCases.filter((each) => each.zone_code === zoneCodeString)
     const deathCasesFounds = deathCases.filter((each) => each.zone_code === zoneCodeString)
 
     let normalCaseAmount = 0
@@ -442,9 +443,11 @@ const mapPatientReportByZone = (normalCases: any[], medicalCases: any[], deathCa
 
     const deathCaseAmount = deathCasesFounds.reduce((total, acc) => total + acc.count, 0)
     const puiCaseAmount = puiCaseFounds.reduce((total, acc) => total + acc.count, 0)
+    const atkCaseAmount = atkCaseFounds.reduce((total, acc) => total + acc.count, 0)
     obj['death'] = deathCaseAmount
     obj['pui'] = puiCaseAmount
-    obj['total'] = normalCaseAmount + deathCaseAmount + puiCaseAmount
+    obj['atk'] = atkCaseAmount
+    obj['total'] = normalCaseAmount + deathCaseAmount + puiCaseAmount + atkCaseAmount
 
     results.push(obj)
   }
@@ -452,7 +455,7 @@ const mapPatientReportByZone = (normalCases: any[], medicalCases: any[], deathCa
   return results
 }
 
-const removeDupProvinceHeaders = (normalCases: any[], deathCases: any[], puiCases: any[],atkCases:any[]) => {
+const removeDupProvinceHeaders = (normalCases: any[], deathCases: any[], puiCases: any[], atkCases: any[]) => {
   const results = []
   normalCases.forEach((each) => {
     if (!results.some((result) => result.province_code === each.province_code)) {
@@ -582,7 +585,7 @@ const mapPatientReportByProvince = (normalCases: any[], medicalCases: any[], dea
     obj['death'] = deathCaseAmount
     obj['pui'] = puiCaseAmount
     obj['atk'] = atkCaseAmount
-    obj['total'] = normalCaseAmount + deathCaseAmount + puiCaseAmount+atkCaseAmount
+    obj['total'] = normalCaseAmount + deathCaseAmount + puiCaseAmount + atkCaseAmount
 
     results.push(obj)
   })
@@ -662,11 +665,12 @@ router.get('/patient-report-by-zone', async (req: Request, res: Response) => {
   const date = req.query.date || moment().format('YYYY-MM-DD');
 
   try {
-    const [cases, medicalCases, deathCases, puiCases] = await Promise.all([
+    const [cases, medicalCases, deathCases, puiCases, atkCases] = await Promise.all([
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] }),
       model.getPatientsCasesGroupByMedicalSupplies(db, moment(date).format('YYYY-MM-DD'), { case: null, status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] }),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'DEATH', groupBy: 'h.zone_code', zones: [], provinces: [] }),
-      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'IPPUI', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] })
+      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'IPPUI', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] }),
+      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'ATK', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] })
     ])
     // const [headers, cases, medicalCases, deathCases, puiCases] = await Promise.all([
     //   model.getPatientsReportHeaders(db),
@@ -676,7 +680,7 @@ router.get('/patient-report-by-zone', async (req: Request, res: Response) => {
     //   model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'IPPUI', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] })
     // ])
 
-    const result = mapPatientReportByZone(cases, medicalCases, deathCases, puiCases)
+    const result = mapPatientReportByZone(cases, medicalCases, deathCases, puiCases, atkCases)
     res.send({ ok: true, rows: result, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
