@@ -330,21 +330,21 @@ router.post('/', async (req: Request, res: Response) => { // TODO: check amount 
     //   }
     // }
 
-    for (let i = 0; i < caseAmounts.length; i++) {
-      const useQty = caseAmounts[i][0]?.used_qty || 0
-      const currentBed = bedAmounts.find((bed) => bed.bed_id === detail[i].bed_id)
+    // for (let i = 0; i < caseAmounts.length; i++) {
+    //   // const useQty = caseAmounts[i][0]?.used_qty || 0
+    //   // const currentBed = bedAmounts.find((bed) => bed.bed_id === detail[i].bed_id)
 
-      if (!currentBed) {
-        errorMessage = 'beds have not been set amount'
-        break
-      }
+    //   // if (!currentBed) {
+    //   //   errorMessage = 'beds have not been set amount'
+    //   //   break
+    //   // }
 
-      const covidQty = currentBed.covid_qty || 0
-      if (covidQty <= useQty) {
-        errorMessage = 'beds are not enough'
-        break
-      }
-    }
+    //   const covidQty = currentBed.covid_qty || 0
+    //   if (covidQty <= useQty) {
+    //     errorMessage = 'beds are not enough'
+    //     break
+    //   }
+    // }
 
     if (rsPatient.length && data.confirm != 'Y') {
       if (data.type == 'CID' || (data.type == 'PASSPORT' && data.passport)) {
