@@ -76,7 +76,7 @@ router.get('/', async (req: Request, res: Response) => {
         console.log('api');
         const apiRs: any = await model.getApiExchangeCid(key)
         const rows = apiRs.rows[0];
-        if (rows.birthdate.substr(5, 2) || rows.birthdate.substr(8, 2)) {
+        if (rows.birthdate.substr(5, 2) == '00' || rows.birthdate.substr(8, 2) == '00') {
           rows.birthdate = rows.birthdate.substr(0, 4) + '-01-01';
         }
         const bdate = (+moment(rows.birthdate).format('YYYY') - 543) + '-' + moment(rows.birthdate).format('MM') + '-' + moment(rows.birthdate).format('DD')
