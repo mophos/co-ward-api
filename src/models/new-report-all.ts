@@ -304,7 +304,7 @@ export class ReportAllModel {
     }
 
     const sqlBed = db('b_bed_hospitals as bh')
-      .select('h.zone_code', 'bed_id')
+      .select('h.zone_code','h.province_code', 'bed_id')
       .sum('bh.covid_qty as covid_qty')
       .join('b_hospitals as h', 'h.id', 'bh.hospital_id')
       .groupBy('bh.bed_id')
@@ -316,6 +316,84 @@ export class ReportAllModel {
         w.on('a.zone_code', 'b.zone_code')
         w.on('a.bed_id', 'b.bed_id')
       })
+      // .limit(10)
+      // console.log(finalSQL.toString());
+      
+    return finalSQL;
+
+  }
+
+  getBedReportByProvince(
+    db: Knex,
+    date: string,
+    options: {
+      case: string,
+      status: string,
+      groupBy: string,
+      zones: string[],
+      provinces: string[]
+    },
+    dateRange: {
+      start: string,
+      end: string
+    } = null) {
+    const sql = db('p_covid_case_details AS cd')
+      .select('h.zone_code', 'cd.bed_id', 'b.name as bed_name', 'h.province_code', 'h.province_name', 'h.hospname', 'h.id', 'h.hospcode', 'h.level', 'hs.name as sub_ministry_name')
+      .count('* as used')
+      .leftJoin('p_covid_cases as c', 'cd.covid_case_id', 'c.id')
+      .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
+      .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')
+      .leftJoin('b_hospital_subministry as hs', 'hs.code', 'h.sub_ministry_code')
+      .leftJoin('b_beds as b', 'b.id', 'cd.bed_id')
+      .where('cd.status', options.status)
+      .where('c.is_deleted', 'N')
+      .where('h.is_deleted', 'N')
+      .groupBy(options.groupBy, 'cd.bed_id')
+      .orderBy('h.zone_code')
+      .orderBy('h.province_name')
+      .orderBy('h.hospname')
+      .as('a')
+
+    if (moment(date, 'YYYY-MM-DD').isValid()) {
+      sql.where('cd.entry_date', date)
+    }
+
+    if (options.case) {
+      sql.where('c.case_status', options.case)
+    }
+
+    if (!date && dateRange) {
+      if (moment(dateRange.start, 'YYYY-MM-DD').isValid()) {
+        sql.whereBetween('cd.entry_date', [dateRange.start, dateRange.end])
+      }
+    }
+
+
+
+    if (options.zones?.length > 0) {
+      sql.whereIn('h.zone_code', options.zones)
+    }
+
+    if (options.provinces?.length > 0) {
+      sql.whereIn('h.province_code', options.provinces)
+    }
+
+    const sqlBed = db('b_bed_hospitals as bh')
+      .select('h.zone_code','h.province_code', 'bed_id')
+      .sum('bh.covid_qty as covid_qty')
+      .join('b_hospitals as h', 'h.id', 'bh.hospital_id')
+      .groupBy('bh.bed_id')
+      .groupBy('h.province_code')
+      .as('b')
+
+    const finalSQL = db(sql).select('a.*', 'b.covid_qty as total')
+      .join(sqlBed, (w) => {
+        w.on('a.province_code', 'b.province_code')
+        w.on('a.bed_id', 'b.bed_id')
+      })
+      // .limit(10)
+      // console.log(finalSQL.toString());
+      
     return finalSQL;
 
   }

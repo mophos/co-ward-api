@@ -122,11 +122,11 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
   try {
     let rs: any
     if (date) {
-      rs = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: null, status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] });
+      rs = await model.getBedReportByProvince(db, moment(date).format('YYYY-MM-DD'), { case: null, status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] });
     }
 
     if (!date) {
-      rs = await model.getBedReportByZone(db, null, { case: null, status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] }, { start: moment(start).format('YYYY-MM-DD'), end: moment(end).add(1, 'day').format('YYYY-MM-DD') });
+      rs = await model.getBedReportByProvince(db, null, { case: null, status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] }, { start: moment(start).format('YYYY-MM-DD'), end: moment(end).add(1, 'day').format('YYYY-MM-DD') });
     }
     let headers = [];
     let subHeader = [];
@@ -143,7 +143,7 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
     for (const u of uniq) {
       const fil = filter(rs, { zone_code: u.zone_code });
       // let sum = ['รวมเขต', u.zone_code];
-      console.log(fil);
+      // console.log(fil);
       const uniqP = uniqBy(fil, 'province_code');
       for (const f of uniqP) {
         const filP = filter(fil, { province_code: f.province_code });
