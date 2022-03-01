@@ -2372,16 +2372,32 @@ router.get('/admit-pui-case', async (req: Request, res: Response) => {
       const rs: any = await model.admitPuiCase(db, showPersons, limit, offset);
       const rsTotal: any = await model.admitPuiCaseTotal(db);
       res.send({ ok: true, rows: rs, total: rsTotal[0].total, code: HttpStatus.OK });
-      // } else if (providerType == 'ZONE') {
-      //   const rs: any = await model.admitConfirmCaseProvice(db, zoneCode, null, showPersons);
-      //   res.send({ ok: true, rows: rs, code: HttpStatus.OK });
-      // } else if (providerType == 'SSJ') {
-      //   const rs: any = await model.admitConfirmCaseProvice(db, zoneCode, provinceCode, showPersons);
-      //   res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else {
       res.send({ ok: false, code: HttpStatus.UNAUTHORIZED, error: HttpStatus.UNAUTHORIZED });
 
     }
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+
+router.get('/admit-pui-case/total', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const type = req.decoded.type;
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
+  const provinceCode = req.decoded.provinceCode;
+  const right = req.decoded.rights;
+
+  const showPersons = _.findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 || _.findIndex(right, { name: 'STAFF_VIEW_PATIENT_INFO' }) > -1 ? true : false;
+
+  try {
+    if (type == 'MANAGER') {
+      const rs: any = await model.admitPuiCaseTotal(db);
+      res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
+    } 
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
