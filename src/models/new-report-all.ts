@@ -338,13 +338,11 @@ export class ReportAllModel {
       end: string
     } = null) {
     const sql = db('p_covid_case_details AS cd')
-      .select('h.zone_code', 'cd.bed_id', 'b.name as bed_name', 'h.province_code', 'h.province_name', 'h.hospname', 'h.id', 'h.hospcode', 'h.level', 'hs.name as sub_ministry_name')
+      .select('h.zone_code', 'cd.bed_id','h.province_code')
       .count('* as used')
       .leftJoin('p_covid_cases as c', 'cd.covid_case_id', 'c.id')
       .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
       .leftJoin('b_hospitals as h', 'pt.hospital_id', 'h.id')
-      .leftJoin('b_hospital_subministry as hs', 'hs.code', 'h.sub_ministry_code')
-      .leftJoin('b_beds as b', 'b.id', 'cd.bed_id')
       .where('cd.status', options.status)
       .where('c.is_deleted', 'N')
       .where('h.is_deleted', 'N')
@@ -378,16 +376,42 @@ export class ReportAllModel {
       sql.whereIn('h.province_code', options.provinces)
     }
 
+    // `h`.`zone_code`,
+		// `cd`.`bed_id`,
+		// `b`.`name` AS `bed_name`,
+		// `h`.`province_code`,
+		// `h`.`province_name`,
+		// `h`.`hospname`,
+		// `h`.`id`,
+		// `h`.`hospcode`,
+		// `h`.`level`,
+		// `hs`.`name` AS `sub_ministry_name`,
+		// count(*) AS `used` 
+
     const sqlBed = db('b_bed_hospitals as bh')
-      .select('h.zone_code','h.province_code', 'bed_id')
-      .sum('bh.covid_qty as covid_qty')
+      .select('h.zone_code','bh.bed_id', 'b.name as bed_name', 'h.province_code', 'h.province_name', 'h.hospname', 'h.id', 'h.hospcode', 'h.level', 'hs.name as sub_ministry_name')
+      .sum('bh.covid_qty as total')
       .join('b_hospitals as h', 'h.id', 'bh.hospital_id')
+      .leftJoin('b_beds as b', 'b.id', 'bh.bed_id')
+      .leftJoin('b_hospital_subministry as hs', 'hs.code', 'h.sub_ministry_code')
       .groupBy('bh.bed_id')
       .groupBy('h.province_code')
       .as('b')
 
-    const finalSQL = db(sql).select('a.*', 'b.covid_qty as total')
-      .join(sqlBed, (w) => {
+      if (options.zones?.length > 0) {
+        sqlBed.whereIn('h.zone_code', options.zones)
+      }
+  
+      if (options.provinces?.length > 0) {
+        sqlBed.whereIn('h.province_code', options.provinces)
+      }
+    // const finalSQL = db(sql).select('a.*', 'b.covid_qty as total')
+    //   .join(sqlBed, (w) => {
+    //     w.on('a.province_code', 'b.province_code')
+    //     w.on('a.bed_id', 'b.bed_id')
+    //   })
+    const finalSQL = db(sqlBed).select('b.*', 'a.used as used')
+      .leftJoin(sql, (w) => {
         w.on('a.province_code', 'b.province_code')
         w.on('a.bed_id', 'b.bed_id')
       })
