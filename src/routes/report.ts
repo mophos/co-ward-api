@@ -1179,6 +1179,8 @@ router.get('/get-supplies', async (req: Request, res: Response) => {
 
   try {
     let zoneCodes = [];
+    console.log(type, zone);
+
     let provinceCode = null;
     if (type == 'MANAGER') {
       if (zone) {
@@ -1194,7 +1196,7 @@ router.get('/get-supplies', async (req: Request, res: Response) => {
         provinceCode = _provinceCode;
       }
     }
-
+    console.log(type, zoneCodes,provinceCode);
     let data: any = [];
 
     let province;
@@ -1202,12 +1204,13 @@ router.get('/get-supplies', async (req: Request, res: Response) => {
 
     if (zoneCodes.length) {
       sup = await model.getSupplies(db, date, null, zoneCodes);
-      province = await model.getProvince(db, zoneCode, null);
+      province = await model.getProvince(db, zoneCodes, null);
     } else {
       sup = await model.getSupplies(db, date, null, null);
       province = await model.getProvince(db, null, null);
     }
-
+    console.log(province);
+    
     for (const z of zoneCodes) {
       const zone: any = {};
       zone.name = z;
@@ -2397,7 +2400,7 @@ router.get('/admit-pui-case/total', async (req: Request, res: Response) => {
     if (type == 'MANAGER') {
       const rs: any = await model.admitPuiCaseTotal(db);
       res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
-    } 
+    }
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });

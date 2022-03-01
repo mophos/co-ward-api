@@ -183,7 +183,7 @@ export class ReportModel {
     sql.orderBy('h.zone_code')
       .orderBy('h.province_code')
       .orderBy('h.hospcode');
-    // console.log(sql.toString());
+    console.log(sql.toString());
 
     return sql;
   }
@@ -211,8 +211,12 @@ export class ReportModel {
 
   getProvince(db: Knex, zoneCode = null, provinceCode = null) {
     const sql = db('b_province');
-    if (zoneCode) {
-      sql.where('zone_code', zoneCode);
+    if (zoneCode.length) {
+      if (typeof zoneCode === 'string') {
+        sql.where('zone_code', zoneCode);
+      } else {
+        sql.whereIn('zone_code', zoneCode);
+      }
     }
     if (provinceCode) {
       sql.where('code', provinceCode);
@@ -412,7 +416,7 @@ export class ReportModel {
 
   admitConfirmCase(db: Knex, showPersons = false, limit = 1000, offset = 0) {
     let sql = db('temp_report_admit_comfirm_case')
-      .select('d1', 'd2', 'd3', 'd4', 'd5', 'd7', 'd8','d26','d27', 'hn', 'an', 'hospital_id', 'updated_entry_last', 'days',
+      .select('d1', 'd2', 'd3', 'd4', 'd5', 'd7', 'd8', 'd26', 'd27', 'hn', 'an', 'hospital_id', 'updated_entry_last', 'days',
         'hospname', 'hospcode', 'zone_code', 'province_name', 'date_admit', 'gcs_name', 'bed_name', 'medical_supplies_name',
         'first_name', 'last_name', 'cid', 'sat_id', 'timestamp'
       );
@@ -488,7 +492,7 @@ export class ReportModel {
   admitPuiCase(db: Knex, showPersons = false, limit = 1000, offset = 0) {
     // const last = db('p_covid_case_details')
     let sql = db('temp_report_admit_pui_case')
-      .select('d1', 'd2', 'd3', 'd4', 'd5', 'd7', 'd8','d26','d27', 'hn', 'an', 'hospital_id', 'updated_entry_last', 'days',
+      .select('d1', 'd2', 'd3', 'd4', 'd5', 'd7', 'd8', 'd26', 'd27', 'hn', 'an', 'hospital_id', 'updated_entry_last', 'days',
         'hospname', 'hospcode', 'zone_code', 'province_name', 'date_admit', 'gcs_name', 'bed_name', 'medical_supplies_name',
         'first_name', 'last_name', 'cid', 'sat_id', 'timestamp'
       );
@@ -528,7 +532,7 @@ export class ReportModel {
   admitPuiCaseByProvince(db: Knex, province: any) {
     // const last = db('p_covid_case_details')
     let sql = db('temp_report_admit_pui_case as c')
-      .select('c.d1', 'c.d2', 'c.d3', 'c.d4', 'c.d5', 'c.d7', 'c.d8','d26','d27', 'c.hn', 'c.an', 'c.hospital_id', 'c.updated_entry_last', 'c.days',
+      .select('c.d1', 'c.d2', 'c.d3', 'c.d4', 'c.d5', 'c.d7', 'c.d8', 'd26', 'd27', 'c.hn', 'c.an', 'c.hospital_id', 'c.updated_entry_last', 'c.days',
         'c.hospname', 'c.hospcode', 'c.zone_code', 'c.province_name', 'c.date_admit', 'c.gcs_name', 'c.bed_name', 'c.medical_supplies_name',
         'c.first_name', 'c.last_name', 'c.cid', 'c.sat_id', 'c.timestamp'
       );
@@ -609,7 +613,7 @@ export class ReportModel {
     const cioCheck = db('p_cio_check_confirm as ci').whereIn('ci.id', subCioCheck).as('cc');
 
     let sql = db('temp_report_admit_comfirm_case as t')
-      .select('t.d1', 't.d2', 't.d3', 't.d4', 't.d5', 't.d7', 't.d8','t.d26','t.d27', 't.hn', 't.an', 't.hospital_id', 't.updated_entry_last', 't.days',
+      .select('t.d1', 't.d2', 't.d3', 't.d4', 't.d5', 't.d7', 't.d8', 't.d26', 't.d27', 't.hn', 't.an', 't.hospital_id', 't.updated_entry_last', 't.days',
         't.hospname', 't.hospcode', 't.zone_code', 't.province_name', 't.date_admit', 't.gcs_name', 't.bed_name', 't.medical_supplies_name',
         'first_name', 't.last_name', 't.cid', 't.sat_id', 't.timestamp', 't.sex', 't.age'
       )
@@ -627,7 +631,7 @@ export class ReportModel {
 
     if (provinceCode) {
       sql.where('h.province_code', provinceCode);
-    }    
+    }
     return sql;
   }
 
@@ -642,7 +646,7 @@ export class ReportModel {
 
   admitConfirmCaseSummaryExcel(db: Knex) {
     const sql = db('temp_report_admit_comfirm_case_summary')
-    .select(db.raw(`IFNULL(zone_code, 0) as 'เขต',IFNULL(confirm, 0) as 'รวม',IFNULL(severe, 0) as 'Severe',IFNULL(moderate, 0) as 'moderate',IFNULL(mild, 0) as 'mild',IFNULL(asymptomatic, 0) as 'asymptomatic',IFNULL(aiir, 0) as 'aiir',IFNULL(modified_aiir, 0) as 'modified_aiir',IFNULL(isolate, 0) as 'isolate',IFNULL(cohort, 0) as 'cohort',IFNULL(cohort_icu, 0) as 'cohort_icu',IFNULL(hospitel, 0) as 'Hospitel',IFNULL(invasive, 0) as 'invasive',IFNULL(noninvasive, 0) as 'noninvasive',IFNULL(high_flow, 0) as 'high_flow',IFNULL(d3, 0) as 'Darunavir 600 mg.',IFNULL(d4, 0) as 'Lopinavir 200 mg./Ritonavir 50 mg.',IFNULL(d5, 0) as 'Ritonavir 100 mg.',IFNULL(d7, 0) as 'Azithromycin 250 mg.',IFNULL(d8, 0) as 'Favipiravi(คน)'`))
+      .select(db.raw(`IFNULL(zone_code, 0) as 'เขต',IFNULL(confirm, 0) as 'รวม',IFNULL(severe, 0) as 'Severe',IFNULL(moderate, 0) as 'moderate',IFNULL(mild, 0) as 'mild',IFNULL(asymptomatic, 0) as 'asymptomatic',IFNULL(aiir, 0) as 'aiir',IFNULL(modified_aiir, 0) as 'modified_aiir',IFNULL(isolate, 0) as 'isolate',IFNULL(cohort, 0) as 'cohort',IFNULL(cohort_icu, 0) as 'cohort_icu',IFNULL(hospitel, 0) as 'Hospitel',IFNULL(invasive, 0) as 'invasive',IFNULL(noninvasive, 0) as 'noninvasive',IFNULL(high_flow, 0) as 'high_flow',IFNULL(d3, 0) as 'Darunavir 600 mg.',IFNULL(d4, 0) as 'Lopinavir 200 mg./Ritonavir 50 mg.',IFNULL(d5, 0) as 'Ritonavir 100 mg.',IFNULL(d7, 0) as 'Azithromycin 250 mg.',IFNULL(d8, 0) as 'Favipiravi(คน)'`))
     return sql;
   }
 
