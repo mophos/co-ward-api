@@ -2373,8 +2373,8 @@ router.get('/admit-pui-case', async (req: Request, res: Response) => {
   try {
     if (type == 'MANAGER') {
       const rs: any = await model.admitPuiCase(db, showPersons, limit, offset);
-      const rsTotal: any = await model.admitPuiCaseTotal(db);
-      res.send({ ok: true, rows: rs, total: rsTotal[0].total, code: HttpStatus.OK });
+      // const rsTotal: any = await model.admitPuiCaseTotal(db);
+      res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else {
       res.send({ ok: false, code: HttpStatus.UNAUTHORIZED, error: HttpStatus.UNAUTHORIZED });
 
@@ -2399,7 +2399,7 @@ router.get('/admit-pui-case/total', async (req: Request, res: Response) => {
   try {
     if (type == 'MANAGER') {
       const rs: any = await model.admitPuiCaseTotal(db);
-      res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
+      res.send({ ok: true, rows: rs[0].total, code: HttpStatus.OK });
     }
   } catch (error) {
     console.log(error);
