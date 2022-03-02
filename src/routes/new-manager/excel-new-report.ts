@@ -20,7 +20,7 @@ function getAge(value) {
 }
 
 function formatDate(value) {
-  if(value){
+  if (value) {
     return moment(value).format('DD-MM-YYYY')
   } else {
     return '-';
@@ -88,13 +88,14 @@ function sumAllZoneByProvince(items, value) {
   return sum
 }
 
-const mapPatientReportByZone = (normalCases: any[], deathCases: any[], puiCases: any[]) => {
+const mapPatientReportByZone = (normalCases: any[], deathCases: any[], puiCases: any[], atkCases: any[]) => {
   const results = []
   for (let index = 1; index <= 13; index++) {
     const zoneCodeString = (index + '').padStart(2, '0')
     const obj = { zoneCode: zoneCodeString }
     const normalCaseFounds = normalCases.filter((each) => each.zone_code === zoneCodeString)
     const puiCaseFounds = puiCases.filter((each) => each.zone_code === zoneCodeString)
+    const atkCaseFounds = atkCases.filter((each) => each.zone_code === zoneCodeString)
     const deathCasesFounds = deathCases.filter((each) => each.zone_code === zoneCodeString)
 
     let normalCaseAmount = 0
@@ -105,11 +106,13 @@ const mapPatientReportByZone = (normalCases: any[], deathCases: any[], puiCases:
       normalCaseAmount += each.count
     })
 
-    const deathCaseAmount = deathCasesFounds.reduce((total, acc) => total + acc.count, 0)
-    const puiCaseAmount = puiCaseFounds.reduce((total, acc) => total + acc.count, 0)
+    const deathCaseAmount = deathCasesFounds.reduce((total, acc) => total + acc.count, 0);
+    const puiCaseAmount = puiCaseFounds.reduce((total, acc) => total + acc.count, 0);
+    const atkCaseAmount = atkCaseFounds.reduce((total, acc) => total + acc.count, 0);
     obj['death'] = deathCaseAmount
     obj['pui'] = puiCaseAmount
-    obj['total'] = normalCaseAmount + deathCaseAmount + puiCaseAmount
+    obj['atk'] = atkCaseAmount
+    obj['total'] = normalCaseAmount + deathCaseAmount + puiCaseAmount + atkCaseAmount
 
     results.push(obj)
   }
@@ -117,7 +120,7 @@ const mapPatientReportByZone = (normalCases: any[], deathCases: any[], puiCases:
   return results
 }
 
-const removeDupProvinceHeaders = (normalCases: any[], deathCases: any[], puiCases: any[]) => {
+const removeDupProvinceHeaders = (normalCases: any[], deathCases: any[], puiCases: any[], atkCases: any[]) => {
   const results = []
   normalCases.forEach((each) => {
     if (!results.some((result) => result.province_code === each.province_code)) {
@@ -137,19 +140,26 @@ const removeDupProvinceHeaders = (normalCases: any[], deathCases: any[], puiCase
     }
   })
 
+  atkCases.forEach((each) => {
+    if (!results.some((result) => result.province_code === each.province_code)) {
+      results.push({ province_code: each.province_code, province_name: each.province_name, zone_code: each.zone_code })
+    }
+  })
+
   return results
 }
 
-const mapPatientReportByProvince = (normalCases: any[], deathCases: any[], puiCases: any[]) => {
+const mapPatientReportByProvince = (normalCases: any[], deathCases: any[], puiCases: any[], atkCases: any[]) => {
   const results = []
 
-  const provinces = removeDupProvinceHeaders(normalCases, deathCases, puiCases)
+  const provinces = removeDupProvinceHeaders(normalCases, deathCases, puiCases, atkCases)
   provinces.forEach((province) => {
     const { province_code, province_name, zone_code } = province
     const obj = { province_code, province_name, zone_code }
 
     const normalCaseFounds = normalCases.filter((each) => each.province_code === province_code)
     const puiCaseFounds = puiCases.filter((each) => each.province_code === province_code)
+    const atkCaseFounds = atkCases.filter((each) => each.province_code === province_code)
     const deathCasesFounds = deathCases.filter((each) => each.province_code === province_code)
 
     let normalCaseAmount = 0
@@ -162,9 +172,11 @@ const mapPatientReportByProvince = (normalCases: any[], deathCases: any[], puiCa
 
     const deathCaseAmount = deathCasesFounds.reduce((total, acc) => total + acc.count, 0)
     const puiCaseAmount = puiCaseFounds.reduce((total, acc) => total + acc.count, 0)
+    const atkCaseAmount = atkCaseFounds.reduce((total, acc) => total + acc.count, 0)
     obj['death'] = deathCaseAmount
     obj['pui'] = puiCaseAmount
-    obj['total'] = normalCaseAmount + deathCaseAmount + puiCaseAmount
+    obj['atk'] = atkCaseAmount
+    obj['total'] = normalCaseAmount + deathCaseAmount + puiCaseAmount + atkCaseAmount
 
     results.push(obj)
   })
@@ -172,7 +184,7 @@ const mapPatientReportByProvince = (normalCases: any[], deathCases: any[], puiCa
   return results
 }
 
-const removeDupHospitalHeaders = (normalCases: any[], deathCases: any[], puiCases: any[]) => {
+const removeDupHospitalHeaders = (normalCases: any[], deathCases: any[], puiCases: any[], atkCases: any[]) => {
   const results = []
 
   normalCases.forEach((each) => {
@@ -220,13 +232,28 @@ const removeDupHospitalHeaders = (normalCases: any[], deathCases: any[], puiCase
     }
   })
 
+  atkCases.forEach((each) => {
+    if (!results.some((result) => result.id === each.id)) {
+      results.push({
+        id: each.id,
+        province_name: each.province_name,
+        province_code: each.province_code,
+        zone_code: each.zone_code,
+        hospname: each.hospname,
+        hospcode: each.hospcode,
+        sub_ministry_name: each.sub_ministry_name,
+        level: each.level
+      })
+    }
+  })
+
   return results
 }
 
-const mapPatientReportByHospital = (normalCases: any[], medicalCases: any[], deathCases: any[], puiCases: any[]) => {
+const mapPatientReportByHospital = (normalCases: any[], medicalCases: any[], deathCases: any[], puiCases: any[], atkCases: any[]) => {
   const results = []
 
-  const provinces = removeDupHospitalHeaders(normalCases, deathCases, puiCases)
+  const provinces = removeDupHospitalHeaders(normalCases, deathCases, puiCases, atkCases)
   provinces.forEach((province) => {
     const { id, hospcode, hospname, province_name, province_code, zone_code, sub_ministry_name, level } = province
     const obj = { id, hospcode, hospname, province_name, zone_code, sub_ministry_name, level, province_code }
@@ -234,6 +261,7 @@ const mapPatientReportByHospital = (normalCases: any[], medicalCases: any[], dea
     const normalCaseFounds = normalCases.filter((each) => each.id === id)
     const medicalCasesFounds = medicalCases.filter((each) => each.id === id)
     const puiCaseFounds = puiCases.filter((each) => each.id === id)
+    const atkCaseFounds = atkCases.filter((each) => each.id === id)
     const deathCasesFounds = deathCases.filter((each) => each.id === id)
 
     let normalCaseAmount = 0
@@ -253,9 +281,11 @@ const mapPatientReportByHospital = (normalCases: any[], medicalCases: any[], dea
 
     const deathCaseAmount = deathCasesFounds.reduce((total, acc) => total + acc.count, 0)
     const puiCaseAmount = puiCaseFounds.reduce((total, acc) => total + acc.count, 0)
+    const atkCaseAmount = atkCaseFounds.reduce((total, acc) => total + acc.count, 0)
     obj['death'] = deathCaseAmount
     obj['pui'] = puiCaseAmount
-    obj['total'] = normalCaseAmount + deathCaseAmount + puiCaseAmount
+    obj['atk'] = atkCaseAmount
+    obj['total'] = normalCaseAmount + deathCaseAmount + puiCaseAmount + atkCaseAmount
 
     results.push(obj)
   })
@@ -369,14 +399,15 @@ router.get('/patient-report-by-zone', async (req: Request, res: Response) => {
   })
 
   try {
-    const [headers, cases, deathCases, puiCases] = await Promise.all([
+    const [headers, cases, deathCases, puiCases, atkCases] = await Promise.all([
       model.getPatientsReportHeaders(db),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] }),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'DEATH', groupBy: 'h.zone_code', zones: [], provinces: [] }),
-      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'IPPUI', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] })
+      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'IPPUI', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] }),
+      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'ATK', status: 'ADMIT', groupBy: 'h.zone_code', zones: [], provinces: [] })
     ])
 
-    const result = mapPatientReportByZone(cases, deathCases, puiCases)
+    const result = mapPatientReportByZone(cases, deathCases, puiCases, atkCases)
 
     ws.column(1).setWidth(20)
 
@@ -493,13 +524,14 @@ router.get('/patient-report-by-province', async (req: Request, res: Response) =>
   })
 
   try {
-    const [headers, cases, deathCases, puiCases] = await Promise.all([
+    const [headers, cases, deathCases, puiCases, atkCases] = await Promise.all([
       model.getPatientsReportHeaders(db),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] }),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'DEATH', groupBy: 'h.province_code', zones, provinces: [] }),
-      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'IPPUI', status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] })
+      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'IPPUI', status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] }),
+      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'ATK', status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] })
     ])
-    const result = mapPatientReportByProvince(cases, deathCases, puiCases)
+    const result = mapPatientReportByProvince(cases, deathCases, puiCases, atkCases)
     const items = [
       [], [], [], [], [],
       [], [], [], [], [],
@@ -549,6 +581,7 @@ router.get('/patient-report-by-province', async (req: Request, res: Response) =>
     ws.cell(1, 10).string('Asymptomatic').style(center)
     ws.cell(1, 11).string('Dead').style(center)
     ws.cell(1, 12).string('PUI').style(center)
+    ws.cell(1, 13).string('ATK').style(center)
 
     items.forEach((item, i) => {
       item.forEach((x, j) => {
@@ -565,6 +598,7 @@ router.get('/patient-report-by-province', async (req: Request, res: Response) =>
           ws.cell(rowNumber, 10).number(x.asymptomatic || 0)
           ws.cell(rowNumber, 11).number(x.death || 0)
           ws.cell(rowNumber, 12).number(x.pui || 0)
+          ws.cell(rowNumber, 13).number(x.atk || 0)
         } else {
           ws.cell(rowNumber, 1, rowNumber, 2, true).string(x.province_name).style(center)
           ws.cell(rowNumber, 3).number(x.total || 0)
@@ -577,6 +611,7 @@ router.get('/patient-report-by-province', async (req: Request, res: Response) =>
           ws.cell(rowNumber, 10).number(x.asymptomatic || 0)
           ws.cell(rowNumber, 11).number(x.death || 0)
           ws.cell(rowNumber, 12).number(x.pui || 0)
+          ws.cell(rowNumber, 13).number(x.atk || 0)
         }
         rowNumber++
       })
@@ -593,6 +628,7 @@ router.get('/patient-report-by-province', async (req: Request, res: Response) =>
         ws.cell(rowNumber, 10).number(sumZone(item, 'asymptomatic') || 0)
         ws.cell(rowNumber, 11).number(sumZone(item, 'death') || 0)
         ws.cell(rowNumber, 12).number(sumZone(item, 'pui') || 0)
+        ws.cell(rowNumber, 13).number(sumZone(item, 'atk') || 0)
         rowNumber++
       }
     })
@@ -609,6 +645,7 @@ router.get('/patient-report-by-province', async (req: Request, res: Response) =>
       ws.cell(rowNumber, 10).number(sum12ZoneByProvince(items, 'asymptomatic') || 0)
       ws.cell(rowNumber, 11).number(sum12ZoneByProvince(items, 'death') || 0)
       ws.cell(rowNumber, 12).number(sum12ZoneByProvince(items, 'pui') || 0)
+      ws.cell(rowNumber, 13).number(sum12ZoneByProvince(items, 'atk') || 0)
       rowNumber++
     }
 
@@ -624,6 +661,7 @@ router.get('/patient-report-by-province', async (req: Request, res: Response) =>
       ws.cell(rowNumber, 10).number(sumAllZoneByProvince(items, 'asymptomatic') || 0)
       ws.cell(rowNumber, 11).number(sumAllZoneByProvince(items, 'death') || 0)
       ws.cell(rowNumber, 12).number(sumAllZoneByProvince(items, 'pui') || 0)
+      ws.cell(rowNumber, 13).number(sumAllZoneByProvince(items, 'atk') || 0)
     }
 
     fse.ensureDirSync(process.env.TMP_PATH);
@@ -841,7 +879,7 @@ router.get('/bed-report-by-zone', async (req: Request, res: Response) => {
 
 router.get('/bed-report-by-province', async (req: Request, res: Response) => {
   const db = req.dbReport;
-  const { zones, date, } = req.query;
+  const { zones, date, start, end } = req.query;
 
   var wb = new excel4node.Workbook()
   var ws = wb.addWorksheet('Sheet 1')
@@ -860,7 +898,14 @@ router.get('/bed-report-by-province', async (req: Request, res: Response) => {
   })
 
   try {
-    const rs: any = await model.getBedReportByZone(db, moment(date).format('YYYY-MM-DD'), { case: null, status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] });
+    let rs: any = [];
+    if (date) {
+      rs = await model.getBedReportByProvince(db, moment(date).format('YYYY-MM-DD'), { case: null, status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] });
+    }
+
+    if (!date) {
+      rs = await model.getBedReportByProvince(db, null, { case: null, status: 'ADMIT', groupBy: 'h.province_code', zones, provinces: [] }, { start: moment(start).format('YYYY-MM-DD'), end: moment(end).add(1, 'day').format('YYYY-MM-DD') });
+    }
     const results = mapBedReports(rs)
 
     const rows = []
@@ -1163,14 +1208,16 @@ router.get('/patient-report-by-hospital', async (req: Request, res: Response) =>
   })
 
   try {
-    const [headers, cases, casesWithMedicals, deathCases, puiCases] = await Promise.all([
+
+    const [headers, cases, casesWithMedicals, deathCases, puiCases, atkCases] = await Promise.all([
       model.getPatientsReportHeaders(db),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.id', zones, provinces }),
       model.getPatientsCasesGroupByMedicalSupplies(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.id', zones, provinces }),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'DEATH', groupBy: 'h.id', zones, provinces }),
-      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'IPPUI', status: 'ADMIT', groupBy: 'h.id', zones, provinces })
+      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'IPPUI', status: 'ADMIT', groupBy: 'h.id', zones, provinces }),
+      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'ATK', status: 'ADMIT', groupBy: 'h.id', zones, provinces })
     ])
-    const result = mapPatientReportByHospital(cases, casesWithMedicals, deathCases, puiCases)
+    const result = mapPatientReportByHospital(cases, casesWithMedicals, deathCases, puiCases, atkCases)
 
     ws.column(2).setWidth(20)
     ws.column(4).setWidth(40)
@@ -1194,7 +1241,7 @@ router.get('/patient-report-by-hospital', async (req: Request, res: Response) =>
     ws.cell(1, 16).string('ATK').style(center)
     ws.cell(1, 17).string('หน่วยงาน').style(center)
 
-    console.log(result);
+    // console.log(result);
 
     result.forEach((row, i) => {
       ws.cell(2 + i, 1).string(row.zone_code).style(center)
@@ -1365,15 +1412,15 @@ router.get('/bed-report-by-hospital', async (req: Request, res: Response) => {
 
         // const filB = filter(bedHospital, { hospcode: item.hospcode });
         // const idxB = findIndex(filB, { bed_id: b.id })
-        
+
         if (idx > -1) {
           ws.cell(i, b.col_all).number(+fil[idx].total || 0);
           ws.cell(i, b.col_use).number(+fil[idx].used || 0);
           ws.cell(i, b.col_balance).number((+fil[idx].total || 0) - (+fil[idx].used || 0))
-        } else{
-          ws.cell(i, b.col_all).number( 0);
-          ws.cell(i, b.col_use).number( 0);
-          ws.cell(i, b.col_balance).number( 0)
+        } else {
+          ws.cell(i, b.col_all).number(0);
+          ws.cell(i, b.col_use).number(0);
+          ws.cell(i, b.col_balance).number(0)
         }
       }
       // ws.cell(i, 6).number(item.level3_total || 0)
@@ -1426,7 +1473,10 @@ router.get('/bed-report-by-hospital', async (req: Request, res: Response) => {
 
 router.get('/admit-case', async (req: Request, res: Response) => {
   const db = req.dbReport;
-  const date = req.query.date || moment().format('YYYY-MM-DD');
+  const date = req.query.date || null;
+  const provinceCode = req.decoded?.type === 'STAFF' ? req.decoded.provinceCode : null
+  const { case_status } = req.query
+
 
   var wb = new excel4node.Workbook()
   var ws = wb.addWorksheet('Sheet 1')
@@ -1453,8 +1503,8 @@ router.get('/admit-case', async (req: Request, res: Response) => {
     // const results = mapPersonsGenerics(genericsPersons, cases)
 
 
-    const [ cases, headers ] = await Promise.all([
-      reportModel.admitCase(db, date),
+    const [cases, headers] = await Promise.all([
+      reportModel.admitCase(db, date, case_status, provinceCode),
       reportModel.getGenericNames(db)
     ])
     const genericsUsages = await reportModel.getGenericsUsaged(db, cases.map((each) => each.detail_id))
@@ -1479,7 +1529,7 @@ router.get('/admit-case', async (req: Request, res: Response) => {
     ws.cell(1, 10).string('อายุ').style(center)
     ws.cell(1, 11).string('วันที่ Admit').style(center)
     ws.cell(1, 12).string('วันที่ บันทึก').style(center)
-    ws.cell(1, 13).string('ควมารุนแรง').style(center)
+    ws.cell(1, 13).string('ความรุนแรง').style(center)
     ws.cell(1, 14).string('เตียง').style(center)
     ws.cell(1, 15).string('เครื่องช่วยหายใจ').style(center)
     ws.cell(1, 16).string('วันที่ update อาการล่าสุด').style(center)
@@ -1489,10 +1539,10 @@ router.get('/admit-case', async (req: Request, res: Response) => {
     ws.cell(1, 20).string('Molnupiravir').style(center)
     ws.cell(1, 21).string('หน่วยงานสังกัด').style(center)
     // console.log(results);
-    
+
     results.forEach((result, i) => {
       console.log(result);
-      
+
       ws.cell(2 + i, 1).string(result.zone_code).style(center)
       ws.cell(2 + i, 2).string(result.province_name).style(center)
       ws.cell(2 + i, 3).string(result.hospname).style(center)
@@ -1535,7 +1585,7 @@ router.get('/admit-case', async (req: Request, res: Response) => {
     })
   } catch (error) {
     console.log(error);
-    
+
     res.send({ ok: false, error: error });
   }
 })

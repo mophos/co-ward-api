@@ -396,6 +396,9 @@ export class ReportAllModel {
       .leftJoin('b_hospital_subministry as hs', 'hs.code', 'h.sub_ministry_code')
       .groupBy('bh.bed_id')
       .groupBy('h.province_code')
+      .orderBy('h.zone_code')
+      .orderBy('h.province_name')
+      .orderBy('h.hospname')
       .as('b')
 
       if (options.zones?.length > 0) {
@@ -779,6 +782,7 @@ export class ReportAllModel {
       .whereNotNull('cd.gcs_id')
       .groupBy(options.groupBy, 'cd.gcs_id')
       .orderBy('h.zone_code')
+      .orderBy('h.province_code')
 
     if (options.case == 'COVID') {
       sql.whereIn('cd.gcs_id', [1, 2, 3, 4]);
