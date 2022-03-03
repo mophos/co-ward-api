@@ -211,13 +211,12 @@ export class ReportModel {
 
   getProvince(db: Knex, zoneCode = null, provinceCode = null) {
     const sql = db('b_province');
-    if (zoneCode.length) {
-      if (typeof zoneCode === 'string') {
-        sql.where('zone_code', zoneCode);
-      } else {
-        sql.whereIn('zone_code', zoneCode);
-      }
+    if (typeof zoneCode === 'string') {
+      sql.where('zone_code', zoneCode);
+    } else if (zoneCode.length) {
+      sql.whereIn('zone_code', zoneCode);
     }
+
     if (provinceCode) {
       sql.where('code', provinceCode);
     }
