@@ -592,6 +592,7 @@ export class ReportModel {
     FROM
       p_covid_case_detail_items AS i
       INNER JOIN view_covid_case_last AS l ON l.id = i.covid_case_detail_id 
+      where l.status = 'ADMIT' AND l.gcs_id IN ( 5 )
     GROUP BY
       i.covid_case_detail_id 
     ) AS du ON du.covid_case_detail_id = cl.id 
