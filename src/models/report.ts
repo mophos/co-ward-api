@@ -213,7 +213,7 @@ export class ReportModel {
     const sql = db('b_province');
     if (typeof zoneCode === 'string') {
       sql.where('zone_code', zoneCode);
-    } else if (zoneCode.length) {
+    } else if (zoneCode) {
       sql.whereIn('zone_code', zoneCode);
     }
 
