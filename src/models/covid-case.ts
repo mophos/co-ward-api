@@ -816,4 +816,24 @@ export class CovidCaseModel {
       .update('is_send_phr', 'Y')
       .whereIn('id', caseId);
   }
+
+  getAutoDC(db: Knex) {
+    return db('sys_auto_discharge')
+  }
+
+  getDataForDC(db: Knex, gcsId, bedId, day) {
+    const sql = db('p_covid_cases as c')
+      .select('cl.covid_case_id','cl.covid_case_detail_id','cd.medical_supplie_id','cd.bed_id','cd.gcs_id')
+      .join('p_covid_case_detail_last as cl', 'cl.covid_case_id', 'c.id')
+      .join('p_covid_case_details as cd', 'cd.id', 'cl.covid_case_detail_id')
+      .where('c.is_deleted', 'N')
+      .where('c.status', 'ADMIT')
+      .where('cd.gcs_id', gcsId)
+      .where('cd.bed_id', bedId)
+      .limit(10)
+      .whereRaw(`DATEDIFF( now(),c.date_admit ) > ?`, day)
+    // console.log(sql.toString());
+    return sql;
+
+  }
 }

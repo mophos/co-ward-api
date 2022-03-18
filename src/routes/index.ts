@@ -353,6 +353,7 @@ router.post('/smh/laser', async (req: Request, res: Response) => {
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
+
 async function systemUpdate(db) {
   try {
     let lcd = await settingModel.getLastCaseDetails(db)
@@ -449,6 +450,115 @@ router.get('/send-phr', async (req: Request, res: Response) => {
     //   res.send({ ok: false, error: 'token ไม่ถูกต้อง' });
     // }
   } catch (error) {
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+
+router.get('/discharge-auto', async (req: Request, res: Response) => {
+  const db = req.db;
+  const timeKey = req.query.timeKey;
+  try {
+
+    if (process.env.TIME_KEY === timeKey) {
+      const rs: any = await covidCaseModel.getAutoDC(db);
+      if (rs) {
+        for (const r of rs) {
+          const dc: any = await covidCaseModel.getDataForDC(db, r.gcs_id, r.bed_id, r.day);
+          for (const i of dc) {
+
+            // #### DISCHARGE #######
+
+            let detail: any = await covidCaseModel.getCovidCaseDetailId(req.db, i.covid_case_id, moment().format('YYYY-MM-DD'))
+            for (const i of detail) {
+              await covidCaseModel.removeRequisition(req.db, i.id)
+              await covidCaseModel.removeCovidCaseDetailItem(req.db, i.id)
+              await covidCaseModel.removeCovidCaseDetail(req.db, i.id)
+            }
+
+            const obj: any = {};
+            obj.status = 'DISCHARGE';
+            obj.date_discharge = moment().format('YYYY-MM-DD');
+
+            const objD: any = {
+              covid_case_id: i.covid_case_id,
+              gcs_id: i.gcs_id,
+              bed_id: i.bed_id,
+              status: 'DISCHARGE',
+              medical_supplie_id: i.medical_supplie_id || null,
+              create_by: 0,
+              entry_date:moment().format('YYYY-MM-DD')
+            }
+
+          
+
+           await covidCaseModel.updateDischarge(req.db, i.covid_case_id, obj);
+            await covidCaseModel.saveCovidCaseDetail(req.db, objD);
+
+          }
+        }
+        // console.log(rs);
+
+        // sendPhr(db, rs);
+        res.send({ ok: true, code: HttpStatus.OK });
+      } else {
+        res.send({ ok: false, code: HttpStatus.OK });
+      }
+    } else {
+      res.send({ ok: false, error: 'token ไม่ถูกต้อง' });
+    }
+  } catch (error) {
+    console.log(error);
+    
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+
+router.post('/update/discharge', async (req: Request, res: Response) => {
+  const data = req.body.data;
+  const detail = req.body.detail;
+  const userId = req.decoded.id;
+
+  try {
+    const dateCheck = moment(data.dateDischarge)
+    if (dateCheck.isBefore(moment(), 'days')) {
+      let rs: any = await covidCaseModel.getCovidCaseDetailId(req.db, detail.covid_case_id, moment(dateCheck).format('YYYY-MM-DD'))
+      for (const i of rs) {
+        await covidCaseModel.removeRequisition(req.db, i.id)
+        await covidCaseModel.removeCovidCaseDetailItem(req.db, i.id)
+        await covidCaseModel.removeCovidCaseDetail(req.db, i.id)
+      }
+    }
+
+    const obj: any = {};
+    obj.status = data.status;
+    obj.date_discharge = data.dateDischarge;
+    if (data.hospitalId !== undefined) {
+      obj.hospital_id_refer = data.hospitalId;
+      obj.reason = data.reason;
+    }
+
+    const objD: any = {
+      covid_case_id: detail.covid_case_id,
+      gcs_id: detail.gcs_id,
+      bed_id: detail.bed_id,
+      status: data.status,
+      medical_supplie_id: detail.medical_supplie_id || null,
+      create_by: userId
+    }
+    const timeCut = await basicModel.timeCut();
+    if (!timeCut.ok) {
+      objD.entry_date = moment().add(1, 'days').format('YYYY-MM-DD');
+    } else {
+      objD.entry_date = moment().format('YYYY-MM-DD');
+    }
+    let rs: any = await covidCaseModel.updateDischarge(req.db, detail.covid_case_id, obj);
+    await covidCaseModel.saveCovidCaseDetail(req.db, objD);
+
+    res.send({ ok: true, rows: 0, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });
