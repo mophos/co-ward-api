@@ -478,6 +478,8 @@ router.get('/discharge-auto', async (req: Request, res: Response) => {
 
             const obj: any = {};
             obj.status = 'DISCHARGE';
+            obj.updated_by = 0;
+            obj.reason = 'D/C ออกโดยระบบ';
             obj.date_discharge = moment().format('YYYY-MM-DD');
 
             const objD: any = {

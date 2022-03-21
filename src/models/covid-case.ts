@@ -830,7 +830,7 @@ export class CovidCaseModel {
       .where('c.status', 'ADMIT')
       .where('cd.gcs_id', gcsId)
       .where('cd.bed_id', bedId)
-      .limit(10)
+      // .limit(10)
       .whereRaw(`DATEDIFF( now(),c.date_admit ) > ?`, day)
     // console.log(sql.toString());
     return sql;
