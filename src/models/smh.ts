@@ -113,6 +113,34 @@ export class smhModel {
     });
   }
 
+  getVaccine(cid) {
+    return new Promise((resolve: any, reject: any) => {
+      var options = {
+        method: 'GET',
+        url: `https://api-covidfree.moph.go.th/v1/api/vaccine?cid=${cid}`,
+        agentOptions: {
+          rejectUnauthorized: false
+        },
+        headers: {
+          authorization: `Bearer ${process.env.API_VACCINE}`
+        },
+        json: true
+      };
+
+      request(options, function (error, response, body) {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(body);
+        }
+      });
+    });
+  }
+
+  saveVaccine(db: Knex, data) {
+    return db('vaccine_profiles').insert(data);
+  }
+
   getApiExchangeCid(cid) {
     return new Promise((resolve: any, reject: any) => {
       var options = {
