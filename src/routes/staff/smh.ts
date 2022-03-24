@@ -27,6 +27,7 @@ router.get('/', async (req: Request, res: Response) => {
           v.immunization_datetime = moment(v.immunization_datetime).format('YYYY-MM-DD HH:mm:ss');
           v.expiration_date = moment(v.expiration_date).format('YYYY-MM-DD');
           v.birth_date = moment(v.birth_date).format('YYYY-MM-DD');
+          v.cid = key;
           data.push(v)
         }
         await model.saveVaccine(db, data);
