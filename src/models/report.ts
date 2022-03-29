@@ -998,14 +998,15 @@ export class ReportModel {
   getCaseDc(db: Knex, showPersons = false, query = null, zoneCode, provinceCode = null) {
     const _query = `%${query}%`;
     const sql = db('view_covid_case_last as c')
-      .select('c.id as covid_case_id', 'h.hospname', 'h.province_name as hosp_province', 'c.an', 'c.confirm_date', 'c.status', 'c.date_admit', 'c.date_discharge', 'pt.hn')
+      .select('c.id as covid_case_id', 'h.hospname', 'rh.hospname as refer_hospital_name', 'c.an', 'h.province_name as hosp_province', 'c.an', 'c.confirm_date', 'c.status', 'c.date_admit', 'c.date_discharge', 'pt.hn')
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
       .join('b_hospitals AS h', 'h.id', 'c.hospital_id')
+      .join('b_hospitals AS rh', 'rh.id', 'c.hospital_id_refer')
       .whereIn('c.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
       // .where('pt.hospital_id', hospitalId)
       .where('h.zone_code', zoneCode);
     if (showPersons) {
-      sql.select('pt.person_id', 'p.*', 't.name as title_name')
+      sql.select('pt.person_id', 'p.first_name', 'p.last_name', 'p.birth_date', 'p.cid', 't.name as title_name', db.raw(`IF(p.gender_id=1,'ชาย',IF(gender_id=2,'หญิง',null)) as gender`), db.raw(`TIMESTAMPDIFF(YEAR, p.birth_date, CURDATE()) AS age`))
         .join('p_persons as p', 'pt.person_id', 'p.id')
         .leftJoin('um_titles as t', 'p.title_id', 't.id');
     }
