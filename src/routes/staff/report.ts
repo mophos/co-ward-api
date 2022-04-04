@@ -387,7 +387,7 @@ router.get('/discharge-case/excel', async (req: Request, res: Response) => {
         ws.cell(row, 5).string(items['cid']);
         ws.cell(row, 6).string((items['title_name']) + ' ' + (items['first_name']) + ' ' + (items['last_name']));
         ws.cell(row, 7).string(items['gender']);
-        ws.cell(row, 8).string(items['age']);
+        ws.cell(row, 8).string(items['age'].toString());
         ws.cell(row, 9).string(items['status']);
         ws.cell(row, 10).string(items['date_admit']);
         ws.cell(row, 11).string(items['date_discharge']);
