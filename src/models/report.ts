@@ -998,10 +998,10 @@ export class ReportModel {
   getCaseDc(db: Knex, showPersons = false, query = null, zoneCode, provinceCode = null) {
     const _query = `%${query}%`;
     const sql = db('view_covid_case_last as c')
-      .select('c.id as covid_case_id', 'h.hospname', 'rh.hospname as refer_hospital_name', 'c.an', 'h.province_name as hosp_province', 'c.an', 'c.confirm_date', 'c.status', 'c.date_admit', 'c.date_discharge', 'pt.hn')
+      .select('c.id as covid_case_id', 'h.hospname', 'rh.hospname as refer_hospital_name', 'c.an', 'h.province_name as hosp_province', 'c.confirm_date', 'c.status', 'c.date_admit', 'c.date_discharge', 'pt.hn')
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
       .join('b_hospitals AS h', 'h.id', 'c.hospital_id')
-      .join('b_hospitals AS rh', 'rh.id', 'c.hospital_id_refer')
+      .leftJoin('b_hospitals AS rh', 'rh.id', 'c.hospital_id_refer')
       .whereIn('c.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
       // .where('pt.hospital_id', hospitalId)
       .where('h.zone_code', zoneCode);
@@ -1027,8 +1027,6 @@ export class ReportModel {
     }
 
     sql.orderBy('c.date_admit', 'DESC');
-    console.log(sql.toString());
-
     return sql;
     // .groupBy('pt.id')
   }
