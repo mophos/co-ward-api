@@ -365,11 +365,10 @@ router.get('/discharge-case/excel', async (req: Request, res: Response) => {
       ws.cell(1, 1, 1, 1, true).string('จังหวัด');
       ws.cell(1, 2, 1, 2, true).string('โรงพยาบาล');
       ws.cell(1, 3, 1, 3, true).string('HN');
-      ws.cell(1, 4, 1, 4, true).string('ชื่อ-นามสกุล');
-      ws.cell(1, 5, 1, 5, true).string('สถานะ');
-      ws.cell(1, 6, 1, 6, true).string('วันที่ Admit');
-      ws.cell(1, 7, 1, 7, true).string('วันที่ d/c');
-      ws.cell(1, 8, 1, 8, true).string('โรงพยาบาลที่ Refer');
+      ws.cell(1, 4, 1, 4, true).string('สถานะ');
+      ws.cell(1, 5, 1, 5, true).string('วันที่ Admit');
+      ws.cell(1, 6, 1, 6, true).string('วันที่ d/c');
+      ws.cell(1, 7, 1, 7, true).string('โรงพยาบาลที่ Refer');
     }
 
     if (showPersons) {
@@ -399,11 +398,10 @@ router.get('/discharge-case/excel', async (req: Request, res: Response) => {
         ws.cell(row, 1).string(items['hosp_province']);
         ws.cell(row, 2).string(items['hospname']);
         ws.cell(row, 3).string(items['hn']);
-        ws.cell(row, 4).string((items['title_name']) + ' ' + (items['first_name']) + ' ' + (items['last_name']));
-        ws.cell(row, 5).string(items['status']);
-        ws.cell(row, 6).string(items['date_admit']);
-        ws.cell(row, 7).string(items['date_discharge']);
-        ws.cell(row++, 8).string(items['refer_hospital_name']);
+        ws.cell(row, 4).string(items['status']);
+        ws.cell(row, 5).string(items['date_admit']);
+        ws.cell(row, 6).string(items['date_discharge']);
+        ws.cell(row++, 7).string(items['refer_hospital_name']);
       }
     }
 
