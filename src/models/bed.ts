@@ -73,9 +73,14 @@ export class BedModel {
   }
 
   getHospBed(db: Knex, provinceCode, zoneCode) {
+    const bed = db('wm_beds')
+    .groupBy('hospital_id')
+    .select('hospital_id')
+    .max('date as date').as('b');
     let sql = db('b_hospitals as h')
-      .select('h.id', 'h.hospname', 'h.hosptype_id', 'v.*', 'h.hospital_type')
-      .join('views_bed_hospital_cross as v', 'v.hospital_id', 'h.id')
+    .select('h.id', 'h.hospname', 'h.hosptype_id', 'v.*', 'h.hospital_type','b.date')
+    .join('views_bed_hospital_cross as v', 'v.hospital_id', 'h.id')
+    .join(bed,'b.hospital_id','h.id')
       .where('zone_code', zoneCode)
       .whereIn('h.hosptype_code',['05', '06', '07', '11', '12', '15', '19'])
       .where('province_code', provinceCode);

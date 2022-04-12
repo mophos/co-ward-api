@@ -280,15 +280,17 @@ router.get('/get-gcs', async (req: Request, res: Response) => {
         let moderate = 0;
         let mild = 0;
         let ippui = 0;
+        let atk = 0;
         let asymptomatic = 0;
         const s: any = filter(gcs, { province_code: p.code })
-        console.log(s);
+        // console.log(s);
 
         for (const i of s) {
           severe += i.severe;
           moderate += i.moderate;
           mild += i.mild;
           ippui += i.ip_pui;
+          atk += i.atk;
           asymptomatic += i.asymptomatic;
           const p = filter(patient, { hospital_id: i.hospital_id })
           i.details = p;
@@ -300,8 +302,237 @@ router.get('/get-gcs', async (req: Request, res: Response) => {
         _province.moderate = moderate;
         _province.mild = mild;
         _province.ip_pui = ippui;
+        _province.atk = atk;
         _province.asymptomatic = asymptomatic;
-        _province.count = +asymptomatic + +ippui + +mild + +moderate + +severe;
+        _province.count = +asymptomatic + +ippui + +mild + +moderate + +severe + +atk;
+        provinces.push(_province);
+      }
+      // zone.severe
+      // zone.sum = sumProvince;
+      zone.provinces = provinces;
+      data.push(zone);
+    }
+    console.log(data);
+
+    res.send({ ok: true, rows: data, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/get-gcs/new-admit', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
+  const type = req.decoded.type;
+  const _provinceCode = req.decoded.provinceCode;
+  const date = req.query.date;
+  // const zone = req.query.zone;
+
+  try {
+    let data: any = [];
+
+
+
+    // console.time('province')
+    // let province: any = await model.getProvince(db, zoneCode, null);
+    // console.timeEnd('province')
+    // // console.log( map(province, 'code'));
+    // console.time('getCount')
+    // const gcs: any = await model.getCountNewAdmit(db, date, zoneCode);
+    // console.timeEnd('getCount')
+    // // console.log(gcs);
+
+    console.time('getCountZ')
+    let hos: any = [];
+    if (providerType == 'ZONE') {
+      hos = await model.getCountNewAdmit(db, date, zoneCode, null);
+    } else if (providerType == 'SSJ') {
+      hos = await model.getCountNewAdmit(db, date, zoneCode, _provinceCode);
+    }
+    console.timeEnd('getCountZ')
+    // console.log(hos);
+    const province = _.uniqBy(hos, 'province_code');
+    // console.log(province);
+
+    for (const i of province) {
+      const filter = _.filter(hos, { province_code: i.province_code });
+      const uniqHos = _.uniqBy(filter, 'hospcode');
+      let hospitals = [];
+      for (const u of uniqHos) {
+        const filterHospital = _.filter(filter, { 'hospcode': u.hospcode });
+        hospitals.push({
+          hospcode: u.hospcode,
+          hospname: u.hospname,
+          severe: _.filter(filterHospital, { gcs_id: 1 }).length,
+          moderate: _.filter(filterHospital, { gcs_id: 2 }).length,
+          mild: _.filter(filterHospital, { gcs_id: 3 }).length,
+          asymptomatic: _.filter(filterHospital, { gcs_id: 4 }).length,
+          ippui: _.filter(filterHospital, { gcs_id: 5 }).length,
+          atk: _.filter(filterHospital, { gcs_id: 7 }).length,
+          total: filterHospital.length,
+          details: _.map(filterHospital, (m) => {
+            if (m.gcs_id == 1) {
+              m.gcs_name = 'Severe';
+            } else if (m.gcs_id == 2) {
+              m.gcs_name = 'Moderate';
+            } else if (m.gcs_id == 3) {
+              m.gcs_name = 'Mild';
+            } else if (m.gcs_id == 4) {
+              m.gcs_name = 'Asymptomatic';
+            } else if (m.gcs_id == 5) {
+              m.gcs_name = 'IP PUI';
+            } else if (m.gcs_id == 6) {
+              m.gcs_name = 'Observe (Hospital Q)';
+            } else if (m.gcs_id == 7) {
+              m.gcs_name = 'ATK';
+            }
+            return m;
+          })
+        })
+      }
+      data.push({
+        province_name: i.province_name,
+        severe: _.filter(filter, { gcs_id: 1 }).length,
+        moderate: _.filter(filter, { gcs_id: 2 }).length,
+        mild: _.filter(filter, { gcs_id: 3 }).length,
+        asymptomatic: _.filter(filter, { gcs_id: 4 }).length,
+        ippui: _.filter(filter, { gcs_id: 5 }).length,
+        atk: _.filter(filter, { gcs_id: 7 }).length,
+        total: filter.length,
+        hospitals: hospitals
+      })
+
+    }
+
+    // let provinces = [];
+    // for (const p of province) {
+    //   const _province: any = {};
+    //   _province.province_name = p.name_th;
+
+    //   let severe = 0;
+    //   let moderate = 0;
+    //   let mild = 0;
+    //   let ippui = 0;
+    //   let atk = 0;
+    //   let asymptomatic = 0;
+    //   const s: any = filter(gcs, { province_code: p.code })
+    //   // console.log(s);
+
+    //   for (const i of s) {
+    //     severe += i.severe;
+    //     moderate += i.moderate;
+    //     mild += i.mild;
+    //     ippui += i.ippui;
+    //     atk += i.atk;
+    //     asymptomatic += i.asymptomatic;
+    //     const p = filter(patient, { hospital_id: i.hospital_id })
+    //     i.details = p;
+    //   }
+    //   // const hosp = [];
+    //   _province.hospitals = s;
+    //   // _province.hospitals = hosp;
+    //   _province.severe = severe;
+    //   _province.moderate = moderate;
+    //   _province.mild = mild;
+    //   _province.ippui = ippui;
+    //   _province.atk = atk;
+    //   _province.asymptomatic = asymptomatic;
+    //   _province.count = +asymptomatic + +ippui + +mild + +moderate + +severe + +atk;
+    //   data.push(_province);
+    // }
+    // zone.severe
+    // zone.sum = sumProvince;
+    // zone.provinces = provinces;
+    // data.push(zone);
+
+    // console.log(data);
+
+    res.send({ ok: true, rows: data, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/get-gcs/new-admit-2', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
+  const type = req.decoded.type;
+  const _provinceCode = req.decoded.provinceCode;
+  const date = req.query.date;
+  const zone = req.query.zone;
+
+  try {
+    let zoneCodes = [];
+    let provinceCode = null;
+    if (type == 'MANAGER') {
+      if (zone) {
+        zoneCodes = [zone];
+      } else {
+        zoneCodes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
+      }
+    } else {
+      if (providerType == 'ZONE') {
+        zoneCodes = [zoneCode];
+      } else if (providerType == 'SSJ') {
+        zoneCodes = [zoneCode];
+        provinceCode = _provinceCode;
+      }
+    }
+
+    let data: any = [];
+    for (const z of zoneCodes) {
+      const zone: any = {};
+      zone.name = z;
+      let provinces: any = [];
+      let province: any;
+      if (provinceCode) {
+        province = await model.getProvince(db, null, provinceCode);
+      } else {
+        province = await model.getProvince(db, z, null);
+      }
+
+      // const hospital: any = await model.getHospital(db)
+      // let sumProvince = 0;
+      // let severe = 0;
+      const gcs: any = await model.getCountNewAdmit(db, date, map(province, 'code'));
+      const patient: any = await model.getGcs(db, date);
+      for (const p of province) {
+        const _province: any = {};
+        _province.province_name = p.name_th;
+
+        let severe = 0;
+        let moderate = 0;
+        let mild = 0;
+        let ippui = 0;
+        let atk = 0;
+        let asymptomatic = 0;
+        const s: any = filter(gcs, { province_code: p.code })
+        // console.log(s);
+
+        for (const i of s) {
+          severe += i.severe;
+          moderate += i.moderate;
+          mild += i.mild;
+          ippui += i.ip_pui;
+          atk += i.atk;
+          asymptomatic += i.asymptomatic;
+          const p = filter(patient, { hospital_id: i.hospital_id })
+          i.details = p;
+        }
+        // const hosp = [];
+        _province.hospitals = s;
+        // _province.hospitals = hosp;
+        _province.severe = severe;
+        _province.moderate = moderate;
+        _province.mild = mild;
+        _province.ip_pui = ippui;
+        _province.atk = atk;
+        _province.asymptomatic = asymptomatic;
+        _province.count = +asymptomatic + +ippui + +mild + +moderate + +severe + +atk;
         provinces.push(_province);
       }
       // zone.severe
@@ -418,6 +649,115 @@ router.get('/medical-supplies', async (req: Request, res: Response) => {
     }
 
     res.send({ ok: true, rows: data, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/medical-supplies/excel', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
+  const type = req.decoded.type;
+  const provinceCode = req.decoded.provinceCode;
+  const zone = req.query.zone;
+
+  try {
+    let rows: any;
+    let zoneCodes: any = [];
+    const rs = await model.getMedicals(db);
+    if (type == 'MANAGER') {
+      if (zone !== '') {
+        zoneCodes = [zone];
+        rows = filter(rs, { 'zone_code': zone });
+      } else {
+        zoneCodes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
+        rows = rs;
+      }
+    } else {
+      if (providerType == 'ZONE') {
+        zoneCodes = [zoneCode];
+        rows = filter(rs, { 'zone_code': zoneCode });
+      } else {
+        rows = filter(rs, { 'province_code': provinceCode });
+        zoneCodes = [rows[0].zone_code]
+      }
+    }
+
+    var wb = new excel4node.Workbook();
+    //   let rowA = 2;
+    var wsA = wb.addWorksheet(`ทั้งหมด`);
+    wsA.cell(1, 1).string('รหัสโรงพยาบาล');
+    wsA.cell(1, 2).string('โรงพยาบาล');
+    wsA.cell(1, 3).string('วันที่ตั้งค่าเครื่องช่วยหายใจล่าสุด');
+    wsA.cell(1, 4, 1, 6, true).string('Invasive');
+    wsA.cell(1, 7, 1, 9, true).string('Non Invasive');
+    wsA.cell(1, 10, 1, 12, true).string('High Flow');
+
+    wsA.cell(2, 4).string('ทั้งหมดสำหรับcovid');
+    wsA.cell(2, 5).string('ใช้ไป');
+    wsA.cell(2, 6).string('คงเหลือ');
+    wsA.cell(2, 7).string('ทั้งหมดสำหรับcovid');
+    wsA.cell(2, 8).string('ใช้ไป');
+    wsA.cell(2, 9).string('คงเหลือ');
+    wsA.cell(2, 10).string('ทั้งหมดสำหรับcovid');
+    wsA.cell(2, 11).string('ใช้ไป');
+    wsA.cell(2, 12).string('คงเหลือ');
+
+    let row = 3;
+    for (const i of rows) {
+      wsA.cell(row, 1).string(i.hospcode);
+      wsA.cell(row, 2).string(i.hospname);
+      wsA.cell(row, 3).string(i.updated_entry);
+      wsA.cell(row, 4).number(i.invasive_covid_qty || 0);
+      wsA.cell(row, 5).number(i.invasive_usage_qty || 0);
+      wsA.cell(row, 6).number(+i.invasive_covid_qty - +i.invasive_usage_qty || 0);
+      wsA.cell(row, 7).number(i.non_invasive_covid_qty || 0);
+      wsA.cell(row, 8).number(i.non_invasive_usage_qty || 0);
+      wsA.cell(row, 9).number(+i.non_invasive_covid_qty - +i.non_invasive_usage_qty || 0);
+      wsA.cell(row, 10).number(i.high_flow_covid_qty || 0);
+      wsA.cell(row, 11).number(i.high_flow_usage_qty || 0);
+      wsA.cell(row, 12).number(+i.high_flow_covid_qty - +i.high_flow_usage_qty || 0);
+      row++;
+    }
+
+    fse.ensureDirSync(process.env.TMP_PATH);
+    let filename = `get_bed` + moment().format('x') + '.xlsx'
+    let filenamePath = path.join(process.env.TMP_PATH, filename);
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+
+      }
+    });
+    
+    // let data: any = [];
+    // for (const v of zoneCodes) {
+    //   const obj: any = {};
+    //   obj.zone_code = v;
+    //   const provinces: any = uniqBy(orderBy(filter(rows, { 'zone_code': v }), 'province_code', 'asc'), 'province_name');
+    //   let dataP: any = [];
+    //   for (const p of provinces) {
+    //     const objP: any = {};
+    //     objP.province_code = p.province_code;
+    //     objP.province_name = p.province_name;
+    //     objP.hospitals = orderBy(filter(rows, { 'province_name': p.province_name }), 'hospital_name', 'asc');
+    //     dataP.push(objP);
+    //   }
+    //   obj.provinces = dataP;
+    //   data.push(obj)
+    // }
+
+    // res.send({ ok: true, rows: data, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -818,10 +1158,10 @@ router.get('/get-bed', async (req: Request, res: Response) => { // TODO: [8]
         zoneCodes = [zoneCode];
         rows = filter(rs, { 'zone_code': zoneCode });
       } else {
-        console.log(provinceCode);
+        // console.log(provinceCode);
 
         rows = filter(rs, { 'province_code': provinceCode });
-        console.log(rows);
+        // console.log(rows);
 
         zoneCodes = [rows[0].zone_code]
       }
@@ -961,7 +1301,7 @@ router.get('/get-bed/excel/new', async (req: Request, res: Response) => {
         ws.cell(1, 23).string('ระดับ 0 Home Isolation (stepdown) ทั้งหมด');
         ws.cell(1, 24).string('ระดับ 0 Home Isolation (stepdown) ใช้ไปแล้ว');
         ws.cell(1, 25).string('ระดับ 0 Home Isolation (stepdown) คงเหลือ');
-        ws.cell(1, 29).string('สังกัด');
+        ws.cell(1, 26).string('สังกัด');
 
         ws.cell(row, 1).string(d.province_name);
         ws.cell(row, 2).string(d.hospcode);
@@ -1196,7 +1536,7 @@ router.get('/get-supplies', async (req: Request, res: Response) => {
         provinceCode = _provinceCode;
       }
     }
-    console.log(type, zoneCodes,provinceCode);
+    console.log(type, zoneCodes, provinceCode);
     let data: any = [];
 
     let province;
@@ -1210,7 +1550,7 @@ router.get('/get-supplies', async (req: Request, res: Response) => {
       province = await model.getProvince(db, null, null);
     }
     console.log(province);
-    
+
     for (const z of zoneCodes) {
       const zone: any = {};
       zone.name = z;
