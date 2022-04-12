@@ -288,7 +288,7 @@ export class CovidCaseModel {
 
   checkCidAllHospital(db: Knex, hospitalId, cid) {
     return db('p_patients as pt')
-      .select('h.hospname', 'p.*', 'va.tambon_name', 'va.ampur_name', 'va.province_name', 'c.name as country_name', 'cc.id as covid_case_id')
+      .select('h.hospname', 'p.*', 'va.tambon_name', 'va.ampur_name', 'va.province_name', 'c.name as country_name', 'cc.id as covid_case_id', 'cc.status')
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .join('p_covid_cases as cc', 'cc.patient_id', 'pt.id')
       .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
@@ -299,7 +299,6 @@ export class CovidCaseModel {
       })
       .leftJoin('b_countries as c', 'c.id', 'p.country_code')
       .whereNot('pt.hospital_id', hospitalId)
-      .where('cc.status', 'ADMIT')
       .where('cc.is_deleted', 'N')
       .where('p.cid', cid)
   }

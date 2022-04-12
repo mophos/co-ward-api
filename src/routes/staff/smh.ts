@@ -18,6 +18,21 @@ router.get('/', async (req: Request, res: Response) => {
 
   try {
     if (type != 'FOREIGN') {
+      const rsVaccine: any = await model.getVaccine(key);
+      if (rsVaccine.ok) {
+        let vac: any = rsVaccine.rows.vaccine;
+        let data: any = [];
+        for (const v of vac.vaccine) {
+          v.update_datetime = moment(v.update_datetime).format('YYYY-MM-DD HH:mm:ss');
+          v.immunization_datetime = moment(v.immunization_datetime).format('YYYY-MM-DD HH:mm:ss');
+          v.expiration_date = moment(v.expiration_date).format('YYYY-MM-DD');
+          v.birth_date = moment(v.birth_date).format('YYYY-MM-DD');
+          v.cid = key;
+          data.push(v)
+        }
+        await model.saveVaccine(db, data);
+      }
+
       const cowardRows = await model.findPersonCoward(db, key);
       const colabRows = await model.findPersonColab(db, key);
       if (cowardRows.length > 0) {

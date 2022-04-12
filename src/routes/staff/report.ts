@@ -341,35 +341,68 @@ router.get('/discharge-case/excel', async (req: Request, res: Response) => {
       horizontal: 'right',
     },
   });
-
   try {
     let rs: any
     if (providerType === 'ZONE') {
       rs = await model.getCaseDc(req.dbReport, showPersons, query, zoneCode, null);
-
     } else if (providerType === 'SSJ') {
       rs = await model.getCaseDc(req.dbReport, showPersons, query, zoneCode, provinceCode);
     }
+    if (showPersons) {
+      ws.cell(1, 1, 1, 1, true).string('จังหวัด');
+      ws.cell(1, 2, 1, 2, true).string('โรงพยาบาล');
+      ws.cell(1, 3, 1, 3, true).string('HN');
+      ws.cell(1, 4, 1, 4, true).string('AN');
+      ws.cell(1, 5, 1, 5, true).string('CID');
+      ws.cell(1, 6, 1, 6, true).string('ชื่อ-นามสกุล');
+      ws.cell(1, 7, 1, 7, true).string('เพศ');
+      ws.cell(1, 8, 1, 8, true).string('อายุ');
+      ws.cell(1, 9, 1, 9, true).string('สถานะ');
+      ws.cell(1, 10, 1, 10, true).string('วันที่ Admit');
+      ws.cell(1, 11, 1, 11, true).string('วันที่ d/c');
+      ws.cell(1, 12, 1, 12, true).string('โรงพยาบาลที่ Refer');
+    } else {
+      ws.cell(1, 1, 1, 1, true).string('จังหวัด');
+      ws.cell(1, 2, 1, 2, true).string('โรงพยาบาล');
+      ws.cell(1, 3, 1, 3, true).string('HN');
+      ws.cell(1, 4, 1, 4, true).string('สถานะ');
+      ws.cell(1, 5, 1, 5, true).string('วันที่ Admit');
+      ws.cell(1, 6, 1, 6, true).string('วันที่ d/c');
+      ws.cell(1, 7, 1, 7, true).string('โรงพยาบาลที่ Refer');
+    }
 
-    ws.cell(1, 1, 1, 1, true).string('จังหวัด');
-    ws.cell(1, 2, 1, 2, true).string('โรงพยาบาล');
-    ws.cell(1, 3, 1, 3, true).string('HN');
-    ws.cell(1, 4, 1, 4, true).string('ชื่อ-นามสกุล');
-    ws.cell(1, 5, 1, 5, true).string('วันที่ Admit');
-    ws.cell(1, 6, 1, 6, true).string('สถานะ');
-    ws.cell(1, 7, 1, 7, true).string('วันที่ d/c');
-
-    let row = 2
-    for (const items of rs) {
-      items.date_admit = moment(items.date_admit).format('DD/MM/YYYY');
-      items.date_discharge = moment(items.date_discharge).format('DD/MM/YYYY');
-      ws.cell(row, 1).string(items['hosp_province'] || '');
-      ws.cell(row, 2).string(items['hospname']);
-      ws.cell(row, 3).string(items['hn']);
-      ws.cell(row, 4).string((items['title_name']) + ' ' + (items['first_name']) + ' ' + (items['last_name']));
-      ws.cell(row, 5).string(items['date_admit']);
-      ws.cell(row, 6).string(items['status']);
-      ws.cell(row++, 7).string(items['date_discharge']);
+    if (showPersons) {
+      let row = 2
+      for (const items of rs) {
+        items.age = items.age === null ? "" : items.age.toString();
+        items.date_admit = moment(items.date_admit).format('DD/MM/YYYY');
+        items.date_discharge = moment(items.date_discharge).format('DD/MM/YYYY');
+        ws.cell(row, 1).string(items['hosp_province']);
+        ws.cell(row, 2).string(items['hospname']);
+        ws.cell(row, 3).string(items['hn']);
+        ws.cell(row, 4).string(items['an']);
+        ws.cell(row, 5).string(items['cid']);
+        ws.cell(row, 6).string((items['title_name']) + ' ' + (items['first_name']) + ' ' + (items['last_name']));
+        ws.cell(row, 7).string(items['gender']);
+        ws.cell(row, 8).string(items['age']);
+        ws.cell(row, 9).string(items['status']);
+        ws.cell(row, 10).string(items['date_admit']);
+        ws.cell(row, 11).string(items['date_discharge']);
+        ws.cell(row++, 12).string(items['refer_hospital_name']);
+      }
+    } else {
+      let row = 2
+      for (const items of rs) {
+        items.date_admit = moment(items.date_admit).format('DD/MM/YYYY');
+        items.date_discharge = moment(items.date_discharge).format('DD/MM/YYYY');
+        ws.cell(row, 1).string(items['hosp_province']);
+        ws.cell(row, 2).string(items['hospname']);
+        ws.cell(row, 3).string(items['hn']);
+        ws.cell(row, 4).string(items['status']);
+        ws.cell(row, 5).string(items['date_admit']);
+        ws.cell(row, 6).string(items['date_discharge']);
+        ws.cell(row++, 7).string(items['refer_hospital_name']);
+      }
     }
 
     fse.ensureDirSync(process.env.TMP_PATH);

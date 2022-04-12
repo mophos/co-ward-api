@@ -971,7 +971,13 @@ router.post('/check-register', async (req: Request, res: Response) => {
       } else {
         const rs: any = await covidCaseModel.checkCidAllHospital(db, hospitalId, cid);
         if (rs.length) {
-          res.send({ ok: true, case: 'REFER', rows: rs[0] })
+          if (rs[0].status === 'REFER') {
+            res.send({ ok: true, case: 'REFER', rows: rs[0] })
+          } else if (rs[0].status === 'ADMIT') {
+            res.send({ ok: true, case: 'ADMIT', rows: rs[0] })
+          } else {
+            res.send({ ok: true, case: 'NEW' });
+          }
         } else {
           res.send({ ok: true, case: 'NEW' });
         }
