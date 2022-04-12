@@ -39,6 +39,7 @@ export class ReportModel {
       .sum('moderate as moderate')
       .sum('asymptomatic as asymptomatic')
       .sum('ip_pui as ip_pui')
+      // .sum('atk as atk')
       .count('* as count')
       .sum('v.sum as countCase')
       .join('b_hospitals as h', 'h.id', 'v.hospital_id')
@@ -108,9 +109,14 @@ export class ReportModel {
   }
 
   getUseBed(db: Knex) {
+    const bed = db('wm_beds')
+      .groupBy('hospital_id')
+      .select('hospital_id')
+      .max('date as date').as('b');
     let sql = db('temp_report_bed as t')
-      .select('t.*', 'h.level', 'h.hospital_type')
+      .select('t.*', 'h.level', 'h.hospital_type', 'b.date')
       .join('b_hospitals as h', 'h.id', 't.hospital_id')
+      .join(bed, 'b.hospital_id', 'h.id')
       .where('h.is_deleted', 'N')
     return sql;
     // return db('views_bed_hospitals AS vbh')
@@ -997,10 +1003,12 @@ export class ReportModel {
 
   getCaseDc(db: Knex, showPersons = false, query = null, zoneCode, provinceCode = null) {
     const _query = `%${query}%`;
-    const sql = db('view_covid_case_last as c')
+    const sql = db('p_covid_cases as c')
       .select('c.id as covid_case_id', 'h.hospname', 'h.province_name as hosp_province', 'c.an', 'c.confirm_date', 'c.status', 'c.date_admit', 'c.date_discharge', 'pt.hn')
+      .join('p_covid_case_detail_last as cl', 'c.id', 'cl.covid_case_id')
+      .join('p_covid_case_details as cd', 'cd.id', 'cl.covid_case_id')
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
-      .join('b_hospitals AS h', 'h.id', 'c.hospital_id')
+      .join('b_hospitals AS h', 'h.id', 'pt.hospital_id')
       .whereIn('c.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
       // .where('pt.hospital_id', hospitalId)
       .where('h.zone_code', zoneCode);
@@ -1133,4 +1141,64 @@ export class ReportModel {
     // .groupBy('pt.id')
   }
 
+  getCountNewAdmit(db: Knex, date, zoneCode, province = null) {
+    const _date = `${date}%`
+    const sql = db('p_covid_cases as c')
+      .select('h.province_name', 'h.province_code', 'h.hospcode', 'h.hospname', 'pt.hn', 'cd.gcs_id', 'c.an', 'c.date_admit')
+      // .select(db.raw(`h.province_name,
+      // h.province_code,
+      // sum(cd.gcs_id = 1) as severe,
+      // sum(cd.gcs_id = 2) as moderate,
+      // sum(cd.gcs_id = 3) as mild,
+      // sum(cd.gcs_id = 4) as asymptomatic,
+      // sum(cd.gcs_id = 5) as ippui,
+      // sum(cd.gcs_id = 6) as observe,
+      // sum(cd.gcs_id = 7) as atk,
+      // count(*) as total`))
+      .join('p_covid_case_details as cd', (w) => {
+        w.on('c.id', 'cd.covid_case_id')
+        w.on('c.date_entry', 'cd.entry_date')
+      })
+      .join('p_patients as pt', 'c.patient_id', 'pt.id')
+      .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
+      // .join('b_gcs as g', 'g.id', 'cd.gcs_id')
+      .where('c.create_date', 'like', _date)
+      .where('h.zone_code', zoneCode)
+    if (province) {
+      sql.where('h.province_code', province)
+    }
+    // .groupBy('h.province_code')
+    console.log(sql.toString());
+    return sql;
+
+
+  }
+
+  getCountNewAdmitZONE(db: Knex, date, provinceCode) {
+    const _date = `${date}%`
+    return db('p_covid_cases as c')
+      .select(db.raw(`
+    h.province_code,
+    h.province_name,
+    h.hospcode,
+    h.hospname,
+    sum(cd.gcs_id = 1) as severe,
+    sum(cd.gcs_id = 2) as moderate,
+    sum(cd.gcs_id = 3) as mild,
+    sum(cd.gcs_id = 4) as asymptomatic,
+    sum(cd.gcs_id = 5) as ippui,
+    sum(cd.gcs_id = 6) as observe,
+    sum(cd.gcs_id = 7) as atk,
+    count(*) as total`))
+      .join('p_covid_case_details as cd', (w) => {
+        w.on('c.id', 'cd.covid_case_id')
+        w.on('c.date_entry', 'cd.entry_date')
+      })
+      .join('p_patients as pt', 'c.patient_id', 'pt.id')
+      .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
+      .where('c.create_date', 'like', _date)
+      .whereIn('h.province_code', provinceCode)
+      .groupBy('h.hospcode')
+
+  }
 }

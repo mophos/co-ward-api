@@ -20,6 +20,7 @@ const covidCaseModel = new CovidCaseModel();
 const serialModel = new SerialModel();
 const settingModel = new BedModel();
 import * as moment from 'moment';
+import e = require('express');
 const model = new Login();
 const smHModel = new smhModel();
 const router: Router = Router();
@@ -461,15 +462,30 @@ router.get('/discharge-auto', async (req: Request, res: Response) => {
   try {
 
     if (process.env.TIME_KEY === timeKey) {
-      const rs: any = await covidCaseModel.getAutoDC(db);
+      const rs: any = await covidCaseModel.getDataForDC1(db);
+      console.log(rs.length);
       if (rs) {
         for (const r of rs) {
-          const dc: any = await covidCaseModel.getDataForDC(db, r.gcs_id, r.bed_id, r.day);
-          for (const i of dc) {
-
+          let cut = false;
+          const dc: any = await covidCaseModel.getDataForDC2(db, r.covid_case_id);
+          if (dc.length == 1) {
+            if (dc[0].discharge_day != null && dc[0].discharge_day < dc[0].c) {
+              cut = true;
+            }
+          } else if (dc.length > 1) {
+            if (dc[0].discharge_day != null) {
+              const diff = moment(dc[0].entry_date, 'YYYY-MM-DD').diff(moment(dc[1].entry_date, 'YYYY-MM-DD'), 'days');
+              if (diff > dc[0].discharge_day) {
+                cut = true;
+              }
+            }
+          }
+          if (cut) {
+            console.log('cut');
+            
             // #### DISCHARGE #######
-
-            let detail: any = await covidCaseModel.getCovidCaseDetailId(req.db, i.covid_case_id, moment().format('YYYY-MM-DD'))
+            const info: any = await covidCaseModel.getDataForDC3(db, r.covid_case_id);
+            let detail: any = await covidCaseModel.getCovidCaseDetailId(req.db, info[0].covid_case_id, moment().format('YYYY-MM-DD'))
             for (const i of detail) {
               await covidCaseModel.removeRequisition(req.db, i.id)
               await covidCaseModel.removeCovidCaseDetailItem(req.db, i.id)
@@ -477,31 +493,36 @@ router.get('/discharge-auto', async (req: Request, res: Response) => {
             }
 
             const obj: any = {};
-            obj.status = 'DISCHARGE';
+            if (info[0].gcs_id == 5 ) {
+              obj.status = 'NEGATIVE';
+            } else {
+              obj.status = 'DISCHARGE';
+            }
             obj.updated_by = 0;
             obj.reason = 'D/C ออกโดยระบบ';
             obj.date_discharge = moment().format('YYYY-MM-DD');
 
             const objD: any = {
-              covid_case_id: i.covid_case_id,
-              gcs_id: i.gcs_id,
-              bed_id: i.bed_id,
-              status: 'DISCHARGE',
-              medical_supplie_id: i.medical_supplie_id || null,
+              covid_case_id: info[0].covid_case_id,
+              gcs_id: info[0].gcs_id,
+              bed_id: info[0].bed_id,
+              medical_supplie_id: info[0].medical_supplie_id || null,
               create_by: 0,
-              entry_date:moment().format('YYYY-MM-DD')
+              entry_date: moment().format('YYYY-MM-DD')
             }
 
-          
+            if (info[0].gcs_id == 5 ) {
+              objD.status = 'NEGATIVE';
+            } else {
+              objD.status = 'DISCHARGE';
+            }
 
-           await covidCaseModel.updateDischarge(req.db, i.covid_case_id, obj);
+
+            await covidCaseModel.updateDischarge(req.db, info[0].covid_case_id, obj);
             await covidCaseModel.saveCovidCaseDetail(req.db, objD);
 
           }
         }
-        // console.log(rs);
-
-        // sendPhr(db, rs);
         res.send({ ok: true, code: HttpStatus.OK });
       } else {
         res.send({ ok: false, code: HttpStatus.OK });
@@ -511,7 +532,7 @@ router.get('/discharge-auto', async (req: Request, res: Response) => {
     }
   } catch (error) {
     console.log(error);
-    
+
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
   }
 });

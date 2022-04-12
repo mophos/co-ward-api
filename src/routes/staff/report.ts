@@ -363,7 +363,7 @@ router.get('/discharge-case/excel', async (req: Request, res: Response) => {
     for (const items of rs) {
       items.date_admit = moment(items.date_admit).format('DD/MM/YYYY');
       items.date_discharge = moment(items.date_discharge).format('DD/MM/YYYY');
-      ws.cell(row, 1).string(items['province_name']);
+      ws.cell(row, 1).string(items['hosp_province'] || '');
       ws.cell(row, 2).string(items['hospname']);
       ws.cell(row, 3).string(items['hn']);
       ws.cell(row, 4).string((items['title_name']) + ' ' + (items['first_name']) + ' ' + (items['last_name']));

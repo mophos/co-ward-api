@@ -376,7 +376,7 @@ export class CovidCaseModel {
   }
 
   saveCovidCaseDetail(db: Knex, data) {
-    console.log(data);
+    // console.log(data);
 
     let sql = `
     INSERT INTO p_covid_case_details
@@ -823,7 +823,7 @@ export class CovidCaseModel {
 
   getDataForDC(db: Knex, gcsId, bedId, day) {
     const sql = db('p_covid_cases as c')
-      .select('cl.covid_case_id','cl.covid_case_detail_id','cd.medical_supplie_id','cd.bed_id','cd.gcs_id')
+      .select('cl.covid_case_id', 'cl.covid_case_detail_id', 'cd.medical_supplie_id', 'cd.bed_id', 'cd.gcs_id')
       .join('p_covid_case_detail_last as cl', 'cl.covid_case_id', 'c.id')
       .join('p_covid_case_details as cd', 'cd.id', 'cl.covid_case_detail_id')
       .where('c.is_deleted', 'N')
@@ -834,6 +834,40 @@ export class CovidCaseModel {
       .whereRaw(`DATEDIFF( now(),c.date_admit ) > ?`, day)
     // console.log(sql.toString());
     return sql;
+  }
 
+  getDataForDC1(db: Knex) {
+    const sql = db('p_covid_cases as c')
+      .select('c.id as covid_case_id')
+      .count('* as c')
+      .join('p_covid_case_details as cd','cd.covid_case_id','c.id')
+      // .join('p_covid_case_detail_last as cl','cl.covid_case_id','c.id')
+      // .join('p_covid_case_details as cd2','cd2.id','cl.covid_case_detail_id')
+      // .join('b_gcs as g','g.id','cd2.gcs_id')
+      .where('c.is_deleted', 'N')
+      .where('c.status', 'ADMIT')
+      .groupBy('c.id')
+      .having('c', '>=', 10)
+      // .having('g.discharge_day','>','c')
+    console.log(sql.toString());
+    return sql;
+  }
+
+  getDataForDC2(db: Knex, covidCaseId) {
+    return db('p_covid_case_details as cd')
+      .select('cd.covid_case_id', 'g.discharge_day')
+      .count('* as c')
+      .max('cd.entry_date as entry_date')
+      .join('b_gcs as g', 'g.id', 'cd.gcs_id')
+      .where('cd.covid_case_id', covidCaseId)
+      .groupBy('cd.gcs_id')
+      .orderBy('cd.entry_date', 'DESC')
+  }
+
+  getDataForDC3(db: Knex, covidCaseId) {
+    return db('p_covid_case_detail_last as cl')
+      .join('p_covid_case_details as cd', 'cd.id', 'cl.covid_case_detail_id')
+      .select('cl.covid_case_id', 'cd.id', 'cd.gcs_id', 'cd.bed_id', 'cd.medical_supplie_id')
+      .where('cl.covid_case_id', covidCaseId)
   }
 }
