@@ -1005,8 +1005,8 @@ export class ReportModel {
     const _query = `%${query}%`;
     const sql = db('p_covid_cases as c')
       .select('c.id as covid_case_id', 'h.hospname', 'rh.hospname as refer_hospital_name', 'c.an', 'h.province_name as hosp_province', 'c.confirm_date', 'c.status', 'c.date_admit', 'c.date_discharge', 'pt.hn')
-      .join('p_covid_case_detail_last as cl', 'c.id', 'cl.covid_case_id')
-      .join('p_covid_case_details as cd', 'cd.id', 'cl.covid_case_id')
+      // .join('p_covid_case_detail_last as cl', 'c.id', 'cl.covid_case_id')
+      // .join('p_covid_case_details as cd', 'cd.id', 'cl.covid_case_id')
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
       .join('b_hospitals AS h', 'h.id', 'pt.hospital_id')
       .leftJoin('b_hospitals AS rh', 'rh.id', 'c.hospital_id_refer')
@@ -1035,6 +1035,8 @@ export class ReportModel {
     }
 
     sql.orderBy('c.date_admit', 'DESC');
+    console.log(sql.toString());
+    
     return sql;
     // .groupBy('pt.id')
   }

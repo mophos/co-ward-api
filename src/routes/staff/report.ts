@@ -343,11 +343,14 @@ router.get('/discharge-case/excel', async (req: Request, res: Response) => {
   });
   try {
     let rs: any
+    console.time('query')
     if (providerType === 'ZONE') {
       rs = await model.getCaseDc(req.dbReport, showPersons, query, zoneCode, null);
     } else if (providerType === 'SSJ') {
       rs = await model.getCaseDc(req.dbReport, showPersons, query, zoneCode, provinceCode);
     }
+    console.timeEnd('query')
+    console.time('loop')
     if (showPersons) {
       ws.cell(1, 1, 1, 1, true).string('จังหวัด');
       ws.cell(1, 2, 1, 2, true).string('โรงพยาบาล');
@@ -377,34 +380,34 @@ router.get('/discharge-case/excel', async (req: Request, res: Response) => {
         items.age = items.age === null ? "" : items.age.toString();
         items.date_admit = moment(items.date_admit).format('DD/MM/YYYY');
         items.date_discharge = moment(items.date_discharge).format('DD/MM/YYYY');
-        ws.cell(row, 1).string(items['hosp_province']);
-        ws.cell(row, 2).string(items['hospname']);
+        ws.cell(row, 1).string(items['hosp_province'] || '');
+        ws.cell(row, 2).string(items['hospname'] || '');
         ws.cell(row, 3).string(items['hn']);
-        ws.cell(row, 4).string(items['an']);
-        ws.cell(row, 5).string(items['cid']);
+        ws.cell(row, 4).string(items['an'] || '');
+        ws.cell(row, 5).string(items['cid'] || '');
         ws.cell(row, 6).string((items['title_name']) + ' ' + (items['first_name']) + ' ' + (items['last_name']));
         ws.cell(row, 7).string(items['gender']);
         ws.cell(row, 8).string(items['age']);
         ws.cell(row, 9).string(items['status']);
         ws.cell(row, 10).string(items['date_admit']);
         ws.cell(row, 11).string(items['date_discharge']);
-        ws.cell(row++, 12).string(items['refer_hospital_name']);
+        ws.cell(row++, 12).string(items['refer_hospital_name'] || '');
       }
     } else {
       let row = 2
       for (const items of rs) {
         items.date_admit = moment(items.date_admit).format('DD/MM/YYYY');
         items.date_discharge = moment(items.date_discharge).format('DD/MM/YYYY');
-        ws.cell(row, 1).string(items['hosp_province']);
-        ws.cell(row, 2).string(items['hospname']);
+        ws.cell(row, 1).string(items['hosp_province'] || '');
+        ws.cell(row, 2).string(items['hospname'] || '');
         ws.cell(row, 3).string(items['hn']);
         ws.cell(row, 4).string(items['status']);
         ws.cell(row, 5).string(items['date_admit']);
         ws.cell(row, 6).string(items['date_discharge']);
-        ws.cell(row++, 7).string(items['refer_hospital_name']);
+        ws.cell(row++, 7).string(items['refer_hospital_name'] || '');
       }
     }
-
+    console.timeEnd('loop')
     fse.ensureDirSync(process.env.TMP_PATH);
 
     let filename = `report1` + moment().format('x');
