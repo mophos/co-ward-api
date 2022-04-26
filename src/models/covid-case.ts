@@ -839,7 +839,7 @@ export class CovidCaseModel {
     const sql = db('p_covid_cases as c')
       .select('c.id as covid_case_id')
       .count('* as c')
-      .join('p_covid_case_details as cd','cd.covid_case_id','c.id')
+      .join('p_covid_case_details as cd', 'cd.covid_case_id', 'c.id')
       // .join('p_covid_case_detail_last as cl','cl.covid_case_id','c.id')
       // .join('p_covid_case_details as cd2','cd2.id','cl.covid_case_detail_id')
       // .join('b_gcs as g','g.id','cd2.gcs_id')
@@ -847,7 +847,7 @@ export class CovidCaseModel {
       .where('c.status', 'ADMIT')
       .groupBy('c.id')
       .having('c', '>=', 10)
-      // .having('g.discharge_day','>','c')
+    // .having('g.discharge_day','>','c')
     console.log(sql.toString());
     return sql;
   }
@@ -868,5 +868,10 @@ export class CovidCaseModel {
       .join('p_covid_case_details as cd', 'cd.id', 'cl.covid_case_detail_id')
       .select('cl.covid_case_id', 'cd.id', 'cd.gcs_id', 'cd.bed_id', 'cd.medical_supplie_id')
       .where('cl.covid_case_id', covidCaseId)
+  }
+
+  getCovidInfo(db: Knex, covidCaseId) {
+    return db('p_covid_cases')
+      .where('id', covidCaseId)
   }
 }
