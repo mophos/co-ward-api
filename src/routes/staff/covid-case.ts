@@ -868,51 +868,58 @@ router.put('/present', async (req: Request, res: Response) => {
   const userId = req.decoded.id;
   try {
     const timeCut = await basicModel.timeCut();
-    const detail: any = {
-      covid_case_id: data.covid_case_id || null,
-      gcs_id: data.gcs_id || null,
-      bed_id: data.bed_id || null,
-      medical_supplie_id: data.medical_supplie_id || null,
-      create_by: userId,
-      status: data.status
-    }
-
-    if (detail.gcs_id === '1' || detail.gcs_id === '2' || detail.gcs_id === '3' || detail.gcs_id === '4') {
-      await covidCaseModel.updateCaseStatus(db, detail.covid_case_id)
-    }
-
-    if (!timeCut.ok) {
-      detail.entry_date = moment().add(1, 'days').format('YYYY-MM-DD');
-    } else {
-      detail.entry_date = moment().format('YYYY-MM-DD');
-    }
-    await covidCaseModel.removeCovidCaseDetailItem(db, data.covid_case_details_id)
-    const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
-
-    const generic = await basicModel.getGenerics(db);
-    const items = []
-    for (const i of data.drugs) {
-      if (i.is_check) {
-        const item: any = {
-          covid_case_detail_id: covidCaseDetailId[0].insertId == 0 ? data.id : covidCaseDetailId[0].insertId,
-          generic_id: i.id,
+    const info: any = await covidCaseModel.getCovidInfo(db, data.covid_case_id);
+    if (info.length) {
+      if (info[0].status == 'ADMIT') {
+        const detail: any = {
+          covid_case_id: data.covid_case_id || null,
+          gcs_id: data.gcs_id || null,
+          bed_id: data.bed_id || null,
+          medical_supplie_id: data.medical_supplie_id || null,
+          create_by: userId,
+          status: data.status
+        }
+        if (detail.gcs_id === '1' || detail.gcs_id === '2' || detail.gcs_id === '3' || detail.gcs_id === '4') {
+          await covidCaseModel.updateCaseStatus(db, detail.covid_case_id)
         }
 
-        const idx = _.findIndex(generic, { 'id': +i.id });
-
-        if (idx > -1) {
-          item.qty = generic[idx].pay_qty;
-          i.qty = generic[idx].pay_qty;
+        if (!timeCut.ok) {
+          detail.entry_date = moment().add(1, 'days').format('YYYY-MM-DD');
+        } else {
+          detail.entry_date = moment().format('YYYY-MM-DD');
         }
-        items.push(item);
+        await covidCaseModel.removeCovidCaseDetailItem(db, data.covid_case_details_id)
+        const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
+
+        const generic = await basicModel.getGenerics(db);
+        const items = []
+        for (const i of data.drugs) {
+          if (i.is_check) {
+            const item: any = {
+              covid_case_detail_id: covidCaseDetailId[0].insertId == 0 ? data.id : covidCaseDetailId[0].insertId,
+              generic_id: i.id,
+            }
+
+            const idx = _.findIndex(generic, { 'id': +i.id });
+
+            if (idx > -1) {
+              item.qty = generic[idx].pay_qty;
+              i.qty = generic[idx].pay_qty;
+            }
+            items.push(item);
+          }
+        }
+        try {
+          await covidCaseModel.saveCovidCaseDetailItem(db, items);
+        } catch (error) {
+          console.log(error);
+        }
+        res.send({ ok: true, code: HttpStatus.OK });
       }
+    } else {
+      res.send({ ok: false, error: 'ไม่พบข้อมูล' });
     }
-    try {
-      await covidCaseModel.saveCovidCaseDetailItem(db, items);
-    } catch (error) {
-      console.log(error);
-    }
-    res.send({ ok: true, code: HttpStatus.OK });
+
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -1053,6 +1060,7 @@ router.get('/ventilators', async (req: Request, res: Response) => {
     res.send({ ok: false, error: error });
   }
 });
+
 router.get('/medical-supplies', async (req: Request, res: Response) => {
   const db = req.db;
   const hospitalId = req.decoded.hospitalId;
