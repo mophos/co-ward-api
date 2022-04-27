@@ -860,7 +860,7 @@ export class CovidCaseModel {
       .join('b_gcs as g', 'g.id', 'cd.gcs_id')
       .where('cd.covid_case_id', covidCaseId)
       .groupBy('cd.gcs_id')
-      .orderBy('cd.entry_date', 'DESC')
+      .orderBy('entry_date', 'DESC')
   }
 
   getDataForDC3(db: Knex, covidCaseId) {

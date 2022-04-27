@@ -2252,7 +2252,7 @@ router.get('/admit-confirm-case/excel', async (req: Request, res: Response) => {
         ws.cell(row, 4).string(toString(item.sex));
         ws.cell(row, 5).string(toString(item.age));
         ws.cell(row, 6).string(toString(item.cid));
-        ws.cell(row, 7).string(toString(item.first_name + item.last_name));
+        ws.cell(row, 7).string(toString(item.first_name +' '+ item.last_name));
         ws.cell(row, 8).string(toString(item.date_admit));
         ws.cell(row, 9).string(toString(item.gcs_name));
         ws.cell(row, 10).string(toString(item.bed_name));
