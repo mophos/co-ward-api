@@ -709,6 +709,11 @@ export class CovidCaseModel {
       .where('covid_case_detail_id', id)
   }
 
+  selectCovidCaseDetailItem(db: Knex, id) {
+    return db('p_covid_case_detail_items')
+      .where('covid_case_detail_id', id)
+  }
+
   updateCovidCaseDetailItem(db: Knex, oldId,newId) {
     return db('p_covid_case_detail_items')
       .update('covid_case_detail_id',newId)

@@ -1315,7 +1315,22 @@ router.get('/update/all-case', async (req: Request, res: Response) => {
       //   detail.entry_date = moment().format('YYYY-MM-DD');
       // }
       const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
-      await covidCaseModel.updateCovidCaseDetailItem(db, data.covid_case_details_id, covidCaseDetailId[0].insertId == 0 ? data.id : covidCaseDetailId[0].insertId)
+      if(covidCaseDetailId[0].insertId == 0){
+        //update
+        await covidCaseModel.updateCovidCaseDetailItem(db, data.id, covidCaseDetailId[0].insertId == 0 ? data.id : covidCaseDetailId[0].insertId)
+      } else{
+        //insert
+        const datad= await covidCaseModel.selectCovidCaseDetailItem(db,data.id);
+        const a=[];
+        for (const d of datad) {
+          a.push({
+            covid_case_detail_id: covidCaseDetailId[0].insertId,
+            generaic_id:d.genneric_id,
+            data_source:'COWARD-WEB'
+          })
+        }
+        await covidCaseModel.saveCovidCaseDetailItem(db, a)
+      }
 
       // const items = []
       // // data.drugs = await setGenericSave(data);
