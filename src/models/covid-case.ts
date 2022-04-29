@@ -27,7 +27,8 @@ export class CovidCaseModel {
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .leftJoin('um_titles as t', 'p.title_id', 't.id')
       .where('pt.hospital_id', hospitalId)
-      .whereIn('c.id', id)
+      .where('c.status','ADMIT')
+      // .whereIn('c.id', id)
     if (query) {
       sql.where((w) => {
         w.where('pt.hn', 'like', _query)
