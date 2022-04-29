@@ -45,7 +45,7 @@ router.get('/', async (req: Request, res: Response) => {
         data.push(obj);
       }
     } else {
-      const rs: any = await model.getPerson(db, keys);
+      const rs: any = await model.getPersonCIDPASSPORT(db, keys);
       for (const v of rs) {
         const obj: any = {};
         obj.tname = v.title_name;

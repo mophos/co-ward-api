@@ -1293,7 +1293,7 @@ router.get('/update/all-case', async (req: Request, res: Response) => {
     }
     const rs: any = await covidCaseModel.getCasePresentNotUpdate(req.db, hospitalId, date, gcsSearchId, bedSearchId);
 
-    const generic = await basicModel.getGenerics(db);
+    // const generic = await basicModel.getGenerics(db);
 
     for (const data of rs) {
       const detail: any = {
