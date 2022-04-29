@@ -37,10 +37,10 @@ export class smhModel {
       .leftJoin('b_district as d', 'd.ampur_code_full', 'c.district_code')
       .leftJoin('b_subdistrict as sd', 'sd.id', 'c.subdistrict_code')
       .where((v) => {
-        v.where('c.cid', 'like', '%' + keys + '%')
-        v.orWhere('c.passport', 'like', '%' + keys + '%')
-        v.orWhere('c.first_name', 'like', '%' + keys + '%')
-        v.orWhere('c.last_name', 'like', '%' + keys + '%')
+        v.where('c.cid', keys)
+        v.orWhere('c.passport', keys)
+        // v.orWhere('c.first_name', 'like', '%' + keys + '%')
+        // v.orWhere('c.last_name', 'like', '%' + keys + '%')
       }).limit(1);
   }
 
@@ -48,8 +48,8 @@ export class smhModel {
     return db('p_persons as p')
       .select('p.cid', 'p.passport')
       .where((v) => {
-        v.where('p.cid', 'like', '%' + keys + '%')
-        v.orWhere('p.passport', 'like', '%' + keys + '%')
+        v.where('p.cid', keys)
+        v.orWhere('p.passport', keys)
       });
   }
 
@@ -57,8 +57,8 @@ export class smhModel {
     return db('colab_lab as c')
       .select('c.cid', 'c.passport')
       .where((v) => {
-        v.where('c.cid', 'like', '%' + keys + '%')
-        v.orWhere('c.passport', 'like', '%' + keys + '%')
+        v.where('c.cid', keys)
+        v.orWhere('c.passport', keys)
       }).limit(1);
   }
 
