@@ -1293,7 +1293,7 @@ router.get('/update/all-case', async (req: Request, res: Response) => {
     }
     const rs: any = await covidCaseModel.getCasePresentNotUpdate(req.db, hospitalId, date, gcsSearchId, bedSearchId);
 
-    const generic = await basicModel.getGenerics(db);
+    // const generic = await basicModel.getGenerics(db);
 
     for (const data of rs) {
       const detail: any = {
@@ -1314,26 +1314,41 @@ router.get('/update/all-case', async (req: Request, res: Response) => {
       // } else {
       //   detail.entry_date = moment().format('YYYY-MM-DD');
       // }
-      await covidCaseModel.removeCovidCaseDetailItem(db, data.covid_case_details_id)
       const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
-
-      const items = []
-      data.drugs = await setGenericSave(data);
-      for (const i of data.drugs) {
-        const item: any = {
-          covid_case_detail_id: covidCaseDetailId[0].insertId == 0 ? data.id : covidCaseDetailId[0].insertId,
-          generic_id: i.genericId,
-        };
-
-        const idx = _.findIndex(generic, { 'id': +i.genericId });
-
-        if (idx > -1) {
-          item.qty = generic[idx].pay_qty;
-          i.qty = generic[idx].pay_qty;
+      if(covidCaseDetailId[0].insertId == 0){
+        //update
+        await covidCaseModel.updateCovidCaseDetailItem(db, data.covid_case_details_id, covidCaseDetailId[0].insertId == 0 ? data.id : covidCaseDetailId[0].insertId)
+      } else{
+        //insert
+        const datad= await covidCaseModel.selectCovidCaseDetailItem(db,data.covid_case_details_id);
+        const a=[];
+        for (const d of datad) {
+          a.push({
+            covid_case_detail_id: covidCaseDetailId[0].insertId,
+            generic_id:d.generic_id,
+            data_source:'COWARD-WEB'
+          })
         }
-        items.push(item);
+        await covidCaseModel.saveCovidCaseDetailItem(db, a)
       }
-      await covidCaseModel.saveCovidCaseDetailItem(db, items);
+
+      // const items = []
+      // // data.drugs = await setGenericSave(data);
+      // for (const i of data.drugs) {
+      //   const item: any = {
+      //     covid_case_detail_id: covidCaseDetailId[0].insertId == 0 ? data.id : covidCaseDetailId[0].insertId,
+      //     generic_id: i.genericId,
+      //   };
+
+      //   const idx = _.findIndex(generic, { 'id': +i.genericId });
+
+      //   if (idx > -1) {
+      //     item.qty = generic[idx].pay_qty;
+      //     i.qty = generic[idx].pay_qty;
+      //   }
+      //   items.push(item);
+      // }
+      // await covidCaseModel.saveCovidCaseDetailItem(db, items);
     }
     res.send({ ok: true, code: HttpStatus.OK, rows: rs });
   } catch (error) {

@@ -709,6 +709,17 @@ export class CovidCaseModel {
       .where('covid_case_detail_id', id)
   }
 
+  selectCovidCaseDetailItem(db: Knex, id) {
+    return db('p_covid_case_detail_items')
+      .where('covid_case_detail_id', id)
+  }
+
+  updateCovidCaseDetailItem(db: Knex, oldId,newId) {
+    return db('p_covid_case_detail_items')
+      .update('covid_case_detail_id',newId)
+      .where('covid_case_detail_id', oldId)
+  }
+
   getCovidCaseDetailId(db: Knex, id, date) {
     return db('p_covid_case_details')
       .select('id')
@@ -764,13 +775,11 @@ export class CovidCaseModel {
     const sql = db('p_covid_cases as c')
       .select('c.id as covid_case_id', 'c.status', 'cd.id as covid_case_details_id',
         'cd.bed_id', 'cd.gcs_id', 'cd.medical_supplie_id', db.raw(`ifnull(cd.create_date, null) as create_date`),
-        db.raw(`ifnull(cd.entry_date, null) as entry_date`),
-        'vg.set1', 'vg.set2', 'vg.set3', 'vg.set4'
+        db.raw(`ifnull(cd.entry_date, null) as entry_date`)
       )
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
       .leftJoin('p_covid_case_detail_last as ccd', 'ccd.covid_case_id', 'c.id')
       .leftJoin('p_covid_case_details as cd', 'ccd.covid_case_detail_id', 'cd.id')
-      .leftJoin('view_generic_case_item as vg', 'vg.covid_case_detail_id', 'cd.id')
       .where('pt.hospital_id', hospitalId)
       .where('c.status', 'ADMIT')
       .where('c.is_deleted', 'N')

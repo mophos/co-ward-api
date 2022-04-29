@@ -37,7 +37,7 @@ router.get('/', async (req: Request, res: Response) => {
       const colabRows = await model.findPersonColab(db, key);
       if (cowardRows.length > 0) {
         console.log('co-ward');
-        const rs: any = await model.getPerson(db, key);
+        const rs: any = await model.getPersonCIDPASSPORT(db, key);
         if (rs[0].tambon_code != null || rs[0].ampur_code != null || rs[0].province_code != null) {
           const add: any = await model.getAddress(db, rs[0].tambon_code, rs[0].ampur_code, rs[0].province_code);
           obj.ampur_name = add[0].ampur_name;

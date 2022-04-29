@@ -8,6 +8,16 @@ export class smhModel {
     return db('sys_token_shm').where('is_actived', 'Y');
   }
 
+  getPersonCIDPASSPORT(db: Knex, keys) {
+    return db('p_persons as p')
+      .select('p.*', 't.full_name as title_name')
+      .join('um_titles as t', 't.id', 'p.title_id')
+      .where((v) => {
+        v.where('p.cid', keys)
+        v.orWhere('p.passport', keys)
+      });
+  }
+
   getPerson(db: Knex, keys) {
     return db('p_persons as p')
       .select('p.*', 't.full_name as title_name')
