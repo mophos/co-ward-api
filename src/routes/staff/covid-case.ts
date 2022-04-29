@@ -1325,7 +1325,7 @@ router.get('/update/all-case', async (req: Request, res: Response) => {
         for (const d of datad) {
           a.push({
             covid_case_detail_id: covidCaseDetailId[0].insertId,
-            generaic_id:d.genneric_id,
+            generic_id:d.generic_id,
             data_source:'COWARD-WEB'
           })
         }
