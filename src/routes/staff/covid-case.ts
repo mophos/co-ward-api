@@ -1314,26 +1314,26 @@ router.get('/update/all-case', async (req: Request, res: Response) => {
       // } else {
       //   detail.entry_date = moment().format('YYYY-MM-DD');
       // }
-      await covidCaseModel.removeCovidCaseDetailItem(db, data.covid_case_details_id)
       const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
+      await covidCaseModel.updateCovidCaseDetailItem(db, data.covid_case_details_id, covidCaseDetailId[0].insertId == 0 ? data.id : covidCaseDetailId[0].insertId)
 
-      const items = []
-      data.drugs = await setGenericSave(data);
-      for (const i of data.drugs) {
-        const item: any = {
-          covid_case_detail_id: covidCaseDetailId[0].insertId == 0 ? data.id : covidCaseDetailId[0].insertId,
-          generic_id: i.genericId,
-        };
+      // const items = []
+      // // data.drugs = await setGenericSave(data);
+      // for (const i of data.drugs) {
+      //   const item: any = {
+      //     covid_case_detail_id: covidCaseDetailId[0].insertId == 0 ? data.id : covidCaseDetailId[0].insertId,
+      //     generic_id: i.genericId,
+      //   };
 
-        const idx = _.findIndex(generic, { 'id': +i.genericId });
+      //   const idx = _.findIndex(generic, { 'id': +i.genericId });
 
-        if (idx > -1) {
-          item.qty = generic[idx].pay_qty;
-          i.qty = generic[idx].pay_qty;
-        }
-        items.push(item);
-      }
-      await covidCaseModel.saveCovidCaseDetailItem(db, items);
+      //   if (idx > -1) {
+      //     item.qty = generic[idx].pay_qty;
+      //     i.qty = generic[idx].pay_qty;
+      //   }
+      //   items.push(item);
+      // }
+      // await covidCaseModel.saveCovidCaseDetailItem(db, items);
     }
     res.send({ ok: true, code: HttpStatus.OK, rows: rs });
   } catch (error) {
