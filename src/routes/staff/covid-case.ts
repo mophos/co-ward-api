@@ -1317,10 +1317,10 @@ router.get('/update/all-case', async (req: Request, res: Response) => {
       const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
       if(covidCaseDetailId[0].insertId == 0){
         //update
-        await covidCaseModel.updateCovidCaseDetailItem(db, data.id, covidCaseDetailId[0].insertId == 0 ? data.id : covidCaseDetailId[0].insertId)
+        await covidCaseModel.updateCovidCaseDetailItem(db, data.covid_case_detail_id, covidCaseDetailId[0].insertId == 0 ? data.id : covidCaseDetailId[0].insertId)
       } else{
         //insert
-        const datad= await covidCaseModel.selectCovidCaseDetailItem(db,data.id);
+        const datad= await covidCaseModel.selectCovidCaseDetailItem(db,data.covid_case_detail_id);
         const a=[];
         for (const d of datad) {
           a.push({
