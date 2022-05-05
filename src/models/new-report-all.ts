@@ -631,7 +631,7 @@ export class ReportAllModel {
   }
 
   getPatientsReport(db: Knex, date, sector) {
-    const sql = db('views_covid_case_last as cl')
+    const sql = db('p_covid_case_detail_last as pcd')
       .select('vh.id as hospital_id',
         'vh.hospname',
         'vh.sub_ministry_name',
@@ -651,12 +651,14 @@ export class ReportAllModel {
           sum(cl.gcs_id = 6) as observe`
         ))
 
-      .join('p_covid_cases AS c', 'c.id', 'cl.covid_case_id')
+      .join('p_covid_cases AS c', 'c.id', 'pcd.covid_case_id')
+      .join('p_covid_case_details AS cl', 'cl.id', 'pcd.covid_case_detail_id')
+      .join('p_patients AS p', 'p.id', 'c.covid_case_id')
       .leftJoin('b_hospitals AS hr', 'c.hospital_id_refer', 'hr.id')
-      .join('views_hospital_all as vh', 'vh.id', 'cl.hospital_id')
+      .join('views_hospital_all as vh', 'vh.id', 'p.hospital_id')
       .where('cl.entry_date', '<=', date)
       .where('cl.entry_date', '>=', '2020-12-15')
-      .groupBy('cl.hospital_id')
+      .groupBy('p.hospital_id')
       .orderBy('vh.zone_code', 'ASC')
       .orderBy('vh.province_name', 'ASC')
       .orderBy('vh.hospname', 'ASC')

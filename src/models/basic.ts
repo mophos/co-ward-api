@@ -143,7 +143,7 @@ export class BasicModel {
 
 	getGCS(db: Knex) {
 		return db('b_gcs')
-			.where('is_deleted', 'N')
+			.where('is_deleted', 'N').orderBy('id', 'ASC')
 	}
 
 	getCountry(db: Knex) {
