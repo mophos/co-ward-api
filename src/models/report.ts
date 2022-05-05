@@ -566,7 +566,6 @@ export class ReportModel {
     sum( cl.bed_id = 3 ) AS isolate,
     sum( cl.bed_id = 4 ) AS cohort,
     sum( cl.bed_id = 5 ) AS hospitel,
-    
     sum( cl.bed_id = 8 ) AS community_isolation,
     sum( cl.bed_id = 9 ) AS home_isolation,
     sum( cl.bed_id = 10 ) AS lv0,
@@ -576,11 +575,12 @@ export class ReportModel {
     sum( cl.bed_id = 14 ) AS lv3,
     sum( cl.medical_supplie_id = 1 ) AS invasive,
     sum( cl.medical_supplie_id = 2 ) AS noninvasive,
-    sum( cl.medical_supplie_id = 3 ) AS high_flow ,
-    now() as timestamp
+    sum( cl.medical_supplie_id = 3 ) AS high_flow,
+    now( ) AS TIMESTAMP 
   FROM
-    views_covid_case_last AS cl
-    INNER JOIN p_covid_cases AS c ON c.id = cl.covid_case_id
+    p_covid_case_detail_last AS pcd
+    INNER JOIN p_covid_cases AS c ON c.id = pcd.covid_case_id
+    INNER JOIN p_covid_case_details AS cl ON c.id = pcd.covid_case_detail_id
     INNER JOIN p_patients AS pt ON pt.id = c.patient_id
     INNER JOIN b_hospitals AS h ON h.id = pt.hospital_id
     LEFT JOIN (
@@ -592,20 +592,24 @@ export class ReportModel {
       sum( IF ( i.generic_id = 4, i.qty, 0 ) ) AS 'd4',
       sum( IF ( i.generic_id = 5, i.qty, 0 ) ) AS 'd5',
       sum( IF ( i.generic_id = 7, i.qty, 0 ) ) AS 'd7',
-      sum( IF ( i.generic_id = 8, i.qty, 0 ) ) AS 'd8', 
-      sum( IF ( i.generic_id = 26, i.qty, 0 ) ) AS 'd26', 
+      sum( IF ( i.generic_id = 8, i.qty, 0 ) ) AS 'd8',
+      sum( IF ( i.generic_id = 26, i.qty, 0 ) ) AS 'd26',
       sum( IF ( i.generic_id = 27, i.qty, 0 ) ) AS 'd27' 
     FROM
       p_covid_case_detail_items AS i
-      INNER JOIN view_covid_case_last AS l ON l.id = i.covid_case_detail_id 
-      where l.status = 'ADMIT' AND l.gcs_id IN ( 5 )
+      INNER JOIN p_covid_case_detail_last AS pcd ON pcd.covid_case_detail_id = i.covid_case_detail_id
+      INNER JOIN p_covid_cases AS l ON l.id = pcd.covid_case_id 
+      INNER JOIN p_covid_case_details AS cd ON cd.id = pcd.covid_case_detail_id
+    WHERE
+      l.STATUS = 'ADMIT' 
+      AND cd.gcs_id IN ( 5 ) 
     GROUP BY
       i.covid_case_detail_id 
     ) AS du ON du.covid_case_detail_id = cl.id 
   WHERE
-    cl.status = 'ADMIT' 
-    AND gcs_id IN ( 5 )
-    AND province_code IN (?)
+    cl.STATUS = 'ADMIT' 
+    AND gcs_id IN ( 5 ) 
+    AND province_code IN ( ? ) 
   GROUP BY
     h.province_code 
   ORDER BY
@@ -1036,7 +1040,7 @@ export class ReportModel {
 
     sql.orderBy('c.date_admit', 'DESC');
     console.log(sql.toString());
-    
+
     return sql;
     // .groupBy('pt.id')
   }
@@ -1091,7 +1095,7 @@ export class ReportModel {
   }
 
   getCaseAllHosp(db: Knex, zoneCode, provinceCode = null, hospitalId = null) {
-    const sql = db('view_covid_case_last as c')
+    const sql = db('p_covid_case_detail_last as pcd')
       .select(
         'p.cid',
         'p.passport',
@@ -1121,6 +1125,7 @@ export class ReportModel {
         db.raw(`ifnull(c.updated_entry, c.create_date) as updated_date`),
         'p.data_source',
       )
+      .leftJoin('p_covid_cases as c.', 'c.id', 'pcd.covid_case_id')
       .leftJoin('p_patients as pt', 'c.patient_id', 'pt.id')
       .leftJoin('p_persons as p', 'pt.person_id', 'p.id')
       .leftJoin('b_hospitals AS h', 'h.id', 'c.hospital_id')
@@ -1137,6 +1142,8 @@ export class ReportModel {
     }
     sql.orderBy('c.date_admit', 'DESC');
     // console.log(sql.toString());
+
+    console.log(sql.toString());
 
     return sql;
     // .groupBy('pt.id')

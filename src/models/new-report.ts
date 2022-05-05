@@ -541,55 +541,57 @@ export class ReportModel {
   }
 
   sumAdmitPuiCaseByProvince(db: Knex, province) {
-    let sql = `SELECT
-    sum( ( du.d1 IS NOT NULL ) AND ( du.d1 > 0 ) ) AS d1,
-    sum( ( du.d2 IS NOT NULL ) AND ( du.d2 > 0 ) ) AS d2,
-    sum( ( du.d3 IS NOT NULL ) AND ( du.d3 > 0 ) ) AS d3,
-    sum( ( du.d4 IS NOT NULL ) AND ( du.d4 > 0 ) ) AS d4,
-    sum( ( du.d5 IS NOT NULL ) AND ( du.d5 > 0 ) ) AS d5,
-    sum( ( du.d7 IS NOT NULL ) AND ( du.d7 > 0 ) ) AS d7,
-    sum( ( du.d8 IS NOT NULL ) AND ( du.d8 > 0 ) ) AS d8,
-    h.zone_code,
-    sum( cl.gcs_id IN ( 5 ) ) AS pui,
-    sum( cl.bed_id = 1 ) AS aiir,
-    sum( cl.bed_id = 2 ) AS modified_aiir,
-    sum( cl.bed_id = 3 ) AS isolate,
-    sum( cl.bed_id = 4 ) AS cohort,
-    sum( cl.bed_id = 5 ) AS hospitel,
-    sum( cl.medical_supplie_id = 1 ) AS invasive,
-    sum( cl.medical_supplie_id = 2 ) AS noninvasive,
-    sum( cl.medical_supplie_id = 3 ) AS high_flow ,
-    now() as timestamp
-  FROM
-    views_covid_case_last AS cl
-    INNER JOIN p_covid_cases AS c ON c.id = cl.covid_case_id
-    INNER JOIN p_patients AS pt ON pt.id = c.patient_id
-    INNER JOIN b_hospitals AS h ON h.id = pt.hospital_id
-    LEFT JOIN (
+    let sql = `
     SELECT
-      i.covid_case_detail_id,
-      sum( IF ( i.generic_id = 1, i.qty, 0 ) ) AS 'd1',
-      sum( IF ( i.generic_id = 2, i.qty, 0 ) ) AS 'd2',
-      sum( IF ( i.generic_id = 3, i.qty, 0 ) ) AS 'd3',
-      sum( IF ( i.generic_id = 4, i.qty, 0 ) ) AS 'd4',
-      sum( IF ( i.generic_id = 5, i.qty, 0 ) ) AS 'd5',
-      sum( IF ( i.generic_id = 7, i.qty, 0 ) ) AS 'd7',
-      sum( IF ( i.generic_id = 8, i.qty, 0 ) ) AS 'd8' 
-    FROM
-      p_covid_case_detail_items AS i
-      INNER JOIN view_covid_case_last AS l ON l.id = i.covid_case_detail_id 
-    GROUP BY
-      i.covid_case_detail_id 
-    ) AS du ON du.covid_case_detail_id = cl.id 
-  WHERE
-    cl.status = 'ADMIT' 
-    AND gcs_id IN ( 5 )
-    AND province_code IN (?)
-  GROUP BY
-    h.province_code 
-  ORDER BY
-    h.zone_code ASC,
-    h.province_code ASC;`;
+        sum( ( du.d1 IS NOT NULL ) AND ( du.d1 > 0 ) ) AS d1,
+        sum( ( du.d2 IS NOT NULL ) AND ( du.d2 > 0 ) ) AS d2,
+        sum( ( du.d3 IS NOT NULL ) AND ( du.d3 > 0 ) ) AS d3,
+        sum( ( du.d4 IS NOT NULL ) AND ( du.d4 > 0 ) ) AS d4,
+        sum( ( du.d5 IS NOT NULL ) AND ( du.d5 > 0 ) ) AS d5,
+        sum( ( du.d7 IS NOT NULL ) AND ( du.d7 > 0 ) ) AS d7,
+        sum( ( du.d8 IS NOT NULL ) AND ( du.d8 > 0 ) ) AS d8,
+        h.zone_code,
+        sum( cd.gcs_id IN ( 5 ) ) AS pui,
+        sum( cd.bed_id = 1 ) AS aiir,
+        sum( cd.bed_id = 2 ) AS modified_aiir,
+        sum( cd.bed_id = 3 ) AS isolate,
+        sum( cd.bed_id = 4 ) AS cohort,
+        sum( cd.bed_id = 5 ) AS hospitel,
+        sum( cd.medical_supplie_id = 1 ) AS invasive,
+        sum( cd.medical_supplie_id = 2 ) AS noninvasive,
+        sum( cd.medical_supplie_id = 3 ) AS high_flow ,
+        now() as timestamp
+      FROM
+        p_covid_case_detail_last AS cl
+        INNER JOIN p_covid_cases AS c ON c.id = cl.covid_case_id
+        INNER JOIN p_covid_case_details AS cd ON cd.id = cl.covid_case_detail_id
+        INNER JOIN p_patients AS pt ON pt.id = c.patient_id
+        INNER JOIN b_hospitals AS h ON h.id = pt.hospital_id
+        LEFT JOIN (
+        SELECT
+          i.covid_case_detail_id,
+          sum( IF ( i.generic_id = 1, i.qty, 0 ) ) AS 'd1',
+          sum( IF ( i.generic_id = 2, i.qty, 0 ) ) AS 'd2',
+          sum( IF ( i.generic_id = 3, i.qty, 0 ) ) AS 'd3',
+          sum( IF ( i.generic_id = 4, i.qty, 0 ) ) AS 'd4',
+          sum( IF ( i.generic_id = 5, i.qty, 0 ) ) AS 'd5',
+          sum( IF ( i.generic_id = 7, i.qty, 0 ) ) AS 'd7',
+          sum( IF ( i.generic_id = 8, i.qty, 0 ) ) AS 'd8' 
+        FROM
+          p_covid_case_detail_items AS i
+          INNER JOIN p_covid_case_detail_last AS l ON l.covid_case_detail_id = i.covid_case_detail_id 
+        GROUP BY
+          i.covid_case_detail_id 
+        ) AS du ON du.covid_case_detail_id = cd.id 
+       WHERE
+         cl.status = 'ADMIT' 
+         AND gcs_id IN ( 5 )
+         AND province_code IN (?)
+      GROUP BY
+        h.province_code 
+      ORDER BY
+        h.zone_code ASC,
+        h.province_code ASC;`;
     return db.raw(sql, [province]);
   }
 
@@ -989,7 +991,7 @@ export class ReportModel {
       sql.whereIn('c.case_status', caseStatuses)
     }
     console.log(sql.toString());
-    
+
     return sql
   }
 
@@ -1131,7 +1133,7 @@ export class ReportModel {
         .leftJoin('um_titles as t', 'pp.title_id', 't.id');
     }
     console.log(sql.toString());
-    
+
     return sql
   }
 
@@ -1186,10 +1188,11 @@ export class ReportModel {
 
   getCaseDc(db: Knex, showPersons = false, query = null, zoneCode, provinceCode = null) {
     const _query = `%${query}%`;
-    const sql = db('view_covid_case_last as c')
+    const sql = db('p_covid_case_detail_last as pcd')
       .select('c.id as covid_case_id', 'h.hospname', 'h.province_name as hosp_province', 'c.an', 'c.confirm_date', 'c.status', 'c.date_admit', 'c.date_discharge', 'pt.hn')
+      .join('p_covid_cases as c', 'c.id', 'pcd.covid_case_id')
       .join('p_patients as pt', 'c.patient_id', 'pt.id')
-      .join('b_hospitals AS h', 'h.id', 'c.hospital_id')
+      .join('b_hospitals AS h', 'h.id', 'pt.hospital_id')
       .whereIn('c.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
       // .where('pt.hospital_id', hospitalId)
       .where('h.zone_code', zoneCode);
@@ -1271,7 +1274,7 @@ export class ReportModel {
   }
 
   getCaseAllHosp(db: Knex, zoneCode, provinceCode = null, hospitalId = null) {
-    const sql = db('view_covid_case_last as c')
+    const sql = db('p_covid_case_detail_last as pcd')
       .select(
         'p.cid',
         'p.passport',
@@ -1301,9 +1304,10 @@ export class ReportModel {
         db.raw(`ifnull(c.updated_entry, c.create_date) as updated_date`),
         'p.data_source',
       )
+      .join('p_covid_cases as c', 'c.id', 'pcd.covid_case_id')
       .leftJoin('p_patients as pt', 'c.patient_id', 'pt.id')
       .leftJoin('p_persons as p', 'pt.person_id', 'p.id')
-      .leftJoin('b_hospitals AS h', 'h.id', 'c.hospital_id')
+      .leftJoin('b_hospitals AS h', 'h.id', 'pt.hospital_id')
       .leftJoin('b_genders as g', 'p.gender_id', 'g.id')
       .leftJoin('b_people_types as pet', 'p.people_type', 'pet.id')
       .leftJoin('um_titles as t', 'p.title_id', 't.id')
