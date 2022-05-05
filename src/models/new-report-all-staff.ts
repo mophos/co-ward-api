@@ -376,27 +376,6 @@ export class ReportAllStaffModel {
   }
 
   report2(db: Knex, date, sector) {
-    //     const last = db('views_covid_case')
-    //       .max('updated_entry as updated_entry_last')
-    //       .whereRaw('hospital_id=vc.hospital_id')
-    //       .whereNotNull('updated_entry')
-    //       .as('updated_entry')
-
-    //     const sql = db('views_hospital_all as vh')
-    //       .select('vh.id', 'vh.hospname', 'vh.sub_ministry_name', db.raw(`
-    // sum( gcs_id = 1 ) AS severe,
-    // sum( gcs_id = 2 ) AS moderate,
-    // sum( gcs_id = 3 ) AS mild,
-    // sum( gcs_id = 4 ) AS asymptomatic,
-    // sum( gcs_id = 5 ) AS ip_pui,
-    // sum( gcs_id = 6 ) AS observe`), last)
-    //       .leftJoin('views_covid_case_last as vc', (v) => {
-    //         v.on('vh.id', 'vc.hospital_id')
-    //         v.on('vc.status', db.raw(`'ADMIT'`))
-    //       })
-    //       .groupBy('vh.id')
-
-    // return sql;
     return db('temp_report_all_2 as t')
       .select('t.*', 'h.zone_code', 'h.province_code')
       .join('b_hospitals as h', 'h.id', 't.id');
@@ -426,7 +405,7 @@ export class ReportAllStaffModel {
   }
 
   getPatientsReport(db: Knex, date, sector) {
-    const sql = db('views_covid_case_last as cl')
+    const sql = db('p_covid_case_detail_last as pcd')
       .select('vh.id as hospital_id',
         'vh.hospname',
         'vh.sub_ministry_name',
@@ -446,18 +425,20 @@ export class ReportAllStaffModel {
           sum(cl.gcs_id = 6) as observe`
         ))
 
-      .join('p_covid_cases AS c', 'c.id', 'cl.covid_case_id')
+      .join('p_covid_cases AS c', 'c.id', 'pcd.covid_case_id')
+      .join('p_patients AS p', 'p.id', 'c.patient_id')
+      .join('p_covid_case_details AS cl', 'cl.id', 'pcd.covid_case_detail_id')
       .leftJoin('b_hospitals AS hr', 'c.hospital_id_refer', 'hr.id')
       .join('views_hospital_all as vh', 'vh.id', 'cl.hospital_id')
       .where('cl.entry_date', '<=', date)
       .where('cl.entry_date', '>=', '2020-12-15')
-      .groupBy('cl.hospital_id')
+      .groupBy('p.hospital_id')
       .orderBy('vh.zone_code', 'ASC')
     return sql;
   }
 
   getPatientsReportByDate(db: Knex, date, sector) {
-    const sql = db('views_covid_case_last as cl')
+    const sql = db('p_covid_case_detail_last as pcd')
       .select('vh.id as hospital_id',
         'vh.hospname',
         'vh.sub_ministry_name',
@@ -477,17 +458,19 @@ export class ReportAllStaffModel {
           sum(cl.gcs_id = 6) as observe`
         ))
 
-      .join('p_covid_cases AS c', 'c.id', 'cl.covid_case_id')
+      .join('p_covid_cases AS c', 'c.id', 'pcd.covid_case_id')
+      .join('p_patients AS p', 'p.id', 'c.patient_id')
+      .join('p_covid_case_details AS c', 'c.id', 'pcd.covid_case_detail_id')
       .leftJoin('b_hospitals AS hr', 'c.hospital_id_refer', 'hr.id')
       .join('views_hospital_all as vh', 'vh.id', 'cl.hospital_id')
       .where('cl.entry_date', date)
-      .groupBy('cl.hospital_id')
+      .groupBy('p.hospital_id')
       .orderBy('vh.zone_code', 'ASC')
     return sql;
   }
 
   report4(db: Knex, date, sector) {
-    const sql = db('views_covid_case_last as cl')
+    const sql = db('p_covid_case_detail_last as pcd')
       .select('vh.id as hospital_id',
         'vh.hospname',
         'vh.sub_ministry_name',
@@ -506,12 +489,14 @@ export class ReportAllStaffModel {
         sum(cl.gcs_id = 6) as observe`
         ))
 
-      .join('p_covid_cases AS c', 'c.id', 'cl.covid_case_id')
+      .join('p_covid_cases AS c', 'c.id', 'pcd.covid_case_id')
+      .join('p_covid_case_details AS cl', 'cl.id', 'pcd.covid_case_id')
+      .join('p_patients AS p', 'p.id', 'c.patient_id')
       .leftJoin('b_hospitals AS hr', 'c.hospital_id_refer', 'hr.id')
-      .join('views_hospital_all as vh', 'vh.id', 'cl.hospital_id')
+      .join('views_hospital_all as vh', 'vh.id', 'p.hospital_id')
       .where('cl.entry_date', '<=', date)
       .where('cl.entry_date', '>=', '2020-12-15')
-      .groupBy('cl.hospital_id')
+      .groupBy('p.hospital_id')
     return sql;
   }
 
@@ -640,7 +625,7 @@ export class ReportAllStaffModel {
   }
 
   patientReportByZone(db: Knex, date, sector, zones = []) {
-    const sql = db('views_covid_case_last as cl')
+    const sql = db('p_covid_case_detail_last as pcd')
       .select('vh.id as hospital_id',
         'vh.hospname',
         'vh.sub_ministry_name',
@@ -662,9 +647,11 @@ export class ReportAllStaffModel {
         sum(cl.gcs_id = 6) as observe`
         ))
 
-      .join('p_covid_cases AS c', 'c.id', 'cl.covid_case_id')
+      .join('p_covid_cases AS c', 'c.id', 'pcd.covid_case_id')
+      .join('p_covid_case_details AS cl', 'cl.id', 'pcd.covid_case_detail_id')
+      .join('p_patients AS p', 'p.id', 'c.patient_id')
       .leftJoin('b_hospitals AS hr', 'c.hospital_id_refer', 'hr.id')
-      .join('views_hospital_all as vh', 'vh.id', 'cl.hospital_id')
+      .join('views_hospital_all as vh', 'vh.id', 'p.hospital_id')
       .where('cl.entry_date', '<=', date)
       .where('cl.entry_date', '>=', '2020-12-15')
       .groupBy('vh.zone_code')
