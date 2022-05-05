@@ -10,7 +10,7 @@ export class CovidCaseModel {
     'pt.id AS patient_id',
     'c.date_admit',
     'c.an','c.status',
-    'c.is_deteled')
+    'c.is_deleted')
     .join('p_patients as pt', 'pt.id', 'c.patient_id')
     .where('pt.hospital_id', hospitalId)
     .groupBy('pt.id').as('c');
