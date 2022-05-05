@@ -62,31 +62,31 @@ export class BedModel {
 	}
 
 	getMedicalSupplies(db: Knex, hospitalId: any) {
-// 		SELECT
-// 	`pt`.`hospital_id` AS `hospital_id`,
-// 	count( 0 ) AS `qty`,
-// 	`cd`.`medical_supplie_id` AS `medical_supplie_id` 
+		// 		SELECT
+		// 	`pt`.`hospital_id` AS `hospital_id`,
+		// 	count( 0 ) AS `qty`,
+		// 	`cd`.`medical_supplie_id` AS `medical_supplie_id` 
 
-// GROUP BY
-// 	`pt`.`hospital_id`,
-// 	`cd`.`medical_supplie_id`
+		// GROUP BY
+		// 	`pt`.`hospital_id`,
+		// 	`cd`.`medical_supplie_id`
 		const sum = db('p_covid_cases as c')
-		.select('pt.hospital_id','cd.medical_supplie_id')
-		.count('* as qty')
-		.join('p_patients as pt','pt.id','c.patient_id')
-		.join('p_covid_case_detail_last as cl','c.id','cl.covid_case_id')
-		.join('p_covid_case_details as cd','cd.id','cl.covid_case_detail_id')
-		.where('c.is_deleted','N')
-		.where('pt.hospital_id',hospitalId)
-		.where('c.status','ADMIT')
-		.groupBy('pt.hospital_id')
-		.groupBy('cd.medical_supplie_id')
-		.as('vms');
+			.select('pt.hospital_id', 'cd.medical_supplie_id')
+			.count('* as qty')
+			.join('p_patients as pt', 'pt.id', 'c.patient_id')
+			.join('p_covid_case_detail_last as cl', 'c.id', 'cl.covid_case_id')
+			.join('p_covid_case_details as cd', 'cd.id', 'cl.covid_case_detail_id')
+			.where('c.is_deleted', 'N')
+			.where('pt.hospital_id', hospitalId)
+			.where('c.status', 'ADMIT')
+			.groupBy('pt.hospital_id')
+			.groupBy('cd.medical_supplie_id')
+			.as('vms');
 
 		return db('b_medical_supplies AS b')
 			.select('b.id', 'b.name', 'bh.qty', 'bh.covid_qty', 'vms.qty as usage_qty')
 			.joinRaw(`LEFT JOIN b_medical_supplie_hospitals AS bh on bh.medical_supplie_id = b.id and bh.hospital_id = ?`, hospitalId)
-			.leftJoin(sum,'vms.medical_supplie_id','b.id')
+			.leftJoin(sum, 'vms.medical_supplie_id', 'b.id')
 			.where('b.is_deleted', 'N')
 	}
 
@@ -220,7 +220,10 @@ export class BedModel {
 	}
 
 	getLastCaseDetails(db) {
-		let s = db('view_covid_case_last ').where('status', 'ADMIT').where('entry_date', '<', db.raw("now()")) // db.raw('date(now())') )
+		let s = db('p_covid_case_detail_last as pcd')
+			.join('p_covid_cases as c', 'c.id', 'pcd.covid_case_id')
+			.where('c.status', 'ADMIT')
+			.where('c.date_entry', '<', db.raw("now()"))
 		console.log(s.toString());
 
 		return s

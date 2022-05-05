@@ -40,7 +40,9 @@ export class CovidCaseModel {
     }
     sql.where('c.is_deleted', 'N')
       .orderBy('c.date_admit', 'DESC');
+      console.log(sql.toString());
     return sql;
+    
     // .groupBy('pt.id')
   }
 
@@ -550,24 +552,14 @@ export class CovidCaseModel {
   }
 
   getGcs(db, hospitalId, hospitalType) {
-
-    //     SELECT
-    // 	g.*,
-    // 	count(*) AS qty -- 	`pd`.`hospital_id` AS `hos
-    // FROM
-    // 	`view_covid_case_last` `pd`
-    // 	JOIN `b_gcs` `g` ON `g`.`id` = `pd`.`gcs_id` 
-    // WHERE
-    // 	`pd`.`status` = 'ADMIT' -- 	and pd.hospital_id = ''
-    // GROUP BY
-    // 	`g`.`id`
-    const view = db('view_covid_case_last as v')
-      .select('v.hospital_id', 'v.gcs_id')
+    const view = db('p_covid_case_detail_last as v')
+      .select('p.hospital_id', 'c.gcs_id')
       .count('* as qty')
-      // .join('b_gcs as g', 'g.id', 'v.gcs_id')
-      .where('v.status', 'ADMIT')
-      .where('v.hospital_id', hospitalId)
-      .groupBy('v.gcs_id').as('bh')
+      .join('p_covid_cases as c', 'c.id', 'v.covid_case_id')
+      .join('p_patients p', 'p.id', 'c.patient_id')
+      .where('c.status', 'ADMIT')
+      .where('c.hospital_id', hospitalId)
+      .groupBy('c.gcs_id').as('bh')
 
 
     return db('b_gcs AS bg')
