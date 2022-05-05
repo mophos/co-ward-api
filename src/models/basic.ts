@@ -143,7 +143,7 @@ export class BasicModel {
 
 	getGCS(db: Knex) {
 		return db('b_gcs')
-			.where('is_deleted', 'N')
+			.where('is_deleted', 'N').orderBy('id', 'ASC')
 	}
 
 	getCountry(db: Knex) {
@@ -345,11 +345,12 @@ export class BasicModel {
 		const sql = db('p_covid_case_detail_last as cl')
 			.select('pt.hn', 'c.an', 'pt.hospital_id', last, db.raw(`DATEDIFF( now(),(${last}) ) as days`), 'h.hospname', 'h.hospcode', 'h.zone_code', 'h.province_name', 'c.date_admit', 'u.fname', 'u.telephone', 'h.telephone_manager')
 			.join('p_covid_cases as c', 'c.id', 'cl.covid_case_id')
+			.join('p_covid_case_details as cd', 'cd.id', 'cl.covid_case_detail_id')
 			.join('p_patients as pt', 'pt.id', 'c.patient_id')
 			.join('b_hospitals as h', 'h.id', 'pt.hospital_id')
 			.leftJoin('um_users as u', 'u.id', 'c.created_by')
 			.where('c.status', 'ADMIT')
-			.whereIn('c.gcs_id', [1, 2, 3, 4])
+			.whereIn('cd.gcs_id', [1, 2, 3, 4])
 			.havingRaw('days >= 2')
 		return sql;
 

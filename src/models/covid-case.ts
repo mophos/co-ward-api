@@ -14,7 +14,7 @@ export class CovidCaseModel {
     .where('pt.hospital_id', hospitalId)
     .where('c.is_deleted', 'N')
     .groupBy('pt.id').as('c');
-
+   
     // .select('c.id as covid_case_id', 'c.an', 'c.confirm_date', 'c.status', 'c.date_admit', 'c.date_discharge', 'pt.hn', 'pt.person_id', 'p.*', 't.name as title_name')
     const sql = 	db('p_patients as pt')
     .join(sub,'c.patient_id','pt.id')
@@ -23,20 +23,23 @@ export class CovidCaseModel {
         .where('pt.hospital_id', hospitalId)
       // .where('c.status','ADMIT')
       // .whereIn('c.id', id)
-    if (query) {
-      sql.where((w) => {
-        w.where('pt.hn', 'like', _query)
-          .orWhere('p.first_name', 'like', _query)
-          .orWhere('p.last_name', 'like', _query)
-          .orWhere('c.status', 'like', _query)
-
-      })
-    }
+   
 
       sql.orderBy('c.date_admit', 'DESC');
+
+      if (query) {
+        sql.where((w) => {
+          w.where('pt.hn', 'like', _query)
+            .orWhere('c.first_name', 'like', _query)
+            .orWhere('c.last_name', 'like', _query)
+            .orWhere('c.status', 'like', _query)
+  
+        })
+      }
+
       console.log(sql.toString());
     return sql;
-    
+
     // .groupBy('pt.id')
   }
 
@@ -547,13 +550,14 @@ export class CovidCaseModel {
 
   getGcs(db, hospitalId, hospitalType) {
     const view = db('p_covid_case_detail_last as v')
-      .select('p.hospital_id', 'c.gcs_id')
+      .select('p.hospital_id', 'cd.gcs_id')
       .count('* as qty')
       .join('p_covid_cases as c', 'c.id', 'v.covid_case_id')
-      .join('p_patients p', 'p.id', 'c.patient_id')
+      .join('p_covid_case_details as cd', 'cd.id', 'v.covid_case_detail_id')
+      .join('p_patients as p', 'p.id', 'c.patient_id')
       .where('c.status', 'ADMIT')
-      .where('c.hospital_id', hospitalId)
-      .groupBy('c.gcs_id').as('bh')
+      .where('p.hospital_id', hospitalId)
+      .groupBy('cd.gcs_id').as('bh')
 
 
     return db('b_gcs AS bg')
@@ -564,7 +568,7 @@ export class CovidCaseModel {
         v.orWhere('bg.is_field', hospitalType == 'FIELD' ? 'Y' : 'N')
         v.orWhere('bg.is_ci', hospitalType == 'CI' ? 'Y' : 'N')
       })
-      .where('bg.is_deleted', 'N')
+      .where('bg.is_deleted', 'N').orderBy('bg.id', 'ASC')
   }
 
   getMedicalSupplies(db, hospitalId) {
@@ -701,9 +705,9 @@ export class CovidCaseModel {
       .where('covid_case_detail_id', id)
   }
 
-  updateCovidCaseDetailItem(db: Knex, oldId,newId) {
+  updateCovidCaseDetailItem(db: Knex, oldId, newId) {
     return db('p_covid_case_detail_items')
-      .update('covid_case_detail_id',newId)
+      .update('covid_case_detail_id', newId)
       .where('covid_case_detail_id', oldId)
   }
 
@@ -731,12 +735,12 @@ export class CovidCaseModel {
     const sql = `SELECT covid_case_id FROM view_covid_case WHERE gcs_id IS NULL GROUP BY covid_case_id`;
     const sqls = `select id from view_date_diff `;
 
-    return db('views_covid_case_last as cl')
+    return db('p_covid_case_detail_last as cl')
       .select('p.hn', 'pc.an', 'pp.first_name', 'pp.last_name', 'p.id as patient_id', 'pc.id as covid_case_id', 'pc.date_admit', 'pc.date_discharge')
       .join('p_covid_cases as pc', 'pc.id', 'cl.covid_case_id')
       .join('p_patients as p', 'p.id', 'pc.patient_id')
       .join('p_persons as pp', 'pp.id', 'p.person_id')
-      .where('cl.hospital_id', hospitalId)
+      .where('p.hospital_id', hospitalId)
       .where('pc.is_deleted', 'N')
       .where((v) => {
         v.whereRaw(`pc.id in (${sql})`)
