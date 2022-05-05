@@ -5,29 +5,23 @@ export class CovidCaseModel {
 
   getCase(db: Knex, hospitalId, query = null) {
     const _query = `%${query}%`;
-    const id = db('p_covid_cases as c1')
-      .join('p_patients as pt1', 'c1.patient_id', 'pt1.id')
-      .join('p_persons as p1', 'pt1.person_id', 'p1.id')
-      .max('c1.id')
-      .where('pt1.hospital_id', hospitalId)
-      .where('c1.is_deleted', 'N')
-    if (query) {
-      id.where((w) => {
-        w.where('pt1.hn', 'like', _query)
-          .orWhere('p1.first_name', 'like', _query)
-          .orWhere('p1.last_name', 'like', _query)
-          .orWhere('c1.status', 'like', _query)
-      });
-    }
-    id.groupBy('c1.patient_id');
+    const sub = db('p_covid_cases AS c')
+    .select('c.id AS covid_case_id',
+    'pt.id AS patient_id',
+    'c.date_admit',
+    'c.an','c.status')
+    .join('p_patients as pt', 'pt.id', 'c.patient_id')
+    .where('pt.hospital_id', hospitalId)
+    .where('c.is_deleted', 'N')
+    .groupBy('pt.id').as('c');
 
-    const sql = db('p_covid_cases as c')
-      .select('c.id as covid_case_id', 'c.an', 'c.confirm_date', 'c.status', 'c.date_admit', 'c.date_discharge', 'pt.hn', 'pt.person_id', 'p.*', 't.name as title_name')
-      .join('p_patients as pt', 'c.patient_id', 'pt.id')
-      .join('p_persons as p', 'pt.person_id', 'p.id')
-      .leftJoin('um_titles as t', 'p.title_id', 't.id')
-      .where('pt.hospital_id', hospitalId)
-      .where('c.status','ADMIT')
+    // .select('c.id as covid_case_id', 'c.an', 'c.confirm_date', 'c.status', 'c.date_admit', 'c.date_discharge', 'pt.hn', 'pt.person_id', 'p.*', 't.name as title_name')
+    const sql = 	db('p_patients as pt')
+    .join(sub,'c.patient_id','pt.id')
+     .join('p_persons as p', 'pt.person_id', 'p.id')
+        .leftJoin('um_titles as t', 'p.title_id', 't.id')
+        .where('pt.hospital_id', hospitalId)
+      // .where('c.status','ADMIT')
       // .whereIn('c.id', id)
     if (query) {
       sql.where((w) => {
@@ -38,8 +32,8 @@ export class CovidCaseModel {
 
       })
     }
-    sql.where('c.is_deleted', 'N')
-      .orderBy('c.date_admit', 'DESC');
+
+      sql.orderBy('c.date_admit', 'DESC');
       console.log(sql.toString());
     return sql;
     
