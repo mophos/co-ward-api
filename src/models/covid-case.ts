@@ -737,12 +737,12 @@ export class CovidCaseModel {
     const sql = `SELECT covid_case_id FROM view_covid_case WHERE gcs_id IS NULL GROUP BY covid_case_id`;
     const sqls = `select id from view_date_diff `;
 
-    return db('views_covid_case_last as cl')
+    return db('p_covid_case_detail_last as cl')
       .select('p.hn', 'pc.an', 'pp.first_name', 'pp.last_name', 'p.id as patient_id', 'pc.id as covid_case_id', 'pc.date_admit', 'pc.date_discharge')
       .join('p_covid_cases as pc', 'pc.id', 'cl.covid_case_id')
       .join('p_patients as p', 'p.id', 'pc.patient_id')
       .join('p_persons as pp', 'pp.id', 'p.person_id')
-      .where('cl.hospital_id', hospitalId)
+      .where('p.hospital_id', hospitalId)
       .where('pc.is_deleted', 'N')
       .where((v) => {
         v.whereRaw(`pc.id in (${sql})`)
