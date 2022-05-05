@@ -653,7 +653,7 @@ export class ReportAllModel {
 
       .join('p_covid_cases AS c', 'c.id', 'pcd.covid_case_id')
       .join('p_covid_case_details AS cl', 'cl.id', 'pcd.covid_case_detail_id')
-      .join('p_patients AS p', 'p.id', 'c.covid_case_id')
+      .join('p_patients AS p', 'p.id', 'c.id')
       .leftJoin('b_hospitals AS hr', 'c.hospital_id_refer', 'hr.id')
       .join('views_hospital_all as vh', 'vh.id', 'p.hospital_id')
       .where('cl.entry_date', '<=', date)

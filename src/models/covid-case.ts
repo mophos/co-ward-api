@@ -556,7 +556,7 @@ export class CovidCaseModel {
       .select('p.hospital_id', 'c.gcs_id')
       .count('* as qty')
       .join('p_covid_cases as c', 'c.id', 'v.covid_case_id')
-      .join('p_patients p', 'p.id', 'c.patient_id')
+      .join('p_patients as p', 'p.id', 'c.patient_id')
       .where('c.status', 'ADMIT')
       .where('c.hospital_id', hospitalId)
       .groupBy('c.gcs_id').as('bh')
@@ -570,7 +570,7 @@ export class CovidCaseModel {
         v.orWhere('bg.is_field', hospitalType == 'FIELD' ? 'Y' : 'N')
         v.orWhere('bg.is_ci', hospitalType == 'CI' ? 'Y' : 'N')
       })
-      .where('bg.is_deleted', 'N')
+      .where('bg.is_deleted', 'N').orderBy('bg.id', 'ASC')
   }
 
   getMedicalSupplies(db, hospitalId) {
