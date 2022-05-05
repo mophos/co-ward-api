@@ -10,6 +10,7 @@ export class CovidCaseModel {
     'pt.id AS patient_id',
     'c.date_admit',
     'c.an','c.status',
+    'pt.person_id',
     'c.is_deleted')
     .join('p_patients as pt', 'pt.id', 'c.patient_id')
     .where('pt.hospital_id', hospitalId)
@@ -17,7 +18,7 @@ export class CovidCaseModel {
    
     // .select('c.id as covid_case_id', 'c.an', 'c.confirm_date', 'c.status', 'c.date_admit', 'c.date_discharge', 'pt.hn', 'pt.person_id', 'p.*', 't.name as title_name')
     const sql = 	db('p_patients as pt')
-    .select('c.covid_case_id','pt.hn','c.date_admit','c.status','p.first_name','p.last_name','t.name as title_name')
+    .select('c.covid_case_id','pt.hn','c.date_admit','c.person_id','c.status','p.first_name','p.last_name','t.name as title_name')
     .join(sub,'c.patient_id','pt.id')
      .join('p_persons as p', 'pt.person_id', 'p.id')
         .leftJoin('um_titles as t', 'p.title_id', 't.id')
