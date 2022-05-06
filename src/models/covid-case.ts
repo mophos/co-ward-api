@@ -6,41 +6,41 @@ export class CovidCaseModel {
   getCase(db: Knex, hospitalId, query = null) {
     const _query = `%${query}%`;
     const sub = db('p_covid_cases AS c')
-    .select('c.id AS covid_case_id',
-    'pt.id AS patient_id',
-    'c.date_admit',
-    'c.an','c.status',
-    'pt.person_id',
-    'c.is_deleted')
-    .join('p_patients as pt', 'pt.id', 'c.patient_id')
-    .where('pt.hospital_id', hospitalId)
-    .groupBy('pt.id').as('c');
-   
+      .select('c.id AS covid_case_id',
+        'pt.id AS patient_id',
+        'c.date_admit',
+        'c.an', 'c.status',
+        'pt.person_id',
+        'c.is_deleted')
+      .join('p_patients as pt', 'pt.id', 'c.patient_id')
+      .where('pt.hospital_id', hospitalId)
+      .groupBy('pt.id').as('c');
+
     // .select('c.id as covid_case_id', 'c.an', 'c.confirm_date', 'c.status', 'c.date_admit', 'c.date_discharge', 'pt.hn', 'pt.person_id', 'p.*', 't.name as title_name')
-    const sql = 	db('p_patients as pt')
-    .select('c.covid_case_id','pt.hn','c.date_admit','c.person_id','c.status','p.first_name','p.last_name','t.name as title_name')
-    .join(sub,'c.patient_id','pt.id')
-     .join('p_persons as p', 'pt.person_id', 'p.id')
-        .leftJoin('um_titles as t', 'p.title_id', 't.id')
-        .where('pt.hospital_id', hospitalId)
-        .where('c.is_deleted', 'N')
-      // .where('c.status','ADMIT')
-      // .whereIn('c.id', id)
-   
+    const sql = db('p_patients as pt')
+      .select('c.covid_case_id', 'pt.hn', 'c.date_admit', 'c.person_id', 'c.status', 'p.first_name', 'p.last_name', 't.name as title_name')
+      .join(sub, 'c.patient_id', 'pt.id')
+      .join('p_persons as p', 'pt.person_id', 'p.id')
+      .leftJoin('um_titles as t', 'p.title_id', 't.id')
+      .where('pt.hospital_id', hospitalId)
+      .where('c.is_deleted', 'N')
+    // .where('c.status','ADMIT')
+    // .whereIn('c.id', id)
 
-      sql.orderBy('c.date_admit', 'DESC');
 
-      if (query) {
-        sql.where((w) => {
-          w.where('pt.hn', 'like', _query)
-            .orWhere('c.first_name', 'like', _query)
-            .orWhere('c.last_name', 'like', _query)
-            .orWhere('c.status', 'like', _query)
-  
-        })
-      }
+    sql.orderBy('c.date_admit', 'DESC');
 
-      console.log(sql.toString());
+    if (query) {
+      sql.where((w) => {
+        w.where('pt.hn', 'like', _query)
+          .orWhere('c.first_name', 'like', _query)
+          .orWhere('c.last_name', 'like', _query)
+          .orWhere('c.status', 'like', _query)
+
+      })
+    }
+
+    console.log(sql.toString());
     return sql;
 
     // .groupBy('pt.id')
@@ -49,13 +49,16 @@ export class CovidCaseModel {
   getCovidCasesAmount(db: Knex, hospitalId: number, bedId: number) {
     let sql = db('p_covid_cases as c')
       .count('* as used_qty')
-      .leftJoin('p_covid_case_details as cd', 'cd.covid_case_id', 'c.id')
+      .leftJoin('p_covid_case_details as cd', (j) => {
+        j.on('cd.covid_case_id', 'c.id')
+        j.on('cd.bed_id', db.raw(`${bedId}`))
+      })
       .leftJoin('p_patients as p', 'p.id', 'c.patient_id')
       .where('c.is_deleted', 'N')
       .where('c.status', 'ADMIT')
-      .where('cd.bed_id', bedId)
       .where('p.hospital_id', hospitalId)
-
+      console.log(sql.toString());
+      
     return sql
   }
 
