@@ -30,7 +30,12 @@ router.get('/', async (req: Request, res: Response) => {
           v.cid = key;
           data.push(v)
         }
-        await model.saveVaccine(db, data);
+        try {
+          await model.saveVaccine(db, data);
+        } catch (error) {
+          console.log(error);
+          
+        }
       }
 
       const cowardRows = await model.findPersonCoward(db, key);
