@@ -33,8 +33,8 @@ export class CovidCaseModel {
     if (query) {
       sql.where((w) => {
         w.where('pt.hn', 'like', _query)
-          .orWhere('c.first_name', 'like', _query)
-          .orWhere('c.last_name', 'like', _query)
+          .orWhere('p.first_name', 'like', _query)
+          .orWhere('p.last_name', 'like', _query)
           .orWhere('c.status', 'like', _query)
 
       })
@@ -57,7 +57,7 @@ export class CovidCaseModel {
       .where('c.is_deleted', 'N')
       .where('c.status', 'ADMIT')
       .where('p.hospital_id', hospitalId)
-      console.log(sql.toString());
+      // console.log(sql.toString());
       
     return sql
   }
