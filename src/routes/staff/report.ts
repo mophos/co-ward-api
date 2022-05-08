@@ -204,7 +204,7 @@ router.get('/admit-pui-case/export', async (req: Request, res: Response) => {
 
     let rsSum: any = await model.sumAdmitPuiCaseByProvince(db, province);
     let rsList = await model.admitPuiCaseByProvince(db, province);
-    rsSum = rsSum[0];
+    // rsSum = rsSum[0];
 
     var wb = new excel4node.Workbook();
     var sum = wb.addWorksheet('Sheet 1');
@@ -257,15 +257,15 @@ router.get('/admit-pui-case/export', async (req: Request, res: Response) => {
     list.cell(1, 11).string('ไม่ได้บันทึกมา');
     let rowList = 2;
     for (const h of rsList) {
-      list.cell(rowList, 1).string(h['zone_code']);
-      list.cell(rowList, 2).string(h['province_name']);
-      list.cell(rowList, 3).string(h['hospname']);
-      list.cell(rowList, 4).string(h['hn'] + '/' + h['an']);
-      list.cell(rowList, 5).string(h['sat_id']);
+      list.cell(rowList, 1).string(h['zone_code'] || '');
+      list.cell(rowList, 2).string(h['province_name'] || '');
+      list.cell(rowList, 3).string(h['hospname'] || '');
+      list.cell(rowList, 4).string(h['hn'] + '/' + h['an'] || '');
+      list.cell(rowList, 5).string(h['sat_id'] || '');
       list.cell(rowList, 6).string(moment(h['date_admit']).format('DD-MM-YYYY'));
-      list.cell(rowList, 7).string(h['gcs_name']);
-      list.cell(rowList, 8).string(h['bed_name']);
-      list.cell(rowList, 9).string(h['medical_supplies_name']);
+      list.cell(rowList, 7).string(h['gcs_name'] || '');
+      list.cell(rowList, 8).string(h['bed_name'] || '');
+      list.cell(rowList, 9).string(h['medical_supplies_name'] || '');
       list.cell(rowList, 10).string(moment(h['updated_entry_last']).format('DD-MM-YYYY'));
       list.cell(rowList, 11).string(h['days'] + ' วัน');
       rowList++;
