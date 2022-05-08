@@ -178,7 +178,7 @@ router.get('/admit-pui-case-summary', async (req: Request, res: Response) => {
       province.push(rsp[0].code);
     }
     const rs: any = await model.sumAdmitPuiCaseByProvince(db, province);
-    res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });

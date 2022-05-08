@@ -548,74 +548,12 @@ export class ReportModel {
     return sql;
   }
 
-  sumAdmitPuiCaseByProvince(db: Knex, province) {
-    let sql = `SELECT
-    sum( ( du.d1 IS NOT NULL ) AND ( du.d1 > 0 ) ) AS d1,
-    sum( ( du.d2 IS NOT NULL ) AND ( du.d2 > 0 ) ) AS d2,
-    sum( ( du.d3 IS NOT NULL ) AND ( du.d3 > 0 ) ) AS d3,
-    sum( ( du.d4 IS NOT NULL ) AND ( du.d4 > 0 ) ) AS d4,
-    sum( ( du.d5 IS NOT NULL ) AND ( du.d5 > 0 ) ) AS d5,
-    sum( ( du.d7 IS NOT NULL ) AND ( du.d7 > 0 ) ) AS d7,
-    sum( ( du.d8 IS NOT NULL ) AND ( du.d8 > 0 ) ) AS d8,
-    sum( ( du.d26 IS NOT NULL ) AND ( du.d26 > 0 ) ) AS d26,
-    sum( ( du.d27 IS NOT NULL ) AND ( du.d27 > 0 ) ) AS d27,
-    h.zone_code,
-    sum( cl.gcs_id IN ( 5 ) ) AS pui,
-    sum( cl.bed_id = 1 ) AS aiir,
-    sum( cl.bed_id = 2 ) AS modified_aiir,
-    sum( cl.bed_id = 3 ) AS isolate,
-    sum( cl.bed_id = 4 ) AS cohort,
-    sum( cl.bed_id = 5 ) AS hospitel,
-    sum( cl.bed_id = 8 ) AS community_isolation,
-    sum( cl.bed_id = 9 ) AS home_isolation,
-    sum( cl.bed_id = 10 ) AS lv0,
-    sum( cl.bed_id = 11 ) AS lv1,
-    sum( cl.bed_id = 12 ) AS lv21,
-    sum( cl.bed_id = 13 ) AS lv22,
-    sum( cl.bed_id = 14 ) AS lv3,
-    sum( cl.medical_supplie_id = 1 ) AS invasive,
-    sum( cl.medical_supplie_id = 2 ) AS noninvasive,
-    sum( cl.medical_supplie_id = 3 ) AS high_flow,
-    now( ) AS TIMESTAMP 
-  FROM
-    p_covid_case_detail_last AS pcd
-    INNER JOIN p_covid_cases AS c ON c.id = pcd.covid_case_id
-    INNER JOIN p_covid_case_details AS cl ON c.id = pcd.covid_case_detail_id
-    INNER JOIN p_patients AS pt ON pt.id = c.patient_id
-    INNER JOIN b_hospitals AS h ON h.id = pt.hospital_id
-    LEFT JOIN (
-    SELECT
-      i.covid_case_detail_id,
-      sum( IF ( i.generic_id = 1, i.qty, 0 ) ) AS 'd1',
-      sum( IF ( i.generic_id = 2, i.qty, 0 ) ) AS 'd2',
-      sum( IF ( i.generic_id = 3, i.qty, 0 ) ) AS 'd3',
-      sum( IF ( i.generic_id = 4, i.qty, 0 ) ) AS 'd4',
-      sum( IF ( i.generic_id = 5, i.qty, 0 ) ) AS 'd5',
-      sum( IF ( i.generic_id = 7, i.qty, 0 ) ) AS 'd7',
-      sum( IF ( i.generic_id = 8, i.qty, 0 ) ) AS 'd8',
-      sum( IF ( i.generic_id = 26, i.qty, 0 ) ) AS 'd26',
-      sum( IF ( i.generic_id = 27, i.qty, 0 ) ) AS 'd27' 
-    FROM
-      p_covid_case_detail_items AS i
-      INNER JOIN p_covid_case_detail_last AS pcd ON pcd.covid_case_detail_id = i.covid_case_detail_id
-      INNER JOIN p_covid_cases AS l ON l.id = pcd.covid_case_id 
-      INNER JOIN p_covid_case_details AS cd ON cd.id = pcd.covid_case_detail_id
-    WHERE
-      l.STATUS = 'ADMIT' 
-      AND cd.gcs_id IN ( 5 ) 
-    GROUP BY
-      i.covid_case_detail_id 
-    ) AS du ON du.covid_case_detail_id = cl.id 
-  WHERE
-    cl.STATUS = 'ADMIT' 
-    AND gcs_id IN ( 5 ) 
-    AND province_code IN ( ? ) 
-  GROUP BY
-    h.province_code 
-  ORDER BY
-    h.zone_code ASC,
-    h.province_code ASC;`;
-    return db.raw(sql, [province]);
+  sumAdmitPuiCaseByProvince(db: Knex, provinceCode) {
+    let sql = db('temp_report_admit_pui_case_summary_province as s')
+    if (provinceCode) {
+      sql.where('s.province_code', provinceCode);
+    }
+    return sql;
   }
 
   admitConfirmCaseProvice(db: Knex, zoneCode, provinceCode = null, showPersons = false) {
