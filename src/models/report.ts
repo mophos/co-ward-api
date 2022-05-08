@@ -1127,10 +1127,10 @@ export class ReportModel {
         db.raw(`ifnull(c.updated_entry, c.create_date) as updated_date`),
         'p.data_source',
       )
-      .leftJoin('p_covid_cases as c.', 'c.id', 'pcd.covid_case_id')
+      .leftJoin('p_covid_cases as c', 'c.id', 'pcd.covid_case_id')
       .leftJoin('p_patients as pt', 'c.patient_id', 'pt.id')
       .leftJoin('p_persons as p', 'pt.person_id', 'p.id')
-      .leftJoin('b_hospitals AS h', 'h.id', 'c.hospital_id')
+      .leftJoin('b_hospitals AS h', 'h.id', 'pt.hospital_id')
       .leftJoin('b_genders as g', 'p.gender_id', 'g.id')
       .leftJoin('b_people_types as pet', 'p.people_type', 'pet.id')
       .leftJoin('um_titles as t', 'p.title_id', 't.id')
