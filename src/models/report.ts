@@ -874,7 +874,7 @@ export class ReportModel {
 
   dischargeCase(db: Knex, date, showPersons = false) {
     let sql = db('p_covid_cases as pc')
-      .select('pc.*', 'p.hn', 'p.hospital_id', 'p.person_id', 'h.hospcode', 'h.hospname', 'h.zone_code', 'h.province_code', 'h.province_name as p_name', 'rh.hospcode as refer_hospcode', 'rh.hospname as refer_hospname')
+      .select('pc.*', 'p.hn', 'p.hospital_id', 'p.person_id', 'h.hospcode', 'h.hospname', 'h.zone_code', 'h.province_code', 'h.province_name', 'rh.hospcode as refer_hospcode', 'rh.hospname as refer_hospname')
       .join('p_patients as p', 'p.id', ' pc.patient_id')
       .join('b_hospitals as h', 'h.id', 'p.hospital_id')
       .join('p_covid_case_detail_last as pcd', 'pcd.covid_case_id', 'pc.id')
@@ -890,7 +890,7 @@ export class ReportModel {
         .join('p_persons as pp', 'p.person_id', 'pp.id')
         .leftJoin('um_titles as t', 'pp.title_id', 't.id');
     }
-    console.log(sql.toString());
+    // console.log(sql.toString());
 
     return sql
   }
@@ -918,23 +918,25 @@ export class ReportModel {
   }
 
   dischargeCaseEntryDate(db: Knex, date, showPersons = false) {
-    let sql = db('views_covid_case_last AS vc')
-      .select('vc.*', 'pc.date_discharge', 'pc.hospital_id_refer', 'bh.zone_code', 'bh.province_code', 'bh.province_name as p_name', 'bh.hospcode', 'bh.hospname', 'rh.hospcode as hospcode_refer', 'rh.hospname as hospname_refer', 'pc.an', 'p.hn')
-      .join('p_covid_cases AS pc', 'pc.id', 'vc.covid_case_id')
-      .join('p_patients as p', 'p.id', ' pc.patient_id')
-      .join('b_hospitals AS bh', 'bh.id', 'vc.hospital_id')
-      .leftJoin('b_hospitals as rh', 'rh.id', 'pc.hospital_id_refer')
-      .whereIn('vc.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
-      .whereBetween('vc.entry_date', [`${date} 00:00:00`, `${date} 23:59:00`])
-      .orderBy('bh.zone_code').orderBy('bh.province_name').orderBy('bh.hospname');
-    if (showPersons) {
-      sql.select('p.person_id', 'pp.*', 't.name as title_name')
-        .join('p_persons as pp', 'p.person_id', 'pp.id')
-        .leftJoin('um_titles as t', 'pp.title_id', 't.id');
-    }
-    console.log(sql.toString());
-
-    return sql
+    let sql = db('p_covid_cases as pc')
+    .select('pc.*', 'p.hn', 'p.hospital_id', 'p.person_id', 'h.hospcode', 'h.hospname', 'h.zone_code', 'h.province_code', 'h.province_name', 'rh.hospcode as refer_hospcode', 'rh.hospname as refer_hospname')
+    .join('p_patients as p', 'p.id', ' pc.patient_id')
+    .join('b_hospitals as h', 'h.id', 'p.hospital_id')
+    .join('p_covid_case_detail_last as pcd', 'pcd.covid_case_id', 'pc.id')
+    .join('p_covid_case_details as vl', 'pcd.covid_case_detail_id', 'vl.id')
+    .leftJoin('b_hospitals as rh', 'rh.id', 'pc.hospital_id_refer')
+    .where('pc.is_deleted', 'N')
+    .whereIn('vl.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
+    .whereIn('vl.gcs_id', [1, 2, 3, 4])
+    .whereBetween('vl.entry_date', [date,date])
+    .orderBy('h.zone_code').orderBy('h.province_name').orderBy('h.hospname');
+  if (showPersons) {
+    sql.select('p.person_id', 'pp.*', 't.name as title_name')
+      .join('p_persons as pp', 'p.person_id', 'pp.id')
+      .leftJoin('um_titles as t', 'pp.title_id', 't.id');
+  }
+  // console.log(sql.toString());
+  return sql;
   }
 
   labPositive(db: Knex) {
