@@ -149,6 +149,7 @@ export class CovidCaseModel {
       .select('cd.updated_entry', 'c.id as covid_case_id', 'c.status', 'c.date_admit', 'pt.hn', 'pt.person_id', 'cd.id as covid_case_details_id', 'p.*', 't.name as title_name',
         'cd.bed_id', 'cd.gcs_id', 'cd.medical_supplie_id', db.raw(`ifnull(cd.create_date, null) as create_date`), db.raw(`ifnull(cccd.updated_entry, cd.create_date) as updated_date`),
         db.raw(`ifnull(cd.entry_date, null) as entry_date`),
+        db.raw(`DATEDIFF( now(),c.date_admit) as admit_day `),
         //   db.raw(`(select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 1 or generic_id = 2) limit 1) as set1,
         // (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and (generic_id = 3 or generic_id = 4) limit 1) as set2,
         // (select generic_id from p_covid_case_detail_items where covid_case_detail_id = ccd.covid_case_detail_id and generic_id = 7  limit 1) as set3,
@@ -196,6 +197,28 @@ export class CovidCaseModel {
       .where('g.type', 'DRUG')
       .where('g.sub_type', 'COVID')
     // console.log(sql.toString());
+    return sql;
+
+  }
+  getDrugsFromDetails(db: Knex,  hospitalId, query, gcsSearchId, bedSearchId) {
+    const sql = db('b_generics as g')
+      .select('g.id', 'g.name', db.raw(`if(pdi.id is null,false,true) as is_check`),'pdi.covid_case_detail_id')
+      .leftJoin('p_covid_case_detail_items as pdi','pdi.generic_id', 'g.id')
+      .leftJoin('p_covid_case_details as cd','cd.id','pdi.covid_case_detail_id')
+      .leftJoin('p_covid_cases as c','c.id','cd.covid_case_id')
+      .leftJoin('p_patients as pt','pt.id','c.patient_id')
+      .where('g.is_deleted', 'N')
+      .where('g.is_actived', 'Y')
+      .where('g.type', 'DRUG')
+      .where('g.sub_type', 'COVID')
+      .where('pt.hospital_id', hospitalId)
+      if (gcsSearchId) {
+        sql.where('cd.gcs_id', gcsSearchId);
+      }
+      if (bedSearchId) {
+        sql.where('cd.bed_id', bedSearchId);
+      }
+      console.log(sql.toString());
     return sql;
 
   }
