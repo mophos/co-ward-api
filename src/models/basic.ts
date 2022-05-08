@@ -27,6 +27,7 @@ export class BasicModel {
 		if (type != '') {
 			sql.where('type', type)
 		}
+		sql.orderBy('id');
 		return sql;
 	}
 
@@ -35,6 +36,7 @@ export class BasicModel {
 			.where('is_deleted', 'N')
 			.andWhere('is_actived', 'Y')
 			.andWhere('type', type)
+			.orderBy('id');
 	}
 
 	autocompleteTambon(db: Knex, query) {
@@ -144,6 +146,7 @@ export class BasicModel {
 	getGCS(db: Knex) {
 		return db('b_gcs')
 			.where('is_deleted', 'N').orderBy('id', 'ASC')
+			.orderBy('id');
 	}
 
 	getCountry(db: Knex) {
@@ -180,6 +183,7 @@ export class BasicModel {
 				v.orWhere('b.is_field', hospitalType == 'FIELD' ? 'Y' : 'N')
 				v.orWhere('b.is_ci', hospitalType == 'CI' ? 'Y' : 'N')
 			})
+			.orderBy('b.id');
 	}
 
 	getBedAdmin(db: Knex) {
@@ -197,6 +201,7 @@ export class BasicModel {
 				v.orWhere('b.is_field', hospitalType == 'FIELD' ? 'Y' : 'N')
 				v.orWhere('b.is_ci', hospitalType == 'CI' ? 'Y' : 'N')
 			})
+			.orderBy('b.id');
 	}
 
 	getGenericSet(db: Knex, type) {
@@ -407,7 +412,8 @@ export class BasicModel {
 		return db('p_covid_case_detail_items as pi')
 			.select('pi.*', 'g.name')
 			.join('b_generics as g', 'g.id', 'pi.generic_id')
-			.where('pi.covid_case_detail_id', id);
+			.where('pi.covid_case_detail_id', id)
+			.orderBy('g.id');
 	}
 
 	saveGeneric(db: Knex, data) {

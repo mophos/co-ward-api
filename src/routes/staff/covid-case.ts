@@ -850,9 +850,11 @@ router.get('/present', async (req: Request, res: Response) => {
   bedSearchId = bedSearchId === 'null' ? null : bedSearchId;
   try {
     const rs: any = await covidCaseModel.getCasePresent(req.db, hospitalId, query, gcsSearchId, bedSearchId);
+    // const drug: any = await covidCaseModel.getDrugsFromDetails(req.db,  hospitalId, query, gcsSearchId, bedSearchId)
     for (const i of rs) {
       const drug: any = await covidCaseModel.getDrugsFromCovidCaseDetailId(req.db, i.covid_case_details_id)
       i.drugs = drug;
+      // i.drugs = _.filter(drug,{covid_case_id:i.covid_case_details_id});
     }
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
