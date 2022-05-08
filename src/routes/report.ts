@@ -614,21 +614,23 @@ router.get('/medical-supplies', async (req: Request, res: Response) => {
     let rows: any;
     let zoneCodes: any = [];
     const rs = await model.getMedicals(db);
-    if (type == 'MANAGER') {
-      if (zone !== '') {
-        zoneCodes = [zone];
-        rows = filter(rs, { 'zone_code': zone });
+    if (rs) {
+      if (type == 'MANAGER') {
+        if (zone !== '') {
+          zoneCodes = [zone];
+          rows = filter(rs, { 'zone_code': zone });
+        } else {
+          zoneCodes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
+          rows = rs;
+        }
       } else {
-        zoneCodes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
-        rows = rs;
-      }
-    } else {
-      if (providerType == 'ZONE') {
-        zoneCodes = [zoneCode];
-        rows = filter(rs, { 'zone_code': zoneCode });
-      } else {
-        rows = filter(rs, { 'province_code': provinceCode });
-        zoneCodes = [rows[0].zone_code]
+        if (providerType == 'ZONE') {
+          zoneCodes = [zoneCode];
+          rows = filter(rs, { 'zone_code': zoneCode });
+        } else {
+          rows = filter(rs, { 'province_code': provinceCode });
+          zoneCodes = [rows[0].zone_code]
+        }
       }
     }
     let data: any = [];
@@ -739,7 +741,7 @@ router.get('/medical-supplies/excel', async (req: Request, res: Response) => {
 
       }
     });
-    
+
     // let data: any = [];
     // for (const v of zoneCodes) {
     //   const obj: any = {};
@@ -1519,7 +1521,7 @@ router.get('/get-supplies', async (req: Request, res: Response) => {
 
   try {
     let zoneCodes = [];
-    console.log(type, zone);
+    // console.log(type, zone);
 
     let provinceCode = null;
     if (type == 'MANAGER') {
@@ -1536,7 +1538,7 @@ router.get('/get-supplies', async (req: Request, res: Response) => {
         provinceCode = _provinceCode;
       }
     }
-    console.log(type, zoneCodes, provinceCode);
+    // console.log(type, zoneCodes, provinceCode);
     let data: any = [];
 
     let province;
@@ -1549,7 +1551,7 @@ router.get('/get-supplies', async (req: Request, res: Response) => {
       sup = await model.getSupplies(db, date, null, null);
       province = await model.getProvince(db, null, null);
     }
-    console.log(province);
+    // console.log(province);
 
     for (const z of zoneCodes) {
       const zone: any = {};
@@ -2593,7 +2595,7 @@ router.get('/admit-confirm-case/excel', async (req: Request, res: Response) => {
         ws.cell(row, 4).string(toString(item.sex));
         ws.cell(row, 5).string(toString(item.age));
         ws.cell(row, 6).string(toString(item.cid));
-        ws.cell(row, 7).string(toString(item.first_name +' '+ item.last_name));
+        ws.cell(row, 7).string(toString(item.first_name + ' ' + item.last_name));
         ws.cell(row, 8).string(toString(item.date_admit));
         ws.cell(row, 9).string(toString(item.gcs_name));
         ws.cell(row, 10).string(toString(item.bed_name));
