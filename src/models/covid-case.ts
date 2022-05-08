@@ -1,3 +1,4 @@
+import { orderBy } from 'lodash';
 import * as Knex from 'knex';
 import { join } from 'bluebird';
 
@@ -9,6 +10,7 @@ export class CovidCaseModel {
       .select('c.id AS covid_case_id',
         'pt.id AS patient_id',
         'c.date_admit',
+        'c.date_discharge',
         'c.an', 'c.status',
         'pt.person_id',
         'c.is_deleted')
@@ -18,7 +20,7 @@ export class CovidCaseModel {
 
     // .select('c.id as covid_case_id', 'c.an', 'c.confirm_date', 'c.status', 'c.date_admit', 'c.date_discharge', 'pt.hn', 'pt.person_id', 'p.*', 't.name as title_name')
     const sql = db('p_patients as pt')
-      .select('c.covid_case_id', 'pt.hn', 'c.date_admit', 'c.person_id', 'c.status', 'p.first_name', 'p.last_name', 't.name as title_name')
+      .select('c.covid_case_id', 'pt.hn', 'c.date_admit', 'c.date_discharge', 'c.person_id', 'c.status', 'p.first_name', 'p.last_name', 't.name as title_name')
       .join(sub, 'c.patient_id', 'pt.id')
       .join('p_persons as p', 'pt.person_id', 'p.id')
       .leftJoin('um_titles as t', 'p.title_id', 't.id')
@@ -57,8 +59,8 @@ export class CovidCaseModel {
       .where('c.is_deleted', 'N')
       .where('c.status', 'ADMIT')
       .where('p.hospital_id', hospitalId)
-      // console.log(sql.toString());
-      
+    // console.log(sql.toString());
+
     return sql
   }
 
@@ -551,6 +553,7 @@ export class CovidCaseModel {
         v.orWhere('bb.is_field', hospitalType == 'FIELD' ? 'Y' : 'N')
         v.orWhere('bb.is_ci', hospitalType == 'CI' ? 'Y' : 'N')
       })
+      .orderBy('bb.id')
       .where('bb.is_deleted', 'N')
   }
 
@@ -574,6 +577,7 @@ export class CovidCaseModel {
         v.orWhere('bg.is_field', hospitalType == 'FIELD' ? 'Y' : 'N')
         v.orWhere('bg.is_ci', hospitalType == 'CI' ? 'Y' : 'N')
       })
+      .orderBy('bg.id')
       .where('bg.is_deleted', 'N').orderBy('bg.id', 'ASC')
   }
 
