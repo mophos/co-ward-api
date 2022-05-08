@@ -1,3 +1,4 @@
+import { orderBy } from 'lodash';
 import * as Knex from 'knex';
 import { join } from 'bluebird';
 
@@ -552,6 +553,7 @@ export class CovidCaseModel {
         v.orWhere('bb.is_field', hospitalType == 'FIELD' ? 'Y' : 'N')
         v.orWhere('bb.is_ci', hospitalType == 'CI' ? 'Y' : 'N')
       })
+      .orderBy('bb.id')
       .where('bb.is_deleted', 'N')
   }
 
@@ -575,6 +577,7 @@ export class CovidCaseModel {
         v.orWhere('bg.is_field', hospitalType == 'FIELD' ? 'Y' : 'N')
         v.orWhere('bg.is_ci', hospitalType == 'CI' ? 'Y' : 'N')
       })
+      .orderBy('bg.id')
       .where('bg.is_deleted', 'N').orderBy('bg.id', 'ASC')
   }
 
