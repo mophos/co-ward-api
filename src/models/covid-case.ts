@@ -588,6 +588,7 @@ export class CovidCaseModel {
       .join('p_covid_case_details as cd', 'cd.id', 'v.covid_case_detail_id')
       .join('p_patients as p', 'p.id', 'c.patient_id')
       .where('c.status', 'ADMIT')
+      .where('c.is_deleted', 'N')
       .where('p.hospital_id', hospitalId)
       .groupBy('cd.gcs_id').as('bh')
 
