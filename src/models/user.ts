@@ -12,6 +12,7 @@ export class UserModel {
         v.where('u.username', 'like', '%' + q + '%')
         v.orWhere('u.fname', 'like', '%' + q + '%')
         v.orWhere('u.lname', 'like', '%' + q + '%')
+        v.orWhere('h.hospname', 'like', '%' + q + '%')
         v.orWhere('u.cid', 'like', '%' + q + '%')
         v.orWhere('u.telephone', 'like', '%' + q + '%')
       })
