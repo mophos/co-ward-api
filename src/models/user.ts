@@ -17,7 +17,7 @@ export class UserModel {
       })
       .where('u.is_deleted', 'N')
       .limit(limit)
-      .offset(offset);
+      .offset(offset).orderBy('u.id');
   }
 
   getUserTotal(db: Knex, q = '') {
