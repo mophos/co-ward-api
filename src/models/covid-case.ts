@@ -181,6 +181,7 @@ export class CovidCaseModel {
         v.orWhere('p.last_name', 'like', _query)
       });
     }
+    sql.orderBy('pt.hn')
     // console.log(sql.toString());
     return sql;
   }
