@@ -1688,7 +1688,7 @@ router.get('/get-gcs/new-admit/export', async (req: Request, res: Response) => {
         ws.cell(row, 4).number(_.filter(filterHospital, { gcs_id: 2 }).length);
         ws.cell(row, 5).number(_.filter(filterHospital, { gcs_id: 3 }).length);
         ws.cell(row, 6).number(_.filter(filterHospital, { gcs_id: 4 }).length);
-        ws.cell(row, 7).number(_.filter(filterHospital, { gcs_id: 6 }).length);
+        ws.cell(row, 7).number(_.filter(filterHospital, { gcs_id: 5 }).length);
         ws.cell(row, 8).number(_.filter(filterHospital, { gcs_id: 7 }).length);
         row += 1;
         
