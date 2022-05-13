@@ -554,7 +554,7 @@ export class ReportModel {
   sumAdmitPuiCaseByProvince(db: Knex, provinceCode) {
     let sql = db('temp_report_admit_pui_case_summary_province as s')
     if (provinceCode) {
-      sql.where('s.province_code', provinceCode);
+      sql.whereIn('s.province_code', provinceCode);
     }
     return sql;
   }
