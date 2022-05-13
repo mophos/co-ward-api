@@ -534,17 +534,20 @@ export class ReportModel {
     return sql;
   }
 
-  admitPuiCaseByProvince(db: Knex, province: any) {
+  admitPuiCaseByProvince(db: Knex, province: any, showPersons) {
     // const last = db('p_covid_case_details')
     let sql = db('temp_report_admit_pui_case as c')
       .select('c.d1', 'c.d2', 'c.d3', 'c.d4', 'c.d5', 'c.d7', 'c.d8', 'd26', 'd27', 'c.hn', 'c.an', 'c.hospital_id', 'c.updated_entry_last', 'c.days',
         'c.hospname', 'c.hospcode', 'c.zone_code', 'c.province_name', 'c.date_admit', 'c.gcs_name', 'c.bed_name', 'c.medical_supplies_name',
-        'c.first_name', 'c.last_name', 'c.cid', 'c.sat_id', 'c.timestamp'
+         'c.sat_id', 'c.timestamp','c.sex','c.age'
       );
+    if (showPersons) {
+      sql.select('c.first_name', 'c.last_name', 'c.cid', 'c.sat_id');
+    }
     sql.join('b_hospitals as h', 'h.id', 'c.hospital_id');
     sql.whereIn('h.province_code', province);
     sql.orderBy('h.province_name');
-    console.log(sql.toString());
+    // console.log(sql.toString());
     return sql;
   }
 
@@ -919,24 +922,24 @@ export class ReportModel {
 
   dischargeCaseEntryDate(db: Knex, date, showPersons = false) {
     let sql = db('p_covid_cases as pc')
-    .select('pc.*', 'p.hn', 'p.hospital_id', 'p.person_id', 'h.hospcode', 'h.hospname', 'h.zone_code', 'h.province_code', 'h.province_name', 'rh.hospcode as refer_hospcode', 'rh.hospname as refer_hospname')
-    .join('p_patients as p', 'p.id', ' pc.patient_id')
-    .join('b_hospitals as h', 'h.id', 'p.hospital_id')
-    .join('p_covid_case_detail_last as pcd', 'pcd.covid_case_id', 'pc.id')
-    .join('p_covid_case_details as vl', 'pcd.covid_case_detail_id', 'vl.id')
-    .leftJoin('b_hospitals as rh', 'rh.id', 'pc.hospital_id_refer')
-    .where('pc.is_deleted', 'N')
-    .whereIn('vl.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
-    .whereIn('vl.gcs_id', [1, 2, 3, 4])
-    .whereBetween('vl.entry_date', [date,date])
-    .orderBy('h.zone_code').orderBy('h.province_name').orderBy('h.hospname');
-  if (showPersons) {
-    sql.select('p.person_id', 'pp.*', 't.name as title_name')
-      .join('p_persons as pp', 'p.person_id', 'pp.id')
-      .leftJoin('um_titles as t', 'pp.title_id', 't.id');
-  }
-  // console.log(sql.toString());
-  return sql;
+      .select('pc.*', 'p.hn', 'p.hospital_id', 'p.person_id', 'h.hospcode', 'h.hospname', 'h.zone_code', 'h.province_code', 'h.province_name', 'rh.hospcode as refer_hospcode', 'rh.hospname as refer_hospname')
+      .join('p_patients as p', 'p.id', ' pc.patient_id')
+      .join('b_hospitals as h', 'h.id', 'p.hospital_id')
+      .join('p_covid_case_detail_last as pcd', 'pcd.covid_case_id', 'pc.id')
+      .join('p_covid_case_details as vl', 'pcd.covid_case_detail_id', 'vl.id')
+      .leftJoin('b_hospitals as rh', 'rh.id', 'pc.hospital_id_refer')
+      .where('pc.is_deleted', 'N')
+      .whereIn('vl.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
+      .whereIn('vl.gcs_id', [1, 2, 3, 4])
+      .whereBetween('vl.entry_date', [date, date])
+      .orderBy('h.zone_code').orderBy('h.province_name').orderBy('h.hospname');
+    if (showPersons) {
+      sql.select('p.person_id', 'pp.*', 't.name as title_name')
+        .join('p_persons as pp', 'p.person_id', 'pp.id')
+        .leftJoin('um_titles as t', 'pp.title_id', 't.id');
+    }
+    // console.log(sql.toString());
+    return sql;
   }
 
   labPositive(db: Knex) {
@@ -947,45 +950,102 @@ export class ReportModel {
   }
 
 
-  getCaseDc(db: Knex, showPersons = false, query = null, zoneCode, provinceCode = null) {
+  getCaseDcTotal(db: Knex, showPersons = false, query = null, zoneCode, provinceCode = null) {
     const _query = `%${query}%`;
-    const sql = db('p_covid_cases as c')
-      .select('c.id as covid_case_id', 'h.hospname', 'rh.hospname as refer_hospital_name', 'c.an', 'h.province_name as hosp_province', 'c.confirm_date', 'c.status', 'c.date_admit', 'c.date_discharge', 'pt.hn')
-      // .join('p_covid_case_detail_last as cl', 'c.id', 'cl.covid_case_id')
-      // .join('p_covid_case_details as cd', 'cd.id', 'cl.covid_case_id')
-      .join('p_patients as pt', 'c.patient_id', 'pt.id')
-      .join('b_hospitals AS h', 'h.id', 'pt.hospital_id')
-      .leftJoin('b_hospitals AS rh', 'rh.id', 'c.hospital_id_refer')
+    const sql = db('temp_report_discharge as c')
+      .count('* as count')
       .whereIn('c.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
-      // .where('pt.hospital_id', hospitalId)
-      .where('h.zone_code', zoneCode);
-    if (showPersons) {
-      sql.select('pt.person_id', 'p.first_name', 'p.last_name', 'p.birth_date', 'p.cid', 't.name as title_name', db.raw(`IF(p.gender_id=1,'ชาย',IF(gender_id=2,'หญิง',null)) as gender`), db.raw(`TIMESTAMPDIFF(YEAR, p.birth_date, CURDATE()) AS age`))
-        .join('p_persons as p', 'pt.person_id', 'p.id')
-        .leftJoin('um_titles as t', 'p.title_id', 't.id');
-    }
+      .where('c.is_deleted', 'N')
+      .where('c.zone_code', zoneCode);
     if (provinceCode) {
-      sql.where('h.province_code', provinceCode);
+      sql.where('c.province_code', provinceCode);
     }
     if (query) {
       sql.where((w) => {
-        w.where('pt.hn', 'like', _query)
-          .orWhere('h.hospname', 'like', _query)
-          .orWhere('h.province_name', 'like', _query)
+        w.where('c.hn', 'like', _query)
+          .orWhere('c.hospname', 'like', _query)
+          .orWhere('c.province_name', 'like', _query)
           .orWhere('c.status', 'like', _query);
         if (showPersons) {
-          w.orWhere('p.first_name', 'like', _query)
-            .orWhere('p.last_name', 'like', _query);
+          w.orWhere('c.first_name', 'like', _query)
+            .orWhere('c.last_name', 'like', _query);
         }
       });
     }
+    return sql;
+  }
 
-    sql.orderBy('c.date_admit', 'DESC');
+  getCaseDc(db: Knex, showPersons = false, query = null, zoneCode, provinceCode = null, limit = 500, offset = 0) {
+    const _query = `%${query}%`;
+    const sql = db('temp_report_discharge as c')
+      .select('c.id as covid_case_id', 'c.hospname', 'c.refer_hospname', 'c.refer_hospcode', 'c.an',
+        'c.confirm_date', 'c.status', 'c.date_admit', 'c.date_discharge', 'c.hn', 'c.province_name',
+        'c.gender', db.raw(`TIMESTAMPDIFF(YEAR, c.birth_date, CURDATE()) AS age`))
+      .whereIn('c.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
+      .where('c.is_deleted', 'N')
+      .where('c.zone_code', zoneCode);
+    if (showPersons) {
+      sql.select('c.person_id', 'c.first_name', 'c.last_name', 'c.birth_date', 'c.cid', 'c.title_name')
+    }
+    if (provinceCode) {
+      sql.where('c.province_code', provinceCode);
+    }
+    if (query) {
+      sql.where((w) => {
+        w.where('c.hn', 'like', _query)
+          .orWhere('c.hospname', 'like', _query)
+          .orWhere('c.province_name', 'like', _query)
+          .orWhere('c.status', 'like', _query);
+        if (showPersons) {
+          w.orWhere('c.first_name', 'like', _query)
+            .orWhere('c.last_name', 'like', _query);
+        }
+      });
+    }
+    sql.limit(+limit)
+      .offset(+offset);
+
+    // sql.orderBy('c.date_admit', 'DESC');
     console.log(sql.toString());
 
     return sql;
-    // .groupBy('pt.id')
   }
+  // getCaseDc(db: Knex, showPersons = false, query = null, zoneCode, provinceCode = null) {
+  //   const _query = `%${query}%`;
+  //   const sql = db('p_covid_cases as c')
+  //     .select('c.id as covid_case_id', 'h.hospname', 'rh.hospname as refer_hospital_name', 'c.an', 'h.province_name as hosp_province', 'c.confirm_date', 'c.status', 'c.date_admit', 'c.date_discharge', 'pt.hn')
+  //     .join('p_patients as pt', 'c.patient_id', 'pt.id')
+  //     .join('b_hospitals AS h', 'h.id', 'pt.hospital_id')
+  //     .leftJoin('b_hospitals AS rh', 'rh.id', 'c.hospital_id_refer')
+  //     .whereIn('c.status', ['DISCHARGE', 'NEGATIVE', 'DEATH', 'REFER'])
+  //     // .where('pt.hospital_id', hospitalId)
+  //     .where('h.zone_code', zoneCode);
+  //   if (showPersons) {
+  //     sql.select('pt.person_id', 'p.first_name', 'p.last_name', 'p.birth_date', 'p.cid', 't.name as title_name', db.raw(`IF(p.gender_id=1,'ชาย',IF(gender_id=2,'หญิง',null)) as gender`), db.raw(`TIMESTAMPDIFF(YEAR, p.birth_date, CURDATE()) AS age`))
+  //       .join('p_persons as p', 'pt.person_id', 'p.id')
+  //       .leftJoin('um_titles as t', 'p.title_id', 't.id');
+  //   }
+  //   if (provinceCode) {
+  //     sql.where('h.province_code', provinceCode);
+  //   }
+  //   if (query) {
+  //     sql.where((w) => {
+  //       w.where('pt.hn', 'like', _query)
+  //         .orWhere('h.hospname', 'like', _query)
+  //         .orWhere('h.province_name', 'like', _query)
+  //         .orWhere('c.status', 'like', _query);
+  //       if (showPersons) {
+  //         w.orWhere('p.first_name', 'like', _query)
+  //           .orWhere('p.last_name', 'like', _query);
+  //       }
+  //     });
+  //   }
+
+  //   sql.orderBy('c.date_admit', 'DESC');
+  //   console.log(sql.toString());
+
+  //   return sql;
+  // }
 
   reportBedZone(db: Knex) {
     return db('temp_report_all_6_1');
@@ -1113,7 +1173,9 @@ export class ReportModel {
       .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
       // .join('b_gcs as g', 'g.id', 'cd.gcs_id')
       .where('c.create_date', 'like', _date)
-      .where('h.zone_code', zoneCode)
+      if(zoneCode){
+        sql.where('h.zone_code', zoneCode)
+      }
     if (province) {
       sql.where('h.province_code', province)
     }

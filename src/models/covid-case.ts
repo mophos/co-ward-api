@@ -719,12 +719,12 @@ export class CovidCaseModel {
       .where('id', id);
   }
 
-  isDeleted(db: Knex, id) {
+  isDeleted(db: Knex, id, userId) {
     let sql = db('p_covid_cases')
       .update('is_deleted', 'Y')
       .update('updated_entry', db.fn.now())
+      .update('updated_by', userId)
       .where('id', id)
-      .whereRaw('date_entry=CURRENT_DATE()');
     return sql;
 
   }
