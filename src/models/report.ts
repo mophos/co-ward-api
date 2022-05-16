@@ -1135,7 +1135,8 @@ export class ReportModel {
       .leftJoin('b_people_types as pet', 'p.people_type', 'pet.id')
       .leftJoin('um_titles as t', 'p.title_id', 't.id')
       .where('pt.hospital_id', hospitalId)
-      .where('h.zone_code', zoneCode);
+      .where('h.zone_code', zoneCode)
+      .where('c.is_deleted', 'N');
     if (provinceCode) {
       sql.where('h.province_code', provinceCode);
     }
@@ -1145,7 +1146,7 @@ export class ReportModel {
     sql.orderBy('c.date_admit', 'DESC');
     // console.log(sql.toString());
 
-    console.log(sql.toString());
+    // console.log(sql.toString());
 
     return sql;
     // .groupBy('pt.id')
