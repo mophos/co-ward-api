@@ -143,7 +143,7 @@ export class SuppliesModel {
       .select('bg.id', 'bg.name', 'vsh.qty', 'vsh.month_usage_qty', 'bu.name as unit_name')
       .joinRaw(`LEFT JOIN views_supplies_hospitals AS vsh ON vsh.generic_id = bg.id AND vsh.hospital_id = ?`, hospitalId)
       .join('b_units AS bu', 'bu.id', 'bg.unit_id')
-      .where('bg.type', 'SUPPLIES')
+      .where('bg.type', 'SUPPLIES').orderBy('bg.id');
     return sql;
 
   }

@@ -3985,7 +3985,7 @@ router.get('/discharge-entrydate/excel', async (req: Request, res: Response) => 
         item.date_admit = moment(item.date_admit).format('DD/MM/YYYY')
         item.date_discharge = moment(item.date_discharge).format('DD/MM/YYYY')
         ws.cell(row, 1).string(toString(item.zone_code));
-        ws.cell(row, 2).string(toString(item.p_name));
+        ws.cell(row, 2).string(toString(item.province_name));
         ws.cell(row, 3).string(toString(item.hospcode));
         ws.cell(row, 4).string(toString(item.hospname));
         ws.cell(row, 5).string(toString(item.hn));

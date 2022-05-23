@@ -406,48 +406,7 @@ router.get('/get-gcs/new-admit', async (req: Request, res: Response) => {
 
     }
 
-    // let provinces = [];
-    // for (const p of province) {
-    //   const _province: any = {};
-    //   _province.province_name = p.name_th;
 
-    //   let severe = 0;
-    //   let moderate = 0;
-    //   let mild = 0;
-    //   let ippui = 0;
-    //   let atk = 0;
-    //   let asymptomatic = 0;
-    //   const s: any = filter(gcs, { province_code: p.code })
-    //   // console.log(s);
-
-    //   for (const i of s) {
-    //     severe += i.severe;
-    //     moderate += i.moderate;
-    //     mild += i.mild;
-    //     ippui += i.ippui;
-    //     atk += i.atk;
-    //     asymptomatic += i.asymptomatic;
-    //     const p = filter(patient, { hospital_id: i.hospital_id })
-    //     i.details = p;
-    //   }
-    //   // const hosp = [];
-    //   _province.hospitals = s;
-    //   // _province.hospitals = hosp;
-    //   _province.severe = severe;
-    //   _province.moderate = moderate;
-    //   _province.mild = mild;
-    //   _province.ippui = ippui;
-    //   _province.atk = atk;
-    //   _province.asymptomatic = asymptomatic;
-    //   _province.count = +asymptomatic + +ippui + +mild + +moderate + +severe + +atk;
-    //   data.push(_province);
-    // }
-    // zone.severe
-    // zone.sum = sumProvince;
-    // zone.provinces = provinces;
-    // data.push(zone);
-
-    // console.log(data);
 
     res.send({ ok: true, rows: data, code: HttpStatus.OK });
   } catch (error) {
@@ -614,21 +573,23 @@ router.get('/medical-supplies', async (req: Request, res: Response) => {
     let rows: any;
     let zoneCodes: any = [];
     const rs = await model.getMedicals(db);
-    if (type == 'MANAGER') {
-      if (zone !== '') {
-        zoneCodes = [zone];
-        rows = filter(rs, { 'zone_code': zone });
+    if (rs) {
+      if (type == 'MANAGER') {
+        if (zone !== '') {
+          zoneCodes = [zone];
+          rows = filter(rs, { 'zone_code': zone });
+        } else {
+          zoneCodes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
+          rows = rs;
+        }
       } else {
-        zoneCodes = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
-        rows = rs;
-      }
-    } else {
-      if (providerType == 'ZONE') {
-        zoneCodes = [zoneCode];
-        rows = filter(rs, { 'zone_code': zoneCode });
-      } else {
-        rows = filter(rs, { 'province_code': provinceCode });
-        zoneCodes = [rows[0].zone_code]
+        if (providerType == 'ZONE') {
+          zoneCodes = [zoneCode];
+          rows = filter(rs, { 'zone_code': zoneCode });
+        } else {
+          rows = filter(rs, { 'province_code': provinceCode });
+          zoneCodes = [rows[0].zone_code]
+        }
       }
     }
     let data: any = [];
@@ -739,7 +700,7 @@ router.get('/medical-supplies/excel', async (req: Request, res: Response) => {
 
       }
     });
-    
+
     // let data: any = [];
     // for (const v of zoneCodes) {
     //   const obj: any = {};
@@ -1646,6 +1607,151 @@ router.get('/get-gcs/export', async (req: Request, res: Response) => {
         }
       }
     }
+
+    fse.ensureDirSync(process.env.TMP_PATH);
+    let filename = `get_gcs` + moment().format('x');
+    let filenamePath = path.join(process.env.TMP_PATH, filename + '.xlsx');
+    wb.write(filenamePath, function (err, stats) {
+      if (err) {
+        console.error(err);
+        fse.removeSync(filenamePath);
+        res.send({ ok: false, error: err })
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+        res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
+        res.sendfile(filenamePath, (v) => {
+          fse.removeSync(filenamePath);
+        })
+
+      }
+    });
+    // res.send({ ok: true, rows: 0, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+router.get('/get-gcs/new-admit/export', async (req: Request, res: Response) => {
+  const db = req.dbReport;
+  const _provinceCode = req.decoded.provinceCode;
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
+  const date = req.query.date;
+  const type = req.decoded.type;
+  const zone = req.query.zone;
+
+  try {
+    var wb = new excel4node.Workbook();
+    var ws = wb.addWorksheet('Sheet 1');
+    ws.cell(1, 1).string('จังหวัด');
+    ws.cell(1, 2).string('โรงพยาบาล');
+    ws.cell(1, 3).string('Severe');
+    ws.cell(1, 4).string('Moderate');
+    ws.cell(1, 5).string('Mild');
+    ws.cell(1, 6).string('Asymptomatic');
+    ws.cell(1, 7).string('IP PUI');
+    ws.cell(1, 8).string('ATK');
+
+    var ws2 = wb.addWorksheet('รายคน');
+    ws2.cell(1, 1).string('จังหวัด');
+    ws2.cell(1, 2).string('โรงพยาบาล');
+    ws2.cell(1, 3).string('HN');
+    ws2.cell(1, 4).string('AN');
+    ws2.cell(1, 5).string('วันที่ ADMIT');
+    ws2.cell(1, 6).string('ความรุนแรง');
+
+
+    let hos: any = [];
+    if (providerType == 'ZONE') {
+      hos = await model.getCountNewAdmit(db, date, zoneCode, null);
+    } else if (providerType == 'SSJ') {
+      hos = await model.getCountNewAdmit(db, date, zoneCode, _provinceCode);
+    }
+    console.log(hos);
+    
+    const province = _.uniqBy(hos, 'province_code');
+    let data: any = [];
+
+
+    let row = 2;
+    let rowl = 2;
+    for (const i of province) {
+      const filter = _.filter(hos, { province_code: i.province_code });
+      const uniqHos = _.uniqBy(filter, 'hospcode');
+      let hospitals = [];
+      for (const u of uniqHos) {
+        const filterHospital = _.filter(filter, { 'hospcode': u.hospcode });
+
+        ws.cell(row, 1).string(toString(u.province_name));
+        ws.cell(row, 2).string(toString(u.hospname));
+        ws.cell(row, 3).number(_.filter(filterHospital, { gcs_id: 1 }).length);
+        ws.cell(row, 4).number(_.filter(filterHospital, { gcs_id: 2 }).length);
+        ws.cell(row, 5).number(_.filter(filterHospital, { gcs_id: 3 }).length);
+        ws.cell(row, 6).number(_.filter(filterHospital, { gcs_id: 4 }).length);
+        ws.cell(row, 7).number(_.filter(filterHospital, { gcs_id: 5 }).length);
+        ws.cell(row, 8).number(_.filter(filterHospital, { gcs_id: 7 }).length);
+        row += 1;
+        
+        for (const f of filterHospital) {
+          ws2.cell(rowl, 1).string(f.province_name);
+          ws2.cell(rowl, 2).string(f.hospname);
+          ws2.cell(rowl, 3).string(f.hn);
+          ws2.cell(rowl, 4).string(f.an);
+          ws2.cell(rowl, 5).string(moment(f.date_admit).format('YYYY-MM-DD'));
+          if (f.gcs_id == 1) {
+            f.gcs_name = 'Severe';
+          } else if (f.gcs_id == 2) {
+            f.gcs_name = 'Moderate';
+          } else if (f.gcs_id == 3) {
+            f.gcs_name = 'Mild';
+          } else if (f.gcs_id == 4) {
+            f.gcs_name = 'Asymptomatic';
+          } else if (f.gcs_id == 5) {
+            f.gcs_name = 'IP PUI';
+          } else if (f.gcs_id == 6) {
+            f.gcs_name = 'Observe (Hospital Q)';
+          } else if (f.gcs_id == 7) {
+            f.gcs_name = 'ATK';
+          }
+          ws2.cell(rowl, 6).string(f.gcs_name);
+          rowl += 1;
+        }
+
+        hospitals.push({
+          hospcode: u.hospcode,
+          hospname: u.hospname,
+          severe: _.filter(filterHospital, { gcs_id: 1 }).length,
+          moderate: _.filter(filterHospital, { gcs_id: 2 }).length,
+          mild: _.filter(filterHospital, { gcs_id: 3 }).length,
+          asymptomatic: _.filter(filterHospital, { gcs_id: 4 }).length,
+          ippui: _.filter(filterHospital, { gcs_id: 5 }).length,
+          atk: _.filter(filterHospital, { gcs_id: 7 }).length,
+          total: filterHospital.length,
+          details: _.map(filterHospital, (m) => {
+            if (m.gcs_id == 1) {
+              m.gcs_name = 'Severe';
+            } else if (m.gcs_id == 2) {
+              m.gcs_name = 'Moderate';
+            } else if (m.gcs_id == 3) {
+              m.gcs_name = 'Mild';
+            } else if (m.gcs_id == 4) {
+              m.gcs_name = 'Asymptomatic';
+            } else if (m.gcs_id == 5) {
+              m.gcs_name = 'IP PUI';
+            } else if (m.gcs_id == 6) {
+              m.gcs_name = 'Observe (Hospital Q)';
+            } else if (m.gcs_id == 7) {
+              m.gcs_name = 'ATK';
+            }
+            return m;
+          })
+        })
+      }
+
+
+    }
+
+
 
     fse.ensureDirSync(process.env.TMP_PATH);
     let filename = `get_gcs` + moment().format('x');
@@ -2593,7 +2699,7 @@ router.get('/admit-confirm-case/excel', async (req: Request, res: Response) => {
         ws.cell(row, 4).string(toString(item.sex));
         ws.cell(row, 5).string(toString(item.age));
         ws.cell(row, 6).string(toString(item.cid));
-        ws.cell(row, 7).string(toString(item.first_name +' '+ item.last_name));
+        ws.cell(row, 7).string(toString(item.first_name + ' ' + item.last_name));
         ws.cell(row, 8).string(toString(item.date_admit));
         ws.cell(row, 9).string(toString(item.gcs_name));
         ws.cell(row, 10).string(toString(item.bed_name));

@@ -141,7 +141,8 @@ router.get('/admit-pui-case', async (req: Request, res: Response) => {
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
   const provinceCode = req.decoded.provinceCode;
-
+  const rights = req.decoded.rights;
+  const showPersons = findIndex(rights, { name: 'MANAGER_REPORT_PERSON' }) > -1 || findIndex(rights, { name: 'STAFF_VIEW_PATIENT_INFO' }) > -1 ? true : false;
   try {
     const province = [];
     if (providerType === 'ZONE') {
@@ -153,7 +154,7 @@ router.get('/admit-pui-case', async (req: Request, res: Response) => {
       const rsp: any = await model.getProvince(db, null, provinceCode);
       province.push(rsp[0].code);
     }
-    const rs: any = await model.admitPuiCaseByProvince(db, province);
+    const rs: any = await model.admitPuiCaseByProvince(db, province, showPersons);
     res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
@@ -178,7 +179,7 @@ router.get('/admit-pui-case-summary', async (req: Request, res: Response) => {
       province.push(rsp[0].code);
     }
     const rs: any = await model.sumAdmitPuiCaseByProvince(db, province);
-    res.send({ ok: true, rows: rs[0], code: HttpStatus.OK });
+    res.send({ ok: true, rows: rs, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -190,6 +191,8 @@ router.get('/admit-pui-case/export', async (req: Request, res: Response) => {
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
   const provinceCode = req.decoded.provinceCode;
+  const rights = req.decoded.rights;
+  const showPersons = findIndex(rights, { name: 'MANAGER_REPORT_PERSON' }) > -1 || findIndex(rights, { name: 'STAFF_VIEW_PATIENT_INFO' }) > -1 ? true : false;
   try {
     const province = [];
     if (providerType === 'ZONE') {
@@ -203,12 +206,13 @@ router.get('/admit-pui-case/export', async (req: Request, res: Response) => {
     }
 
     let rsSum: any = await model.sumAdmitPuiCaseByProvince(db, province);
-    let rsList = await model.admitPuiCaseByProvince(db, province);
-    rsSum = rsSum[0];
+    let rsList = await model.admitPuiCaseByProvince(db, province, showPersons);
+    // rsSum = rsSum[0];
 
     var wb = new excel4node.Workbook();
     var sum = wb.addWorksheet('Sheet 1');
     var list = wb.addWorksheet('รายคน');
+
     sum.cell(1, 1).string('เขต');
     sum.cell(1, 2).string('รวม');
     sum.cell(1, 3).string('ระดับ 3 ใส่ท่อและเครื่องช่วยหายใจได้');
@@ -244,30 +248,91 @@ router.get('/admit-pui-case/export', async (req: Request, res: Response) => {
       rowSum++;
     }
 
-    list.cell(1, 1).string('เขต');
-    list.cell(1, 2).string('จังหวัด');
-    list.cell(1, 3).string('โรงพยาบาล');
-    list.cell(1, 4).string('HN/AN');
-    list.cell(1, 5).string('SAT ID');
-    list.cell(1, 6).string('วันที่ ADMIT');
-    list.cell(1, 7).string('ความรุนแรง');
-    list.cell(1, 8).string('เตียง');
-    list.cell(1, 9).string('เครื่องช่วยหายใจ');
-    list.cell(1, 10).string('วันที่บันทึกล่าสุด');
-    list.cell(1, 11).string('ไม่ได้บันทึกมา');
+    if (showPersons) {
+      list.cell(1, 1).string('เขต');
+      list.cell(1, 2).string('จังหวัด');
+      list.cell(1, 3).string('โรงพยาบาล');
+      list.cell(1, 4).string('HN');
+      list.cell(1, 5).string('AN');
+      list.cell(1, 6).string('CID');
+      list.cell(1, 7).string('ชื่อ');
+      list.cell(1, 8).string('นามสกุล');
+      list.cell(1, 9).string('SAT ID');
+      list.cell(1, 10).string('เพศ');
+      list.cell(1, 11).string('อายุ');
+      list.cell(1, 12).string('วันที่ ADMIT');
+      list.cell(1, 13).string('ความรุนแรง');
+      list.cell(1, 14).string('เตียง');
+      list.cell(1, 15).string('เครื่องช่วยหายใจ');
+      list.cell(1, 16).string('วันที่บันทึกล่าสุด');
+      list.cell(1, 17).string('ไม่ได้บันทึกมา');
+      list.cell(1, 18).string('Darunavir 600 mg.');
+      list.cell(1, 19).string('Lopinavir 200 mg./Ritonavir 50 mg.');
+      list.cell(1, 20).string('Ritonavir 100 mg.');
+      list.cell(1, 21).string('Azithromycin 250 mg.');
+      list.cell(1, 22).string('Favipiravi');
+    } else {
+      list.cell(1, 1).string('เขต');
+      list.cell(1, 2).string('จังหวัด');
+      list.cell(1, 3).string('โรงพยาบาล');
+      list.cell(1, 4).string('HN');
+      list.cell(1, 5).string('AN');
+      list.cell(1, 6).string('วันที่ ADMIT');
+      list.cell(1, 7).string('ความรุนแรง');
+      list.cell(1, 8).string('เตียง');
+      list.cell(1, 9).string('เครื่องช่วยหายใจ');
+      list.cell(1, 10).string('วันที่บันทึกล่าสุด');
+      list.cell(1, 11).string('ไม่ได้บันทึกมา');
+      list.cell(1, 12).string('Darunavir 600 mg.');
+      list.cell(1, 13).string('Lopinavir 200 mg./Ritonavir 50 mg.');
+      list.cell(1, 14).string('Ritonavir 100 mg.');
+      list.cell(1, 15).string('Azithromycin 250 mg.');
+      list.cell(1, 16).string('Favipiravi');
+    }
+
     let rowList = 2;
-    for (const h of rsList) {
-      list.cell(rowList, 1).string(h['zone_code']);
-      list.cell(rowList, 2).string(h['province_name']);
-      list.cell(rowList, 3).string(h['hospname']);
-      list.cell(rowList, 4).string(h['hn'] + '/' + h['an']);
-      list.cell(rowList, 5).string(h['sat_id']);
-      list.cell(rowList, 6).string(moment(h['date_admit']).format('DD-MM-YYYY'));
-      list.cell(rowList, 7).string(h['gcs_name']);
-      list.cell(rowList, 8).string(h['bed_name']);
-      list.cell(rowList, 9).string(h['medical_supplies_name']);
-      list.cell(rowList, 10).string(moment(h['updated_entry_last']).format('DD-MM-YYYY'));
-      list.cell(rowList, 11).string(h['days'] + ' วัน');
+    for (const i of rsList) {
+      if (showPersons) {
+        list.cell(rowList, 1).string(toString(i.zone_code));
+        list.cell(rowList, 2).string(toString(i.province_name));
+        list.cell(rowList, 3).string(toString(i.hospname));
+        list.cell(rowList, 4).string(toString(i.hn));
+        list.cell(rowList, 5).string(toString(i.an));
+        list.cell(rowList, 6).string(toString(i.cid));
+        list.cell(rowList, 7).string(toString(i.first_name));
+        list.cell(rowList, 8).string(toString(i.last_name));
+        list.cell(rowList, 9).string(toString(i.sat_id));
+        list.cell(rowList, 10).string(toString(i.sex));
+        list.cell(rowList, 11).string(toString(i.age));
+        list.cell(rowList, 12).string(toString(moment(i.date_admit).format('DD-MM-YYYY')));
+        list.cell(rowList, 13).string(toString(i.gcs_name));
+        list.cell(rowList, 14).string(toString(i.bed_name));
+        list.cell(rowList, 15).string(toString(i.medical_supplies_name));
+        list.cell(rowList, 16).string(toString(moment(i.updated_entry_last).format('DD-MM-YYYY')));
+        list.cell(rowList, 17).string(toString(i.days));
+        list.cell(rowList, 18).string(toString(i.d3 > 0 ? '/' : ''));
+        list.cell(rowList, 19).string(toString(i.d4 > 0 ? '/' : ''));
+        list.cell(rowList, 20).string(toString(i.d5 > 0 ? '/' : ''));
+        list.cell(rowList, 21).string(toString(i.d7 > 0 ? '/' : ''));
+        list.cell(rowList, 22).string(toString(i.d8 > 0 ? '/' : ''));
+      } else {
+        list.cell(rowList, 1).string(toString(i.zone_code));
+        list.cell(rowList, 2).string(toString(i.province_name));
+        list.cell(rowList, 3).string(toString(i.hospname));
+        list.cell(rowList, 4).string(toString(i.hn));
+        list.cell(rowList, 5).string(toString(i.an));
+        list.cell(rowList, 6).string(toString(moment(i.date_admit).format('DD-MM-YYYY')));
+        list.cell(rowList, 7).string(toString(i.gcs_name));
+        list.cell(rowList, 8).string(toString(i.bed_name));
+        list.cell(rowList, 9).string(toString(i.medical_supplies_name));
+        list.cell(rowList, 10).string(toString(moment(i.updated_entry_last).format('DD-MM-YYYY')));
+        list.cell(rowList, 11).string(toString(i.days));
+        list.cell(rowList, 12).string(toString(i.d3 > 0 ? '/' : ''));
+        list.cell(rowList, 13).string(toString(i.d4 > 0 ? '/' : ''));
+        list.cell(rowList, 14).string(toString(i.d5 > 0 ? '/' : ''));
+        list.cell(rowList, 15).string(toString(i.d7 > 0 ? '/' : ''));
+        list.cell(rowList, 16).string(toString(i.d8 > 0 ? '/' : ''));
+      }
       rowList++;
     }
 
@@ -295,7 +360,7 @@ router.get('/admit-pui-case/export', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/discharge-case', async (req: Request, res: Response) => {
+router.get('/discharge-case/total', async (req: Request, res: Response) => {
 
   const providerType = req.decoded.providerType;
   const zoneCode = req.decoded.zone_code;
@@ -306,11 +371,35 @@ router.get('/discharge-case', async (req: Request, res: Response) => {
   try {
 
     if (providerType === 'ZONE') {
-      const rs: any = await model.getCaseDc(req.dbReport, showPersons, query, zoneCode, null);
+      const rs: any = await model.getCaseDcTotal(req.dbReport, showPersons, query, zoneCode, null);
+      res.send({ ok: true, count: rs[0].count, code: HttpStatus.OK });
+    } else if (providerType === 'SSJ') {
+      const rs: any = await model.getCaseDcTotal(req.dbReport, showPersons, query, zoneCode, provinceCode);
+      res.send({ ok: true, count: rs[0].count, code: HttpStatus.OK });
+    }
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
 
+router.get('/discharge-case', async (req: Request, res: Response) => {
+
+  const providerType = req.decoded.providerType;
+  const zoneCode = req.decoded.zone_code;
+  const provinceCode = req.decoded.provinceCode;
+  const query = req.query.query || null;
+  const right = req.decoded.rights;
+  const limit = req.query.limit || 500;
+  const offset = req.query.offset || 0;
+  const showPersons = findIndex(right, { name: 'MANAGER_REPORT_PERSON' }) > -1 || findIndex(right, { name: 'STAFF_VIEW_PATIENT_INFO' }) > -1 ? true : false;
+  try {
+
+    if (providerType === 'ZONE') {
+      const rs: any = await model.getCaseDc(req.dbReport, showPersons, query, zoneCode, null, limit, offset);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     } else if (providerType === 'SSJ') {
-      const rs: any = await model.getCaseDc(req.dbReport, showPersons, query, zoneCode, provinceCode);
+      const rs: any = await model.getCaseDc(req.dbReport, showPersons, query, zoneCode, provinceCode, limit, offset);
       res.send({ ok: true, rows: rs, code: HttpStatus.OK });
     }
   } catch (error) {
@@ -345,9 +434,9 @@ router.get('/discharge-case/excel', async (req: Request, res: Response) => {
     let rs: any
     console.time('query')
     if (providerType === 'ZONE') {
-      rs = await model.getCaseDc(req.dbReport, showPersons, query, zoneCode, null);
+      rs = await model.getCaseDc(req.dbReport, showPersons, query, zoneCode, null, 99999999);
     } else if (providerType === 'SSJ') {
-      rs = await model.getCaseDc(req.dbReport, showPersons, query, zoneCode, provinceCode);
+      rs = await model.getCaseDc(req.dbReport, showPersons, query, zoneCode, provinceCode, 99999999);
     }
     console.timeEnd('query')
     console.time('loop')
@@ -380,31 +469,31 @@ router.get('/discharge-case/excel', async (req: Request, res: Response) => {
         items.age = items.age === null ? "" : items.age.toString();
         items.date_admit = moment(items.date_admit).format('DD/MM/YYYY');
         items.date_discharge = moment(items.date_discharge).format('DD/MM/YYYY');
-        ws.cell(row, 1).string(items['hosp_province'] || '');
+        ws.cell(row, 1).string(items['hospcode'] || '');
         ws.cell(row, 2).string(items['hospname'] || '');
         ws.cell(row, 3).string(items['hn']);
         ws.cell(row, 4).string(items['an'] || '');
         ws.cell(row, 5).string(items['cid'] || '');
         ws.cell(row, 6).string((items['title_name']) + ' ' + (items['first_name']) + ' ' + (items['last_name']));
-        ws.cell(row, 7).string(items['gender']);
-        ws.cell(row, 8).string(items['age']);
-        ws.cell(row, 9).string(items['status']);
-        ws.cell(row, 10).string(items['date_admit']);
-        ws.cell(row, 11).string(items['date_discharge']);
-        ws.cell(row++, 12).string(items['refer_hospital_name'] || '');
+        ws.cell(row, 7).string(items['gender'] || '');
+        ws.cell(row, 8).string(items['age'] || '');
+        ws.cell(row, 9).string(items['status'] || '');
+        ws.cell(row, 10).string(items['date_admit'] || '');
+        ws.cell(row, 11).string(items['date_discharge'] || '');
+        ws.cell(row++, 12).string(items['refer_hospname'] || '');
       }
     } else {
       let row = 2
       for (const items of rs) {
         items.date_admit = moment(items.date_admit).format('DD/MM/YYYY');
         items.date_discharge = moment(items.date_discharge).format('DD/MM/YYYY');
-        ws.cell(row, 1).string(items['hosp_province'] || '');
+        ws.cell(row, 1).string(items['hospcode'] || '');
         ws.cell(row, 2).string(items['hospname'] || '');
         ws.cell(row, 3).string(items['hn']);
         ws.cell(row, 4).string(items['status']);
         ws.cell(row, 5).string(items['date_admit']);
         ws.cell(row, 6).string(items['date_discharge']);
-        ws.cell(row++, 7).string(items['refer_hospital_name'] || '');
+        ws.cell(row++, 7).string(items['refer_hospname'] || '');
       }
     }
     console.timeEnd('loop')
@@ -601,5 +690,21 @@ router.get('/all-case-hosp/excel', async (req: Request, res: Response) => {
     res.send({ ok: false, error: error });
   }
 });
+
+function toString(value) {
+  if (value || value == 0) {
+    return value.toString();
+  } else {
+    return '';
+  }
+}
+
+function toNumber(value) {
+  if (value || value == 0) {
+    return +value;
+  } else {
+    return 0;
+  }
+}
 
 export default router;

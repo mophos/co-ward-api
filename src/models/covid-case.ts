@@ -181,6 +181,7 @@ export class CovidCaseModel {
         v.orWhere('p.last_name', 'like', _query)
       });
     }
+    sql.orderBy('pt.hn')
     // console.log(sql.toString());
     return sql;
   }
@@ -200,25 +201,25 @@ export class CovidCaseModel {
     return sql;
 
   }
-  getDrugsFromDetails(db: Knex,  hospitalId, query, gcsSearchId, bedSearchId) {
+  getDrugsFromDetails(db: Knex, hospitalId, query, gcsSearchId, bedSearchId) {
     const sql = db('b_generics as g')
-      .select('g.id', 'g.name', db.raw(`if(pdi.id is null,false,true) as is_check`),'pdi.covid_case_detail_id')
-      .leftJoin('p_covid_case_detail_items as pdi','pdi.generic_id', 'g.id')
-      .leftJoin('p_covid_case_details as cd','cd.id','pdi.covid_case_detail_id')
-      .leftJoin('p_covid_cases as c','c.id','cd.covid_case_id')
-      .leftJoin('p_patients as pt','pt.id','c.patient_id')
+      .select('g.id', 'g.name', db.raw(`if(pdi.id is null,false,true) as is_check`), 'pdi.covid_case_detail_id')
+      .leftJoin('p_covid_case_detail_items as pdi', 'pdi.generic_id', 'g.id')
+      .leftJoin('p_covid_case_details as cd', 'cd.id', 'pdi.covid_case_detail_id')
+      .leftJoin('p_covid_cases as c', 'c.id', 'cd.covid_case_id')
+      .leftJoin('p_patients as pt', 'pt.id', 'c.patient_id')
       .where('g.is_deleted', 'N')
       .where('g.is_actived', 'Y')
       .where('g.type', 'DRUG')
       .where('g.sub_type', 'COVID')
       .where('pt.hospital_id', hospitalId)
-      if (gcsSearchId) {
-        sql.where('cd.gcs_id', gcsSearchId);
-      }
-      if (bedSearchId) {
-        sql.where('cd.bed_id', bedSearchId);
-      }
-      console.log(sql.toString());
+    if (gcsSearchId) {
+      sql.where('cd.gcs_id', gcsSearchId);
+    }
+    if (bedSearchId) {
+      sql.where('cd.bed_id', bedSearchId);
+    }
+    console.log(sql.toString());
     return sql;
 
   }
@@ -718,12 +719,12 @@ export class CovidCaseModel {
       .where('id', id);
   }
 
-  isDeleted(db: Knex, id) {
+  isDeleted(db: Knex, id, userId) {
     let sql = db('p_covid_cases')
       .update('is_deleted', 'Y')
       .update('updated_entry', db.fn.now())
+      .update('updated_by', userId)
       .where('id', id)
-      .whereRaw('date_entry=CURRENT_DATE()');
     return sql;
 
   }

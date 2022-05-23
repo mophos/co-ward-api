@@ -31,18 +31,17 @@ router.get('/', async (req: Request, res: Response) => {
 router.delete('/', async (req: Request, res: Response) => {
   const covidCaseId = req.query.covidCaseId;
   try {
-    const timeCut = await basicModel.timeCut();
-    if (timeCut.ok) {
-      let rs: any = await covidCaseModel.isDeleted(req.db, covidCaseId);
-      if (rs) {
-        res.send({ ok: true });
-      } else {
-        res.send({ ok: false, error: `คุณไม่สามารถลบได้ เนื่องจากเกินกำหนดเวลา` });
-      }
-
+    // const timeCut = await basicModel.timeCut();
+    // if (timeCut.ok) {
+    let rs: any = await covidCaseModel.isDeleted(req.db, covidCaseId, req.decoded.userId);
+    if (rs) {
+      res.send({ ok: true });
     } else {
-      res.send({ ok: false, error: timeCut.error });
+      res.send({ ok: false, error: `คุณไม่สามารถลบได้ เนื่องจากเกินกำหนดเวลา` });
     }
+    // } else {
+    //   res.send({ ok: false, error: timeCut.error });
+    // }
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
@@ -1317,18 +1316,18 @@ router.get('/update/all-case', async (req: Request, res: Response) => {
       //   detail.entry_date = moment().format('YYYY-MM-DD');
       // }
       const covidCaseDetailId = await covidCaseModel.saveCovidCaseDetail(db, detail);
-      if(covidCaseDetailId[0].insertId == 0){
+      if (covidCaseDetailId[0].insertId == 0) {
         //update
         await covidCaseModel.updateCovidCaseDetailItem(db, data.covid_case_details_id, covidCaseDetailId[0].insertId == 0 ? data.id : covidCaseDetailId[0].insertId)
-      } else{
+      } else {
         //insert
-        const datad= await covidCaseModel.selectCovidCaseDetailItem(db,data.covid_case_details_id);
-        const a=[];
+        const datad = await covidCaseModel.selectCovidCaseDetailItem(db, data.covid_case_details_id);
+        const a = [];
         for (const d of datad) {
           a.push({
             covid_case_detail_id: covidCaseDetailId[0].insertId,
-            generic_id:d.generic_id,
-            data_source:'COWARD-WEB'
+            generic_id: d.generic_id,
+            data_source: 'COWARD-WEB'
           })
         }
         await covidCaseModel.saveCovidCaseDetailItem(db, a)
