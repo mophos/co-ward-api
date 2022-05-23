@@ -1519,7 +1519,7 @@ router.get('/get-supplies', async (req: Request, res: Response) => {
 
   try {
     let zoneCodes = [];
-    console.log(type, zone);
+    // console.log(type, zone);
 
     let provinceCode = null;
     if (type == 'MANAGER') {
@@ -1536,7 +1536,7 @@ router.get('/get-supplies', async (req: Request, res: Response) => {
         provinceCode = _provinceCode;
       }
     }
-    console.log(type, zoneCodes, provinceCode);
+    // console.log(type, zoneCodes, provinceCode);
     let data: any = [];
 
     let province;
@@ -1549,7 +1549,7 @@ router.get('/get-supplies', async (req: Request, res: Response) => {
       sup = await model.getSupplies(db, date, null, null);
       province = await model.getProvince(db, null, null);
     }
-    console.log(province);
+    // console.log(province);
 
     for (const z of zoneCodes) {
       const zone: any = {};
@@ -1803,7 +1803,7 @@ router.get('/get-supplies/export', async (req: Request, res: Response) => {
 
     const rs = await model.getSupplies(db, date, provinceCode, zoneCodes);
     const province = uniqBy(rs, 'province_name');
-    console.log(province);
+    // console.log(province);
 
     let province_name = rs[0].province_name
     let sum_surgical_gown_qty = 0;

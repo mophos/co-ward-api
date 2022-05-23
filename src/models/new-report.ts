@@ -148,12 +148,16 @@ export class ReportModel {
   }
 
   getSupplies(db: Knex, date, provinceCode, zoneCode: any[]) {
-    const supplies = db('temp_views_supplies_hospital_date_cross as ws')
-      .join('b_hospitals as h', 'h.id', 'ws.hospital_id')
-      .max('ws.entry_date as entry_date')
-      .select('ws.hospital_id')
-      .groupBy('ws.hospital_id')
+    const orderSupp = db('temp_views_supplies_hospital_date_cross as ws')
+      .select('ws.hospital_id','ws.id')
       .where('ws.entry_date', '<=', date)
+      .orderBy('ws.entry_date')
+      .as('ws');
+
+    const supplies = db(orderSupp)
+      .join('b_hospitals as h', 'h.id', 'ws.hospital_id')
+      .select('ws.hospital_id','ws.id')
+      .groupBy('ws.hospital_id')
       .as('supplies');
     if (zoneCode.length) {
       supplies.whereIn('h.zone_code', zoneCode);
@@ -169,10 +173,7 @@ export class ReportModel {
         v.on('supplies.hospital_id', 'h.id')
         // v.on('supplies.entry_date', 'ws.entry_date')
       })
-      .leftJoin('temp_views_supplies_hospital_date_cross as sd', (v) => {
-        v.on('sd.hospital_id', 'supplies.hospital_id')
-        v.on('sd.entry_date', 'supplies.entry_date')
-      })
+      .leftJoin('temp_views_supplies_hospital_date_cross as sd', 'sd.id', 'supplies.id')
 
       .whereIn('h.hosptype_code', ['01', '05', '06', '07', '11', '12', '15', '19']);
     if (zoneCode.length) {
