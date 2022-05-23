@@ -338,7 +338,7 @@ export class ReportModel {
     sum(isolation_gown_qty) as isolation_gown_qty,
     sum(leg_cover_qty) as leg_cover_qty,
     sum(disposable_cap_qty) as disposable_cap_qty
-    from views_supplies_hospital_cross as v 
+    from temp_views_supplies_hospital_cross as v 
     join b_hospitals as h on h.id = v.hospital_id
     GROUP BY h.zone_code
     order by h.zone_code asc`
