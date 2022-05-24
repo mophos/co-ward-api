@@ -190,7 +190,7 @@ export class ReportModel {
     sql.orderBy('h.zone_code')
       .orderBy('h.province_code')
       .orderBy('h.hospcode');
-    console.log(sql.toString());
+    // console.log(sql.toString());
 
     return sql;
   }
