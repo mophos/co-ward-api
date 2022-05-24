@@ -156,7 +156,7 @@ export class ReportModel {
     const orderSupp = db('temp_views_supplies_hospital_date_cross as ws')
       .select('ws.hospital_id','ws.id')
       .where('ws.entry_date', '<=', date)
-      .orderBy('ws.entry_date')
+      .orderBy('ws.entry_date','desc')
       .as('ws');
 
     const supplies = db(orderSupp)
