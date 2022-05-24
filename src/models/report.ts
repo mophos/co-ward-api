@@ -156,7 +156,7 @@ export class ReportModel {
     const orderSupp = db('temp_views_supplies_hospital_date_cross as ws')
       .select('ws.hospital_id','ws.id')
       .where('ws.entry_date', '<=', date)
-      .orderBy('ws.entry_date')
+      .orderBy('ws.entry_date','desc')
       .as('ws');
 
     const supplies = db(orderSupp)
@@ -190,7 +190,7 @@ export class ReportModel {
     sql.orderBy('h.zone_code')
       .orderBy('h.province_code')
       .orderBy('h.hospcode');
-    // console.log(sql.toString());
+    console.log(sql.toString());
 
     return sql;
   }
