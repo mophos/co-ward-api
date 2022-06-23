@@ -221,10 +221,14 @@ export class BedModel {
 
 	getLastCaseDetails(db) {
 		let s = db('p_covid_case_detail_last as pcd')
+		.select('cd.entry_date','cd.id','cd.covid_case_id',	'cd.gcs_id','cd.bed_id','cd.medical_supplie_id',
+		'c.patient_id','cd.status','c.date_admit','p.hospital_id','cd.is_requisition')
 			.join('p_covid_cases as c', 'c.id', 'pcd.covid_case_id')
+			.join('p_covid_case_details as cd', 'cd.id', 'pcd.covid_case_detail_id')
+			.join('p_patients as p', 'p.id', 'c.patient_id')
 			.where('c.status', 'ADMIT')
-			.where('c.date_entry', '<', db.raw("now()"))
-		console.log(s.toString());
+			.where('cd.entry_date', '<', db.raw("now()"))
+		// console.log(s.toString());
 
 		return s
 	}
