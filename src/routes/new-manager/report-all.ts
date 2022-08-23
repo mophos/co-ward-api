@@ -593,7 +593,7 @@ const mapPatientReportByProvince = (normalCases: any[], medicalCases: any[], dea
   return results
 }
 
-const mapPatientReportByHospital = (normalCases: any[], medicalCases: any[], deathCases: any[], puiCases: any[], atkCases: any[]) => {
+const mapPatientReportByHospital = (normalCases: any[], medicalCases: any[], deathCases: any[],deathIPPUICases: any[], deathATKCases: any[], puiCases: any[], atkCases: any[]) => {
   const results = []
 
   const provinces = removeDupHospitalHeaders(normalCases, deathCases, puiCases, atkCases)
@@ -605,6 +605,8 @@ const mapPatientReportByHospital = (normalCases: any[], medicalCases: any[], dea
     const medicalCasesFounds = medicalCases.filter((each) => each.id === id)
     const puiCaseFounds = puiCases.filter((each) => each.id === id)
     const deathCasesFounds = deathCases.filter((each) => each.id === id)
+    const deathCasesPUIFounds = deathIPPUICases.filter((each) => each.id === id)
+    const deathCasesATKFounds = deathATKCases.filter((each) => each.id === id)
     const atkCasesFounds = atkCases.filter((each) => each.id === id)
 
     let normalCaseAmount = 0
@@ -623,12 +625,17 @@ const mapPatientReportByHospital = (normalCases: any[], medicalCases: any[], dea
     })
 
     const deathCaseAmount = deathCasesFounds.reduce((total, acc) => total + acc.count, 0)
+    const deathCasePUIAmount = deathCasesPUIFounds.reduce((total, acc) => total + acc.count, 0)
+    const deathCaseATKAmount = deathCasesATKFounds.reduce((total, acc) => total + acc.count, 0)
     const puiCaseAmount = puiCaseFounds.reduce((total, acc) => total + acc.count, 0)
     const atkCaseAmount = atkCasesFounds.reduce((total, acc) => total + acc.count, 0)
     obj['death'] = deathCaseAmount
+    obj['death_pui'] = deathCasePUIAmount
+    obj['death_atk'] = deathCaseATKAmount
+    obj['death'] = deathCaseAmount
     obj['pui'] = puiCaseAmount
     obj['atk'] = atkCaseAmount
-    obj['total'] = normalCaseAmount + deathCaseAmount + puiCaseAmount + atkCaseAmount
+    obj['total'] = normalCaseAmount + deathCaseAmount + puiCaseAmount + atkCaseAmount + deathCasePUIAmount + deathCaseATKAmount
 
     results.push(obj)
   })
@@ -924,16 +931,18 @@ router.get('/patient-report-by-hospital', async (req: Request, res: Response) =>
   const { zones, provinces, date, sector } = req.query;
 
   try {
-    const [headers, cases, casesWithMedicals, deathCases, puiCases, atkCases] = await Promise.all([
+    const [headers, cases, casesWithMedicals, deathCases, deathIPPUICases, deathATKCases, puiCases, atkCases] = await Promise.all([
       model.getPatientsReportHeaders(db),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.id', zones, provinces }),
       model.getPatientsCasesGroupByMedicalSupplies(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'ADMIT', groupBy: 'h.id', zones, provinces }),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'COVID', status: 'DEATH', groupBy: 'h.id', zones, provinces }),
+      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'IPPUI', status: 'DEATH', groupBy: 'h.id', zones, provinces }),
+      model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'ATK', status: 'DEATH', groupBy: 'h.id', zones, provinces }),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'IPPUI', status: 'ADMIT', groupBy: 'h.id', zones, provinces }),
       model.getPatientsCases(db, moment(date).format('YYYY-MM-DD'), { case: 'ATK', status: 'ADMIT', groupBy: 'h.id', zones, provinces })
     ])
 
-    const result = mapPatientReportByHospital(cases, casesWithMedicals, deathCases, puiCases, atkCases)
+    const result = mapPatientReportByHospital(cases, casesWithMedicals, deathCases, deathIPPUICases, deathATKCases, puiCases, atkCases)
     res.send({ ok: true, rows: result, code: HttpStatus.OK });
   } catch (error) {
     console.log(error);
