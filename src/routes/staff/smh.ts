@@ -95,6 +95,8 @@ router.get('/', async (req: Request, res: Response) => {
       } else if (key.length === 13) {
         console.log('api');
         const apiRs: any = await model.getApiExchangeCid(key)
+        console.log(apiRs);
+        
         if (apiRs.rows.length > 0) {
           const rows = apiRs.rows[0];
           if (rows.birthdate.substr(5, 2) == '00' || rows.birthdate.substr(8, 2) == '00') {
