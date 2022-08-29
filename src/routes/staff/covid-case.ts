@@ -551,7 +551,8 @@ async function saveCovidCase(db, req, data, errorMessage = null) {
           date_admit: data.admitDate,
           confirm_date: data.confirmDate,
           created_by: userId,
-          case_status: data.caseStatus
+          case_status: data.caseStatus,
+          is_risk: data.Isrisk
         }
 
         if (data.returnFromAbroad == 'covid' || data.returnFromAbroad == 'other') {
@@ -1355,6 +1356,37 @@ router.get('/update/all-case', async (req: Request, res: Response) => {
   } catch (error) {
     console.log(error);
     res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/death', async (req: Request, res: Response) => {
+  const hospitalId = req.decoded.hospitalId;
+  let data: any = {};
+  let date = moment().format('YYYY-MM-DD');
+  try {
+    let covid: any = await covidCaseModel.getDeathCovid(req.db, hospitalId, date);
+    let nonCovid: any = await covidCaseModel.getDeathNonCovid(req.db, hospitalId, date);
+    data = {
+      covid: covid[0].covid,
+      nonCovid: nonCovid[0].noncovid
+    }
+    res.send({ ok: true, rows: data, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+
+    res.send({ ok: false, error: error.message, code: HttpStatus.OK });
+  }
+});
+
+router.get('/risk', async (req: Request, res: Response) => {
+  const db = req.db;
+  const hospitalId = req.decoded.hospitalId;
+  let date = moment().format('YYYY-MM-DD');
+  try {
+    const rs = await covidCaseModel.getIsrisk(db, hospitalId, date);
+    res.send({ ok: true, rows: rs[0] })
+  } catch (error) {
+    res.send({ ok: false, error: error });
   }
 });
 
