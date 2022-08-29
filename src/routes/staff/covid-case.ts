@@ -1106,6 +1106,7 @@ router.post('/update/discharge', async (req: Request, res: Response) => {
 
     const obj: any = {};
     obj.status = data.status;
+    obj.discharge_reason = data.dischargeReason;
     obj.date_discharge = data.dateDischarge;
     if (data.hospitalId !== undefined) {
       obj.hospital_id_refer = data.hospitalId;

@@ -34,7 +34,7 @@ router.get('/', async (req: Request, res: Response) => {
           await model.saveVaccine(db, data);
         } catch (error) {
           console.log(error);
-          
+
         }
       }
 
@@ -95,25 +95,31 @@ router.get('/', async (req: Request, res: Response) => {
       } else if (key.length === 13) {
         console.log('api');
         const apiRs: any = await model.getApiExchangeCid(key)
-        const rows = apiRs.rows[0];
-        if (rows.birthdate.substr(5, 2) == '00' || rows.birthdate.substr(8, 2) == '00') {
-          rows.birthdate = rows.birthdate.substr(0, 4) + '-01-01';
-        }
-        const bdate = (+moment(rows.birthdate).format('YYYY') - 543) + '-' + moment(rows.birthdate).format('MM') + '-' + moment(rows.birthdate).format('DD')
-        obj.ampur_name = rows.district_name;
-        obj.tambon_name = rows.subdistrict_name;
-        obj.province_name = rows.province_name;
-        obj.first_name = rows.fname;
-        obj.last_name = rows.lname;
-        obj.birth_date = bdate;
+        console.log(apiRs);
+        
+        if (apiRs.rows.length > 0) {
+          const rows = apiRs.rows[0];
+          if (rows.birthdate.substr(5, 2) == '00' || rows.birthdate.substr(8, 2) == '00') {
+            rows.birthdate = rows.birthdate.substr(0, 4) + '-01-01';
+          }
+          const bdate = (+moment(rows.birthdate).format('YYYY') - 543) + '-' + moment(rows.birthdate).format('MM') + '-' + moment(rows.birthdate).format('DD')
+          obj.ampur_name = rows.district_name;
+          obj.tambon_name = rows.subdistrict_name;
+          obj.province_name = rows.province_name;
+          obj.first_name = rows.fname;
+          obj.last_name = rows.lname;
+          obj.birth_date = bdate;
 
-        obj.house_no = rows.houseno + ' ' + rows.moo;
-        obj.ampur_code = rows.district_code;
-        obj.tambon_code = rows.subdistrict_code;
-        obj.province_code = rows.province_code;
-        obj.country_name = 'ไทย';
-        obj.country_code = 20;
-        res.send({ ok: true, rows: obj, code: HttpStatus.OK });
+          obj.house_no = rows.houseno + ' ' + rows.moo;
+          obj.ampur_code = rows.district_code;
+          obj.tambon_code = rows.subdistrict_code;
+          obj.province_code = rows.province_code;
+          obj.country_name = 'ไทย';
+          obj.country_code = 20;
+          res.send({ ok: true, rows: obj, code: HttpStatus.OK });
+        } else {
+          res.send({ ok: false, message: 'ไม่มีข้อมูล' });
+        }
       } else {
         res.send({ ok: true })
       }
