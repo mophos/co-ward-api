@@ -779,12 +779,22 @@ export class ReportAllModel {
       .leftJoin('b_gcs as g', 'g.id', 'cd.gcs_id')
       .where('cd.entry_date', date)
       // .where('c.case_status', options.case)
-      .where('cd.status', options.status)
+      
       .where('c.is_deleted', 'N')
       .whereNotNull('cd.gcs_id')
       .groupBy(options.groupBy, 'cd.gcs_id')
       .orderBy('h.zone_code')
       .orderBy('h.province_code')
+
+    if( options.status === 'DEATHCOVID' ){
+      sql.where('c.discharge_reason', 'COVID')
+      .where('cd.status', 'DEATH');
+    } else if (options.status === 'DEATHNONCOVID' ) {
+      sql.where('c.discharge_reason', 'NONCOVID')
+      .where('cd.status', 'DEATH');
+    } else { 
+      sql.where('cd.status', options.status);
+    }
 
     if (options.case == 'COVID') {
       sql.whereIn('cd.gcs_id', [1, 2, 3, 4]);
