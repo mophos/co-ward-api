@@ -1668,7 +1668,7 @@ router.get('/get-gcs/new-admit/export', async (req: Request, res: Response) => {
       hos = await model.getCountNewAdmit(db, date, zoneCode, _provinceCode);
     }
     console.log(hos);
-    
+
     const province = _.uniqBy(hos, 'province_code');
     let data: any = [];
 
@@ -1691,7 +1691,7 @@ router.get('/get-gcs/new-admit/export', async (req: Request, res: Response) => {
         ws.cell(row, 7).number(_.filter(filterHospital, { gcs_id: 5 }).length);
         ws.cell(row, 8).number(_.filter(filterHospital, { gcs_id: 7 }).length);
         row += 1;
-        
+
         for (const f of filterHospital) {
           ws2.cell(rowl, 1).string(f.province_name);
           ws2.cell(rowl, 2).string(f.hospname);
@@ -2985,7 +2985,11 @@ router.get('/admit-confirm-case/export', async (req: Request, res: Response) => 
         'Lopinavir 200 mg./Ritonavir 50 mg.': 'Lopinavir 200 mg./Ritonavir 50 mg.',
         'Ritonavir 100 mg.': 'Ritonavir 100 mg.',
         'Azithromycin 250 mg.': 'Azithromycin 250 mg.',
-        'Favipiravi(คน)': 'Favipiravi(คน)'
+        'Favipiravi(คน)': 'Favipiravi(คน)',
+        'Molnupiravir': 'Molnupiravir',
+        'Remdesivir': 'Remdesivir',
+        'Paxlovid': 'Paxlovid',
+        'ผู้ป่วยปัจจัยเสี่ยง(608)': 'ผู้ป่วยปัจจัยเสี่ยง(608)'
       },
       items: rs,
       sheetName: 'สรุป'
@@ -3012,7 +3016,11 @@ router.get('/admit-confirm-case/export', async (req: Request, res: Response) => 
       'Lopinavir 200 mg./Ritonavir 50 mg.': 'Lopinavir 200 mg./Ritonavir 50 mg.',
       'Ritonavir 100 mg.': 'Ritonavir 100 mg.',
       'Azithromycin 250 mg.': 'Azithromycin 250 mg.',
-      'Favipiravi': 'Favipiravi'
+      'Favipiravi': 'Favipiravi',
+      'Molnupiravir': 'Molnupiravir',
+      'Remdesivir': 'Remdesivir',
+      'Paxlovid': 'Paxlovid',
+      'ผู้ป่วยปัจจัยเสี่ยง(608)': 'ผู้ป่วยปัจจัยเสี่ยง(608)',
     };
     if (!showPersons) {
       header = {
@@ -3031,7 +3039,11 @@ router.get('/admit-confirm-case/export', async (req: Request, res: Response) => 
         'Lopinavir 200 mg./Ritonavir 50 mg.': 'Lopinavir 200 mg./Ritonavir 50 mg.',
         'Ritonavir 100 mg.': 'Ritonavir 100 mg.',
         'Azithromycin 250 mg.': 'Azithromycin 250 mg.',
-        'Favipiravi': 'Favipiravi'
+        'Favipiravi': 'Favipiravi',
+        'Molnupiravir': 'Molnupiravir',
+        'Remdesivir': 'Remdesivir',
+        'Paxlovid': 'Paxlovid',
+        'ผู้ป่วยปัจจัยเสี่ยง(608)': 'ผู้ป่วยปัจจัยเสี่ยง(608)',
       };
     }
 

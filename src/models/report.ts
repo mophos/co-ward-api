@@ -460,7 +460,12 @@ export class ReportModel {
       CASE WHEN d4 > 0 THEN '/' ELSE '' END as 'Lopinavir 200 mg./Ritonavir 50 mg.',
       CASE WHEN d5 > 0 THEN '/' ELSE '' END as 'Ritonavir 100 mg.',
       CASE WHEN d7 > 0 THEN '/' ELSE '' END as 'Azithromycin 250 mg.',
-      CASE WHEN d8 > 0 THEN '/' ELSE '' END as 'Favipiravi'`)
+      CASE WHEN d8 > 0 THEN '/' ELSE '' END as 'Favipiravi',
+      CASE WHEN d27 > 0 THEN '/' ELSE '' END as 'Molnupiravir',
+      CASE WHEN d28 > 0 THEN '/' ELSE '' END as 'Remdesivir',
+      CASE WHEN d29 > 0 THEN '/' ELSE '' END as 'Paxlovid',
+      CASE WHEN is_risk > 0 THEN '/' ELSE '' END as 'ผู้ป่วยปัจจัยเสี่ยง(608)'
+      `)
       )
       .orderBy('zone_code')
       .orderBy('province_name')
@@ -598,7 +603,32 @@ export class ReportModel {
 
   admitConfirmCaseSummaryExcel(db: Knex) {
     const sql = db('temp_report_admit_comfirm_case_summary')
-      .select(db.raw(`IFNULL(zone_code, 0) as 'เขต',IFNULL(confirm, 0) as 'รวม',IFNULL(severe, 0) as 'Severe',IFNULL(moderate, 0) as 'moderate',IFNULL(mild, 0) as 'mild',IFNULL(asymptomatic, 0) as 'asymptomatic',IFNULL(aiir, 0) as 'aiir',IFNULL(modified_aiir, 0) as 'modified_aiir',IFNULL(isolate, 0) as 'isolate',IFNULL(cohort, 0) as 'cohort',IFNULL(cohort_icu, 0) as 'cohort_icu',IFNULL(hospitel, 0) as 'Hospitel',IFNULL(invasive, 0) as 'invasive',IFNULL(noninvasive, 0) as 'noninvasive',IFNULL(high_flow, 0) as 'high_flow',IFNULL(d3, 0) as 'Darunavir 600 mg.',IFNULL(d4, 0) as 'Lopinavir 200 mg./Ritonavir 50 mg.',IFNULL(d5, 0) as 'Ritonavir 100 mg.',IFNULL(d7, 0) as 'Azithromycin 250 mg.',IFNULL(d8, 0) as 'Favipiravi(คน)'`))
+      .select(db.raw(`
+      IFNULL( zone_code, 0 ) AS 'เขต',
+      IFNULL( confirm, 0 ) AS 'รวม',
+      IFNULL( severe, 0 ) AS 'Severe',
+      IFNULL( moderate, 0 ) AS 'moderate',
+      IFNULL( mild, 0 ) AS 'mild',
+      IFNULL( asymptomatic, 0 ) AS 'asymptomatic',
+      IFNULL( aiir, 0 ) AS 'aiir',
+      IFNULL( modified_aiir, 0 ) AS 'modified_aiir',
+      IFNULL( isolate, 0 ) AS 'isolate',
+      IFNULL( cohort, 0 ) AS 'cohort',
+      IFNULL( cohort_icu, 0 ) AS 'cohort_icu',
+      IFNULL( hospitel, 0 ) AS 'Hospitel',
+      IFNULL( invasive, 0 ) AS 'invasive',
+      IFNULL( noninvasive, 0 ) AS 'noninvasive',
+      IFNULL( high_flow, 0 ) AS 'high_flow',
+      IFNULL( d3, 0 ) AS 'Darunavir 600 mg.',
+      IFNULL( d4, 0 ) AS 'Lopinavir 200 mg./Ritonavir 50 mg.',
+      IFNULL( d5, 0 ) AS 'Ritonavir 100 mg.',
+      IFNULL( d7, 0 ) AS 'Azithromycin 250 mg.',
+      IFNULL( d8, 0 ) AS 'Favipiravi(คน)',
+      IFNULL( d27, 0 ) AS 'Molnupiravir',
+      IFNULL( d28, 0 ) AS 'Remdesivir',
+      IFNULL( d29, 0 ) AS 'Paxlovid',
+      IFNULL( is_risk, 0 ) AS 'ผู้ป่วยปัจจัยเสี่ยง(608)'
+      `))
     return sql;
   }
 
