@@ -154,14 +154,14 @@ export class ReportModel {
 
   getSupplies(db: Knex, date, provinceCode, zoneCode: any[]) {
     const orderSupp = db('temp_views_supplies_hospital_date_cross as ws')
-      .select('ws.hospital_id','ws.id')
+      .select('ws.hospital_id', 'ws.id')
       .where('ws.entry_date', '<=', date)
-      .orderBy('ws.entry_date','desc')
+      .orderBy('ws.entry_date', 'desc')
       .as('ws');
 
     const supplies = db(orderSupp)
       .join('b_hospitals as h', 'h.id', 'ws.hospital_id')
-      .select('ws.hospital_id','ws.id')
+      .select('ws.hospital_id', 'ws.id')
       .groupBy('ws.hospital_id')
       .as('supplies');
     if (zoneCode.length) {
@@ -503,9 +503,9 @@ export class ReportModel {
   admitPuiCase(db: Knex, showPersons = false, limit = 1000, offset = 0) {
     // const last = db('p_covid_case_details')
     let sql = db('temp_report_admit_pui_case')
-      .select('d1', 'd2', 'd3', 'd4', 'd5', 'd7', 'd8', 'd26', 'd27', 'hn', 'an', 'hospital_id', 'updated_entry_last', 'days',
+      .select('d1', 'd2', 'd3', 'd4', 'd5', 'd7', 'd8', 'd26', 'd27', 'd28', 'd29', 'hn', 'an', 'hospital_id', 'updated_entry_last', 'days',
         'hospname', 'hospcode', 'zone_code', 'province_name', 'date_admit', 'gcs_name', 'bed_name', 'medical_supplies_name',
-        'first_name', 'last_name', 'cid', 'sat_id', 'timestamp'
+        'first_name', 'last_name', 'cid', 'sat_id', 'timestamp', 'is_risk'
       );
     if (showPersons) {
       sql.select('first_name', 'last_name', 'cid', 'sat_id');
@@ -545,7 +545,7 @@ export class ReportModel {
     let sql = db('temp_report_admit_pui_case as c')
       .select('c.d1', 'c.d2', 'c.d3', 'c.d4', 'c.d5', 'c.d7', 'c.d8', 'd26', 'd27', 'c.hn', 'c.an', 'c.hospital_id', 'c.updated_entry_last', 'c.days',
         'c.hospname', 'c.hospcode', 'c.zone_code', 'c.province_name', 'c.date_admit', 'c.gcs_name', 'c.bed_name', 'c.medical_supplies_name',
-         'c.sat_id', 'c.timestamp','c.sex','c.age'
+        'c.sat_id', 'c.timestamp', 'c.sex', 'c.age'
       );
     if (showPersons) {
       sql.select('c.first_name', 'c.last_name', 'c.cid', 'c.sat_id');
@@ -1205,9 +1205,9 @@ export class ReportModel {
       .join('b_hospitals as h', 'h.id', 'pt.hospital_id')
       // .join('b_gcs as g', 'g.id', 'cd.gcs_id')
       .where('c.create_date', 'like', _date)
-      if(zoneCode){
-        sql.where('h.zone_code', zoneCode)
-      }
+    if (zoneCode) {
+      sql.where('h.zone_code', zoneCode)
+    }
     if (province) {
       sql.where('h.province_code', province)
     }

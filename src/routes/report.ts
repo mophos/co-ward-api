@@ -3271,6 +3271,10 @@ router.get('/admit-pui-case/export', async (req: Request, res: Response) => {
     ws1.cell(1, 14).string('Ritonavir 100 mg.');
     ws1.cell(1, 15).string('Azithromycin 250 mg.');
     ws1.cell(1, 16).string('Favipiravi(คน)');
+    ws1.cell(1, 17).string('Molnupiravir');
+    ws1.cell(1, 18).string('Remdesivir');
+    ws1.cell(1, 19).string('Paxlovid');
+    ws1.cell(1, 20).string('ผู้ป่วยปัจจัยเสี่ยง(608)');
     let row = 2;
     for (const l of rs) {
       ws1.cell(row, 1).number(toNumber(+l.zone_code || 0));
@@ -3289,6 +3293,10 @@ router.get('/admit-pui-case/export', async (req: Request, res: Response) => {
       ws1.cell(row, 14).number(toNumber(l.d5 || 0));
       ws1.cell(row, 15).number(toNumber(l.d7 || 0));
       ws1.cell(row, 16).number(toNumber(l.d8 || 0));
+      ws1.cell(row, 17).number(toNumber(l.d27 || 0));
+      ws1.cell(row, 18).number(toNumber(l.d28 || 0));
+      ws1.cell(row, 19).number(toNumber(l.d29 || 0));
+      ws1.cell(row, 20).number(toNumber(l.is_risk || 0));
       row++;
     }
     var ws2 = wb.addWorksheet('รายคน');
@@ -3316,6 +3324,10 @@ router.get('/admit-pui-case/export', async (req: Request, res: Response) => {
       ws2.cell(1, 20).string('Ritonavir 100 mg.');
       ws2.cell(1, 21).string('Azithromycin 250 mg.');
       ws2.cell(1, 22).string('Favipiravi');
+      ws2.cell(1, 23).string('Molnupiravir');
+      ws2.cell(1, 24).string('Remdesivir');
+      ws2.cell(1, 25).string('Paxlovid');
+      ws2.cell(1, 26).string('ผู้ป่วยปัจจัยเสี่ยง(608)');
     } else {
       ws2.cell(1, 1).string('เขต');
       ws2.cell(1, 2).string('จังหวัด');
@@ -3333,6 +3345,10 @@ router.get('/admit-pui-case/export', async (req: Request, res: Response) => {
       ws2.cell(1, 14).string('Ritonavir 100 mg.');
       ws2.cell(1, 15).string('Azithromycin 250 mg.');
       ws2.cell(1, 16).string('Favipiravi');
+      ws2.cell(1, 17).string('Molnupiravir');
+      ws2.cell(1, 18).string('Remdesivir');
+      ws2.cell(1, 19).string('Paxlovid');
+      ws2.cell(1, 20).string('ผู้ป่วยปัจจัยเสี่ยง(608)');
     }
 
     row = 2;
@@ -3362,6 +3378,10 @@ router.get('/admit-pui-case/export', async (req: Request, res: Response) => {
         ws2.cell(row, 20).string(toString(i.d5 > 0 ? '/' : ''));
         ws2.cell(row, 21).string(toString(i.d7 > 0 ? '/' : ''));
         ws2.cell(row, 22).string(toString(i.d8 > 0 ? '/' : ''));
+        ws2.cell(row, 23).string(toString(i.d27 > 0 ? '/' : ''));
+        ws2.cell(row, 24).string(toString(i.d28 > 0 ? '/' : ''));
+        ws2.cell(row, 25).string(toString(i.d29 > 0 ? '/' : ''));
+        ws2.cell(row, 26).string(toString(i.is_risk == 'Y' ? '/' : ''));
       } else {
         ws2.cell(row, 1).string(toString(i.zone_code));
         ws2.cell(row, 2).string(toString(i.province_name));
@@ -3379,6 +3399,10 @@ router.get('/admit-pui-case/export', async (req: Request, res: Response) => {
         ws2.cell(row, 14).string(toString(i.d5 > 0 ? '/' : ''));
         ws2.cell(row, 15).string(toString(i.d7 > 0 ? '/' : ''));
         ws2.cell(row, 16).string(toString(i.d8 > 0 ? '/' : ''));
+        ws2.cell(row, 17).string(toString(i.d27 > 0 ? '/' : ''));
+        ws2.cell(row, 18).string(toString(i.d28 > 0 ? '/' : ''));
+        ws2.cell(row, 19).string(toString(i.d29 > 0 ? '/' : ''));
+        ws2.cell(row, 20).string(toString(i.is_risk == 'Y' ? '/' : ''));
       }
       row++;
     }
