@@ -935,13 +935,14 @@ export class CovidCaseModel {
   }
 
   getIsrisk(db: Knex, hospitalId, date) {
-    let startDate = date + ' 00:00:00';
-    let endDate = date + ' 23:59:59';
+    // let startDate = date + ' 00:00:00';
+    // let endDate = date + ' 23:59:59';
     return db('p_covid_cases AS pcc')
       .count('* as risk')
       .join('p_patients as pp', 'pp.id', 'pcc.patient_id')
       .where('pp.hospital_id', hospitalId)
       .where('pcc.is_risk', 'Y')
-      .whereBetween('pcc.date_admit', [startDate, endDate])
+      .where('pcc.status', 'ADMIT')
+      // .whereBetween('pcc.date_admit', [startDate, endDate])
   }
 }
