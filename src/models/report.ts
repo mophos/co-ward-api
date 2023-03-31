@@ -589,6 +589,8 @@ export class ReportModel {
     if (provinceCode) {
       sql.where('h.province_code', provinceCode);
     }
+    console.log(sql.toString());
+    
     return sql;
   }
 
